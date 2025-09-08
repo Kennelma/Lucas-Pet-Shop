@@ -1,0 +1,46 @@
+{
+  "name": "lucas-pet-shop",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd BACKEND && node index.js",
+    "dev:frontend": "cd FRONTEND && vite",
+    "start": "cd BACKEND && node index.js",
+    "build": "cd FRONTEND && vite build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.2",
+    "concurrently": "^9.2.1",
+    "sass-embedded": "^1.92.1",
+    "vite": "^7.1.4"
+  },
+  "dependencies": {
+    "@coreui/chartjs": "^4.0.0",
+    "@coreui/icons": "^3.0.1",
+    "@coreui/icons-react": "^2.3.0",
+    "@coreui/react": "^5.8.0",
+    "@fortawesome/fontawesome-free": "^7.0.1",
+    "@fortawesome/free-solid-svg-icons": "^7.0.1",
+    "@fortawesome/react-fontawesome": "^3.0.2",
+    "@tailwindcss/vite": "^4.1.13",
+    "axios": "^1.11.0",
+    "chart.js": "^4.5.0",
+    "core-js": "^3.45.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "mysql": "^2.18.1",
+    "prop-types": "^15.8.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.8.2",
+    "redux": "^5.0.1",
+    "simplebar-react": "^3.3.2",
+    "tailwindcss": "^4.1.13"
+  }
+}
