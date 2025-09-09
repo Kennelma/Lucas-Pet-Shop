@@ -1,15 +1,16 @@
 {
-  "short_name": "CoreUI-React",
-  "name": "CoreUI-React sample",
+  "short_name": "Lucas Pet Shop",
+  "name": "Lucas Pet Shop - Sistema de Gestión",
+  "description": "Sistema completo para gestión de tienda de mascotas",
   "icons": [
     {
-      "src": "./assets/img/favicon.png",
-      "sizes": "100x100",
-      "type": "image/png"
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#007bff",
   "background_color": "#ffffff"
 }
