@@ -59,9 +59,13 @@ body {
   min-height: calc(3rem + 1px);
 }
 
+body {
+  background-color: #ffffff;  // ← Para tema claro (blanco)
+}
+
 @include color-mode(dark) {
   body {
-    background-color: #989A9A;
+    background-color: #111827;
   }
 
   .footer {
