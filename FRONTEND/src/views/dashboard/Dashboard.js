@@ -4,8 +4,6 @@ import axios from "axios";
 import React, { Suspense, useEffect, useState} from 'react'
 
 
-
-
 const Dashboard = () => {
 
   const API_URL = "http://localhost:4000/api"; // <- tu backend en el nuevo puerto
@@ -73,18 +71,7 @@ const Dashboard = () => {
       </div>
     </div>
       
-
-
-
-
-
     </div>
-
-    
-
-
-
-
 
   )
 }
