@@ -12,9 +12,12 @@ import {
   faChartPie ,  
   faCapsules,
   faDog,
+  faUser,
+  faHistory,
   faGift,
   faBowlFood,
-  faShower
+  faBone,
+  faShower, 
 } from '@fortawesome/free-solid-svg-icons'
 
 
@@ -53,28 +56,28 @@ const _nav = [
       {
         component: CNavItem,
         name: 'Alimentos',
-        to: '/productos/Alimentos',
+        to: '/productos/alimentos',
         style: { paddingLeft: '65px' },
-        icon: <FontAwesomeIcon icon={faBowlFood} className="nav-icon" />,
+        icon: <FontAwesomeIcon icon={faBone} className="nav-icon" />,
       },
       {
         component: CNavItem,
         name: 'Medicamentos',
-        to: '/productos/Medicamentos',
+        to: '/productos/medicamentos',
         style: { paddingLeft: '65px' },
         icon: <FontAwesomeIcon icon={faCapsules} className="nav-icon" />,
       },
       {
         component: CNavItem,
         name: 'Accesorios',
-        to: '/productos/Accesorios',
+        to: '/productos/accesorios',
         style: { paddingLeft: '65px' },
         icon: <FontAwesomeIcon icon={faGift} className="nav-icon" />,
       },
       {
         component: CNavItem,
         name: 'Animales',
-        to: '/productos/Animales',
+        to: '/productos/animales',
         style: { paddingLeft: '65px' },
         icon: <FontAwesomeIcon icon={faDog} className="nav-icon" />,
       },
@@ -99,7 +102,7 @@ const _nav = [
       },
       {
         component: CNavItem,
-        name: 'Servicios Peluqueria',
+        name: 'Servicios',
         style: { paddingLeft: '65px' },
         icon: <FontAwesomeIcon icon={faShower} className="nav-icon" />,
          to: '/peluqueria-canina/Servicios-peluqueria',
@@ -136,6 +139,23 @@ const _nav = [
    
   },
 
+  //HISTORIALES
+  {
+    component: CNavItem,
+    name: 'Historiales',
+    to: '/',
+    icon: <FontAwesomeIcon icon={faHistory} className="nav-icon" />,
+
+  },
+
+  //USUARIOS
+  {
+    component: CNavItem,
+    name: 'Usuarios',
+    to: '/',
+    icon: <FontAwesomeIcon icon={faUser} className="nav-icon" />,
+
+  },
  
 
   /*
