@@ -1,7 +1,7 @@
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import React, { Suspense, useEffect, useState} from 'react'
-import { HashRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 
 import { CSpinner, useColorModes } from '@coreui/react'
@@ -50,7 +50,7 @@ const App = () => {
   
 
   return (
-    <HashRouter>
+    <BrowserRouter>
 
 
       <Suspense
@@ -68,7 +68,7 @@ const App = () => {
           <Route path="*" name="Home" element={<DefaultLayout />} />
         </Routes>
       </Suspense>
-    </HashRouter>
+    </BrowserRouter>
   )
 }
 
