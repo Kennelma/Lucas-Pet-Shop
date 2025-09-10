@@ -1,43 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
+import { verRegistro, insertarRegistro, actualizarRegistro, borrarRegistro } from "../../services/apiService.js";
 
 const InventarioAccesorios = () => {
-  const [inventario, setInventario] = useState([]);
-  const [editIndex, setEditIndex] = useState(-1);
+  const [productos, setProductos] = useState([]);
+  const [accesorios, setAccesorios] = useState([]);
+  const [isDark, setIsDark] = useState(false);
   const [busquedaActual, setBusquedaActual] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [mensaje, setMensaje] = useState({ texto: '', tipo: '' });
-  const [isDark, setIsDark] = useState(false);
+  const [editandoAccesorio, setEditandoAccesorio] = useState(null);
   
   // Datos del formulario
   const [formData, setFormData] = useState({
-    codigo: '',
-    nombre: '',
-    categoria: 'Accesorio',
-    cantidad: 0,
-    precio: 0
+    nombre_producto: '',
+    precio_unitario_producto: '',
+    cantidad_en_stock: '',
+    categoria: 'accesorios',
+    id_categoria_item_fk: 2
   });
-
-  const iconosCategoria = {
-    'Accesorio': '🎾'
-  };
-
-  const prefijosCodigo = {
-    'Accesorio': 'AC'
-  };
 
   // Detectar tema oscuro de Core UI
   useEffect(() => {
     const detectarTemaCoreUI = () => {
-      // Core UI usa data-coreui-theme="dark" en el HTML
       const htmlElement = document.documentElement;
       const esTemaOscuro = htmlElement.getAttribute('data-coreui-theme') === 'dark';
       setIsDark(esTemaOscuro);
     };
 
-    // Detectar tema inicial
     detectarTemaCoreUI();
 
-    // Observador para detectar cambios en el atributo data-coreui-theme
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.type === 'attributes' && 
@@ -47,52 +38,38 @@ const InventarioAccesorios = () => {
       });
     });
     
-    // Observar cambios en el HTML
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['data-coreui-theme', 'class']
     });
 
-    // También observar cambios en el body por si acaso
     observer.observe(document.body, {
       attributes: true,
       attributeFilter: ['data-coreui-theme', 'class']
     });
 
-    // Limpiar observador al desmontar
     return () => observer.disconnect();
   }, []);
 
-  // Cargar inventario desde localStorage al iniciar
+  // Cargar productos desde API y filtrar accesorios
   useEffect(() => {
-    const inventarioGuardado = JSON.parse(localStorage.getItem('inventario-accesorios')) || [];
-    migrarInventario(inventarioGuardado);
+    cargarAccesorios();
   }, []);
 
-  // Migrar inventario existente sin códigos
-  const migrarInventario = (inventarioData) => {
-    let necesitaMigracion = false;
-    const inventarioMigrado = inventarioData.map(producto => {
-      if (!producto.codigo) {
-        producto.codigo = generarCodigo(producto.categoria, inventarioData);
-        necesitaMigracion = true;
-      }
-      // Asegurar que todos los productos sean de categoría Accesorio
-      producto.categoria = 'Accesorio';
-      return producto;
-    });
-    
-    if (necesitaMigracion) {
-      localStorage.setItem('inventario-accesorios', JSON.stringify(inventarioMigrado));
+  const cargarAccesorios = async () => {
+    try {
+      const data = await verRegistro("productos");
+      setProductos(data);
+      
+      const accesoriosFiltrados = data.filter(producto => 
+        producto.categoria && producto.categoria.toLowerCase() === 'accesorios'
+      );
+      setAccesorios(accesoriosFiltrados);
+      console.log('Accesorios cargados:', accesoriosFiltrados);
+    } catch (error) {
+      console.error('Error al cargar accesorios:', error);
+      mostrarMensaje('Error al cargar los accesorios.', 'error');
     }
-    setInventario(inventarioMigrado);
-  };
-
-  const generarCodigo = (categoria, inventarioData = inventario) => {
-    const prefijo = prefijosCodigo[categoria] || 'AC';
-    const existentes = inventarioData.filter(p => p.categoria === categoria).length;
-    const numero = String(existentes + 1).padStart(3, '0');
-    return `${prefijo}-${numero}`;
   };
 
   const mostrarMensaje = (texto, tipo = 'success') => {
@@ -102,24 +79,38 @@ const InventarioAccesorios = () => {
 
   const abrirModal = () => {
     setModalVisible(true);
-    setEditIndex(-1);
+    setEditandoAccesorio(null);
     setFormData({
-      codigo: generarCodigo('Accesorio'),
-      nombre: '',
-      categoria: 'Accesorio',
-      cantidad: 0,
-      precio: 0
+      nombre_producto: '',
+      precio_unitario_producto: '',
+      cantidad_en_stock: '',
+      categoria: 'accesorios',
+      id_categoria_item_fk: 2
+    });
+  };
+
+  const abrirModalEdicion = (accesorio) => {
+    console.log('Abriendo modal para editar:', accesorio);
+    setModalVisible(true);
+    setEditandoAccesorio(accesorio);
+    setFormData({
+      nombre_producto: accesorio.nombre_producto || '',
+      precio_unitario_producto: accesorio.precio_unitario_producto ? accesorio.precio_unitario_producto.toString() : '',
+      cantidad_en_stock: accesorio.cantidad_en_stock ? accesorio.cantidad_en_stock.toString() : '',
+      categoria: 'accesorios',
+      id_categoria_item_fk: 2
     });
   };
 
   const cerrarModal = () => {
     setModalVisible(false);
+    setEditandoAccesorio(null);
     setFormData({
-      codigo: '',
-      nombre: '',
-      categoria: 'Accesorio',
-      cantidad: 0,
-      precio: 0
+      nombre_producto: '',
+      precio_unitario_producto: '',
+      cantidad_en_stock: '',
+      categoria: 'accesorios',
+      id_categoria_item_fk: 2
     });
   };
 
@@ -131,77 +122,83 @@ const InventarioAccesorios = () => {
     }));
   };
 
-  const registrarInventario = () => {
-    const { codigo, nombre, categoria, cantidad, precio } = formData;
+  const registrarAccesorio = async () => {
+    const { nombre_producto, precio_unitario_producto, cantidad_en_stock } = formData;
     
-    if (!nombre.trim()) {
-      mostrarMensaje('Por favor ingresa el nombre del accesorio.', 'error');
+    if (!nombre_producto.trim()) {
+      mostrarMensaje('Por favor ingresa el nombre del producto.', 'error');
       return;
     }
     
-    if (!codigo.trim()) {
-      mostrarMensaje('Error generando el código del accesorio.', 'error');
-      return;
-    }
-    
-    if (cantidad < 0 || precio < 0) {
-      mostrarMensaje('La cantidad y el precio deben ser valores positivos.', 'error');
+    if (!precio_unitario_producto || !cantidad_en_stock) {
+      mostrarMensaje('Por favor completa todos los campos.', 'error');
       return;
     }
 
-    // Verificar código único (solo para productos nuevos)
-    if (editIndex === -1 && inventario.some(p => p.codigo === codigo)) {
-      mostrarMensaje('Ya existe un accesorio con este código.', 'error');
-      return;
-    }
-
-    let nuevoInventario;
-    if (editIndex >= 0) {
-      nuevoInventario = [...inventario];
-      nuevoInventario[editIndex] = {
-        ...nuevoInventario[editIndex],
-        nombre,
-        categoria: 'Accesorio',
-        cantidad: parseInt(cantidad),
-        precio: parseFloat(precio)
+    try {
+      const datosParaEnviar = {
+        nombre_producto: nombre_producto.trim(),
+        precio_unitario_producto: parseFloat(precio_unitario_producto),
+        cantidad_en_stock: parseInt(cantidad_en_stock),
+        categoria: 'accesorios',
+        id_categoria_item_fk: 2
       };
-      mostrarMensaje(`${nombre} (${codigo}) actualizado correctamente.`);
-    } else {
-      nuevoInventario = [...inventario, {
-        codigo,
-        nombre,
-        categoria: 'Accesorio',
-        cantidad: parseInt(cantidad),
-        precio: parseFloat(precio)
-      }];
-      mostrarMensaje(`${nombre} (${codigo}) agregado al inventario.`);
+
+      let resultado;
+      
+      if (editandoAccesorio) {
+        // EDITAR - Usar actualizarRegistro con id_producto_pk
+        console.log('Editando accesorio ID:', editandoAccesorio.id_producto_pk, 'Datos:', datosParaEnviar);
+        resultado = await actualizarRegistro("productos", editandoAccesorio.id_producto_pk, datosParaEnviar);
+        
+        if (resultado) {
+          mostrarMensaje(`${nombre_producto} actualizado correctamente.`);
+        } else {
+          mostrarMensaje('Error al actualizar el accesorio.', 'error');
+        }
+      } else {
+        // CREAR NUEVO
+        console.log('Creando nuevo accesorio:', datosParaEnviar);
+        resultado = await insertarRegistro("productos", datosParaEnviar);
+        
+        if (resultado) {
+          mostrarMensaje(`${nombre_producto} agregado correctamente.`);
+        } else {
+          mostrarMensaje('Error al agregar el accesorio.', 'error');
+        }
+      }
+      
+      if (resultado) {
+        cerrarModal();
+        cargarAccesorios(); // Recargar lista
+      }
+    } catch (error) {
+      console.error('Error al procesar accesorio:', error);
+      mostrarMensaje('Error al procesar el accesorio.', 'error');
     }
-
-    setInventario(nuevoInventario);
-    localStorage.setItem('inventario-accesorios', JSON.stringify(nuevoInventario));
-    cerrarModal();
   };
 
-  const editarInventario = (index) => {
-    const producto = inventario[index];
-    setFormData({
-      codigo: producto.codigo,
-      nombre: producto.nombre,
-      categoria: 'Accesorio',
-      cantidad: producto.cantidad,
-      precio: producto.precio
-    });
-    setEditIndex(index);
-    setModalVisible(true);
-  };
-
-  const borrarInventario = (index) => {
-    const producto = inventario[index];
-    if (window.confirm(`¿Deseas eliminar "${producto.nombre}" (${producto.codigo}) del inventario?`)) {
-      const nuevoInventario = inventario.filter((_, i) => i !== index);
-      setInventario(nuevoInventario);
-      localStorage.setItem('inventario-accesorios', JSON.stringify(nuevoInventario));
-      mostrarMensaje('Accesorio eliminado correctamente.');
+  const eliminarAccesorio = async (accesorio) => {
+    console.log('Intentando eliminar accesorio:', accesorio);
+    
+    if (window.confirm(`¿Estás seguro de eliminar "${accesorio.nombre_producto}"?`)) {
+      try {
+        // BORRAR - Usar borrarRegistro con id_producto_pk
+        console.log('Eliminando accesorio con ID:', accesorio.id_producto_pk);
+        const resultado = await borrarRegistro("productos", accesorio.id_producto_pk);
+        
+        console.log('Resultado de eliminación:', resultado);
+        
+        if (resultado) {
+          mostrarMensaje(`${accesorio.nombre_producto} eliminado correctamente.`);
+          cargarAccesorios(); // Recargar lista
+        } else {
+          mostrarMensaje('Error al eliminar el accesorio.', 'error');
+        }
+      } catch (error) {
+        console.error('Error al eliminar accesorio:', error);
+        mostrarMensaje('Error al eliminar el accesorio.', 'error');
+      }
     }
   };
 
@@ -209,11 +206,10 @@ const InventarioAccesorios = () => {
     setBusquedaActual('');
   };
 
-  // Filtrar productos por búsqueda
-  const productosFiltrados = inventario.filter(producto => {
+  // Filtrar accesorios por búsqueda
+  const accesoriosFiltrados = accesorios.filter(accesorio => {
     const cumpleBusqueda = !busquedaActual || 
-      producto.nombre.toLowerCase().includes(busquedaActual.toLowerCase()) ||
-      producto.codigo.toLowerCase().includes(busquedaActual.toLowerCase());
+      accesorio.nombre_producto.toLowerCase().includes(busquedaActual.toLowerCase());
     
     return cumpleBusqueda;
   });
@@ -222,7 +218,7 @@ const InventarioAccesorios = () => {
     <div className={`min-h-screen p-5 font-sans transition-all duration-300 ${
       isDark 
         ? 'bg-gray-900 text-gray-100' 
-        : 'bg-black-50 text-black-900'
+        : 'bg-white text-gray-900'
     }`}>
       {/* Header */}
       <div className="flex justify-between items-center mb-5">
@@ -245,7 +241,7 @@ const InventarioAccesorios = () => {
           type="text"
           value={busquedaActual}
           onChange={(e) => setBusquedaActual(e.target.value)}
-          placeholder="Buscar accesorio por nombre o código..."
+          placeholder="Buscar accesorio por nombre..."
           className={`px-3 py-2 w-64 mr-3 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200 ${
             isDark 
               ? 'border border-gray-600 bg-gray-800 text-gray-100 placeholder-gray-400' 
@@ -265,7 +261,7 @@ const InventarioAccesorios = () => {
       </div>
 
       {/* Grid de productos */}
-      {productosFiltrados.length === 0 ? (
+      {accesoriosFiltrados.length === 0 ? (
         <div className={`text-center mt-12 ${
           isDark ? 'text-gray-400' : 'text-gray-600'
         }`}>
@@ -276,18 +272,17 @@ const InventarioAccesorios = () => {
             No hay accesorios en el inventario
           </h3>
           <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>
-            Agrega tu primer accesorio usando el botón "Nuevo Accesorio"
+            {busquedaActual ? 'No se encontraron accesorios con ese nombre' : 'No hay accesorios registrados'}
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {productosFiltrados.map((producto, index) => {
-            const originalIndex = inventario.findIndex(item => item.codigo === producto.codigo);
-            const stockBajo = producto.cantidad < 10;
+          {accesoriosFiltrados.map((accesorio, index) => {
+            const stockBajo = accesorio.cantidad_en_stock < 10;
             
             return (
               <div
-                key={producto.codigo}
+                key={accesorio.id_producto_pk || index}
                 className={`p-3 rounded-lg text-center shadow-sm hover:shadow-md transition-all duration-300 ${
                   isDark 
                     ? 'border border-gray-700 bg-gray-800 hover:border-gray-600' 
@@ -301,13 +296,13 @@ const InventarioAccesorios = () => {
                     ? 'bg-gray-700 text-gray-300' 
                     : 'bg-gray-100 text-gray-600'
                 }`}>
-                  {producto.codigo}
+                  AC-{accesorio.id_producto_pk || index + 1}
                 </div>
                 
                 <div className={`font-bold text-sm mb-1 ${
                   isDark ? 'text-gray-100' : 'text-gray-800'
                 }`}>
-                  {producto.nombre}
+                  {accesorio.nombre_producto}
                 </div>
                 
                 <div className={`text-xs mb-2 ${
@@ -322,24 +317,24 @@ const InventarioAccesorios = () => {
                       ? (isDark ? 'text-red-400 font-semibold' : 'text-red-500 font-semibold')
                       : (isDark ? 'text-gray-300' : 'text-gray-700')
                   }>
-                    Stock: {producto.cantidad}
+                    Stock: {accesorio.cantidad_en_stock}
                   </div>
                   <div className={`font-medium ${
                     isDark ? 'text-gray-300' : 'text-gray-700'
                   }`}>
-                    L. {parseFloat(producto.precio).toFixed(2)}
+                    L. {parseFloat(accesorio.precio_unitario_producto || 0).toFixed(2)}
                   </div>
                 </div>
                 
-                <div className="space-x-1">
+                <div className="flex gap-2 justify-center">
                   <button
-                    onClick={() => editarInventario(originalIndex)}
+                    onClick={() => abrirModalEdicion(accesorio)}
                     className="px-2 py-1 bg-orange-500 hover:bg-orange-600 text-white border-none rounded text-xs cursor-pointer transition-all duration-200"
                   >
                     ✏️ Editar
                   </button>
                   <button
-                    onClick={() => borrarInventario(originalIndex)}
+                    onClick={() => eliminarAccesorio(accesorio)}
                     className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white border-none rounded text-xs cursor-pointer transition-all duration-200"
                   >
                     🗑️ Borrar
@@ -353,9 +348,7 @@ const InventarioAccesorios = () => {
 
       {/* Modal */}
       {modalVisible && (
-        <div className={`fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm ${
-          isDark ? 'bg-gray bg-opacity-80' : 'bg-gray bg-opacity-50'
-        }`}>
+        <div className="fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50">
           <div className={`p-5 rounded-lg w-full max-w-md mx-4 shadow-2xl ${
             isDark 
               ? 'bg-gray-800 border border-gray-700' 
@@ -365,7 +358,7 @@ const InventarioAccesorios = () => {
               <h2 className={`text-xl font-bold m-0 ${
                 isDark ? 'text-gray-100' : 'text-gray-800'
               }`}>
-                {editIndex >= 0 ? 'EDITAR ACCESORIO' : 'NUEVO ACCESORIO'}
+                {editandoAccesorio ? 'EDITAR ACCESORIO' : 'NUEVO ACCESORIO'}
               </h2>
               <span
                 onClick={cerrarModal}
@@ -384,38 +377,14 @@ const InventarioAccesorios = () => {
                 <label className={`block mb-1 font-bold text-sm ${
                   isDark ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  CÓDIGO ACCESORIO:
+                  NOMBRE PRODUCTO:
                 </label>
                 <input
                   type="text"
-                  name="codigo"
-                  value={formData.codigo}
-                  readOnly
-                  className={`w-full px-3 py-2 rounded cursor-not-allowed ${
-                    isDark 
-                      ? 'bg-gray-700 text-gray-300 border border-gray-600' 
-                      : 'bg-gray-100 text-gray-600 border border-gray-300'
-                  }`}
-                />
-                <div className={`text-xs mt-1 ${
-                  isDark ? 'text-gray-400' : 'text-gray-500'
-                }`}>
-                  El código se genera automáticamente
-                </div>
-              </div>
-
-              <div>
-                <label className={`block mb-1 font-bold text-sm ${
-                  isDark ? 'text-gray-300' : 'text-gray-700'
-                }`}>
-                  NOMBRE ACCESORIO:
-                </label>
-                <input
-                  type="text"
-                  name="nombre"
-                  value={formData.nombre}
+                  name="nombre_producto"
+                  value={formData.nombre_producto}
                   onChange={handleInputChange}
-                  placeholder="Ej: Collar, Correa, Juguete, Cama, etc."
+                  placeholder="Ej: Collar, Correa, Juguete, etc."
                   className={`w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200 ${
                     isDark 
                       ? 'border border-gray-600 bg-gray-700 text-gray-100 placeholder-gray-400' 
@@ -428,33 +397,12 @@ const InventarioAccesorios = () => {
                 <label className={`block mb-1 font-bold text-sm ${
                   isDark ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  CANTIDAD:
+                  PRECIO UNITARIO:
                 </label>
                 <input
                   type="number"
-                  name="cantidad"
-                  value={formData.cantidad}
-                  onChange={handleInputChange}
-                  placeholder="0"
-                  min="0"
-                  className={`w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200 ${
-                    isDark 
-                      ? 'border border-gray-600 bg-gray-700 text-gray-100 placeholder-gray-400' 
-                      : 'border border-gray-300 bg-white text-gray-900 placeholder-gray-500'
-                  }`}
-                />
-              </div>
-
-              <div>
-                <label className={`block mb-1 font-bold text-sm ${
-                  isDark ? 'text-gray-300' : 'text-gray-700'
-                }`}>
-                  PRECIO:
-                </label>
-                <input
-                  type="number"
-                  name="precio"
-                  value={formData.precio}
+                  name="precio_unitario_producto"
+                  value={formData.precio_unitario_producto}
                   onChange={handleInputChange}
                   placeholder="0.00"
                   step="0.01"
@@ -467,11 +415,32 @@ const InventarioAccesorios = () => {
                 />
               </div>
 
+              <div>
+                <label className={`block mb-1 font-bold text-sm ${
+                  isDark ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  CANTIDAD EN STOCK:
+                </label>
+                <input
+                  type="number"
+                  name="cantidad_en_stock"
+                  value={formData.cantidad_en_stock}
+                  onChange={handleInputChange}
+                  placeholder="0"
+                  min="0"
+                  className={`w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200 ${
+                    isDark 
+                      ? 'border border-gray-600 bg-gray-700 text-gray-100 placeholder-gray-400' 
+                      : 'border border-gray-300 bg-white text-gray-900 placeholder-gray-500'
+                  }`}
+                />
+              </div>
+
               <button
-                onClick={registrarInventario}
+                onClick={registrarAccesorio}
                 className="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white border-none rounded cursor-pointer transition-all duration-200 font-medium"
               >
-                {editIndex >= 0 ? 'ACTUALIZAR ACCESORIO' : 'AGREGAR ACCESORIO'}
+                {editandoAccesorio ? 'ACTUALIZAR ACCESORIO' : 'AGREGAR ACCESORIO'}
               </button>
             </div>
           </div>
