@@ -72,3 +72,15 @@ export const obtenerProductosAlimentos = async () => {
     return null;
   }
 };
+
+// SERVICIO QUE CONSUME EL ENDPOINT DE GET TODOS LOS ALIMENTOS
+export const verAlimentos = async () => {
+  try {
+    const res = await axios.get(`${API_URL}/alimentos/ver-todos`);
+    // Devuelve solo el array de datos, igual que tu función verRegistro
+    return res.data.datos || [];
+  } catch (err) {
+    console.error("❌ Error al traer los alimentos:", err);
+    return [];
+  }
+};
