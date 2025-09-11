@@ -207,26 +207,66 @@ router.post('/productos-alimentos', (req, res) => {
 });
 
 
-// GET /api/productos-alimentos
-router.get('/productos-alimentos', (req, res) => {
-    const query = 'CALL SELECT_ALIMENTOS()';
 
-    mysqlConnection.query(query, (err, results) => {
+// ENDPOINT: GET DE TODOS LOS ALIMENTOS CON PRODUCTOS
+router.get('/alimentos/ver-todos', (req, res) => {
+
+    const query = `
+        SELECT 
+            p.nombre_producto,
+            p.precio_unitario_producto,
+            p.cantidad_en_stock,
+            p.categoria,
+            a.alimento_destinado,
+            a.peso_alimento
+        FROM tbl_alimentos a
+        INNER JOIN tbl_productos p
+            ON a.id_producto_fk = p.id_producto_pk
+    `;
+
+    mysqlConnection.query(query, (err, result) => {
         if (err) {
-            console.error('❌ Error al obtener productos alimentos:', err);
-            return res.status(500).json({ error: 'Error en el servidor' });
+            console.error("❌ Error en la consulta: ", err);
+            return res.status(500).json({ error: "Error en la consulta" });
         }
 
-        // En MySQL, los resultados de un CALL vienen dentro de un array
-        const productosAlimentos = results[0];
-
         res.status(200).json({
-            mensaje: '✅ Productos alimentos obtenidos correctamente',
-            datos: productosAlimentos
+            mensaje: `✅ Consulta exitosa de todos los productos-alimentos`,
+            total_registros: result.length,
+            datos: result
         });
     });
 });
 
+// ENDPOINT: GET DE TODOS LOS MEDICAMENTOS CON PRODUCTOS
+router.get('/medicamentos/ver-todos', (req, res) => {
+
+    const query = `
+        SELECT 
+            p.nombre_producto,
+            p.precio_unitario_producto,
+            p.cantidad_en_stock,
+            p.categoria,
+            m.presentacion_medica,
+            m.tipo_medicamento
+        FROM tbl_medicamentos m
+        INNER JOIN tbl_productos p
+            ON m.id_producto_fk = p.id_producto_pk
+    `;
+
+    mysqlConnection.query(query, (err, result) => {
+        if (err) {
+            console.error("❌ Error en la consulta: ", err);
+            return res.status(500).json({ error: "Error en la consulta" });
+        }
+
+        res.status(200).json({
+            mensaje: `✅ Consulta exitosa de todos los medicamentos`,
+            total_registros: result.length,
+            datos: result
+        });
+    });
+});
 
 
 module.exports = router;

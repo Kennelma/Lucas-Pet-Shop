@@ -1,15 +1,15 @@
-import { useEffect, useState } from "react";
-import { insertarProductoAlimento, obtenerProductosAlimentos, actualizarRegistro, borrarRegistro } from "../../services/apiService.js";
+import React, { useState, useEffect } from 'react';
+import { insertarProductoAlimento, verAlimentos, actualizarRegistro, borrarRegistro } from "../../services/apiService.js";
 
 const InventarioAlimentos = () => {
   const [alimentos, setAlimentos] = useState([]);
-  const [isDark, setIsDark] = useState(false);
+  const [editIndex, setEditIndex] = useState(-1);
   const [busquedaActual, setBusquedaActual] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [mensaje, setMensaje] = useState({ texto: '', tipo: '' });
-  const [editandoAlimento, setEditandoAlimento] = useState(null);
+  const [isDark, setIsDark] = useState(false);
   
-  // SOLO LOS 5 CAMPOS QUE PEDISTE
+  // Datos del formulario
   const [formData, setFormData] = useState({
     nombre_producto: '',
     precio_unitario_producto: '',
@@ -18,7 +18,7 @@ const InventarioAlimentos = () => {
     peso_alimento: ''
   });
 
-  // Detectar tema oscuro
+  // Detectar tema oscuro de Core UI
   useEffect(() => {
     const detectarTemaCoreUI = () => {
       const htmlElement = document.documentElement;
@@ -50,30 +50,24 @@ const InventarioAlimentos = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Cargar alimentos
+  // Cargar alimentos al iniciar
   useEffect(() => {
     cargarAlimentos();
   }, []);
 
   const cargarAlimentos = async () => {
     try {
-      const response = await obtenerProductosAlimentos();
-      console.log('Respuesta completa de la API:', response);
+      console.log('Cargando alimentos con verAlimentos...');
+      const alimentosData = await verAlimentos();
+      console.log('Alimentos obtenidos:', alimentosData);
       
-      // Verificar si response tiene datos
-      if (response && response.datos) {
-        setAlimentos(response.datos);
-        console.log('Alimentos cargados:', response.datos);
-      } else if (Array.isArray(response)) {
-        setAlimentos(response);
-        console.log('Alimentos cargados (array directo):', response);
-      } else {
-        console.log('No se encontraron datos de alimentos');
-        setAlimentos([]);
-      }
+      setAlimentos(alimentosData);
+      console.log('Total de alimentos cargados:', alimentosData.length);
+      
     } catch (error) {
       console.error('Error al cargar alimentos:', error);
       mostrarMensaje('Error al cargar los alimentos.', 'error');
+      setAlimentos([]);
     }
   };
 
@@ -84,7 +78,7 @@ const InventarioAlimentos = () => {
 
   const abrirModal = () => {
     setModalVisible(true);
-    setEditandoAlimento(null);
+    setEditIndex(-1);
     setFormData({
       nombre_producto: '',
       precio_unitario_producto: '',
@@ -94,22 +88,8 @@ const InventarioAlimentos = () => {
     });
   };
 
-  const abrirModalEdicion = (alimento) => {
-    console.log('Editando alimento:', alimento);
-    setModalVisible(true);
-    setEditandoAlimento(alimento);
-    setFormData({
-      nombre_producto: alimento.nombre_producto || '',
-      precio_unitario_producto: alimento.precio_unitario_producto ? alimento.precio_unitario_producto.toString() : '',
-      cantidad_en_stock: alimento.cantidad_en_stock ? alimento.cantidad_en_stock.toString() : '',
-      alimento_destinado: alimento.alimento_destinado || '',
-      peso_alimento: alimento.peso_alimento || ''
-    });
-  };
-
   const cerrarModal = () => {
     setModalVisible(false);
-    setEditandoAlimento(null);
     setFormData({
       nombre_producto: '',
       precio_unitario_producto: '',
@@ -141,7 +121,7 @@ const InventarioAlimentos = () => {
     }
 
     if (!alimento_destinado.trim()) {
-      mostrarMensaje('Por favor ingresa el destino del alimento.', 'error');
+      mostrarMensaje('Por favor ingresa para qué está destinado el alimento.', 'error');
       return;
     }
 
@@ -151,7 +131,6 @@ const InventarioAlimentos = () => {
     }
 
     try {
-      // SOLO LOS 5 CAMPOS QUE PEDISTE
       const datosParaEnviar = {
         nombre_producto: nombre_producto.trim(),
         precio_unitario_producto: parseFloat(precio_unitario_producto),
@@ -162,9 +141,11 @@ const InventarioAlimentos = () => {
 
       let resultado;
       
-      if (editandoAlimento) {
-        console.log('EDITANDO con ID:', editandoAlimento.id_producto_pk, 'Datos:', datosParaEnviar);
-        resultado = await actualizarRegistro("productos-alimentos", editandoAlimento.id_producto_pk, datosParaEnviar);
+      if (editIndex >= 0) {
+        // Actualizar alimento existente
+        const alimentoAEditar = alimentos[editIndex];
+        console.log('Actualizando alimento ID:', alimentoAEditar.id_producto_pk, 'con datos:', datosParaEnviar);
+        resultado = await actualizarRegistro("alimentos", alimentoAEditar.id_producto_pk, datosParaEnviar);
         
         if (resultado) {
           mostrarMensaje(`${nombre_producto} actualizado correctamente.`);
@@ -172,16 +153,17 @@ const InventarioAlimentos = () => {
           mostrarMensaje('Error al actualizar el alimento.', 'error');
         }
       } else {
-        console.log('CREANDO nuevo alimento:', datosParaEnviar);
+        // Crear nuevo alimento
+        console.log('Creando nuevo alimento:', datosParaEnviar);
         resultado = await insertarProductoAlimento(datosParaEnviar);
         
         if (resultado) {
-          mostrarMensaje(`${nombre_producto} agregado correctamente.`);
+          mostrarMensaje(`${nombre_producto} agregado al inventario.`);
         } else {
           mostrarMensaje('Error al agregar el alimento.', 'error');
         }
       }
-      
+
       if (resultado) {
         cerrarModal();
         cargarAlimentos();
@@ -192,14 +174,27 @@ const InventarioAlimentos = () => {
     }
   };
 
-  const eliminarAlimento = async (alimento) => {
-    if (window.confirm(`¿Estás seguro de eliminar "${alimento.nombre_producto}"?`)) {
+  const editarAlimento = (index) => {
+    const alimento = alimentos[index];
+    setFormData({
+      nombre_producto: alimento.nombre_producto,
+      precio_unitario_producto: alimento.precio_unitario_producto.toString(),
+      cantidad_en_stock: alimento.cantidad_en_stock.toString(),
+      alimento_destinado: alimento.alimento_destinado || '',
+      peso_alimento: alimento.peso_alimento || ''
+    });
+    setEditIndex(index);
+    setModalVisible(true);
+  };
+
+  const borrarAlimento = async (index) => {
+    const alimento = alimentos[index];
+    if (window.confirm(`¿Deseas eliminar "${alimento.nombre_producto}" del inventario?`)) {
       try {
-        console.log('ELIMINANDO alimento con ID:', alimento.id_producto_pk);
-        const resultado = await borrarRegistro("productos-alimentos", alimento.id_producto_pk);
+        const resultado = await borrarRegistro("alimentos", alimento.id_producto_pk);
         
         if (resultado) {
-          mostrarMensaje(`${alimento.nombre_producto} eliminado correctamente.`);
+          mostrarMensaje('Alimento eliminado correctamente.');
           cargarAlimentos();
         } else {
           mostrarMensaje('Error al eliminar el alimento.', 'error');
@@ -215,11 +210,12 @@ const InventarioAlimentos = () => {
     setBusquedaActual('');
   };
 
-  // Filtrar alimentos
+  // Filtrar productos por búsqueda
   const alimentosFiltrados = alimentos.filter(alimento => {
     const cumpleBusqueda = !busquedaActual || 
       alimento.nombre_producto.toLowerCase().includes(busquedaActual.toLowerCase()) ||
-      (alimento.alimento_destinado && alimento.alimento_destinado.toLowerCase().includes(busquedaActual.toLowerCase()));
+      (alimento.alimento_destinado && alimento.alimento_destinado.toLowerCase().includes(busquedaActual.toLowerCase())) ||
+      (alimento.peso_alimento && alimento.peso_alimento.toLowerCase().includes(busquedaActual.toLowerCase()));
     
     return cumpleBusqueda;
   });
@@ -251,7 +247,7 @@ const InventarioAlimentos = () => {
           type="text"
           value={busquedaActual}
           onChange={(e) => setBusquedaActual(e.target.value)}
-          placeholder="Buscar alimento..."
+          placeholder="Buscar alimento por nombre, destinado o peso..."
           className={`px-3 py-2 w-80 mr-3 rounded focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 ${
             isDark 
               ? 'border border-gray-600 bg-gray-800 text-gray-100 placeholder-gray-400' 
@@ -270,11 +266,6 @@ const InventarioAlimentos = () => {
         </button>
       </div>
 
-      {/* Debug info */}
-      <div className="mb-4 text-sm text-gray-500">
-        Total alimentos cargados: {alimentos.length}
-      </div>
-
       {/* Grid de productos */}
       {alimentosFiltrados.length === 0 ? (
         <div className={`text-center mt-12 ${
@@ -287,12 +278,13 @@ const InventarioAlimentos = () => {
             No hay alimentos en el inventario
           </h3>
           <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>
-            {alimentos.length === 0 ? 'No hay alimentos registrados' : 'No se encontraron alimentos con ese criterio'}
+            Agrega tu primer alimento usando el botón "Nuevo Alimento"
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {alimentosFiltrados.map((alimento, index) => {
+            const originalIndex = alimentos.findIndex(item => item.id_producto_pk === alimento.id_producto_pk);
             const stockBajo = alimento.cantidad_en_stock < 10;
             
             return (
@@ -311,26 +303,29 @@ const InventarioAlimentos = () => {
                     ? 'bg-gray-700 text-gray-300' 
                     : 'bg-gray-100 text-gray-600'
                 }`}>
-                  AL-{alimento.id_producto_pk || index + 1}
+                  A-{alimento.id_producto_pk || index + 1}
                 </div>
                 
-                {/* NOMBRE PRODUCTO */}
-                <div className={`font-bold text-sm mb-2 ${
+                <div className={`font-bold text-sm mb-1 ${
                   isDark ? 'text-gray-100' : 'text-gray-800'
                 }`}>
                   {alimento.nombre_producto}
                 </div>
                 
-                {/* ALIMENTO DESTINADO */}
                 {alimento.alimento_destinado && (
                   <div className={`text-xs mb-1 font-medium ${
                     isDark ? 'text-green-400' : 'text-green-600'
                   }`}>
-                    Para: {alimento.alimento_destinado}
+                    {alimento.alimento_destinado}
                   </div>
                 )}
                 
-                {/* PESO ALIMENTO */}
+                <div className={`text-xs mb-2 ${
+                  isDark ? 'text-gray-400' : 'text-gray-500'
+                }`}>
+                  Alimento
+                </div>
+                
                 {alimento.peso_alimento && (
                   <div className={`text-xs mb-2 ${
                     isDark ? 'text-blue-400' : 'text-blue-600'
@@ -339,7 +334,6 @@ const InventarioAlimentos = () => {
                   </div>
                 )}
                 
-                {/* CANTIDAD EN STOCK Y PRECIO */}
                 <div className="text-sm mb-3">
                   <div className={
                     stockBajo 
@@ -351,19 +345,19 @@ const InventarioAlimentos = () => {
                   <div className={`font-medium ${
                     isDark ? 'text-gray-300' : 'text-gray-700'
                   }`}>
-                    L. {parseFloat(alimento.precio_unitario_producto || 0).toFixed(2)}
+                    L. {parseFloat(alimento.precio_unitario_producto).toFixed(2)}
                   </div>
                 </div>
                 
-                <div className="flex gap-2 justify-center">
+                <div className="space-x-1">
                   <button
-                    onClick={() => abrirModalEdicion(alimento)}
+                    onClick={() => editarAlimento(originalIndex)}
                     className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white border-none rounded text-xs cursor-pointer transition-all duration-200"
                   >
                     ✏️ Editar
                   </button>
                   <button
-                    onClick={() => eliminarAlimento(alimento)}
+                    onClick={() => borrarAlimento(originalIndex)}
                     className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white border-none rounded text-xs cursor-pointer transition-all duration-200"
                   >
                     🗑️ Borrar
@@ -375,9 +369,9 @@ const InventarioAlimentos = () => {
         </div>
       )}
 
-      {/* Modal - SOLO LOS 5 CAMPOS */}
+      {/* Modal */}
       {modalVisible && (
-        <div className="fixed inset-0 flex justify-center items-center z-50 bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm bg-black bg-opacity-50">
           <div className={`p-5 rounded-lg w-full max-w-md mx-4 shadow-2xl ${
             isDark 
               ? 'bg-gray-800 border border-gray-700' 
@@ -387,7 +381,7 @@ const InventarioAlimentos = () => {
               <h2 className={`text-xl font-bold m-0 ${
                 isDark ? 'text-gray-100' : 'text-gray-800'
               }`}>
-                {editandoAlimento ? 'EDITAR ALIMENTO' : 'NUEVO ALIMENTO'}
+                {editIndex >= 0 ? 'EDITAR ALIMENTO' : 'NUEVO ALIMENTO'}
               </h2>
               <span
                 onClick={cerrarModal}
@@ -402,19 +396,18 @@ const InventarioAlimentos = () => {
             </div>
 
             <div className="space-y-4">
-              {/* 1. NOMBRE PRODUCTO */}
               <div>
                 <label className={`block mb-1 font-bold text-sm ${
                   isDark ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  NOMBRE PRODUCTO:
+                  NOMBRE ALIMENTO:
                 </label>
                 <input
                   type="text"
                   name="nombre_producto"
                   value={formData.nombre_producto}
                   onChange={handleInputChange}
-                  placeholder="Ej: Croquetas Premium"
+                  placeholder="Ej: Croquetas, Comida húmeda, Snacks, etc."
                   className={`w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
                     isDark 
                       ? 'border border-gray-600 bg-gray-700 text-gray-100 placeholder-gray-400' 
@@ -423,12 +416,72 @@ const InventarioAlimentos = () => {
                 />
               </div>
 
-              {/* 2. PRECIO UNITARIO PRODUCTO */}
               <div>
                 <label className={`block mb-1 font-bold text-sm ${
                   isDark ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  PRECIO UNITARIO PRODUCTO:
+                  ALIMENTO DESTINADO:
+                </label>
+                <input
+                  type="text"
+                  name="alimento_destinado"
+                  value={formData.alimento_destinado}
+                  onChange={handleInputChange}
+                  placeholder="Ej: Perros, Gatos, Conejos, etc."
+                  className={`w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
+                    isDark 
+                      ? 'border border-gray-600 bg-gray-700 text-gray-100 placeholder-gray-400' 
+                      : 'border border-gray-300 bg-white text-gray-900 placeholder-gray-500'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <label className={`block mb-1 font-bold text-sm ${
+                  isDark ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  PESO ALIMENTO:
+                </label>
+                <input
+                  type="text"
+                  name="peso_alimento"
+                  value={formData.peso_alimento}
+                  onChange={handleInputChange}
+                  placeholder="Ej: 1kg, 5kg, 15kg, etc."
+                  className={`w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
+                    isDark 
+                      ? 'border border-gray-600 bg-gray-700 text-gray-100 placeholder-gray-400' 
+                      : 'border border-gray-300 bg-white text-gray-900 placeholder-gray-500'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <label className={`block mb-1 font-bold text-sm ${
+                  isDark ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  CANTIDAD:
+                </label>
+                <input
+                  type="number"
+                  name="cantidad_en_stock"
+                  value={formData.cantidad_en_stock}
+                  onChange={handleInputChange}
+                  placeholder="0"
+                  min="0"
+                  className={`w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
+                    isDark 
+                      ? 'border border-gray-600 bg-gray-700 text-gray-100 placeholder-gray-400' 
+                      : 'border border-gray-300 bg-white text-gray-900 placeholder-gray-500'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <label className={`block mb-1 font-bold text-sm ${
+                  isDark ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  PRECIO:
                 </label>
                 <input
                   type="number"
@@ -446,75 +499,11 @@ const InventarioAlimentos = () => {
                 />
               </div>
 
-              {/* 3. CANTIDAD EN STOCK */}
-              <div>
-                <label className={`block mb-1 font-bold text-sm ${
-                  isDark ? 'text-gray-300' : 'text-gray-700'
-                }`}>
-                  CANTIDAD EN STOCK:
-                </label>
-                <input
-                  type="number"
-                  name="cantidad_en_stock"
-                  value={formData.cantidad_en_stock}
-                  onChange={handleInputChange}
-                  placeholder="0"
-                  min="0"
-                  className={`w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
-                    isDark 
-                      ? 'border border-gray-600 bg-gray-700 text-gray-100 placeholder-gray-400' 
-                      : 'border border-gray-300 bg-white text-gray-900 placeholder-gray-500'
-                  }`}
-                />
-              </div>
-
-              {/* 4. ALIMENTO DESTINADO */}
-              <div>
-                <label className={`block mb-1 font-bold text-sm ${
-                  isDark ? 'text-gray-300' : 'text-gray-700'
-                }`}>
-                  ALIMENTO DESTINADO:
-                </label>
-                <input
-                  type="text"
-                  name="alimento_destinado"
-                  value={formData.alimento_destinado}
-                  onChange={handleInputChange}
-                  placeholder="Ej: Perros, Gatos, Conejos"
-                  className={`w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
-                    isDark 
-                      ? 'border border-gray-600 bg-gray-700 text-gray-100 placeholder-gray-400' 
-                      : 'border border-gray-300 bg-white text-gray-900 placeholder-gray-500'
-                  }`}
-                />
-              </div>
-
-              {/* 5. PESO ALIMENTO */}
-              <div>
-                <label className={`block mb-1 font-bold text-sm ${
-                  isDark ? 'text-gray-300' : 'text-gray-700'
-                }`}>
-                  PESO ALIMENTO:
-                </label>
-                <input
-                  type="text"
-                  name="peso_alimento"
-                  value={formData.peso_alimento}
-                  onChange={handleInputChange}
-                  placeholder="Ej: 1kg, 5kg, 15kg"
-                  className={`w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 ${
-                    isDark 
-                      ? 'border border-gray-600 bg-gray-700 text-gray-100 placeholder-gray-400' 
-                      : 'border border-gray-300 bg-white text-gray-900 placeholder-gray-500'
-                  }`}
-                />
-              </div>
-
               <button
                 onClick={registrarAlimento}
                 className="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white border-none rounded cursor-pointer transition-all duration-200 font-medium"
               >
-                {editandoAlimento ? 'ACTUALIZAR ALIMENTO' : 'AGREGAR ALIMENTO'}
+                {editIndex >= 0 ? 'ACTUALIZAR ALIMENTO' : 'AGREGAR ALIMENTO'}
               </button>
             </div>
           </div>
