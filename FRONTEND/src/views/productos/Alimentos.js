@@ -191,7 +191,9 @@ const InventarioAlimentos = () => {
     const alimento = alimentos[index];
     if (window.confirm(`¿Deseas eliminar "${alimento.nombre_producto}" del inventario?`)) {
       try {
-        const resultado = await borrarRegistro("alimentos", alimento.id_producto_pk);
+        // Eliminar desde la tabla productos (no alimentos)
+        console.log('Eliminando producto con ID:', alimento.id_producto_pk);
+        const resultado = await borrarRegistro("productos", alimento.id_producto_pk);
         
         if (resultado) {
           mostrarMensaje('Alimento eliminado correctamente.');

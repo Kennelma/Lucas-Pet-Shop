@@ -213,6 +213,7 @@ router.get('/alimentos/ver-todos', (req, res) => {
 
     const query = `
         SELECT 
+            p.id_producto_pk,
             p.nombre_producto,
             p.precio_unitario_producto,
             p.cantidad_en_stock,
