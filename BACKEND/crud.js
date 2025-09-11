@@ -169,4 +169,64 @@ router.put('/:nombreTabla/:id/actualizar', function(req, res) {
 });
 
 
+
+
+
+
+
+// POST /api/productos-alimentos
+router.post('/productos-alimentos', (req, res) => {
+    const {
+        nombre_producto,
+        precio_unitario_producto,
+        cantidad_en_stock,
+        alimento_destinado,
+        peso_alimento
+    } = req.body;
+
+    // Validación básica
+    if (!nombre_producto || !precio_unitario_producto || !cantidad_en_stock || !alimento_destinado || !peso_alimento) {
+        return res.status(400).json({ error: "Faltan datos obligatorios" });
+    }
+
+    // Llamada al procedimiento almacenado
+    const query = 'CALL INSERT_PRODUCTO_ALIMENTO(?, ?, ?, ?, ?)';
+    const params = [nombre_producto, precio_unitario_producto, cantidad_en_stock, alimento_destinado, peso_alimento];
+
+    mysqlConnection.query(query, params, (err, result) => {
+        if (err) {
+            console.error('❌ Error al insertar producto + alimento:', err);
+            return res.status(500).json({ error: 'Error en el servidor' });
+        }
+
+        res.status(201).json({
+            mensaje: '✅ Producto y alimento insertados correctamente',
+            resultado: result
+        });
+    });
+});
+
+
+// GET /api/productos-alimentos
+router.get('/productos-alimentos', (req, res) => {
+    const query = 'CALL SELECT_ALIMENTOS()';
+
+    mysqlConnection.query(query, (err, results) => {
+        if (err) {
+            console.error('❌ Error al obtener productos alimentos:', err);
+            return res.status(500).json({ error: 'Error en el servidor' });
+        }
+
+        // En MySQL, los resultados de un CALL vienen dentro de un array
+        const productosAlimentos = results[0];
+
+        res.status(200).json({
+            mensaje: '✅ Productos alimentos obtenidos correctamente',
+            datos: productosAlimentos
+        });
+    });
+});
+
+
+
 module.exports = router;
