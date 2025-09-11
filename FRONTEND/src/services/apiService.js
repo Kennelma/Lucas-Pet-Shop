@@ -46,3 +46,29 @@ export const borrarRegistro = async (nombreTabla, id) => {
     return null;
   }
 };
+
+{/*SERVICIO QUE CONSUME EL ENDPOINT DE INSERTAR ALIMENTO*/}
+export const insertarProductoAlimento = async (datos) => {
+  try {
+    // Llamamos al endpoint específico de productos + alimentos
+    const res = await axios.post(`${API_URL}/productos-alimentos`, datos);
+    return res.data;
+  } catch (err) {
+    console.error("❌ Error al insertar producto + alimento:", err.response ? err.response.data : err);
+    return null;
+  }
+};
+
+export const obtenerProductosAlimentos = async () => {
+  try {
+    // Llamamos al endpoint GET
+    const res = await axios.get(`${API_URL}/productos-alimentos`);
+    return res.data; // contiene { mensaje, datos }
+  } catch (err) {
+    console.error(
+      "❌ Error al obtener productos-alimentos:",
+      err.response ? err.response.data : err
+    );
+    return null;
+  }
+};
