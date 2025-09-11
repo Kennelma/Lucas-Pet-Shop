@@ -169,4 +169,35 @@ router.put('/:nombreTabla/:id/actualizar', function(req, res) {
 });
 
 
+//ENDPOINT: GET DE MEDICAMENTOS CON DATOS DE OTRAS TABLAS POR MEDIO DE JOIN
+router.get('/medicamentos/ver-detalles/:id', function (req, res) {
+
+    const id_medicamento = req.params.id;
+
+    const query = `
+        SELECT 
+            p.nombre_producto,
+            p.precio_unitario_producto,
+            p.cantidad_en_stock,
+            m.presentacion_medica,
+            m.tipo_medicamento
+        FROM tbl_medicamentos m INNER JOIN tbl_productos p 
+        ON m.id_producto_fk = p.id_producto_pk
+        WHERE m.id_medicamento_pk = ?
+    `;
+
+    mysqlConnection.query(query, [id_medicamento], function (err, result) {
+        if (!err) {
+            res.status(200).json({
+                mensaje: `✅ Consulta exitosa del medicamento con id ${id_medicamento}`,
+                total_registros: result.length,
+                datos: result
+            });
+        } else {
+            console.error("❌ Error en la consulta: ", err);
+            return res.status(500).send("Error en la consulta");
+        }
+    });
+});
+
 module.exports = router;
