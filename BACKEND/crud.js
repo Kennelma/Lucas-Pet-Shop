@@ -217,7 +217,6 @@ router.get('/alimentos/ver-todos', (req, res) => {
             p.nombre_producto,
             p.precio_unitario_producto,
             p.cantidad_en_stock,
-            p.categoria,
             a.alimento_destinado,
             a.peso_alimento
         FROM tbl_alimentos a
@@ -247,7 +246,6 @@ router.get('/medicamentos/ver-todos', (req, res) => {
             p.nombre_producto,
             p.precio_unitario_producto,
             p.cantidad_en_stock,
-            p.categoria,
             m.presentacion_medica,
             m.tipo_medicamento
         FROM tbl_medicamentos m

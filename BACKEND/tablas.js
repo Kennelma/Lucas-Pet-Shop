@@ -52,7 +52,7 @@ const Veterinaria = {
     },
     productos: {
         tabla: 'tbl_productos',
-        campos: ['nombre_producto', 'precio_unitario_producto', 'cantidad_en_stock', 'categoria', 'id_categoria_item_fk']
+        campos: ['nombre_producto', 'precio_unitario_producto', 'cantidad_en_stock', 'id_categoria_item_fk']
     },
     alimentos: {
         tabla: 'tbl_alimentos',
