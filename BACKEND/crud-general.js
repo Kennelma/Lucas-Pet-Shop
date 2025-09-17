@@ -96,7 +96,6 @@ router.delete('/borrar-registro/:nombreTabla/:id', function(req, res) {
 });
 
 
-
 //ENDPOINT PARA ACTUALIZAR DATOS (UPDATE) TODO DINAMICO
 router.put('/actualizar-datos', function(req, res) {
     
