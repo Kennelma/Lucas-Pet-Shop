@@ -4,12 +4,12 @@ const API_URL = "http://localhost:4000/api";
 
 
 {/*SERVICIO QUE CONSUME EL ENDPOINT DE GET */}
-export const verRegistro = async (nombreTabla) => {
+export const verRegistro = async (tabla) => {
   try {
-    const res = await axios.get(`${API_URL}/${nombreTabla}/ver`);
+    const res = await axios.get(`${API_URL}/ver-informacion/${tabla}`);
     return res.data.datos || [];
   } catch (err) {
-    console.error(`Error al traer ${nombreTabla}:`, err);
+    console.error(`Error al traer ${tabla}:`, err);
     return [];
   }
 };
