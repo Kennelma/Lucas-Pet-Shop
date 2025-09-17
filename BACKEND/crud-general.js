@@ -66,7 +66,7 @@ router.get('/ver-informacion/:tabla', function(req, res) {
 
 
 //ENDPOINT BORRAR DATOS (DELTE) TODO DINAMICO
-router.delete('/borrar-registro/:nombreTabla/:id', function(req, res) {
+router.delete('/borrar-registro/:tabla/:id', function(req, res) {
     
     const { tabla, id } =  req.params;
         

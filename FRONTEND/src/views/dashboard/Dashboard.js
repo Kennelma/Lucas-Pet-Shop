@@ -21,23 +21,7 @@ const Dashboard = () => {
   
   return (
     <div className="p-6">
-      {/*Estilo inline para comparar */}
-      <div style={{backgroundColor: 'red', color: 'white', padding: '16px', marginBottom: '10px'}}>
-        1. Estilo inline (debería verse rojo)
-      </div>
       
-      {/*Tarjetas con Tailwind*/}
-      <div className="bg-green-500 text-white p-4 mb-4 rounded-lg shadow-lg">
-        2. Fondo verde con Tailwind (tarjeta)
-      </div>
-      
-      <div className="bg-blue-500 text-white p-4 mb-4 rounded-lg shadow-lg">
-        3. Fondo azul con Tailwind (tarjeta)
-      </div>
-      
-      <div className="bg-red-500 text-white p-4 mb-4 rounded-lg shadow-lg">
-        4. Fondo rojo con Tailwind (tarjeta)
-      </div>
 
       <div className="p-6 font-sans">
       <h1 className="text-2xl font-bold mb-4">Usuarios</h1>
