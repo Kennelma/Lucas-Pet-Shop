@@ -4,38 +4,6 @@ const router = express.Router();
 
 const mysqlConnection = require('./conexion');
 
-//CRUD DE INGRESAR DATOS
-router.post('/ingresar-datos-formulario', function(req, res) {
-
-    const {tabla,...campos} = req.body;
-
-    //SE CONSURUYEN LAS COLUMNAS Y VALORES
-    const columnas = Object.keys(campos).join(',');
-    const valores = Object.values(campos)
-        .map(v => typeof v === 'string' ? `'${v}'` : v)
-        .join(', ');
-
-    //MANDA A LLMAR EL PROCEDIMIENTO     
-    const query = 'CALL INSERT_FORMULARIOS(?, ?, ?)';    
-
-    console.log('')
-    console.log(`📌 PROCEDURE: ${query}`);
-    console.log(`📋 SQL: INSERT INTO ${tabla} (${columnas}) VALUES (${valores});`);
-    
-    mysqlConnection.query(query, [tabla, columnas, valores], function(err, result) {
-
-        if (err) {
-            console.error(`❌ Error al insertar en ${tabla}:`, err);
-            res.status(500).json({ error: "Error al insertar datos" });
-        } else {
-            console.log(`✅ Registro en  ${tabla} insertado correctamente`);
-            res.status(201).json({ 
-                mensaje: `✅ Registro ingresado correctamente`
-            });
-        }
-    });
-});
-
 
 //ENDPOINT PARA VER TABLAS (SELECT)
 router.get('/ver-informacion/:tabla', function(req, res) {      
@@ -65,31 +33,33 @@ router.get('/ver-informacion/:tabla', function(req, res) {
 });   
 
 
-//ENDPOINT BORRAR DATOS (DELTE) TODO DINAMICO
-router.delete('/borrar-registro/:tabla/:id', function(req, res) {
-    
-    const { tabla, id } =  req.params;
-        
-    console.log(`🗑️ Eliminando ${tabla} con ID: ${id}`);
-    console.log('');
+//CRUD DE INGRESAR DATOS
+router.post('/ingresar-datos-formulario', function(req, res) {
 
-    
-    const query = 'CALL DELETE_DATOS(?, ?)';
-    
+    const {tabla,...campos} = req.body;
+
+    //SE CONSURUYEN LAS COLUMNAS Y VALORES
+    const columnas = Object.keys(campos).join(',');
+    const valores = Object.values(campos)
+        .map(v => typeof v === 'string' ? `'${v}'` : v)
+        .join(', ');
+
+    //MANDA A LLMAR EL PROCEDIMIENTO     
+    const query = 'CALL INSERT_FORMULARIOS(?, ?, ?)';    
+
     console.log('')
     console.log(`📌 PROCEDURE: ${query}`);
-    console.log(`📋 SQL: DELETE FROM ${tabla} WHERE id = ${id};`);
-
+    console.log(`📋 SQL: INSERT INTO ${tabla} (${columnas}) VALUES (${valores});`);
     
-    mysqlConnection.query(query, [tabla, id], function(err, result) {
+    mysqlConnection.query(query, [tabla, columnas, valores], function(err, result) {
+
         if (err) {
-            console.error(`❌ Error al eliminar ${tabla}:`, err);
-            res.status(500).json({ error: "Error al eliminar datos" });
+            console.error(`❌ Error al insertar en ${tabla}:`, err);
+            res.status(500).json({ error: "Error al insertar datos" });
         } else {
-            console.log(`✅ Registro de la tabla ${tabla} eliminado correctamente`);
-            res.status(200).json({
-                mensaje: `✅ Registro borrado correctamente`,
-                id_eliminado: id
+            console.log(`✅ Registro en  ${tabla} insertado correctamente`);
+            res.status(201).json({ 
+                mensaje: `✅ Registro ingresado correctamente`
             });
         }
     });
@@ -128,6 +98,39 @@ router.put('/actualizar-datos', function(req, res) {
         }
     });
 });
+
+
+//ENDPOINT BORRAR DATOS (DELTE) TODO DINAMICO
+router.delete('/borrar-registro/:tabla/:id', function(req, res) {
+    
+    const { tabla, id } =  req.params;
+        
+    console.log(`🗑️ Eliminando ${tabla} con ID: ${id}`);
+    console.log('');
+
+    
+    const query = 'CALL DELETE_DATOS(?, ?)';
+    
+    console.log('')
+    console.log(`📌 PROCEDURE: ${query}`);
+    console.log(`📋 SQL: DELETE FROM ${tabla} WHERE id = ${id};`);
+
+    
+    mysqlConnection.query(query, [tabla, id], function(err, result) {
+        if (err) {
+            console.error(`❌ Error al eliminar ${tabla}:`, err);
+            res.status(500).json({ error: "Error al eliminar datos" });
+        } else {
+            console.log(`✅ Registro de la tabla ${tabla} eliminado correctamente`);
+            res.status(200).json({
+                mensaje: `✅ Registro borrado correctamente`,
+                id_eliminado: id
+            });
+        }
+    });
+});
+
+
 
 
 module.exports = router;
