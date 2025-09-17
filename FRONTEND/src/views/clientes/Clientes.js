@@ -1,75 +1,49 @@
 import { useEffect, useState } from "react";
-
-{/*FUNCION QUE SIRVE PARA ENVIAR EL NOMBRE DE LA TABLA AL SERVICIO QUE CONSUME
-  LA API, TODO ES DINAMICO*/}
 import { verRegistro } from "../../services/apiService.js";
-
+import PerfilCliente from "./PerfilCliente.js";
+import TablaClientes from "./TablaClientes.js";
 
 const Clientes = () => {
-
-  {/*GET. ESTADO  DONDE SE GUARDAN LOS CLIENTES OBTENIDOS DESDE LA API*/}
   const [clientes, setClientes] = useState([]);
+  const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  {/*LLAMA A LA FUNCION PARA ENVIAR EL NOMBRE DE LA TABLA Y GUARDAR 
-    TODOS LOS RESULTADOS EN EL ESTADOS DE ''CLIENTES''*/}
+  const handleSeleccionarCliente = (cliente) => {
+    setClienteSeleccionado(cliente);
+  };
+
   useEffect(() => {
-    verRegistro("clientes").then(setClientes);
+    const fetchClientes = async () => {
+      try {
+        const data = await verRegistro("clientes");
+        setClientes(data);
+      } catch (err) {
+        setError("Error al cargar los clientes");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchClientes();
   }, []);
 
- return (
-  <div className="p-6">
-      <div className="p-6 font-sans">
-      <h1 className="text-2xl font-bold mb-4">Clientes</h1>
-
-      {/*TABLA DE CLIENTES*/}
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-200">
-          <thead className="bg-gray-100">
-
-            {/*FILA DE LOS ENCABEZADOS DE ESAS COLUMNAS*/}
-            <tr>
-              <th className="text-left px-4 py-2 border-b border-gray-300">
-                Nombre
-              </th>
-              <th className="text-left px-4 py-2 border-b border-gray-300">
-                Identidad
-              </th>
-              <th className="text-left px-4 py-2 border-b border-gray-300">
-                Teléfono
-              </th>
-            </tr>
-          </thead>
-
-          {/*MAPEO DEL ARREGLO DE CLIENTES*/}
-          <tbody>
-
-            {/*ARREGLO DE CLIENTES CON SU INDICE*/}
-            {clientes.map((c, index) => (
-              <tr key={index} className="hover:bg-gray-50">
-                <td className="px-4 py-2 border-b border-gray-200">
-                  {c.nombre_cliente}
-                </td>
-                <td className="px-4 py-2 border-b border-gray-200">
-                  {c.identidad_cliente}
-                </td>
-                <td className="px-4 py-2 border-b border-gray-200">
-                  {c.telefono_cliente}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+  return (
+    <div className="min-h-screen p-6 bg-gray-100 space-y-6">
+      <main className="bg-white border border-gray-300 rounded-xl overflow-hidden flex max-w-5xl w-full mx-auto">
+        <PerfilCliente clienteSeleccionado={clienteSeleccionado} />
+      </main>
+      <TablaClientes
+        clientes={clientes}
+        setClientes={setClientes} 
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        clienteSeleccionado={clienteSeleccionado}
+        handleSeleccionarCliente={handleSeleccionarCliente}
+      />
     </div>
-    
-    {/*MENSAJE QUE MUESTRA SI NO HAY CLIENTES (EL ARREGLO ESTÁ VACIO) A LA VISTA*/}
-    {clientes.length === 0 && (
-      <div className="text-center py-8 text-gray-500">
-        No hay clientes registrados
-      </div>
-    )}
-  </div>
-);
-}
+  );
+};
 
-export default Clientes
+export default Clientes;
