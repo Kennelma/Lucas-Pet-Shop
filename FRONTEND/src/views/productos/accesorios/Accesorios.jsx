@@ -69,6 +69,7 @@ const InventarioAccesorios = () => {
     migrarInventario(inventarioGuardado);
   }, []);
 
+
   // Migrar inventario existente sin códigos
   const migrarInventario = (inventarioData) => {
     let necesitaMigracion = false;
