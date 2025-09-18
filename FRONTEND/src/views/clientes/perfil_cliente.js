@@ -1,12 +1,14 @@
 import clienteImage from "../../views/clientes/clientes-dog.png";
 
 const PerfilCliente = ({ clienteSeleccionado }) => {
+
   return (
     <div className="flex w-full">
+
       <div className="w-1/3 bg-gradient-to-b from-blue-50 to-indigo-50 border-r border-gray-300">
         <div className="p-4">
-          <span className="font-semibold text-gray-700">PERFIL DE CLIENTE</span>
 
+          <span className="block w-full text-center font-semibold text-gray-700 font-poppins">PERFIL DE CLIENTE</span>
           {clienteSeleccionado ? (
             <div className="mt-4">
               <div className="flex flex-col items-center gap-3">
@@ -16,21 +18,15 @@ const PerfilCliente = ({ clienteSeleccionado }) => {
                   className="w-20 h-20 object-cover rounded-full border-[3px] border-white shadow-lg"
                 />
                 <div className="text-center">
-                  <h3 className="font-bold text-lg text-gray-800">
-                    {clienteSeleccionado.nombre_cliente}
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Identidad: {clienteSeleccionado.identidad_cliente}
-                  </p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Teléfono: {clienteSeleccionado.telefono_cliente || "Sin teléfono"}
-                  </p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Cliente desde: {"2015-20-7"}
-                  </p>
+                  {/*NOMBRE DEL CLIENTE*/}
+                  <h3 className="font-bold text-lg text-gray-800">{clienteSeleccionado.nombre_cliente}</h3>
+                  <p className="text-sm text-gray-600 mt-1">Identidad: {clienteSeleccionado.identidad_cliente}</p>
+                  <p className="text-sm text-gray-600 mt-1">Teléfono: {clienteSeleccionado.telefono_cliente}</p>
+                  <p className="text-sm text-gray-600 mt-1"> Cliente desde: {new Date(clienteSeleccionado.fecha_registro).toLocaleDateString()}</p>
                 </div>
               </div>
             </div>
+
           ) : (
             <div className="text-center py-8">
               <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
