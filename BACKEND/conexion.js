@@ -6,8 +6,8 @@ var mysqlConnection = mysql.createConnection({
     host: 'mysql-implementacion.mysql.database.azure.com',
     user: 'administrador',
     port: 3306,
-    password: 'Lucaspetshop1312.',
-    database: 'lucas_pet_shop_bd',
+    password: 'Lucaspetshop.',
+    database: 'lucas_pet_shop',
     multipleStatements: true,
     ssl: true
 });
