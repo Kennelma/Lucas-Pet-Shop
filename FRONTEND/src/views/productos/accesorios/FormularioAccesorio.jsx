@@ -9,7 +9,8 @@ const FormularioAccesorio = ({ isOpen, onClose, onSave, editData, isDark, genera
     cantidad: 0,
     precio: 0,
     imagen: null,
-    imagenUrl: ''
+    imagenUrl: '', // Inicializar vacío
+    tipoImagen: 'none' // Nuevo tipo para indicar que no hay imagen
   });
 
   const [errors, setErrors] = useState({});
@@ -25,7 +26,7 @@ const FormularioAccesorio = ({ isOpen, onClose, onSave, editData, isDark, genera
     'Ropa'
   ];
 
-  // Función para convertir archivo a Base64
+  // Función para convertir archivo a Base64 (solo para preview local)
   const convertToBase64 = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -44,7 +45,8 @@ const FormularioAccesorio = ({ isOpen, onClose, onSave, editData, isDark, genera
         setFormData(prev => ({
           ...prev,
           imagen: file,
-          imagenUrl: base64String
+          imagenUrl: base64String,
+          tipoImagen: 'local'
         }));
       } catch (error) {
         console.error('Error converting image to base64:', error);
@@ -60,6 +62,29 @@ const FormularioAccesorio = ({ isOpen, onClose, onSave, editData, isDark, genera
     maxFiles: 1
   });
 
+  // Función para usar imagen por defecto
+  const usarImagenDefault = () => {
+    setFormData(prev => ({
+      ...prev,
+      imagen: null,
+      imagenUrl: '/animales.jpg', // Tu imagen en la carpeta public
+      tipoImagen: 'default'
+    }));
+  };
+
+  // Función para usar imagen de placeholder/avatar
+  const usarPlaceholder = () => {
+    const seed = formData.nombre || formData.codigo || 'accesorio';
+    const placeholderUrl = `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(seed)}&backgroundColor=f0f0f0,e0e0e0,d0d0d0`;
+    
+    setFormData(prev => ({
+      ...prev,
+      imagen: null,
+      imagenUrl: placeholderUrl,
+      tipoImagen: 'placeholder'
+    }));
+  };
+
   // Inicializar formulario
   useEffect(() => {
     if (isOpen) {
@@ -71,17 +96,20 @@ const FormularioAccesorio = ({ isOpen, onClose, onSave, editData, isDark, genera
           cantidad: editData.cantidad || 0,
           precio: editData.precio || 0,
           imagen: null,
-          imagenUrl: editData.imagenUrl || ''
+          imagenUrl: editData.imagenUrl || '',
+          tipoImagen: editData.tipoImagen || (editData.imagenUrl ? 'default' : 'none')
         });
       } else {
+        const categoriaInicial = 'Collar';
         setFormData({
-          codigo: generarCodigo('Collar'),
+          codigo: generarCodigo(categoriaInicial),
           nombre: '',
-          categoria: 'Collar',
+          categoria: categoriaInicial,
           cantidad: 0,
           precio: 0,
           imagen: null,
-          imagenUrl: ''
+          imagenUrl: '', // Sin imagen inicial
+          tipoImagen: 'none' // Sin imagen inicial
         });
       }
       setErrors({});
@@ -94,6 +122,7 @@ const FormularioAccesorio = ({ isOpen, onClose, onSave, editData, isDark, genera
       setFormData(prev => ({
         ...prev,
         codigo: generarCodigo(formData.categoria)
+        // No cambiar la imagen automáticamente
       }));
     }
   }, [formData.categoria, editData, generarCodigo]);
@@ -136,11 +165,23 @@ const FormularioAccesorio = ({ isOpen, onClose, onSave, editData, isDark, genera
     return Object.keys(nuevosErrores).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (validarFormulario()) {
-      const success = onSave(formData);
+      const datosParaGuardar = {
+        codigo: formData.codigo,
+        nombre: formData.nombre,
+        categoria: formData.categoria,
+        cantidad: formData.cantidad,
+        precio: formData.precio,
+        imagenUrl: formData.imagenUrl,
+        tipoImagen: formData.tipoImagen
+      };
+      
+      console.log('📤 Enviando datos al componente padre:', datosParaGuardar);
+      
+      const success = await onSave(datosParaGuardar);
       if (success !== false) {
         onClose();
       }
@@ -155,7 +196,8 @@ const FormularioAccesorio = ({ isOpen, onClose, onSave, editData, isDark, genera
       cantidad: 0,
       precio: 0,
       imagen: null,
-      imagenUrl: ''
+      imagenUrl: '', // Sin imagen
+      tipoImagen: 'none' // Sin imagen
     });
     setErrors({});
     onClose();
@@ -165,7 +207,8 @@ const FormularioAccesorio = ({ isOpen, onClose, onSave, editData, isDark, genera
     setFormData(prev => ({
       ...prev,
       imagen: null,
-      imagenUrl: ''
+      imagenUrl: '',
+      tipoImagen: 'none'
     }));
   };
 
@@ -370,23 +413,36 @@ const FormularioAccesorio = ({ isOpen, onClose, onSave, editData, isDark, genera
 
               {/* Área de imagen */}
               <div className="space-y-3">
+                {/* Mostrar imagen solo si existe */}
                 {formData.imagenUrl ? (
                   <div className="relative">
                     <img
                       src={formData.imagenUrl}
                       alt="Accesorio"
-                      className="w-full h-48 object-contain bg-white border rounded-lg"
+                      className="w-full h-48 object-cover bg-white border rounded-lg"
+                      onError={(e) => {
+                        e.target.src = `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(formData.codigo)}&backgroundColor=f0f0f0`;
+                      }}
                     />
-                    <button
-                      type="button"
-                      onClick={removeImage}
-                      className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200"
-                    >
-                      ×
-                    </button>
+                    {formData.tipoImagen === 'local' && (
+                      <div className="absolute top-2 left-2 px-2 py-1 bg-blue-500 text-white text-xs rounded">
+                        Local
+                      </div>
+                    )}
+                    {formData.tipoImagen === 'placeholder' && (
+                      <div className="absolute top-2 left-2 px-2 py-1 bg-purple-500 text-white text-xs rounded">
+                        Generada
+                      </div>
+                    )}
+                    {formData.tipoImagen === 'default' && (
+                      <div className="absolute top-2 left-2 px-2 py-1 bg-green-500 text-white text-xs rounded">
+                        Default
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div
+                  /* Área placeholder cuando no hay imagen */
+                  <div 
                     {...getRootProps()}
                     className={`w-full h-48 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ${
                       isDragActive
@@ -399,55 +455,87 @@ const FormularioAccesorio = ({ isOpen, onClose, onSave, editData, isDark, genera
                     <input {...getInputProps()} />
                     <div className="text-center">
                       <div className="text-4xl mb-2">📷</div>
-                      <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        {isDragActive ? (
-                          <p>Suelta la imagen aquí...</p>
-                        ) : (
-                          <div>
-                            <p>Arrastra una imagen aquí</p>
-                            <p>o haz clic para seleccionar</p>
-                          </div>
-                        )}
+                      <div className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {isDragActive ? 'Suelta la imagen aquí' : 'Agregar imagen'}
+                      </div>
+                      <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                        Arrastra una imagen o haz click
                       </div>
                     </div>
                   </div>
                 )}
 
                 {/* Botones de imagen */}
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-4 gap-2">
+                  {/* Subir imagen local */}
+                  <div
+                    {...getRootProps()}
+                    className="cursor-pointer"
+                  >
+                    <input {...getInputProps()} />
+                    <button
+                      type="button"
+                      className="w-full px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs transition-all duration-200"
+                      title="Subir imagen local"
+                    >
+                      📁
+                    </button>
+                  </div>
+                  
+                  {/* Imagen por defecto */}
                   <button
                     type="button"
-                    onClick={() => document.querySelector('input[type="file"]')?.click()}
-                    className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-sm transition-all duration-200"
+                    onClick={usarImagenDefault}
+                    className="px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs transition-all duration-200"
+                    title="Usar imagen por defecto"
                   >
-                    + 
+                    🏷️
                   </button>
+                  
+                  {/* Generar placeholder */}
+                  <button
+                    type="button"
+                    onClick={usarPlaceholder}
+                    className="px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded text-xs transition-all duration-200"
+                    title="Generar imagen única"
+                  >
+                    🎨
+                  </button>
+                  
+                  {/* Resetear */}
                   <button
                     type="button"
                     onClick={removeImage}
-                    disabled={!formData.imagenUrl}
-                    className="px-3 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded text-sm transition-all duration-200"
+                    className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs transition-all duration-200"
+                    title="Quitar imagen"
                   >
-                    🗑️ 
+                    🗑️
                   </button>
                 </div>
+
+                {/* Área de drag & drop alternativa (solo si hay imagen) */}
+                {formData.imagenUrl && (
+                  <div
+                    {...getRootProps()}
+                    className={`w-full h-16 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ${
+                      isDragActive
+                        ? 'border-purple-500 bg-purple-50'
+                        : isDark
+                          ? 'border-gray-600 bg-gray-700 hover:border-purple-500'
+                          : 'border-gray-300 bg-white hover:border-purple-500'
+                    }`}
+                  >
+                    <input {...getInputProps()} />
+                    <div className="text-center">
+                      <div className="text-lg mb-1">📷</div>
+                      <div className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {isDragActive ? 'Suelta aquí' : 'Cambiar imagen'}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Información adicional */}
-              <div className={`p-3 rounded border ${
-                isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-white'
-              }`}>
-                <h4 className={`font-medium text-sm mb-2 ${
-                  isDark ? 'text-gray-200' : 'text-gray-700'
-                }`}>
-                  Información:
-                </h4>
-                <ul className={`text-xs space-y-1 ${
-                  isDark ? 'text-gray-400' : 'text-gray-600'
-                }`}>
-                  <li>• Formatos: JPG, PNG, GIF, WebP</li>
-                </ul>
-              </div>
             </div>
           </div>
         </form>
