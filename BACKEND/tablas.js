@@ -36,7 +36,7 @@ const Veterinaria = {
     },
     detalles_facturas: {
         tabla: 'tbl_detalles_facturas',
-        campos: ['cantidad_item', 'precio_unitario_item', 'subtotal', 'ajuste_precio', 'total', 'id_factura_fk', 'id_categoria_item_fk', 'id_estilista_fk']
+        campos: ['cantidad_item', 'precio_unitario_item', 'subtotal', 'ajuste_precio', 'descripcion_ajuste', 'total', 'id_factura_fk', 'id_categoria_item_fk', 'id_estilista_fk']
     },
     promociones: {
         tabla: 'tbl_promociones',
@@ -44,15 +44,7 @@ const Veterinaria = {
     },
     servicios_peluqueria_canina: {
         tabla: 'tbl_servicios_peluqueria_canina',
-        campos: ['nombre_servicio_peluqueria', 'descripcion_servicio', 'id_categoria_item_fk']
-    },
-    tarifa_servicio_peluqueria: {
-        tabla: 'tbl_tarifa_servicio_peluqueria',
-        campos: ['raza', 'tamanio', 'precio_servicio', 'id_servicio_peluqueria_fk']
-    },
-    productos: {
-        tabla: 'tbl_productos',
-        campos: ['nombre_producto', 'precio_unitario_producto', 'cantidad_en_stock', 'categoria', 'id_categoria_item_fk']
+        campos: ['nombre_servicio_peluqueria', 'descripcion_servicio', 'precio_servicio', 'id_categoria_item_fk']
     },
     alimentos: {
         tabla: 'tbl_alimentos',

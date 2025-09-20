@@ -86,7 +86,8 @@ const TablaClientes = ({
                 >
                   <td className="py-3 px-6 border-b">{cliente.id_cliente_pk}</td>
                   <td className="py-3 px-6 border-b font-medium">{cliente.nombre_cliente}</td>
-                  <td className="py-3 px-6 border-b font-medium">{cliente.telefono_cliente || "—"}</td>
+                  <td className="py-3 px-6 border-b font-medium">{cliente.apellido_cliente}</td>
+                  <td className="py-3 px-6 border-b font-medium">{cliente.telefono_cliente}</td>
                   <td className="py-3 px-6 border-b text-center">
                     <div className="flex justify-center space-x-3">
                       <button className="text-purple-500 hover:scale-110 transform transition">
@@ -95,9 +96,7 @@ const TablaClientes = ({
                       <button className="text-red-500 hover:scale-110 transform transition">
                         <i className="fas fa-trash"></i>
                       </button>
-                      <button className="text-blue-500 hover:scale-110 transform transition">
-                        <i className="fas fa-eye"></i>
-                      </button>
+                    
                     </div>
                   </td>
                 </tr>
