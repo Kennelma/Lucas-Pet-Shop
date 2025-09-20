@@ -3,10 +3,10 @@ import React from 'react'
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 
 const Clientes = React.lazy(() => import('./views/clientes/Clientes.js'))
-const Accesorios = lazy(() => import("./views/productos/accesorios.js"))
-const Alimentos = React.lazy(() => import('./views/productos/alimentos.js'))
-const Medicamentos = React.lazy(() => import('./views/productos/medicamentos.js'))
-const Animales = React.lazy(() => import('./views/productos/animales.js'))
+const Accesorios = lazy(() => import("./views/productos/Accesorios.js"))
+const Alimentos = React.lazy(() => import('./views/productos/Alimentos.js'))
+const Medicamentos = React.lazy(() => import('./views/productos/Medicamentos.js'))
+const Animales = React.lazy(() => import('./views/productos/Animales.js'))
 
 const Promociones  = React.lazy(() => import('./views/peluqueria-canina/Promociones.js'))
 const Servicios  = React.lazy(() => import('./views/peluqueria-canina/Servicios-peluqueria.js'))
