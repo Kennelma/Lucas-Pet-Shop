@@ -7,7 +7,7 @@ const Clientes = React.lazy(() => import('./views/clientes/Clientes'))
 const Accesorios = React.lazy(() => import('./views/productos/accesorios/Accesorios'))
 const Aliumentos = React.lazy(() => import('./views/productos/alimentos'))
 const Medicamentos = React.lazy(() => import('./views/productos/medicamentos'))
-const Animales = React.lazy(() => import('./views/productos/animales'))
+const Animales = React.lazy(() => import('./views/productos/animales/Animales'))
 
 
 const Promociones  = React.lazy(() => import('./views/peluqueria-canina/Promociones'))
