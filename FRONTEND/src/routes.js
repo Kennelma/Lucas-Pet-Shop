@@ -2,14 +2,14 @@ import React from 'react'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 
-const Clientes = React.lazy(() => import('./views/clientes/Clientes'))
-const Accesorios = lazy(() => import("./views/productos/accesorios"))
-const Aliumentos = React.lazy(() => import('./views/productos/alimentos'))
-const Medicamentos = React.lazy(() => import('./views/productos/medicamentos'))
-const Animales = React.lazy(() => import('./views/productos/animales'))
+const Clientes = React.lazy(() => import('./views/clientes/Clientes.js'))
+const Accesorios = lazy(() => import("./views/productos/accesorios.js"))
+const Alimentos = React.lazy(() => import('./views/productos/alimentos.js'))
+const Medicamentos = React.lazy(() => import('./views/productos/medicamentos.js'))
+const Animales = React.lazy(() => import('./views/productos/animales.js'))
 
-const Promociones  = React.lazy(() => import('./views/peluqueria-canina/Promociones'))
-const Servicios  = React.lazy(() => import('./views/peluqueria-canina/Servicios-peluqueria'))
+const Promociones  = React.lazy(() => import('./views/peluqueria-canina/Promociones.js'))
+const Servicios  = React.lazy(() => import('./views/peluqueria-canina/Servicios-peluqueria.js'))
 
 
 
@@ -17,7 +17,7 @@ const routes = [
   { path: '/', name: 'Dashboard', element: Dashboard },
   { path: '/clientes', name: 'Clientes', element: Clientes },
 
-  { path: '/productos/Alimentos', name: 'Productos / Alimentos', element: Aliumentos },
+  { path: '/productos/Alimentos', name: 'Productos / Alimentos', element: Alimentos },
   { path: '/productos/animales', name: 'Productos / Animales', element: Animales },
   { path: '/productos/medicamentos', name: 'Productos / Medicamentos', element: Medicamentos },
   { path: '/productos/accesorios', name: 'Productos / Accesorios', element: Accesorios },
