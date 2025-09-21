@@ -24,42 +24,75 @@ const Alimentos = () => {
   };
 
   return (
-    <div>
-      <button onClick={() => setShowModalNuevo(true)}>+ Nuevo Alimento</button>
+    <div className="p-6">
+      <button
+        onClick={() => setShowModalNuevo(true)}
+        className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+      >
+        + Nuevo Alimento
+      </button>
 
-      {showModalNuevo && <ModalNuevoAlimento onClose={() => setShowModalNuevo(false)} onSuccess={fetchData} />}
-      {showModalEditar && alimentoSeleccionado && (
-        <ModalActualizarAlimento
-          alimento={alimentoSeleccionado}
-          onClose={() => { setShowModalEditar(false); setAlimentoSeleccionado(null); }}
+      {showModalNuevo && (
+        <ModalNuevoAlimento
+          onClose={() => setShowModalNuevo(false)}
           onSuccess={fetchData}
         />
       )}
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "15px", marginTop: "20px" }}>
+      {showModalEditar && alimentoSeleccionado && (
+        <ModalActualizarAlimento
+          alimento={alimentoSeleccionado}
+          onClose={() => {
+            setShowModalEditar(false);
+            setAlimentoSeleccionado(null);
+          }}
+          onSuccess={fetchData}
+        />
+      )}
+
+      <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
         {alimentos.length === 0 ? (
-          <p>No hay alimentos disponibles.</p>
+          <p className="text-gray-600">No hay alimentos disponibles.</p>
         ) : (
           alimentos.map((alimento) => (
-            <div key={alimento.id_alimento_pk} style={{
-              border: "1px solid #ccc",
-              borderRadius: "10px",
-              width: "220px",
-              boxShadow: "2px 2px 8px rgba(0,0,0,0.1)",
-              padding: "10px",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between"
-            }}>
-              <h3>{alimento.nombre_alimento}</h3>
-              <p><b>Precio:</b> Lps {alimento.precio_alimento}</p>
-              <p><b>Stock:</b> {alimento.stock_alimento}</p>
-              <p><b>Destino:</b> {alimento.alimento_destinado}</p>
-              <p><b>Peso:</b> {alimento.peso_alimento}</p>
+            <div
+              key={alimento.id_alimento_pk}
+              className="bg-white shadow-lg rounded-xl p-5 border border-gray-200 flex flex-col justify-between hover:shadow-xl transition"
+            >
+              <h3 className="text-lg font-bold text-gray-800 mb-2">
+                {alimento.nombre_alimento}
+              </h3>
+              <p className="text-gray-600">
+                <b>Precio:</b> Lps {alimento.precio_alimento}
+              </p>
+              <p className="text-gray-600">
+                <b>Stock:</b> {alimento.stock_alimento}
+              </p>
+              <p className="text-gray-600">
+                <b>Destino:</b> {alimento.alimento_destinado}
+              </p>
+              <p className="text-gray-600">
+                <b>Peso:</b> {alimento.peso_alimento}
+              </p>
 
-              <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-                <button onClick={() => { setAlimentoSeleccionado(alimento); setShowModalEditar(true); }} title="Editar" style={{ background: "orange", border: "none", padding: "5px", cursor: "pointer", borderRadius: "5px" }}>📝</button>
-                <button onClick={() => handleDelete(alimento.id_alimento_pk)} title="Eliminar" style={{ background: "red", color: "white", border: "none", padding: "5px", cursor: "pointer", borderRadius: "5px" }}>🗑️</button>
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={() => {
+                    setAlimentoSeleccionado(alimento);
+                    setShowModalEditar(true);
+                  }}
+                  title="Editar"
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg shadow transition"
+                >
+                  📝
+                </button>
+                <button
+                  onClick={() => handleDelete(alimento.id_alimento_pk)}
+                  title="Eliminar"
+                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg shadow transition"
+                >
+                  🗑️
+                </button>
               </div>
             </div>
           ))

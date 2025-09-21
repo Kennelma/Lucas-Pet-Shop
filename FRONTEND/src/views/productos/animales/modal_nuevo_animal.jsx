@@ -1,4 +1,3 @@
-// modal_nuevo_animal.jsx
 import React, { useState } from "react";
 import { insertarRegistro } from "../../../services/apiService";
 
@@ -8,36 +7,38 @@ const ModalNuevoAnimal = ({ onClose, onSuccess }) => {
     precio_animal: "",
     stock_animal: "",
     sexo: "",
-    especie: "",
+    especie: ""
   });
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = e => {
+    const { name, value } = e.target;
+
+    if (["precio_animal", "stock_animal"].includes(name)) {
+      if (value !== "" && parseFloat(value) < 1) return;
+    }
+
+    setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    try {
-      await insertarRegistro("tbl_animales", formData);
-      onSuccess(); // refresca la lista
-      onClose();   // cierra el modal
-    } catch (error) {
-      console.error("Error al insertar animal:", error);
-    }
+    await insertarRegistro("tbl_animales", formData);
+    onSuccess();
+    onClose();
   };
 
   return (
-    <div style={styles.overlay}>
-      <div style={styles.modal}>
-        <h2>Agregar Nuevo Animal</h2>
-        <form onSubmit={handleSubmit} style={styles.form}>
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+        <h2 className="text-xl font-semibold mb-4">Nuevo Animal</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <input
-            type="text"
             name="nombre_animal"
-            placeholder="Nombre del animal"
+            placeholder="Nombre"
             value={formData.nombre_animal}
             onChange={handleChange}
             required
+            className="p-2 border rounded"
           />
           <input
             type="number"
@@ -46,7 +47,9 @@ const ModalNuevoAnimal = ({ onClose, onSuccess }) => {
             placeholder="Precio"
             value={formData.precio_animal}
             onChange={handleChange}
+            min="1"
             required
+            className="p-2 border rounded"
           />
           <input
             type="number"
@@ -54,30 +57,41 @@ const ModalNuevoAnimal = ({ onClose, onSuccess }) => {
             placeholder="Stock"
             value={formData.stock_animal}
             onChange={handleChange}
+            min="1"
             required
+            className="p-2 border rounded"
           />
           <select
             name="sexo"
             value={formData.sexo}
             onChange={handleChange}
             required
+            className="p-2 border rounded"
           >
-            <option value="">Seleccione sexo</option>
+            <option value="">Sexo</option>
             <option value="HEMBRA">Hembra</option>
             <option value="MACHO">Macho</option>
           </select>
           <input
-            type="text"
             name="especie"
             placeholder="Especie"
             value={formData.especie}
             onChange={handleChange}
             required
+            className="p-2 border rounded"
           />
-
-          <div style={styles.buttons}>
-            <button type="submit">Guardar</button>
-            <button type="button" onClick={onClose} style={{ background: "gray" }}>
+          <div className="flex justify-between mt-4">
+            <button
+              type="submit"
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            >
+              Guardar
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+            >
               Cancelar
             </button>
           </div>
@@ -85,33 +99,6 @@ const ModalNuevoAnimal = ({ onClose, onSuccess }) => {
       </div>
     </div>
   );
-};
-
-const styles = {
-  overlay: {
-    position: "fixed",
-    top: 0, left: 0,
-    width: "100%", height: "100%",
-    background: "rgba(0,0,0,0.5)",
-    display: "flex", alignItems: "center", justifyContent: "center",
-  },
-  modal: {
-    background: "white",
-    padding: "20px",
-    borderRadius: "10px",
-    width: "350px",
-    boxShadow: "2px 2px 10px rgba(0,0,0,0.2)",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-  buttons: {
-    display: "flex",
-    justifyContent: "space-between",
-    marginTop: "15px",
-  },
 };
 
 export default ModalNuevoAnimal;

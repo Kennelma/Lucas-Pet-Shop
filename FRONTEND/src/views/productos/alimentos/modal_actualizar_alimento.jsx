@@ -22,7 +22,15 @@ const ModalActualizarAlimento = ({ alimento, onClose, onSuccess }) => {
     }
   }, [alimento]);
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    if (["precio_alimento", "stock_alimento", "peso_alimento"].includes(name)) {
+      if (value !== "" && parseFloat(value) < 1) return;
+    }
+
+    setFormData({ ...formData, [name]: value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,15 +44,47 @@ const ModalActualizarAlimento = ({ alimento, onClose, onSuccess }) => {
   };
 
   return (
-    <div style={styles.overlay}>
-      <div style={styles.modal}>
-        <h2>Editar Alimento</h2>
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <input type="text" name="nombre_alimento" placeholder="Nombre" value={formData.nombre_alimento} onChange={handleChange} required />
-          <input type="number" step="0.01" name="precio_alimento" placeholder="Precio" value={formData.precio_alimento} onChange={handleChange} required />
-          <input type="number" name="stock_alimento" placeholder="Stock" value={formData.stock_alimento} onChange={handleChange} required />
-
-          <select name="alimento_destinado" value={formData.alimento_destinado} onChange={handleChange} required>
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+        <h2 className="text-xl font-semibold mb-4">Editar Alimento</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <input
+            type="text"
+            name="nombre_alimento"
+            placeholder="Nombre"
+            value={formData.nombre_alimento}
+            onChange={handleChange}
+            required
+            className="p-2 border rounded"
+          />
+          <input
+            type="number"
+            step="0.01"
+            name="precio_alimento"
+            placeholder="Precio"
+            value={formData.precio_alimento}
+            onChange={handleChange}
+            required
+            min="1"
+            className="p-2 border rounded"
+          />
+          <input
+            type="number"
+            name="stock_alimento"
+            placeholder="Stock"
+            value={formData.stock_alimento}
+            onChange={handleChange}
+            required
+            min="1"
+            className="p-2 border rounded"
+          />
+          <select
+            name="alimento_destinado"
+            value={formData.alimento_destinado}
+            onChange={handleChange}
+            required
+            className="p-2 border rounded"
+          >
             <option value="">Seleccione destino</option>
             <option value="PERROS">PERROS</option>
             <option value="GATOS">GATOS</option>
@@ -52,24 +92,35 @@ const ModalActualizarAlimento = ({ alimento, onClose, onSuccess }) => {
             <option value="CANARIOS">CANARIOS</option>
             <option value="CONEJOS">CONEJOS</option>
           </select>
-
-          <input type="text" name="peso_alimento" placeholder="Peso" value={formData.peso_alimento} onChange={handleChange} required />
-
-          <div style={styles.buttons}>
-            <button type="submit">Actualizar</button>
-            <button type="button" onClick={onClose} style={{ background: "gray" }}>Cancelar</button>
+          <input
+            type="number"
+            name="peso_alimento"
+            placeholder="Peso"
+            value={formData.peso_alimento}
+            onChange={handleChange}
+            required
+            min="1"
+            className="p-2 border rounded"
+          />
+          <div className="flex justify-between mt-4">
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Actualizar
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+            >
+              Cancelar
+            </button>
           </div>
         </form>
       </div>
     </div>
   );
-};
-
-const styles = {
-  overlay: { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center" },
-  modal: { background: "#fff", padding: "20px", borderRadius: "10px", width: "350px", boxShadow: "2px 2px 10px rgba(0,0,0,0.2)" },
-  form: { display: "flex", flexDirection: "column", gap: "10px" },
-  buttons: { display: "flex", justifyContent: "space-between", marginTop: "15px" },
 };
 
 export default ModalActualizarAlimento;
