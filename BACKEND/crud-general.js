@@ -57,7 +57,7 @@ router.post('/ingresar-datos-formulario', function(req, res) {
             console.error(`❌ Error al insertar en ${tabla}:`, err);
             res.status(500).json({ error: "Error al insertar datos" });
         } else {
-            console.log(`✅ Registro en  ${tabla} insertado correctamente`);
+            console.log(`✅ Registro en ${tabla} insertado correctamente`);
             res.status(201).json({ 
                 mensaje: `✅ Registro ingresado correctamente`
             });
