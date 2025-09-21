@@ -4,13 +4,15 @@ import { ScissorsIcon } from '@heroicons/react/24/outline';
 export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = null }) {
   const [formData, setFormData] = useState({
     nombre_servicio_peluqueria: '',
-    descripcion_servicio: ''
+    descripcion_servicio: '',
+    precio_servicio: ''
   });
 
   useEffect(() => {
     setFormData({
       nombre_servicio_peluqueria: servicio?.nombre_servicio_peluqueria || '',
-      descripcion_servicio: servicio?.descripcion_servicio || ''
+      descripcion_servicio: servicio?.descripcion_servicio || '',
+      precio_servicio: servicio?.precio_servicio || ''
     });
   }, [servicio]);
 
@@ -23,20 +25,14 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Agregar el id_categoria_item_fk para servicios (según tu PDF = 1)
-    const dataToSend = {
-      ...formData,
-      id_categoria_item_fk: 1
-    };
-    
-    onSubmit(dataToSend);
+    onSubmit(formData);
   };
 
   const handleClose = () => {
     setFormData({ 
       nombre_servicio_peluqueria: '',
-      descripcion_servicio: ''
+      descripcion_servicio: '',
+      precio_servicio: ''
     });
     onClose();
   };
@@ -94,6 +90,24 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
                 onChange={handleChange}
                 className="form-input form-textarea"
                 placeholder="Descripción detallada del servicio..."
+                required
+              />
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="precio_servicio" className="form-label">
+                Precio del Servicio ($)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                name="precio_servicio"
+                id="precio_servicio"
+                value={formData.precio_servicio}
+                onChange={handleChange}
+                className="form-input"
+                placeholder="0.00"
                 required
               />
             </div>
