@@ -26,8 +26,13 @@ const Animales = () => {
   };
 
   return (
-    <div>
-      <button onClick={() => setShowModalNuevo(true)}>+ Nuevo Animal</button>
+    <div className="p-4">
+      <button
+        onClick={() => setShowModalNuevo(true)}
+        className="mb-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+      >
+        + Nuevo Animal
+      </button>
 
       {showModalNuevo && (
         <ModalNuevoAnimal
@@ -47,41 +52,37 @@ const Animales = () => {
         />
       )}
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "15px", marginTop: "20px" }}>
+      <div className="flex flex-wrap gap-4">
         {animales.length === 0 ? (
           <p>No hay animales disponibles.</p>
         ) : (
           animales.map((animal) => (
-            <div key={animal.id_animal_pk} style={{
-              border: "1px solid #ccc",
-              borderRadius: "10px",
-              padding: "15px",
-              width: "220px",
-              boxShadow: "2px 2px 8px rgba(0,0,0,0.1)",
-              position: "relative"
-            }}>
-              <h3>{animal.nombre_animal}</h3>
-              <p><b>Precio:</b> Lps {animal.precio_animal}</p>
-              <p><b>Stock:</b> {animal.stock_animal}</p>
-              <p><b>Sexo:</b> {animal.sexo}</p>
-              <p><b>Especie:</b> {animal.especie}</p>
+            <div
+              key={animal.id_animal_pk}
+              className="border rounded-lg p-4 w-56 shadow hover:shadow-lg relative bg-white"
+            >
+              <h3 className="text-lg font-semibold mb-2">{animal.nombre_animal}</h3>
+              <p><span className="font-bold">Precio:</span> Lps {animal.precio_animal}</p>
+              <p><span className="font-bold">Stock:</span> {animal.stock_animal}</p>
+              <p><span className="font-bold">Sexo:</span> {animal.sexo}</p>
+              <p><span className="font-bold">Especie:</span> {animal.especie}</p>
 
               {/* Botones de acción */}
-              <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+              <div className="flex gap-2 mt-3">
                 <button
                   onClick={() => {
                     setAnimalSeleccionado(animal);
                     setShowModalEditar(true);
                   }}
                   title="Editar"
-                  style={{ background: "orange", border: "none", padding: "5px", cursor: "pointer", borderRadius: "5px" }}
+                  className="flex-1 bg-orange-500 text-white rounded p-1 hover:bg-orange-600"
                 >
                   📝
                 </button>
                 <button
                   onClick={() => handleDelete(animal.id_animal_pk)}
                   title="Eliminar"
-                  style={{ background: "red", color: "white", border: "none", padding: "5px", cursor: "pointer", borderRadius: "5px" }}
+                  className="flex-1 bg-red-500 text-white rounded p-1 hover:bg-red-600"
                 >
                   🗑️
                 </button>
