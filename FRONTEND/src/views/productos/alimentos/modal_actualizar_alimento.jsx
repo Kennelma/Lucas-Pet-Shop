@@ -1,121 +1,114 @@
-import React, { useState, useEffect } from "react";
-import { actualizarRegistro } from "../../../services/apiService";
+import React, { useState, useEffect } from 'react';
 
-const ModalActualizarAlimento = ({ alimento, onClose, onSuccess }) => {
-  const [formData, setFormData] = useState({
-    nombre_alimento: "",
-    precio_alimento: "",
-    stock_alimento: "",
-    alimento_destinado: "",
-    peso_alimento: ""
-  });
+const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
+  const [data, setData] = useState({nombre: '', destino: 'PERROS', cantidad: 1, precio: 1, peso: 0.1, imagenUrl: ''});
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (alimento) {
-      setFormData({
-        nombre_alimento: alimento.nombre_alimento,
-        precio_alimento: alimento.precio_alimento,
-        stock_alimento: alimento.stock_alimento,
-        alimento_destinado: alimento.alimento_destinado,
-        peso_alimento: alimento.peso_alimento
+    if (isOpen && editData) {
+      setData({
+        nombre: editData.nombre || '',
+        destino: editData.destino || 'PERROS',
+        cantidad: editData.cantidad || 1,
+        precio: editData.precio || 1,
+        peso: editData.peso || 0.1,
+        imagenUrl: editData.imagenUrl || editData.imagen || ''
       });
     }
-  }, [alimento]);
+    setErrors({});
+  }, [isOpen, editData]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    if (["precio_alimento", "stock_alimento", "peso_alimento"].includes(name)) {
-      if (value !== "" && parseFloat(value) < 1) return;
+    const { name, value, files } = e.target;
+    if (files && files[0]) {
+      const reader = new FileReader();
+      reader.onload = () => setData(prev => ({ ...prev, imagenUrl: reader.result }));
+      reader.readAsDataURL(files[0]);
+    } else {
+      setData(prev => ({ ...prev, [name]: value }));
+      if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
     }
-
-    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      await actualizarRegistro("tbl_alimentos", alimento.id_alimento_pk, formData);
-      onSuccess();
-      onClose();
-    } catch (error) {
-      console.error("Error al actualizar alimento:", error);
+    const newErrors = {};
+    if (!data.nombre.trim()) newErrors.nombre = 'Nombre requerido';
+    if (data.cantidad <= 0) newErrors.cantidad = 'Stock inválido';
+    if (data.precio <= 0) newErrors.precio = 'Precio inválido';
+    if (data.peso <= 0) newErrors.peso = 'Peso inválido';
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length === 0) {
+      const success = await onSave(data);
+      if (success !== false) onClose();
     }
   };
 
+  if (!isOpen) return null;
+
+  const destinos = ['PERROS', 'GATOS', 'TORTUGAS', 'CANARIOS', 'CONEJOS'];
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 className="text-xl font-semibold mb-4">Editar Alimento</h2>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <input
-            type="text"
-            name="nombre_alimento"
-            placeholder="Nombre"
-            value={formData.nombre_alimento}
-            onChange={handleChange}
-            required
-            className="p-2 border rounded"
-          />
-          <input
-            type="number"
-            step="0.01"
-            name="precio_alimento"
-            placeholder="Precio"
-            value={formData.precio_alimento}
-            onChange={handleChange}
-            required
-            min="1"
-            className="p-2 border rounded"
-          />
-          <input
-            type="number"
-            name="stock_alimento"
-            placeholder="Stock"
-            value={formData.stock_alimento}
-            onChange={handleChange}
-            required
-            min="1"
-            className="p-2 border rounded"
-          />
-          <select
-            name="alimento_destinado"
-            value={formData.alimento_destinado}
-            onChange={handleChange}
-            required
-            className="p-2 border rounded"
-          >
-            <option value="">Seleccione destino</option>
-            <option value="PERROS">PERROS</option>
-            <option value="GATOS">GATOS</option>
-            <option value="TORTUGAS">TORTUGAS</option>
-            <option value="CANARIOS">CANARIOS</option>
-            <option value="CONEJOS">CONEJOS</option>
-          </select>
-          <input
-            type="number"
-            name="peso_alimento"
-            placeholder="Peso"
-            value={formData.peso_alimento}
-            onChange={handleChange}
-            required
-            min="1"
-            className="p-2 border rounded"
-          />
-          <div className="flex justify-between mt-4">
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Actualizar
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-            >
-              Cancelar
-            </button>
+    <div style={{position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16}}>
+      <div style={{background: 'white', borderRadius: 8, width: '100%', maxWidth: 800, display: 'flex', flexDirection: 'column'}}>
+        <div style={{padding: 16, borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+          <h2 style={{margin: 0, flex: 1, textAlign: 'center'}}>EDITAR ALIMENTO</h2>
+          <button onClick={onClose} style={{background: 'none', border: 'none', fontSize: 20, cursor: 'pointer'}}>×</button>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{display: 'flex'}}>
+          <div style={{flex: 1, padding: 20}}>
+            <div style={{marginBottom: 16}}>
+              <label>Nombre:</label>
+              <input name="nombre" value={data.nombre} onChange={handleChange} style={{width: '100%', padding: 8, border: errors.nombre ? '1px solid red' : '1px solid #ddd'}}/>
+              {errors.nombre && <div style={{color: 'red', fontSize: 12}}>{errors.nombre}</div>}
+            </div>
+
+            <div style={{marginBottom: 16}}>
+              <label>Alimento destinado:</label>
+              <select name="destino" value={data.destino} onChange={handleChange} style={{width: '100%', padding: 8, border: '1px solid #ddd'}}>
+                {destinos.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+
+            <div style={{display: 'flex', gap: 16, marginBottom: 16}}>
+              <div style={{flex: 1}}>
+                <label>Stock:</label>
+                <input type="number" name="cantidad" value={data.cantidad} onChange={handleChange} style={{width: '100%', padding: 8, border: errors.cantidad ? '1px solid red' : '1px solid #ddd'}}/>
+                {errors.cantidad && <div style={{color: 'red', fontSize: 12}}>{errors.cantidad}</div>}
+              </div>
+              <div style={{flex: 1}}>
+                <label>Precio:</label>
+                <input type="number" name="precio" value={data.precio} onChange={handleChange} step="0.01" style={{width: '100%', padding: 8, border: errors.precio ? '1px solid red' : '1px solid #ddd'}}/>
+                {errors.precio && <div style={{color: 'red', fontSize: 12}}>{errors.precio}</div>}
+              </div>
+            </div>
+
+            <div style={{marginBottom: 16}}>
+              <label>Peso (kg):</label>
+              <input type="number" name="peso" value={data.peso} onChange={handleChange} step="0.01" style={{width: '100%', padding: 8, border: errors.peso ? '1px solid red' : '1px solid #ddd'}}/>
+              {errors.peso && <div style={{color: 'red', fontSize: 12}}>{errors.peso}</div>}
+            </div>
+
+            <div style={{textAlign: 'center'}}>
+              <button type="submit" style={{background: '#4bc099ff', color: 'white', padding: '10px 20px', border: 'none', borderRadius: 4, cursor: 'pointer'}}>Guardar</button>
+            </div>
+          </div>
+
+          <div style={{width: 250, borderLeft: '1px solid #ddd', padding: 20}}>
+            {data.imagenUrl ? (
+              <>
+                <img src={data.imagenUrl} alt="Alimento" style={{width: '100%', height: 150, objectFit: 'cover', border: '1px solid #ddd'}}/>
+                <div style={{display: 'flex', justifyContent: 'center', marginTop: 10}}>
+                  <span onClick={() => setData(prev => ({...prev, imagenUrl: ''}))} style={{cursor: 'pointer', fontSize: 20}}>🗑️</span>
+                </div>
+              </>
+            ) : (
+              <label style={{width: '100%', height: 150, border: '2px dashed #ddd', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 4, backgroundColor: '#f9f9f9', fontSize: 14, color: '#666'}}>
+                Agregar imagen
+                <input type="file" accept="image/*" onChange={handleChange} style={{display: 'none'}}/>
+              </label>
+            )}
           </div>
         </form>
       </div>
