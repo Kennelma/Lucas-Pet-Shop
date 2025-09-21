@@ -92,20 +92,13 @@ const _nav = [
     to: '/configuracion',
     icon: <FontAwesomeIcon icon={faCut} className="nav-icon" />,
     items: [
-      {
-        component: CNavItem,
-        name: 'Promociones',
-        to: '/peluqueria-canina/Promociones',
-        style: { paddingLeft: '65px' },
-        icon: <FontAwesomeIcon icon={faTags} className="nav-icon" />,
-        
-      },
+      
       {
         component: CNavItem,
         name: 'Servicios',
         style: { paddingLeft: '65px' },
         icon: <FontAwesomeIcon icon={faShower} className="nav-icon" />,
-         to: '/peluqueria-canina/Servicios-peluqueria',
+         to: '/peluqueria-canina/PeluqueriaCanina',
         
       },
     ],
