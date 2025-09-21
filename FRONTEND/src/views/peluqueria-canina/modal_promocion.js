@@ -27,14 +27,7 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Agregar el id_categoria_item_fk para promociones (según tu PDF = 3)
-    const dataToSend = {
-      ...formData,
-      id_categoria_item_fk: 3
-    };
-    
-    onSubmit(dataToSend);
+    onSubmit(formData);
   };
 
   const handleClose = () => {
