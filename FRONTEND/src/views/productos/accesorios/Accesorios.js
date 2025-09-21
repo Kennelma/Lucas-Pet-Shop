@@ -12,23 +12,16 @@ const Accesorios = () => {
   const [loading, setLoading] = useState(true);
 
   const imagenStorage = {
-    guardar: (id, url) => {
-      const imagenes = JSON.parse(localStorage.getItem('imagenesAccesorios') || '{}');
-      imagenes[id] = url;
-      localStorage.setItem('imagenesAccesorios', JSON.stringify(imagenes));
-    },
+    guardar: (id, url) => localStorage.setItem('imagenesAccesorios', JSON.stringify({...JSON.parse(localStorage.getItem('imagenesAccesorios') || '{}'), [id]: url})),
     obtener: (id) => JSON.parse(localStorage.getItem('imagenesAccesorios') || '{}')[id] || '',
     eliminar: (id) => {
-      const imagenes = JSON.parse(localStorage.getItem('imagenesAccesorios') || '{}');
-      delete imagenes[id];
-      localStorage.setItem('imagenesAccesorios', JSON.stringify(imagenes));
+      const imgs = JSON.parse(localStorage.getItem('imagenesAccesorios') || '{}');
+      delete imgs[id];
+      localStorage.setItem('imagenesAccesorios', JSON.stringify(imgs));
     }
   };
 
-  const mostrarMensaje = (texto) => {
-    setMensaje(texto);
-    setTimeout(() => setMensaje(''), 3000);
-  };
+  const mostrarMensaje = (texto) => (setMensaje(texto), setTimeout(() => setMensaje(''), 3000));
 
   const cargarInventario = async () => {
     setLoading(true);
@@ -50,36 +43,23 @@ const Accesorios = () => {
   };
 
   const guardarAccesorio = async ({ nombre, categoria, cantidad, precio, imagenUrl }) => {
-    const datosDB = {
-      nombre_accesorio: nombre,
-      tipo_accesorio: categoria,
-      stock_accesorio: parseInt(cantidad),
-      precio_accesorio: parseFloat(precio)
-    };
-
+    const datosDB = { nombre_accesorio: nombre, tipo_accesorio: categoria, stock_accesorio: parseInt(cantidad), precio_accesorio: parseFloat(precio) };
+    
     try {
       let resultado;
       if (editIndex >= 0) {
         const accesorio = inventario[editIndex];
         resultado = await actualizarRegistro('tbl_accesorios', accesorio.id, datosDB);
-        if (resultado) {
-          imagenUrl ? imagenStorage.guardar(accesorio.id, imagenUrl) : imagenStorage.eliminar(accesorio.id);
-        }
+        if (resultado) imagenUrl ? imagenStorage.guardar(accesorio.id, imagenUrl) : imagenStorage.eliminar(accesorio.id);
       } else {
         resultado = await insertarRegistro('tbl_accesorios', datosDB);
         if (resultado && imagenUrl) {
-          // Para productos nuevos, buscar el ID y guardar imagen
           setTimeout(async () => {
             const datosActualizados = await verRegistro('tbl_accesorios');
-            const nuevoAccesorio = datosActualizados
-              .filter(item => 
-                item.nombre_accesorio === nombre && 
-                item.tipo_accesorio === categoria &&
-                item.stock_accesorio === parseInt(cantidad) && 
-                parseFloat(item.precio_accesorio) === parseFloat(precio)
-              )
-              .sort((a, b) => b.id_accesorio_pk - a.id_accesorio_pk)[0];
-
+            const nuevoAccesorio = datosActualizados.filter(item => 
+              item.nombre_accesorio === nombre && item.tipo_accesorio === categoria &&
+              item.stock_accesorio === parseInt(cantidad) && parseFloat(item.precio_accesorio) === parseFloat(precio)
+            ).sort((a, b) => b.id_accesorio_pk - a.id_accesorio_pk)[0];
             if (nuevoAccesorio) {
               imagenStorage.guardar(nuevoAccesorio.id_accesorio_pk, imagenUrl);
               cargarInventario();
@@ -104,7 +84,6 @@ const Accesorios = () => {
   const borrarAccesorio = async (index) => {
     const producto = inventario[index];
     if (!window.confirm(`¿Eliminar "${producto.nombre}"?`)) return;
-    
     try {
       if (await borrarRegistro('tbl_accesorios', producto.id)) {
         imagenStorage.eliminar(producto.id);
@@ -116,39 +95,28 @@ const Accesorios = () => {
     }
   };
 
-  const productosFiltrados = inventario.filter(p => 
-    p.nombre.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  const productosFiltrados = inventario.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()));
 
   useEffect(() => cargarInventario(), []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-2 border-gray-300 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p>Cargando...</p>
-        </div>
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-12 h-12 border-2 border-gray-300 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+        <p>Cargando...</p>
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
     <div className="min-h-screen p-5 bg-white">
       <div className="flex justify-between items-center mb-5">
         <h1 className="text-2xl font-bold">INVENTARIO DE ACCESORIOS</h1>
-        <button onClick={() => setModalVisible(true)} className="px-4 py-2 bg-purple-600 text-white rounded">
-          + NUEVO
-        </button>
+        <button onClick={() => setModalVisible(true)} className="px-4 py-2 bg-purple-600 text-white rounded">+ NUEVO</button>
       </div>
 
       <div className="mb-6 relative w-80">
-        <input 
-          value={busqueda} 
-          onChange={(e) => setBusqueda(e.target.value)}
-          placeholder="Buscar..."
-          className="w-full px-4 py-2 border rounded-full"
-        />
+        <input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar..." className="w-full px-4 py-2 border rounded-full"/>
         {busqueda && <button onClick={() => setBusqueda('')} className="absolute right-3 top-2">×</button>}
       </div>
 
@@ -170,15 +138,11 @@ const Accesorios = () => {
                     <div className="w-full h-full bg-gray-50"></div>
                   }
                 </div>
-                
                 <div className="text-center mb-8">
                   <div className="font-bold text-sm mb-1">{producto.nombre}</div>
                   <div className="text-lg font-bold">L.{producto.precio.toFixed(0)}</div>
-                  <div className={producto.cantidad < 5 ? 'text-red-600' : 'text-gray-600'}>
-                    Stock: {producto.cantidad}
-                  </div>
+                  <div className={producto.cantidad < 5 ? 'text-red-600' : 'text-gray-600'}>Stock: {producto.cantidad}</div>
                 </div>
-                
                 <button onClick={() => borrarAccesorio(index)} className="absolute bottom-2 left-2 p-1">🗑️</button>
                 <button onClick={() => {setEditIndex(index); setModalVisible(true);}} className="absolute bottom-2 right-2 p-1">⚙️</button>
               </div>
@@ -193,9 +157,7 @@ const Accesorios = () => {
       )}
 
       {mensaje && (
-        <div className="fixed bottom-5 right-5 px-4 py-2 bg-purple-600 text-white rounded font-bold">
-          {mensaje}
-        </div>
+        <div className="fixed bottom-5 right-5 px-4 py-2 bg-purple-600 text-white rounded font-bold">{mensaje}</div>
       )}
     </div>
   );
