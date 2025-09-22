@@ -47,3 +47,20 @@ export const borrarRegistro = async (tabla, id) => {
     return null;
   }
 };
+
+
+{/*SERVICIO QUE CONSUME EL ENDPOINT DEL LOGIN*/}
+export const loginUsuario = async (login) => {
+  try {
+    const res = await axios.post(`${API_URL}/login`, {login});
+    return res.data;
+    
+  } catch (err) {
+    console.error('Error en login:', err);
+
+    if (err.response && err.response.data) {
+      return err.response.data;
+    }
+    return null;
+  }
+};
