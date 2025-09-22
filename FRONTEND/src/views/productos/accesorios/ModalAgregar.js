@@ -1,100 +1,88 @@
 import React, { useState, useEffect } from 'react';
 
 const ModalAgregar = ({ isOpen, onClose, onSave }) => {
-  const [data, setData] = useState({nombre: '', categoria: 'Collar', cantidad: 0, precio: 0, imagenUrl: ''});
+  const [data, setData] = useState({ nombre: '', categoria: 'Collar', cantidad: 0, precio: 0, imagenUrl: '' });
   const [errors, setErrors] = useState({});
   
   useEffect(() => {
     if (isOpen) {
-      setData({nombre: '', categoria: 'Collar', cantidad: 0, precio: 0, imagenUrl: ''});
+      setData({ nombre: '', categoria: 'Collar', cantidad: 0, precio: 0, imagenUrl: '' });
       setErrors({});
     }
   }, [isOpen]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (files) {
+    if (files?.[0]) {
       const reader = new FileReader();
       reader.onload = () => setData(prev => ({ ...prev, imagenUrl: reader.result }));
       reader.readAsDataURL(files[0]);
-    } else {
-      setData(prev => ({ ...prev, [name]: value }));
-      if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    } else setData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
-    if (!data.nombre.trim()) newErrors.nombre = 'Nombre requerido';
-    if (data.cantidad < 0) newErrors.cantidad = 'Cantidad inválida';
-    if (data.precio < 0) newErrors.precio = 'Precio inválido';
+    if (!data.nombre?.trim()) newErrors.nombre = true;
+    if (!data.cantidad || data.cantidad < 0) newErrors.cantidad = true;
+    if (!data.precio || data.precio <= 0) newErrors.precio = true;
     setErrors(newErrors);
-    if (Object.keys(newErrors).length === 0) {
-      const success = await onSave(data);
-      if (success !== false) onClose();
-    }
+    if (!Object.keys(newErrors).length && await onSave(data) !== false) onClose();
   };
 
   if (!isOpen) return null;
 
   return (
-    <div style={{position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, marginLeft: 'var(--cui-sidebar-occupy-start, 0px)', marginRight: 'var(--cui-sidebar-occupy-end, 0px)'}}>
-      <div style={{background: 'white', borderRadius: 8, width: '100%', maxWidth: 800, display: 'flex', flexDirection: 'column'}}>
-        <div style={{padding: 16, borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-          <h2 style={{margin: 0, flex: 1, textAlign: 'center'}}>AGREGAR ACCESORIO</h2>
-          <button onClick={onClose} style={{background: 'none', border: 'none', fontSize: 20, cursor: 'pointer'}}>×</button>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur flex items-center justify-center p-4 z-50" style={{marginLeft: 'var(--cui-sidebar-occupy-start, 0px)', marginRight: 'var(--cui-sidebar-occupy-end, 0px)'}}>
+      <div className="bg-white rounded-lg w-full max-w-2xl">
+        <div className="flex justify-between items-center p-4 border-b border-gray-300">
+          <h2 className="font-bold text-lg">AGREGAR ACCESORIO</h2>
+          <button onClick={onClose} className="text-2xl">&times;</button>
         </div>
-        
-        <form onSubmit={handleSubmit} style={{display: 'flex'}}>
-          <div style={{flex: 1, padding: 20}}>
-            <div style={{marginBottom: 16}}>
-              <label>Categoría:</label>
-              <select name="categoria" value={data.categoria} onChange={handleChange} style={{width: '100%', padding: 8, border: '1px solid #ddd'}}>
-                {['Collar', 'Correa', 'Juguete', 'Cama', 'Comedero', 'Transportadora', 'Higiene', 'Ropa'].map(cat => 
-                  <option key={cat} value={cat}>{cat}</option>
-                )}
+
+        <form onSubmit={handleSubmit} className="flex">
+          <div className="flex-1 p-4 space-y-4">
+            <div>
+              <h6 className="text-sm font-semibold text-gray-700 mb-1">Tipo de Accesorio</h6>
+              <select name="categoria" value={data.categoria} onChange={handleChange} className="w-full p-2 border rounded">
+                {['Collar','Correa','Juguete','Cama','Comedero','Transportadora','Higiene','Ropa'].map(cat => <option key={cat} value={cat}>{cat}</option>)}
               </select>
             </div>
 
-            <div style={{marginBottom: 16}}>
-              <label>Nombre:</label>
-              <input name="nombre" value={data.nombre} onChange={handleChange} style={{width: '100%', padding: 8, border: errors.nombre ? '1px solid red' : '1px solid #ddd'}} />
-              {errors.nombre && <div style={{color: 'red', fontSize: 12}}>{errors.nombre}</div>}
+            <div>
+              <h6 className="text-sm font-semibold text-gray-700 mb-1">Nombre y Descripción</h6>
+              <input name="nombre" value={data.nombre} onChange={handleChange} placeholder="Nombre y descripción" className={`w-full p-2 border rounded ${errors.nombre ? 'border-red-500' : ''}`} />
             </div>
 
-            <div style={{display: 'flex', gap: 16, marginBottom: 16}}>
-              <div style={{flex: 1}}>
-                <label>Stock:</label>
-                <input type="number" name="cantidad" value={data.cantidad} onChange={handleChange} min="0" style={{width: '100%', padding: 8, border: errors.cantidad ? '1px solid red' : '1px solid #ddd'}} />
-                {errors.cantidad && <div style={{color: 'red', fontSize: 12}}>{errors.cantidad}</div>}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <h6 className="text-sm font-semibold text-gray-700 mb-1">Stock</h6>
+                <input type="number" name="cantidad" value={data.cantidad} onChange={handleChange} min="0" className={`w-full p-2 border rounded ${errors.cantidad ? 'border-red-500' : ''}`} />
               </div>
-              <div style={{flex: 1}}>
-                <label>Precio:</label>
-                <input type="number" name="precio" value={data.precio} onChange={handleChange} step="0.01" min="0" style={{width: '100%', padding: 8, border: errors.precio ? '1px solid red' : '1px solid #ddd'}} />
-                {errors.precio && <div style={{color: 'red', fontSize: 12}}>{errors.precio}</div>}
+              <div>
+                <h6 className="text-sm font-semibold text-gray-700 mb-1">Precio</h6>
+                <input type="number" name="precio" value={data.precio} onChange={handleChange} step="0.01" min="0" className={`w-full p-2 border rounded ${errors.precio ? 'border-red-500' : ''}`} />
               </div>
             </div>
 
-            <div style={{textAlign: 'center'}}>
-              <button type="submit" style={{background: '#4bc099ff', color: 'white', padding: '10px 20px', border: 'none', borderRadius: 4, cursor: 'pointer'}}>Guardar</button>
-            </div>
+            <button type="submit" className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">Guardar</button>
           </div>
 
-          <div style={{width: 250, borderLeft: '1px solid #ddd', padding: 20}}>
+          <div className="w-48 border-l border-gray-300 p-4">
             {data.imagenUrl ? (
-              <>
-                <img src={data.imagenUrl} alt="Producto" style={{width: '100%', height: 150, objectFit: 'cover', border: '1px solid #ddd'}} />
-                <div style={{display: 'flex', justifyContent: 'center', marginTop: 10}}>
-                  <span onClick={() => setData(prev => ({...prev, imagenUrl: ''}))} style={{cursor: 'pointer', fontSize: 20}}>🗑️</span>
+              <div>
+                <img src={data.imagenUrl} alt="Producto" className="w-full h-32 object-cover border rounded mb-2" />
+                <div className="text-center">
+                  <span onClick={() => setData(prev => ({ ...prev, imagenUrl: '' }))} className="cursor-pointer text-lg hover:text-red-500">🗑️</span>
                 </div>
-              </>
+              </div>
             ) : (
-              <label style={{width: '100%', height: 150, border: '2px dashed #ddd', display: 'flex', alignItems: 'center', 
-                justifyContent: 'center', cursor: 'pointer', borderRadius: 4, backgroundColor: '#f9f9f9', fontSize: 14, color: '#666'
-              }}>
-                Agregar imagen
-                <input type="file" accept="image/*" onChange={handleChange} style={{display: 'none'}} />
+              <label className="w-full h-32 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer rounded bg-gray-50 text-sm text-gray-600 hover:bg-gray-100">
+                <div className="flex flex-col items-center justify-center h-full w-full">
+                  <span className="text-2xl mb-1">📷</span>
+                  <span>Agregar imagen</span>
+                </div>
+                <input type="file" accept="image/*" onChange={handleChange} className="hidden" />
               </label>
             )}
           </div>
