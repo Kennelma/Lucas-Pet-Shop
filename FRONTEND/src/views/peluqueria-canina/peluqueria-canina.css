@@ -1,9 +1,134 @@
-/* Estilos específicos para Peluquería Canina */
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-container {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 28rem;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalSlideUp 0.3s ease-out;
+  padding: 24px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--color-dark);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: var(--color-danger);
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-body label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-dark);
+}
+
+.modal-body input,
+.modal-body textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: var(--color-dark);
+}
+
+.modal-body input:focus,
+.modal-body textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.modal-footer button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-footer .btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.modal-footer .btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.modal-footer .btn-secondary {
+  background: var(--color-light-gray);
+  color: var(--color-dark);
+}
+
+.modal-footer .btn-secondary:hover:not(:disabled) {
+  background: var(--color-gray);
+}/* Estilos optimizados para Peluquería Canina */
+
+/* Variables comunes */
+:root {
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-success: #10b981;
+  --color-success-hover: #059669;
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-gray: #6b7280;
+  --color-light-gray: #f3f4f6;
+  --color-dark: #111827;
+  --color-border: #e5e7eb;
+  --color-shadow: rgba(0, 0, 0, 0.1);
+  --color-gradient-light: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #ecfdf5 100%);
+}
 
 /* Container principal */
 .peluqueria-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #ecfdf5 100%);
+  background: var(--color-gradient-light);
   padding: 24px;
 }
 
@@ -11,8 +136,8 @@
 .peluqueria-header {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 6px -1px var(--color-shadow);
+  border: 1px solid var(--color-border);
   padding: 32px;
   margin-bottom: 32px;
 }
@@ -20,12 +145,12 @@
 .peluqueria-title {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #111827;
+  color: var(--color-dark);
   margin: 0;
 }
 
 .peluqueria-subtitle {
-  color: #6b7280;
+  color: var(--color-gray);
   font-size: 1.125rem;
   margin-top: 8px;
 }
@@ -47,8 +172,8 @@
 .section {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px var(--color-shadow);
+  border: 1px solid var(--color-border);
   padding: 24px;
   margin-bottom: 32px;
 }
@@ -59,14 +184,36 @@
   gap: 12px;
   margin-bottom: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .section-title {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #111827;
+  color: var(--color-dark);
   margin: 0;
+}
+
+/* Estado vacío */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  border: 2px dashed var(--color-border);
+  border-radius: 16px;
+  background: var(--color-light-gray);
+}
+
+.empty-state-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: var(--color-gray);
+  margin-bottom: 8px;
+}
+
+.empty-state-description {
+  font-size: 0.875rem;
+  color: var(--color-gray);
+  margin-bottom: 16px;
 }
 
 /* Grid de cartas */
@@ -91,28 +238,28 @@
 
 .card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 25px -5px var(--color-shadow);
 }
 
 /* Carta de promoción */
 .promocion-card {
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%);
 }
 
 .promocion-card:hover {
-  border-color: #2563eb;
+  border-color: var(--color-primary-hover);
   box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.15);
 }
 
 /* Carta de servicio */
 .servicio-card {
-  border-color: #10b981;
+  border-color: var(--color-success);
   background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
 }
 
 .servicio-card:hover {
-  border-color: #059669;
+  border-color: var(--color-success-hover);
   box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.15);
 }
 
@@ -126,25 +273,27 @@
 
 .card-title {
   font-weight: bold;
-  color: #111827;
+  color: var(--color-dark);
   font-size: 1.125rem;
   line-height: 1.4;
   flex: 1;
   margin-right: 12px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 .card-description {
-  color: #6b7280;
+  color: var(--color-gray);
   font-size: 0.875rem;
   line-height: 1.5;
   margin-bottom: 24px;
   flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -171,46 +320,6 @@
   color: #166534;
 }
 
-/* Detalles de promoción */
-.card-details {
-  margin-bottom: 24px;
-}
-
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.875rem;
-  margin-bottom: 8px;
-}
-
-.detail-label {
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.detail-value {
-  font-weight: bold;
-}
-
-.detail-price {
-  color: #059669;
-  font-size: 1.125rem;
-}
-
-.detail-duration {
-  color: #2563eb;
-}
-
-/* Acciones de carta */
-.card-actions {
-  display: flex;
-  gap: 12px;
-  padding-top: 16px;
-  border-top: 1px solid #e5e7eb;
-  margin-top: auto;
-}
-
 /* Botones */
 .btn {
   padding: 8px 16px;
@@ -225,49 +334,33 @@
   justify-content: center;
   gap: 4px;
   text-decoration: none;
-  flex: 1;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .btn-primary {
-  background: #3b82f6;
+  background: var(--color-primary);
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--color-primary-hover);
 }
 
 .btn-success {
-  background: #10b981;
+  background: var(--color-success);
   color: white;
 }
 
 .btn-success:hover:not(:disabled) {
-  background: #059669;
+  background: var(--color-success-hover);
 }
 
 .btn-danger {
-  background: #ef4444;
+  background: var(--color-danger);
   color: white;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #dc2626;
-}
-
-.btn-secondary {
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: #e5e7eb;
+  background: var(--color-danger-hover);
 }
 
 .btn-lg {
@@ -312,174 +405,22 @@
   }
 }
 
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #111827;
-}
-
-.modal-close {
-  color: #9ca3af;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: color 0.2s;
-}
-
-.modal-close:hover {
-  color: #6b7280;
-}
-
-.modal-body {
-  padding: 24px;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 24px;
-  border-top: 1px solid #e5e7eb;
-  background: #f9fafb;
-}
-
-/* Formularios */
-.form-group {
-  margin-bottom: 24px;
-}
-
-.form-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 8px;
-}
-
-.form-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  transition: all 0.2s;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.form-input.input-green:focus {
-  border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-}
-
-.form-textarea {
-  resize: none;
-  min-height: 100px;
-}
-
-.form-hint {
-  font-size: 0.75rem;
-  color: #6b7280;
-  margin-top: 4px;
-}
-
-/* Alertas */
-.alert {
-  padding: 12px 16px;
-  border-radius: 8px;
-  margin: 16px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.alert-error {
-  background: #fef2f2;
-  border: 1px solid #fca5a5;
-  color: #b91c1c;
-}
-
-.alert-success {
-  background: #f0fdf4;
-  border: 1px solid #86efac;
-  color: #166534;
-}
-
-/* Estados */
-.loading-spinner {
-  border: 2px solid #e5e7eb;
-  border-top: 2px solid #3b82f6;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.empty-state {
-  text-align: center;
-  padding: 48px 24px;
-  color: #6b7280;
-}
-
-.empty-state-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 8px;
-}
-
-.empty-state-description {
-  margin-bottom: 24px;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .peluqueria-container {
     padding: 16px;
   }
-  
+
   .peluqueria-header {
     padding: 24px;
   }
-  
-  .section {
-    padding: 16px;
-  }
-  
+
   .cards-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .modal-container {
     margin: 16px;
     max-width: none;
-  }
-  
-  .card-actions {
-    flex-direction: column;
-  }
-  
-  .card-actions .btn {
-    flex: none;
   }
 }
