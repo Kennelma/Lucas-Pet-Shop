@@ -10,9 +10,10 @@ const Medicamentos = React.lazy(() => import('./views/productos/medicamentos'))
 const Animales = React.lazy(() => import('./views/productos/animales/Animales'))
 
 
-const Promociones  = React.lazy(() => import('./views/peluqueria-canina/Promociones'))
-const Servicios  = React.lazy(() => import('./views/peluqueria-canina/Servicios-peluqueria'))
-
+//AQUI LAS UNIFICAMOS ENTONCES SOLO DEBERIA APARECER COMO UNO
+//const Promociones  = React.lazy(() => import('./views/peluqueria-canina/PeluqueriaCanina'))
+const Servicios  = React.lazy(() => import('./views/peluqueria-canina/PeluqueriaCanina'))
+//import PeluqueriaCanina from './views/peluqueria-canina/PeluqueriaCanina';
 
 
 const routes = [
@@ -24,8 +25,8 @@ const routes = [
   { path: '/productos/medicamentos', name: 'Productos / Medicamentos', element: Medicamentos },
   { path: '/productos/accesorios', name: 'Productos / Accesorios', element: Accesorios },
 
-  { path: '/peluqueria-canina/Promociones', name: 'Peluqueria Canina / Promociones', element: Promociones },
-  { path: '/peluqueria-canina/Servicios-peluqueria', name: 'Peluqueria Canina / Servicios peluqueria', element: Servicios },
+//  { path: '/peluqueria-canina/Promociones', name: 'Peluqueria Canina / Promociones', element: Promociones },
+  { path: '/peluqueria-canina/PeluqueriaCanina', name: 'Peluqueria Canina', element: Servicios },
 ]
 
 
