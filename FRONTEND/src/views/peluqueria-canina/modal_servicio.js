@@ -96,7 +96,7 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
             
             <div className="form-group">
               <label htmlFor="precio_servicio" className="form-label">
-                Precio del Servicio ($)
+                Precio del Servicio (Lps)
               </label>
               <input
                 type="number"
