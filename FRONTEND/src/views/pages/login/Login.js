@@ -1,25 +1,9 @@
-import { useState, useEffect  } from 'react'
-
-import {
-  CButton,
-  CCard,
-  CCardBody,
-  CCardGroup,
-  CCol,
-  CContainer,
-  CForm,
-  CFormInput,
-  CInputGroup,
-  CInputGroupText,
-  CRow,
-  CAlert,
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilLockLocked, cilUser } from '@coreui/icons'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import loginPhoto from './login-photo.jpg'
 import { loginUsuario } from '../../../services/apiService.js'
 
-const login = () => {
+const Login = () => {
   const navigate = useNavigate()
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
@@ -27,124 +11,113 @@ const login = () => {
   const [loading, setLoading] = useState(false)
   const [alertType, setAlertType] = useState('danger')
 
-
   useEffect(() => {
     const token = sessionStorage.getItem('token')
     if (token) {
-      navigate('/Dashboard') 
+      navigate('/Dashboard')
     }
   }, [])
 
- const handleLogin = async (e) => {
-  e.preventDefault()
-  setLoading(true)
-  setLoginMessage('')
+  const handleLogin = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setLoginMessage('')
 
-    const data = await loginUsuario(login);
+    const data = await loginUsuario(login, password)
 
     if (!data) {
-      setLoginMessage('No se recibió ninguna respuesta del servidor')
+      setLoginMessage('❌ NO SE RECIBIÓ INFORMACIÓN DEL SERVIDOR')
       setAlertType('danger')
     } else {
+      setLoginMessage(data.message)
+      setAlertType(data.success ? 'success' : 'warning')
 
-      switch(Number(data.user)) {
-
-      case 3: //LOGIN EXITOSO
+      if (data.success) {
         sessionStorage.setItem('token', data.token)
         sessionStorage.setItem('usuario', JSON.stringify(data.usuario))
-        
-        setLoginMessage(`✅ Bienvenido ${data.usuario.nombre}`)
-        setAlertType('success')
         navigate('/Dashboard')
-        break
-
-      case 1: //USUARIO NO ENCONTRADO
-        setLoginMessage('❌ Este correo no está asociado a ninguna cuenta en el sistema')
-        setAlertType('danger')
-        break
-
-      case 2: //USUARIO INACTIVO
-        setLoginMessage('⚠️ Tu cuenta está inactiva. Contacta al administrador')
-        setAlertType('warning')
-        break
-
-      default:
-        setLoginMessage('Ocurrió un error inesperado')
-        setAlertType('info')
-    }
-      
+      }
     }
 
     setLoading(false)
   }
 
   return (
-    <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
-      <CContainer>
-        <CRow className="justify-content-center">
-          <CCol md={8}>
-            <CCardGroup>
-              <CCard className="p-4">
-                <CCardBody>
-                  <CForm onSubmit={handleLogin}>
-                    <h1>Login</h1>
-                    <p className="text-body-secondary">Sign In to your account</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
 
-                   {loginMessage && <CAlert color={alertType}>{loginMessage}</CAlert>}
+      <div className="flex w-3/5 max-w-4xl shadow-lg rounded-lg overflow-hidden">
+        
+        {/*LOGIN A LA IZQUIERDA*/}
+        <div className="w-1/2 p-8 bg-white flex flex-col justify-center">
+          
+        <h2 className="text-center text-2xl font-medium mb-2" style={{ fontFamily: 'Outfit, sans-serif' }}>LUCAS PET SHOP</h2>
 
-                    <CInputGroup className="mb-3">
-                      <CInputGroupText>
-                        <CIcon icon={cilUser} />
-                      </CInputGroupText>
-                      <CFormInput
-                        placeholder="Usuario o Email"
-                        autoComplete="username"
-                        type="text"
-                        value={login}
-                        onChange={(e) => setLogin(e.target.value)}
-                        required
-                      />
-                    </CInputGroup>
+         <p className="text-center text-gray-600 text-base px-4 py-2 mb-4 font-sans">Portal de acceso: Sistema de facturación</p>
 
-                    <CInputGroup className="mb-4">
-                      <CInputGroupText>
-                        <CIcon icon={cilLockLocked} />
-                      </CInputGroupText>
-                      <CFormInput
-                        type="password"
-                        placeholder="Password"
-                        autoComplete="current-password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                      />
-                    </CInputGroup>
 
-                    <CRow>
-                      <CCol xs={6}>
-                        <CButton color="primary" className="px-4" type="submit" disabled={loading}>
-                          {loading ? 'Logging in...' : 'Login'}
-                        </CButton>
-                      </CCol>
-                      <CCol xs={6} className="text-right">
-                        <CButton color="link" className="px-0">
-                          Forgot password?
-                        </CButton>
-                      </CCol>
-                    </CRow>
-                  </CForm>
-                </CCardBody>
-              </CCard>
+          {loginMessage && (
+            <div
+              className={`mb-4 px-4 py-2 rounded ${
+                alertType === 'success'
+                  ? 'bg-green-100 text-green-700'
+                  : alertType === 'warning'
+                  ? 'bg-yellow-100 text-yellow-700'
+                  : 'bg-red-100 text-red-700'
+              }`}
+            >
+              {loginMessage}
+            </div>
+          )}
 
-              <CCard className="text-white bg-primary py-5" style={{ width: '44%' }}>
-                <CCardBody className="text-center">{/* Espacio para Sign up si quieres */}</CCardBody>
-              </CCard>
-            </CCardGroup>
-          </CCol>
-        </CRow>
-      </CContainer>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <input
+                type="text"
+                placeholder="Usuario o correo"
+                value={login}
+                onChange={(e) => setLogin(e.target.value)}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+              >
+                {loading ? 'Logging in...' : 'Login'}
+              </button>
+              <button type="button" className="text-blue-600 hover:underline">
+                Olvidaste tu contraseña?
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* IMAGE RIGHT SIDE */}
+        <div className="w-1/2">
+          <img
+            src={loginPhoto}
+            alt="Login Visual"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
     </div>
   )
 }
 
-export default login
+export default Login

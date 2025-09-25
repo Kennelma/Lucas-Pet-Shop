@@ -6,12 +6,13 @@ const router = express.Router();
 
 const mysqlConnection = require('./conexion');
 
-const jwt = require('jsonwebtoken');
 
 const util = require('util');
+
 const queryAsync = util.promisify(mysqlConnection.query.bind(mysqlConnection));
 
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 
 //CONFIGURACIÓN DE CAMPOS QUE NECESITAN HASHEARSE
@@ -162,48 +163,77 @@ router.delete('/borrar-registro/:tabla/:id', function(req, res) {
 //ENDPOINT PARA EL LOGUEO DE USUARIOS
 module.exports = router;router.post('/login', async (req, res) => {
    
-    const { login } = req.body;
+    const { login, password } = req.body;
     
     try {
 
-        //SE EEJCUTA EL SP
+        //SE EEJCUTA EL SP PARA OBTENER DATOS DEL USUARIO
         const result = await queryAsync('CALL SP_LOGIN(?)', [login]);
-        const datos = result?.[0]?.[0];
+        const user = result?.[0]?.[0];
         
         //VALIDACION PARA USUARIOS NO REGISTRADOS O INACTIVOS
-        if (!datos || datos.user !== 3) {
-            return res.status(401).json({
-                user: datos?.user || 1,
-                mensaje: datos?.MENSAJE || 'USUARIO NO EXISTE EN EL SISTEMA'
-            });
+        let mensaje; 
+        let estado; 
+
+        switch (true) {
+
+            
+            case !user:
+                //SI EL USUARIO NO ESTÁ DENTRO DEL SISTEMA
+                estado = 401;
+                mensaje = '❌USUARIO INEXISTENTE EN EL SISTEMA';
+                break;
+
+                //SI EL USUARIO ESTÁ DENTRO DEL SISTEMA, PERO INACTIVO 
+            case user.estado_usuario !== 'ACTIVO':
+                estado = 403;
+                mensaje = '⚠️USUARIO INACTIVO, CONSULTE CON EL ADMINISTRADOR'
+                break;     
+
+            default:
+                 
+                //SI EL USUARIO ESTÁ DENTRO DEL SISTEMA Y ACTIVO
+                const validPassword = await bcrypt.compare(password, user.contrasena_usuario);
+                if (!validPassword) {
+                    estado = 401; 
+                    mensaje = '⚠️CREDENCIALES INVÁLIDAS';
+                    break;
+
+                }else {    
+                    estado = 200;
+                    mensaje = '✅LOGIN EXITOSO'
+                    break;
+                               
+                }
         }
 
-        //SE GENERA EL TOKEN DE SESION
-        const token = jwt.sign(
-            {
-                id_usuario: datos.id_usuario_pk,
-                email: datos.email_usuario,
-                rol: datos.id_rol_fk
-            },
-            process.env.JWT_SECRET || 'proyectoVeterinar!a2025_LoginSecret!',
-            { expiresIn: "1h" }
-        );
+        
+        //SI EL USUARIO ESTÁ DENTRO DEL SISTEMA
+        let token = null;
+        if (estado === 200) {
+            token = jwt.sign(
+                { id_usuario: user.id_usuario_pk, rol: user.id_rol_fk },
+                process.env.JWT_SECRET || 'proyectoVeterinar!a2025_LoginSecret!',
+                { expiresIn: '1h' }
+            );
+        }
 
-        //RESPUESTA 
-        res.json({
-            user: datos.user,
-            mensaje: datos.MENSAJE,
-            usuario: {
-                id: datos.id_usuario_pk,
-                nombre: datos.usuario,
-                email: datos.email_usuario,
-                rol: datos.id_rol_fk === 1 ? 'ADMINISTRADOR' : 'VENDEDOR',
-                empresa: datos.id_empresa_fk,
-                estado: datos.estado_usuario
-            },
+        //RESPUESTA
+        return res.status(estado).json({
+            success: estado === 200,
+            message: mensaje,
+            usuario: estado === 200 ? {
+                id: user.id_usuario_pk,
+                nombre: user.usuario,
+                email: user.email_usuario,
+                rol: user.id_rol_fk === 1 ? 'ADMINISTRADOR' : 'VENDEDOR',
+                empresa: user.id_empresa_fk,
+                estado: user.estado_usuario
+            } : null,
             token
         });
 
+        
     } catch (err) {
         console.error('Error en login:', err);
         res.status(500).json({ error: "Error al procesar login" });
