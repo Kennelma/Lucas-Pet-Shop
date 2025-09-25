@@ -48,40 +48,19 @@ export const borrarRegistro = async (tabla, id) => {
   }
 };
 
-{/*SERVICIO QUE CONSUME EL ENDPOINT DE INSERTAR ALIMENTO*/}
-export const insertarProductoAlimento = async (datos) => {
+
+{/*SERVICIO QUE CONSUME EL ENDPOINT DEL LOGIN*/}
+export const loginUsuario = async (login) => {
   try {
-    // Llamamos al endpoint específico de productos + alimentos
-    const res = await axios.post(`${API_URL}/productos-alimentos`, datos);
+    const res = await axios.post(`${API_URL}/login`, {login});
     return res.data;
+    
   } catch (err) {
-    console.error("❌ Error al insertar producto + alimento:", err.response ? err.response.data : err);
-    return null;
-  }
-};
+    console.error('Error en login:', err);
 
-export const obtenerProductosAlimentos = async () => {
-  try {
-    // Llamamos al endpoint GET
-    const res = await axios.get(`${API_URL}/productos-alimentos`);
-    return res.data; // contiene { mensaje, datos }
-  } catch (err) {
-    console.error(
-      "❌ Error al obtener productos-alimentos:",
-      err.response ? err.response.data : err
-    );
+    if (err.response && err.response.data) {
+      return err.response.data;
+    }
     return null;
-  }
-};
-
-// SERVICIO QUE CONSUME EL ENDPOINT DE GET TODOS LOS ALIMENTOS
-export const verAlimentos = async () => {
-  try {
-    const res = await axios.get(`${API_URL}/alimentos/ver-todos`);
-    // Devuelve solo el array de datos, igual que tu función verRegistro
-    return res.data.datos || [];
-  } catch (err) {
-    console.error("❌ Error al traer los alimentos:", err);
-    return [];
   }
 };

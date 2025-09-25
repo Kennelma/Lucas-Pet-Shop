@@ -77,6 +77,21 @@ body {
   }
 }
 
+ol, ul {
+  padding-inline-start: 2rem;
+  &.p-dropdown-items {
+    padding-inline-start: 0rem !important;
+  }
+}
+
+/*
+.datatable-gridlines {
+  .p-datatable-tbody > tr > td,
+  .p-datatable-thead > tr > th {
+    border: 1px solid #d1d5db !important;
+  }
+}
+
 /*.sidebar .nav-link,
 .sidebar .nav-title,
 .sidebar .nav-item,
