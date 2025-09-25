@@ -20,7 +20,7 @@ const cors = require("cors");
 app.use(cors());
 
 //IMPORTACION DE LA RUTA GENERICA
-app.use('/api', require('./crud-general'));
+app.use('/api', require('./crud'));
 
 const PORT = 4000;
 app.listen(PORT, function() {

@@ -8,6 +8,18 @@ const mysqlConnection = require('./conexion');
 
 const jwt = require('jsonwebtoken');
 
+const util = require('util');
+const queryAsync = util.promisify(mysqlConnection.query.bind(mysqlConnection));
+
+const bcrypt = require('bcrypt');
+
+
+//CONFIGURACIÓN DE CAMPOS QUE NECESITAN HASHEARSE
+const CAMPOS_PARA_HASHEAR = {
+    'tbl_usuarios': ['contrasena_usuario'],
+};
+
+
 //ENDPOINT PARA VER TABLAS (SELECT)
 router.get('/ver-informacion/:tabla', function(req, res) {      
     
@@ -37,36 +49,49 @@ router.get('/ver-informacion/:tabla', function(req, res) {
 
 
 //CRUD DE INGRESAR DATOS
-router.post('/ingresar-datos-formulario', function(req, res) {
+router.post('/ingresar-datos-formulario', async function(req, res) {
+    const { tabla, ...campos } = req.body;
 
-    const {tabla,...campos} = req.body;
-
-    //SE CONSURUYEN LAS COLUMNAS Y VALORES
-    const columnas = Object.keys(campos).join(',');
-    const valores = Object.values(campos)
-        .map(v => typeof v === 'string' ? `'${v}'` : v)
-        .join(', ');
-
-    //MANDA A LLMAR EL PROCEDIMIENTO     
-    const query = 'CALL INSERT_FORMULARIOS(?, ?, ?)';    
-
-    console.log('')
-    console.log(`📌 PROCEDURE: ${query}`);
-    console.log(`📋 SQL: INSERT INTO ${tabla} (${columnas}) VALUES (${valores});`);
-    
-    mysqlConnection.query(query, [tabla, columnas, valores], function(err, result) {
-
-        if (err) {
-            console.error(`❌ Error al insertar en ${tabla}:`, err);
-            res.status(500).json({ error: "Error al insertar datos" });
-        } else {
-            console.log(`✅ Registro en ${tabla} insertado correctamente`);
-            res.status(201).json({ 
-                mensaje: `✅ Registro ingresado correctamente`
-            });
+    try {
+        //HASHEAO DE CONTRASEÑAS AUTOMÁTICAMENTE
+        if (CAMPOS_PARA_HASHEAR[tabla]) {
+            const camposAHashear = CAMPOS_PARA_HASHEAR[tabla];
+            
+            for (const campo of camposAHashear) {
+                if (campos[campo]) {
+                    console.log(`🔐 Hasheando ${campo} para ${tabla}...`);
+                    campos[campo] = await bcrypt.hash(campos[campo], 10); 
+                }
+            }
         }
-    });
+
+        //SE CONSTRUYEN LAS COLUMNAS Y VALORES
+        const columnas = Object.keys(campos).join(',');
+        const valores = Object.values(campos)
+            .map(v => typeof v === 'string' ? `'${v}'` : v)
+            .join(', ');
+
+        //MANDA A LLAMAR EL PROCEDIMIENTO
+        const query = 'CALL INSERT_FORMULARIOS(?, ?, ?)';
+        console.log(`📌 PROCEDURE: ${query}`);
+        console.log(`📋 SQL: INSERT INTO ${tabla} (${columnas}) VALUES (${valores});`);
+
+        mysqlConnection.query(query, [tabla, columnas, valores], function(err, result) {
+            if (err) {
+                console.error(`❌ Error al insertar en ${tabla}:`, err);
+                res.status(500).json({ error: "Error al insertar datos" });
+            } else {
+                console.log(`✅ Registro en ${tabla} insertado correctamente`);
+                res.status(201).json({ mensaje: `✅ Registro ingresado correctamente` });
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Error en el procesamiento:', error);
+        res.status(500).json({ error: "Error al procesar los datos" });
+    }
 });
+
 
 
 //ENDPOINT PARA ACTUALIZAR DATOS (UPDATE) TODO DINAMICO
@@ -135,80 +160,52 @@ router.delete('/borrar-registro/:tabla/:id', function(req, res) {
 
 
 //ENDPOINT PARA EL LOGUEO DE USUARIOS
-router.post('/login', (req, res) => {
-
-    const { login } = req.body; 
-    const query = 'CALL SP_LOGIN(?)';
-    console.log('Usuario recibido:', login);
+module.exports = router;router.post('/login', async (req, res) => {
+   
+    const { login } = req.body;
     
+    try {
 
-    mysqlConnection.query(query, [login], (err, result) => {
+        //SE EEJCUTA EL SP
+        const result = await queryAsync('CALL SP_LOGIN(?)', [login]);
+        const datos = result?.[0]?.[0];
         
-        if (err) {
-            console.error('Error en SP_LOGIN:', err); //MUESTRA ERROR EN CONSOLA
-            return res.status(500).json({ 
-            error: "❌ Error al procesar la consulta" })
-        } 
-
-        if (!result || !result[0] || !result[0][0]) {
-            return res.status(401).json({ 
-                user: 1, 
-                mensaje: 'NO SE ENCUENTRA ESTE USUARIO REGISTRADO EN EL SISTEMA' })
-        }
-
-        //SINO HAY ERRORES   
-        const datos = result[0][0]; 
-
-        // VERIFICAR EL RESULTADO DEL SP ANTES DE GENERAR TOKEN
-        if (datos.user === 1) { // USUARIO NO ENCONTRADO
-            console.log('Usuario no encontrado:', datos.MENSAJE);
-            return res.status(401).json({ 
-                user: datos.user,
-                mensaje: datos.MENSAJE 
-            });
-        } else if (datos.user === 2) { // USUARIO INACTIVO
-            console.log('Usuario inactivo:', datos.MENSAJE);
-            return res.status(401).json({ 
-                user: datos.user,
-                mensaje: datos.MENSAJE 
+        //VALIDACION PARA USUARIOS NO REGISTRADOS O INACTIVOS
+        if (!datos || datos.user !== 3) {
+            return res.status(401).json({
+                user: datos?.user || 1,
+                mensaje: datos?.MENSAJE || 'USUARIO NO EXISTE EN EL SISTEMA'
             });
         }
 
-        //SE GENERA EL JWT SI NO HAY ERRORES EN LOS DATOS OBTENIDOS SI EL USUARIO SE LOGEA SIN PROBLEMAS
-            const token = jwt.sign(
-                {
-                    id_usuario: datos.id_usuario_pk,
-                    email: datos.email_usuario,
-                    rol: datos.id_rol_fk
-                },
-                    'proyectoVeterinar!a2025_LoginSecret!', //CLAVE
-                    { expiresIn: "1h" }     //TIEMPO EN QUE SE EXPIRA EL TOKEN    
-            );
-           
+        //SE GENERA EL TOKEN DE SESION
+        const token = jwt.sign(
+            {
+                id_usuario: datos.id_usuario_pk,
+                email: datos.email_usuario,
+                rol: datos.id_rol_fk
+            },
+            process.env.JWT_SECRET || 'proyectoVeterinar!a2025_LoginSecret!',
+            { expiresIn: "1h" }
+        );
 
-        let rol_usuario;
-        if (datos.id_rol_fk === 1) {
-            rol_usuario = 'ADMINISTRADOR';
-        } else {
-            rol_usuario = 'VENDEDOR';
-        }    
-
-        //RESPUESTA DE QUE FUNCIONA EL ENDPOINT CON EXITO
-        res.status(200).json({
-            user: datos.user,  
+        //RESPUESTA 
+        res.json({
+            user: datos.user,
             mensaje: datos.MENSAJE,
             usuario: {
                 id: datos.id_usuario_pk,
                 nombre: datos.usuario,
                 email: datos.email_usuario,
-                rol: rol_usuario,
+                rol: datos.id_rol_fk === 1 ? 'ADMINISTRADOR' : 'VENDEDOR',
                 empresa: datos.id_empresa_fk,
                 estado: datos.estado_usuario
             },
             token
-        }); 
-    });
+        });
+
+    } catch (err) {
+        console.error('Error en login:', err);
+        res.status(500).json({ error: "Error al procesar login" });
+    }
 });
-
-
-module.exports = router;
