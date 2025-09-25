@@ -13,10 +13,9 @@ import {
   faCapsules,
   faDog,
   faUser,
-  faHistory,
   faGift,
-  faBowlFood,
   faBone,
+  faCoins,
   faShower, 
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -33,12 +32,23 @@ const _nav = [
     },
   },
 
+  
 
   {
     component: CNavTitle,
     name: 'MODULOS',
   },
-  
+
+  //FACTURACIÓN
+  {
+    component: CNavItem,
+    name: 'Facturación',
+    to: '/theme/colors',
+    icon: <FontAwesomeIcon icon={faDollarSign} className="nav-icon" />,    
+   
+  },
+
+  //CLIENTES
   {
     component: CNavItem,
     name: 'Clientes',
@@ -117,18 +127,16 @@ const _nav = [
     name: 'Recordatorios',
     to: '/theme/colors',
     icon: <FontAwesomeIcon icon={faBell} className="nav-icon" />,
-   
-   
   },
 
-  //FACTURACIÓN
+  //ESTILISTAS Y BONIFICACIONES
   {
     component: CNavItem,
-    name: 'Facturación',
+    name: 'Bonificaciones',
     to: '/theme/colors',
-    icon: <FontAwesomeIcon icon={faDollarSign} className="nav-icon" />,    
-   
+    icon: <FontAwesomeIcon icon={faCoins} className="nav-icon" />,
   },
+
 
   //REPORTES
   {
@@ -137,15 +145,6 @@ const _nav = [
     to: '/theme/colors',
     icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
    
-  },
-
-  //HISTORIALES
-  {
-    component: CNavItem,
-    name: 'Historiales',
-    to: '/',
-    icon: <FontAwesomeIcon icon={faHistory} className="nav-icon" />,
-
   },
 
   //USUARIOS
