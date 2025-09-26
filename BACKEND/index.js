@@ -12,7 +12,7 @@ const mysqlConnection = require('./conexion');
 
 //Enviando los datos de data-form a NODEJS API
 app.use(express.json());
-app.use(bp.urlencoded({ extended: true }))
+app.use(express.urlencoded({ extended: true }))
 
 const cors = require("cors");
 
@@ -20,7 +20,7 @@ const cors = require("cors");
 app.use(cors());
 
 //IMPORTACION DE LA RUTA GENERICA
-app.use('/api', require('./crud-general'));
+app.use('/api', require('./crud'));
 
 const PORT = 4000;
 app.listen(PORT, function() {
