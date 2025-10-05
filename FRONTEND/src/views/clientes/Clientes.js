@@ -1,7 +1,5 @@
 import { useState } from "react";
 
-
-
 //IMPORTACION DE LOS ARCHIVOS COMPLEMENTARIOS DEL MODULO DE CLIENTES
 import TablaClientes from "./tabla_clientes.js";
 import PerfilCliente from "./perfil_cliente.js";
