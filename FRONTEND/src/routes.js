@@ -21,7 +21,7 @@ const SERVICIOS  = React.lazy(() => import('./views/peluqueria-canina/Servicios'
 
 
 const routes = [
-  { path: '/Dashobard', name: 'Dashboard', element: Dashboard },
+  { path: '/Dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/clientes', name: 'Clientes', element: Clientes },
 
   { path: '/productos/alimentos', name: 'Productos / Alimentos', element: Aliumentos },
