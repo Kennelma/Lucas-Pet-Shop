@@ -50,10 +50,6 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
                   <SparklesIcon style={{ width: '18px', height: '18px', display: 'inline', marginRight: '6px', color: '#3b82f6' }} />
                   {promocion.nombre_promocion}
                 </h3>
-                <div className={`badge ${promocion.activo ? 'badge-blue' : 'badge-gray'}`}>
-                  <SparklesIcon style={{ width: '12px', height: '12px' }} />
-                  {promocion.activo ? 'Activa' : 'Inactiva'}
-                </div>
               </div>
               
               <p className="card-description">{promocion.descripcion_promocion}</p>
