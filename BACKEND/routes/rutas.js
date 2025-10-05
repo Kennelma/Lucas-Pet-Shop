@@ -7,20 +7,18 @@ const router = express.Router();
 const auth = require('../controllers/auth.controller');
 //const clientes = require('../controllers/clientes.controller');
 const productos = require('../controllers/productos.controller');
-
+const servicios = require('../controllers/servicios.controller')
 
 //========== RUTAS DE AUTENTICACIÓN ==========
 router.post('/login', auth.login);
 
 
 
-//========== RUTAS DE SERVICIOS PELUQUERIA ==========
-
-
-
-//========== RUTAS DE PROMOCIONES ==========
-
-
+//========== RUTAS DE SERVICIOS PELUQUERIA Y PROMOCIONES ==========
+router.post('/servicios-peluqueria/insertar', servicios.crear);
+router.put('/servicios-peluqueria/actualizar', servicios.actualizar);
+router.get('/servicios-peluqueria/ver', servicios.visualizar);
+router.delete('/servicios-peluqueria/eliminar', servicios.eliminar);
 
 //========== RUTAS DE MÓDULO DE PRODUCTOS ==========
 router.post('/productos/insertar', productos.crear);
