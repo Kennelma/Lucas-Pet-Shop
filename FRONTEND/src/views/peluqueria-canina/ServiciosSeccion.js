@@ -7,23 +7,14 @@ import {
   CurrencyDollarIcon, 
   ShieldCheckIcon,
   HeartIcon,
-  WrenchScrewdriverIcon
+  WrenchScrewdriverIcon,
+  ClockIcon
 } from '@heroicons/react/24/outline';
 
 const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio }) => {
   
   const handleEliminar = (servicio) => {
-    const confirmacion = window.confirm(
-      `🗑️ ¿Estás seguro de que deseas eliminar este servicio?\n\n` +
-      `📝 Nombre: ${servicio.nombre_servicio_peluqueria}\n` +
-      `💰 Precio: L. ${parseFloat(servicio.precio_servicio || 0).toFixed(2)}\n` +
-      `📋 Descripción: ${servicio.descripcion_servicio.substring(0, 50)}...\n\n` +
-      `⚠️ Esta acción no se puede deshacer.`
-    );
-    
-    if (confirmacion) {
-      eliminarServicio(servicio.id_servicio_peluqueria_pk);
-    }
+    eliminarServicio(servicio);
   };
 
   return (
@@ -62,15 +53,15 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio }) =
                   <WrenchScrewdriverIcon style={{ width: '18px', height: '18px', display: 'inline', marginRight: '6px', color: '#059669' }} />
                   {servicio.nombre_servicio_peluqueria}
                 </h3>
-                <div className="badge badge-green">
+                <div className={`badge ${servicio.activo ? 'badge-green' : 'badge-gray'}`}>
                   <ScissorsIcon style={{ width: '12px', height: '12px' }} />
-                  Servicio
+                  {servicio.activo ? 'Activo' : 'Inactivo'}
                 </div>
               </div>
               
               <p className="card-description">{servicio.descripcion_servicio}</p>
               
-              {/* Detalles igual que promociones */}
+              {/* Detalles ampliados */}
               <div className="card-details">
                 <div className="detail-row">
                   <span className="detail-label">
@@ -83,14 +74,24 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio }) =
                 </div>
                 <div className="detail-row">
                   <span className="detail-label">
-                    <ShieldCheckIcon style={{ width: '16px', height: '16px', display: 'inline', marginRight: '4px' }} />
-                    Calidad:
+                    <ClockIcon style={{ width: '16px', height: '16px', display: 'inline', marginRight: '4px' }} />
+                    Duración:
                   </span>
-                  <span className="detail-value">
-                    <HeartIcon style={{ width: '14px', height: '14px', display: 'inline', marginRight: '4px', color: '#ef4444' }} />
-                    Premium
+                  <span className="detail-value detail-duration">
+                    {servicio.duracion_estimada} min
                   </span>
                 </div>
+                {servicio.requisitos && (
+                  <div className="detail-row" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <span className="detail-label">
+                      <ShieldCheckIcon style={{ width: '16px', height: '16px', display: 'inline', marginRight: '4px' }} />
+                      Requisitos:
+                    </span>
+                    <span className="detail-value" style={{ fontSize: '0.8rem', marginTop: '4px', lineHeight: '1.4' }}>
+                      {servicio.requisitos}
+                    </span>
+                  </div>
+                )}
               </div>
               
               <div className="card-actions">

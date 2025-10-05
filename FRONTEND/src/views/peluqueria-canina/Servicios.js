@@ -1,31 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { PlusIcon, SparklesIcon, ScissorsIcon } from '@heroicons/react/24/outline';
+import { ScissorsIcon } from '@heroicons/react/24/outline';
 import Swal from 'sweetalert2';
 
 // Importar services reales
 import { verRegistro, insertarRegistro, actualizarRegistro, borrarRegistro } from '../../services/apiService.js';
 
 // Importar modales
-import ModalPromocion from './modal_promocion';
 import ModalServicio from './modal_servicio';
 
 // Importar secciones
-import PromocionesSeccion from './PromocionesSeccion';
 import ServiciosSeccion from './ServiciosSeccion';
 
 // Importar CSS personalizado
 import './peluqueria-canina.css';
 
-const PeluqueriaCanina = () => {
+const Servicios = () => {
   // Estados básicos
-  const [promociones, setPromociones] = useState([]);
   const [servicios, setServicios] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Estados de modales
-  const [modalPromocionAbierto, setModalPromocionAbierto] = useState(false);
   const [modalServicioAbierto, setModalServicioAbierto] = useState(false);
-  const [promocionEditando, setPromocionEditando] = useState(null);
   const [servicioEditando, setServicioEditando] = useState(null);
 
   // Cargar datos al montar componente
@@ -36,118 +31,18 @@ const PeluqueriaCanina = () => {
   const cargarDatos = async () => {
     setLoading(true);
     try {
-      const [promocionesData, serviciosData] = await Promise.all([
-        verRegistro("tbl_promociones"),
-        verRegistro("tbl_servicios_peluqueria_canina")
-      ]);
-      
-      setPromociones(promocionesData || []);
+      const serviciosData = await verRegistro("tbl_servicios_peluqueria_canina");
       setServicios(serviciosData || []);
     } catch (error) {
       console.error('Error cargando datos:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error al cargar',
-        text: 'No se pudieron cargar los datos. Intenta nuevamente.',
+        text: 'No se pudieron cargar los servicios. Intenta nuevamente.',
         confirmButtonColor: '#ef4444'
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  // ==================== HANDLERS PARA PROMOCIONES ====================
-  
-  const abrirModalPromocion = (promocion = null) => {
-    setPromocionEditando(promocion);
-    setModalPromocionAbierto(true);
-  };
-
-  const cerrarModalPromocion = () => {
-    setModalPromocionAbierto(false);
-    setPromocionEditando(null);
-  };
-
-  const handleSubmitPromocion = async (formData) => {
-    try {
-      if (promocionEditando) {
-        // Actualizar
-        await actualizarRegistro("tbl_promociones", promocionEditando.id_promocion_pk, formData);
-        await Swal.fire({
-          icon: 'success',
-          title: '¡Actualizado!',
-          text: 'La promoción se actualizó correctamente',
-          timer: 2000,
-          showConfirmButton: false,
-          confirmButtonColor: '#3b82f6'
-        });
-      } else {
-        // Crear nuevo
-        await insertarRegistro("tbl_promociones", formData);
-        await Swal.fire({
-          icon: 'success',
-          title: '¡Creado!',
-          text: 'La promoción se creó correctamente',
-          timer: 2000,
-          showConfirmButton: false,
-          confirmButtonColor: '#3b82f6'
-        });
-      }
-      
-      await cargarDatos();
-      cerrarModalPromocion();
-    } catch (error) {
-      console.error('Error:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se pudo guardar la promoción. Intenta nuevamente.',
-        confirmButtonColor: '#ef4444'
-      });
-    }
-  };
-
-  const eliminarPromocion = async (promocion) => {
-    const result = await Swal.fire({
-      icon: 'warning',
-      title: '¿Eliminar promoción?',
-      html: `
-        <div style="text-align: left; margin-top: 16px; padding: 16px; background: #f9fafb; border-radius: 8px;">
-          <p style="margin-bottom: 8px;"><strong>📝 Nombre:</strong> ${promocion.nombre_promocion}</p>
-          <p style="margin-bottom: 8px;"><strong>💰 Precio:</strong> L. ${parseFloat(promocion.precio_promocion || 0).toFixed(2)}</p>
-          <p style="margin-bottom: 8px;"><strong>⏱️ Duración:</strong> ${promocion.dias_promocion} días</p>
-          <p style="margin-bottom: 0;"><strong>📋 Descripción:</strong> ${promocion.descripcion_promocion.substring(0, 60)}...</p>
-        </div>
-        <p style="margin-top: 16px; color: #ef4444; font-weight: bold;">⚠️ Esta acción no se puede deshacer</p>
-      `,
-      showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
-      reverseButtons: true
-    });
-
-    if (result.isConfirmed) {
-      try {
-        await borrarRegistro("tbl_promociones", promocion.id_promocion_pk);
-        await cargarDatos();
-        Swal.fire({
-          icon: 'success',
-          title: '¡Eliminado!',
-          text: 'La promoción fue eliminada correctamente',
-          timer: 2000,
-          showConfirmButton: false
-        });
-      } catch (error) {
-        console.error('Error:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudo eliminar la promoción',
-          confirmButtonColor: '#ef4444'
-        });
-      }
     }
   };
 
@@ -256,12 +151,11 @@ const PeluqueriaCanina = () => {
         <div className="peluqueria-header">
           <div className="icon-container">
             <div className="icon-box">
-              <SparklesIcon style={{ width: '24px', height: '24px', color: '#3b82f6' }} />
               <ScissorsIcon style={{ width: '24px', height: '24px', color: '#10b981' }} />
             </div>
           </div>
-          <h1 className="peluqueria-title">Peluquería Canina</h1>
-          <p className="peluqueria-subtitle">Gestiona promociones y servicios de peluquería para mascotas</p>
+          <h1 className="peluqueria-title">Servicios de Peluquería Canina</h1>
+          <p className="peluqueria-subtitle">Gestiona los servicios de peluquería para mascotas</p>
         </div>
 
         {/* Loading State */}
@@ -269,36 +163,19 @@ const PeluqueriaCanina = () => {
           <div className="section">
             <div style={{ textAlign: 'center', padding: '48px' }}>
               <div className="loading-spinner"></div>
-              <p style={{ marginTop: '16px', color: '#6b7280' }}>Cargando datos...</p>
+              <p style={{ marginTop: '16px', color: '#6b7280' }}>Cargando servicios...</p>
             </div>
           </div>
         ) : (
-          <>
-            {/* Sección Promociones */}
-            <PromocionesSeccion
-              promociones={promociones}
-              abrirModalPromocion={abrirModalPromocion}
-              eliminarPromocion={eliminarPromocion}
-            />
-
-            {/* Sección Servicios */}
-            <ServiciosSeccion
-              servicios={servicios}
-              abrirModalServicio={abrirModalServicio}
-              eliminarServicio={eliminarServicio}
-            />
-          </>
+          <ServiciosSeccion
+            servicios={servicios}
+            abrirModalServicio={abrirModalServicio}
+            eliminarServicio={eliminarServicio}
+          />
         )}
       </div>
 
-      {/* Modales */}
-      <ModalPromocion
-        isOpen={modalPromocionAbierto}
-        onClose={cerrarModalPromocion}
-        onSubmit={handleSubmitPromocion}
-        promocion={promocionEditando}
-      />
-
+      {/* Modal de Servicio */}
       <ModalServicio
         isOpen={modalServicioAbierto}
         onClose={cerrarModalServicio}
@@ -309,4 +186,4 @@ const PeluqueriaCanina = () => {
   );
 };
 
-export default PeluqueriaCanina;
+export default Servicios;

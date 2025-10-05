@@ -107,7 +107,7 @@
   margin-bottom: 16px;
 }
 
-/* Grid de cartas - ACTUALIZADO PARA 3 COLUMNAS */
+/* Grid de cartas - 3 COLUMNAS */
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -220,7 +220,12 @@
   color: #166534;
 }
 
-/* Detalles de promoción/servicio - RESTAURADO */
+.badge-gray {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Detalles de promoción/servicio */
 .card-details {
   margin-bottom: 20px;
   padding: 12px;
@@ -465,6 +470,31 @@
   font-size: 0.75rem;
   color: #6b7280;
   margin-top: 4px;
+}
+
+/* Estilos para validaciones */
+.input-error {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2;
+}
+
+.input-error:focus {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+.form-error {
+  color: #ef4444;
+  font-size: 0.75rem;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.form-error::before {
+  content: "⚠️";
+  font-size: 0.875rem;
 }
 
 /* Alertas */
