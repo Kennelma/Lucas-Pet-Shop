@@ -1,23 +1,13 @@
 const express = require('express');
-
 const router = express.Router();
-
 const mysqlConnection = require('./conexion');
 
-
-//ENDPOINT PARA VER TABLAS (SELECT)
 router.get('/ver-informacion/:tabla', function(req, res) {      
-    
-    const { tabla } =  req.params;
-
+    const { tabla } = req.params;
     console.log(`📋 Consultando tabla: ${tabla}`);
 
     const query = 'CALL SELECT_INFORMACION(?)';  
-    console.log('')
-    console.log(`📌 PROCEDURE: ${query}`);
-    console.log(`📋 SQL: SELECT * FROM ${tabla};`);
-
-
+    
     mysqlConnection.query(query, [tabla], function(err, result) {          
         if (!err) {              
            console.log(`✅ ${tabla} encontrados:`, result[0].length); 
@@ -32,32 +22,30 @@ router.get('/ver-informacion/:tabla', function(req, res) {
     }); 
 });   
 
-
-//CRUD DE INGRESAR DATOS
+// ========== ENDPOINT PARA INGRESAR DATOS (INSERT) ==========
 router.post('/ingresar-datos-formulario', function(req, res) {
+    const {tabla, imagen_base64, ...campos} = req.body;
 
-    const {tabla,...campos} = req.body;
+    // Guardar imagen base64 directamente en la BD
+    if (imagen_base64 && imagen_base64.trim() !== '' && imagen_base64.includes('base64,')) {
+        campos.url_imagen = imagen_base64; // ✅ Guardar el base64 completo
+    }
 
-    //SE CONSURUYEN LAS COLUMNAS Y VALORES
     const columnas = Object.keys(campos).join(',');
     const valores = Object.values(campos)
-        .map(v => typeof v === 'string' ? `'${v}'` : v)
+        .map(v => typeof v === 'string' ? `'${v.replace(/'/g, "''")}'` : v) // Escapar comillas
         .join(', ');
 
-    //MANDA A LLMAR EL PROCEDIMIENTO     
     const query = 'CALL INSERT_FORMULARIOS(?, ?, ?)';    
 
-    console.log('')
-    console.log(`📌 PROCEDURE: ${query}`);
-    console.log(`📋 SQL: INSERT INTO ${tabla} (${columnas}) VALUES (${valores});`);
+    console.log(`📋 SQL: INSERT INTO ${tabla} (${columnas}) VALUES (...);`);
     
     mysqlConnection.query(query, [tabla, columnas, valores], function(err, result) {
-
         if (err) {
             console.error(`❌ Error al insertar en ${tabla}:`, err);
             res.status(500).json({ error: "Error al insertar datos" });
         } else {
-            console.log(`✅ Registro en  ${tabla} insertado correctamente`);
+            console.log(`✅ Registro en ${tabla} insertado correctamente`);
             res.status(201).json({ 
                 mensaje: `✅ Registro ingresado correctamente`
             });
@@ -65,25 +53,22 @@ router.post('/ingresar-datos-formulario', function(req, res) {
     });
 });
 
-
-//ENDPOINT PARA ACTUALIZAR DATOS (UPDATE) TODO DINAMICO
+// ========== ENDPOINT PARA ACTUALIZAR DATOS (UPDATE) ==========
 router.put('/actualizar-datos', function(req, res) {
-    
-    const { tabla, id, ...campos } = req.body;
+    const { tabla, id, imagen_base64, ...campos } = req.body;
+
+    // Si hay nueva imagen base64, actualizar
+    if (imagen_base64 && imagen_base64.trim() !== '' && imagen_base64.includes('base64,')) {
+        campos.url_imagen = imagen_base64; // ✅ Reemplazar con nuevo base64
+    }
     
     const cambios = Object.entries(campos)
-        .map(([key, value]) => typeof value === 'string' ? `${key} = '${value}'` : `${key} = ${value}`)
+        .map(([key, value]) => typeof value === 'string' ? `${key} = '${value.replace(/'/g, "''")}'` : `${key} = ${value}`)
         .join(', ');
 
     console.log(`📝 Actualizando ${tabla} con ID: ${id}`);
-    console.log(`Datos nuevos:`, req.body);
-    console.log('');
     
     const query = 'CALL UPDATE_DATOS(?, ?, ?)';
-
-    console.log('');
-    console.log(`📌 PROCEDURE: ${query}`);
-    console.log(`📋 SQL: UPDATE ${tabla} SET ${cambios} WHERE id = ${id};`);
 
     mysqlConnection.query(query, [tabla, cambios, id], function(err, result) {
         if (err) {
@@ -99,22 +84,13 @@ router.put('/actualizar-datos', function(req, res) {
     });
 });
 
-
-//ENDPOINT BORRAR DATOS (DELTE) TODO DINAMICO
+// ========== ENDPOINT PARA BORRAR DATOS (DELETE) ==========
 router.delete('/borrar-registro/:tabla/:id', function(req, res) {
-    
-    const { tabla, id } =  req.params;
+    const { tabla, id } = req.params;
         
     console.log(`🗑️ Eliminando ${tabla} con ID: ${id}`);
-    console.log('');
-
     
     const query = 'CALL DELETE_DATOS(?, ?)';
-    
-    console.log('')
-    console.log(`📌 PROCEDURE: ${query}`);
-    console.log(`📋 SQL: DELETE FROM ${tabla} WHERE id = ${id};`);
-
     
     mysqlConnection.query(query, [tabla, id], function(err, result) {
         if (err) {
@@ -129,8 +105,5 @@ router.delete('/borrar-registro/:tabla/:id', function(req, res) {
         }
     });
 });
-
-
-
 
 module.exports = router;

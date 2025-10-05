@@ -11,17 +11,10 @@ const Accesorios = () => {
   const [mensaje, setMensaje] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const imagenStorage = {
-    guardar: (id, url) => localStorage.setItem('imagenesAccesorios', JSON.stringify({...JSON.parse(localStorage.getItem('imagenesAccesorios') || '{}'), [id]: url})),
-    obtener: (id) => JSON.parse(localStorage.getItem('imagenesAccesorios') || '{}')[id] || '',
-    eliminar: (id) => {
-      const imgs = JSON.parse(localStorage.getItem('imagenesAccesorios') || '{}');
-      delete imgs[id];
-      localStorage.setItem('imagenesAccesorios', JSON.stringify(imgs));
-    }
+  const mostrarMensaje = (texto) => {
+    setMensaje(texto);
+    setTimeout(() => setMensaje(''), 3000);
   };
-
-  const mostrarMensaje = (texto) => (setMensaje(texto), setTimeout(() => setMensaje(''), 3000));
 
   const cargarInventario = async () => {
     setLoading(true);
@@ -33,7 +26,7 @@ const Accesorios = () => {
         categoria: item.tipo_accesorio,
         cantidad: item.stock_accesorio,
         precio: parseFloat(item.precio_accesorio),
-        imagenUrl: imagenStorage.obtener(item.id_accesorio_pk)
+        imagenUrl: item.url_imagen || ''
       })) : []);
     } catch (error) {
       mostrarMensaje('Error al cargar inventario');
@@ -42,30 +35,27 @@ const Accesorios = () => {
     setLoading(false);
   };
 
-  const guardarAccesorio = async ({ nombre, categoria, cantidad, precio, imagenUrl }) => {
-    const datosDB = { nombre_accesorio: nombre, tipo_accesorio: categoria, stock_accesorio: parseInt(cantidad), precio_accesorio: parseFloat(precio) };
-    
+  const guardarAccesorio = async ({ nombre, categoria, cantidad, precio, imagenBase64 }) => {
+    const datosDB = {
+      nombre_accesorio: nombre,
+      tipo_accesorio: categoria,
+      stock_accesorio: parseInt(cantidad),
+      precio_accesorio: parseFloat(precio)
+    };
+
+    if (imagenBase64 && imagenBase64.trim() !== '' && imagenBase64.includes('base64,')) {
+      datosDB.imagen_base64 = imagenBase64;
+    }
+
+    console.log('📤 Datos enviados:', datosDB);
+
     try {
       let resultado;
       if (editIndex >= 0) {
         const accesorio = inventario[editIndex];
         resultado = await actualizarRegistro('tbl_accesorios', accesorio.id, datosDB);
-        if (resultado) imagenUrl ? imagenStorage.guardar(accesorio.id, imagenUrl) : imagenStorage.eliminar(accesorio.id);
       } else {
         resultado = await insertarRegistro('tbl_accesorios', datosDB);
-        if (resultado && imagenUrl) {
-          setTimeout(async () => {
-            const datosActualizados = await verRegistro('tbl_accesorios');
-            const nuevoAccesorio = datosActualizados.filter(item => 
-              item.nombre_accesorio === nombre && item.tipo_accesorio === categoria &&
-              item.stock_accesorio === parseInt(cantidad) && parseFloat(item.precio_accesorio) === parseFloat(precio)
-            ).sort((a, b) => b.id_accesorio_pk - a.id_accesorio_pk)[0];
-            if (nuevoAccesorio) {
-              imagenStorage.guardar(nuevoAccesorio.id_accesorio_pk, imagenUrl);
-              cargarInventario();
-            }
-          }, 1500);
-        }
       }
 
       if (resultado) {
@@ -74,11 +64,15 @@ const Accesorios = () => {
         setModalVisible(false);
         setEditIndex(-1);
         return true;
+      } else {
+        mostrarMensaje('Error: No se pudo guardar');
+        return false;
       }
     } catch (error) {
+      console.error('Error al guardar:', error);
       mostrarMensaje('Error al guardar');
+      return false;
     }
-    return false;
   };
 
   const borrarAccesorio = async (index) => {
@@ -86,7 +80,6 @@ const Accesorios = () => {
     if (!window.confirm(`¿Eliminar "${producto.nombre}"?`)) return;
     try {
       if (await borrarRegistro('tbl_accesorios', producto.id)) {
-        imagenStorage.eliminar(producto.id);
         mostrarMensaje('Eliminado correctamente');
         cargarInventario();
       }
@@ -97,7 +90,9 @@ const Accesorios = () => {
 
   const productosFiltrados = inventario.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()));
 
-  useEffect(() => cargarInventario(), []);
+  useEffect(() => {
+    cargarInventario();
+  }, []);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -133,9 +128,10 @@ const Accesorios = () => {
             return (
               <div key={producto.id} className="bg-gray-100 rounded-lg p-4 relative">
                 <div className="bg-white rounded-lg p-2 mb-4 h-32 flex items-center justify-center overflow-hidden">
+                  {/* 🔥 AQUÍ ESTÁ EL CAMBIO 🔥 */}
                   {producto.imagenUrl ? 
                     <img src={producto.imagenUrl} alt={producto.nombre} className="w-full h-full object-contain"/> :
-                    <div className="w-full h-full bg-gray-50"></div>
+                    <div className="w-full h-full bg-gray-50 flex items-center justify-center text-gray-400">Sin imagen</div>
                   }
                 </div>
                 <div className="text-center mb-8">
