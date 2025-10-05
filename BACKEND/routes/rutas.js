@@ -15,9 +15,6 @@ router.post('/login', auth.login);
 
 
 //========== RUTAS DE SERVICIOS PELUQUERIA ==========
-router.post('/productos/insertar', productos.crear);
-router.put('/productos/actualizar', productos.actualizar);
-
 
 
 
@@ -26,7 +23,10 @@ router.put('/productos/actualizar', productos.actualizar);
 
 
 //========== RUTAS DE MÓDULO DE PRODUCTOS ==========
-
+router.post('/productos/insertar', productos.crear);
+router.put('/productos/actualizar', productos.actualizar);
+router.delete ('/productos/eliminar', productos.eliminar);
+router.get ('/productos/ver', productos.ver)
 
 //========== RUTAS DE MÓDULO DE CLIENTES ==========
 
