@@ -56,6 +56,14 @@ const _nav = [
     icon: <FontAwesomeIcon icon={faUsers} className="nav-icon" />,
   },
 
+  
+  //REPORTES
+  {
+    component: CNavItem,
+    name: 'Recordatorios',
+    to: '/recordatorios/Recordatorios',
+    icon: <FontAwesomeIcon icon={faUsers} className="nav-icon" />,
+  },
 
   //GRUPO DE PRODUCTOS EN EL SIDEBAR
   {
@@ -105,10 +113,26 @@ const _nav = [
       
       {
         component: CNavItem,
-        name: 'Servicios',
+        name: 'Servicios y Promociones',
         style: { paddingLeft: '65px' },
         icon: <FontAwesomeIcon icon={faShower} className="nav-icon" />,
          to: '/peluqueria-canina/PeluqueriaCanina',
+        
+      },
+      {
+        component: CNavItem,
+        name: 'Promociones',
+        style: { paddingLeft: '65px' },
+        icon: <FontAwesomeIcon icon={faShower} className="nav-icon" />,
+         to: '/peluqueria-canina/Promociones',
+        
+      },
+      {
+        component: CNavItem,
+        name: 'Servicios',
+        style: { paddingLeft: '65px' },
+        icon: <FontAwesomeIcon icon={faShower} className="nav-icon" />,
+         to: '/peluqueria-canina/Servicios',
         
       },
     ],
@@ -117,7 +141,7 @@ const _nav = [
   //RECORDATORIOS
   {
     component: CNavItem,
-    name: 'Recordatorios',
+    name: 'Reportes',
     to: '/theme/colors',
     icon: <FontAwesomeIcon icon={faBell} className="nav-icon" />,
   },
