@@ -1,13 +1,21 @@
 const express = require('express');
-
 const mysqlConnection = require('../config/conexion');
 
+//CONSTANTES A UTILIZAR
+const TIPOS_PRODUCTOS = {
+    ACCESORIOS: 1, 
+    ANIMALES: 2,
+    ALIMENTOS: 3,
+    MEDICAMENTOS: 4    
+};
+
+
 // ─────────────────────────────────────────────────────────
-//              ENDPOINT DE INSERTAR PRODUCTOS
+//        ENDPOINT DE INSERTAR PRODUCTOS
 // ─────────────────────────────────────────────────────────
 
 //ESTOS ATRIBUTOS SON COMUNES PARA TODOS LOS ENDPOINT
-function atributosPadre (body) {
+function atributos_padre (body) {
     return[
         body.nombre_producto,
         body.precio_producto,
@@ -20,21 +28,29 @@ function atributosPadre (body) {
 //ENDOPINT DE INGRESAR PRODUCTOS
 exports.crear = async (req, res) => {
 
-    const conn = await mysqlConnection.getConnection();
-    
+    const conn = await mysqlConnection.getConnection();    
     try {
         
         await conn.beginTransaction(); //INICIO LA TRANSACCIÓN
 
         //SE TRAE LA FUNCION CON LOS ATRIBUTOS PADRES
-        const atributosComunes = atributosPadre(req.body);
+        const atributosComunes = atributos_padre(req.body);
 
         switch (req.body.tipo_producto) {
 
-            case 'ANIMALES':
-                
-                const [animal] = await conn.query ('CALL sp_insert_producto_animal(?,?,?,?,?,?,?)',
+            case 'ACCESORIOS':
+                const [accesorio] = await conn.query ('CALL sp_insert_producto_accesorio (?,?,?,?,?,?,?)',
                     [...atributosComunes, 
+                        TIPOS_PRODUCTOS.ACCESORIOS,
+                        req.body.tipo_accesorio
+                    ]);
+                break;
+            
+                case 'ANIMALES':
+                
+                const [animal] = await conn.query ('CALL sp_insert_producto_animal(?,?,?,?,?,?,?,?)',
+                    [...atributosComunes, 
+                        TIPOS_PRODUCTOS.ANIMALES,
                         req.body.especie,
                         req.body.sexo
                     ]);                               
@@ -42,23 +58,22 @@ exports.crear = async (req, res) => {
 
             case 'ALIMENTOS':
 
-                const [alimento] = await conn.query ('CALL sp_insert_producto_alimento (?,?,?,?,?,?,?)',
+                const [alimento] = await conn.query ('CALL sp_insert_producto_alimento (?,?,?,?,?,?,?,?)',
                     [...atributosComunes, 
+                        TIPOS_PRODUCTOS.ALIMENTOS,
                         req.body.alimento_destinado,
                         req.body.peso_alimento
                     ]);                               
                 break;
-            
-            case 'ACCESORIOS':
-                const [accesorio] = await conn.query ('CALL sp_insert_producto_accesorio (?,?,?,?,?,?)',
-                    [...atributosComunes, 
-                        req.body.tipo_accesorio
-                    ]);
-                break;
 
             case 'MEDICAMENTOS':
                 const [medicamento] = await conn.query ('CALL sp_insert_producto_medicamento (?,?,?,?,?,?,?,?,?,?,?,?)',
-                    [...atributosComunes, 
+                    [
+                        req.body.nombre_producto,
+                        req.body.precio_producto,
+                        req.body.sku,
+                        req.body.imagen_url || null,
+                        TIPOS_PRODUCTOS.MEDICAMENTOS,
                         req.body.presentacion_medicamento,
                         req.body.tipo_medicamento,
                         req.body.cantidad_contenido,
@@ -100,7 +115,7 @@ exports.crear = async (req, res) => {
 // ─────────────────────────────────────────────────────────
 
 //ATRIBUTOS COMUNES EN LOS REGISTROS, MEDIANTE LOS SP, SE PUEDE ACTUALIZAR O VARIOS ATRIBUTOS
-function actualizarAtributosPadre (body) {
+function update_atributos_padre (body) {
 
     return[
         body.nombre_producto || null,
@@ -133,7 +148,7 @@ exports.actualizar = async (req, res) => {
             
             case 'ANIMALES':
 
-             await conn.query('CALL sp_update_producto_animal(?,?,?,?,?,?,?,?,?,?)',
+                await conn.query('CALL sp_update_producto_animal(?,?,?,?,?,?,?,?,?,?)',
                 [   id_producto,
                     ...atributosNuevos, 
                     req.body.especie || null,
@@ -163,7 +178,6 @@ exports.actualizar = async (req, res) => {
                 await conn.query('CALL sp_update_producto_medicamento(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
                 [   id_producto,
                     ...atributosNuevos, 
-                    req.body.tipo_accesorio || null,
                     req.body.presentacion_medicamento,
                     req.body.tipo_medicamento,
                     req.body.cantidad_contenido,
@@ -208,9 +222,9 @@ exports.ver = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
 
     try {
-        const {tipo_producto} =  req.query;; 
+        const {tipo_producto} =  req.query;
 
-        const [registros] = await conn.query('CALL sp_ver_productos(?)', [tipo_producto]);
+        const [registros] = await conn.query('CALL sp_select_productos(?)', [tipo_producto]);
 
         res.json({
             Consulta: true,
@@ -227,7 +241,6 @@ exports.ver = async (req, res) => {
     }
 
 };
-
 
 // ─────────────────────────────────────────────────────────
 //            ENDPOINT PARA ELIMINAR PRODUCTOS

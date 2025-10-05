@@ -1,11 +1,11 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:4000/api";
+const API_URL = "http://localhost:4000/api/productos";
 
 /*SERVICIO PARA VER PRODUCTOS POR TIPO*/
 export const verProductos = async (tipo_producto) => {
   try {
-    const res = await axios.get(`${API_URL}/productos/ver`, {
+    const res = await axios.get(`${API_URL}/ver`, {
       params: { tipo_producto } 
     });
     return res.data.productos || [];
@@ -19,7 +19,7 @@ export const verProductos = async (tipo_producto) => {
 /*SERVICIO PARA INSERTAR PRODUCTO*/
 export const insertarProducto = async (datosProducto) => {
   try {
-    const res = await axios.post(`${API_URL}/productos/insertar`, datosProducto);
+    const res = await axios.post(`${API_URL}/insertar`, datosProducto);
     return res.data;
   } catch (err) {
     console.error(`Error al insertar producto:`, err);
@@ -30,7 +30,7 @@ export const insertarProducto = async (datosProducto) => {
 /*SERVICIO PARA ACTUALIZAR PRODUCTO*/
 export const actualizarProducto = async (datosProducto) => {
   try {
-    const res = await axios.put(`${API_URL}/productos/actualizar`, datosProducto);
+    const res = await axios.put(`${API_URL}/actualizar`, datosProducto);
     return res.data;
   } catch (err) {
     console.error(`Error al actualizar producto:`, err);
@@ -42,7 +42,7 @@ export const actualizarProducto = async (datosProducto) => {
 /*SERVICIO PARA ELIMINAR PRODUCTO*/
 export const eliminarProducto = async (id_producto) => {
   try {
-    const res = await axios.delete(`${API_URL}/productos/eliminar`, {
+    const res = await axios.delete(`${API_URL}/eliminar`, {
       data: { id_producto }
     });
     return res.data;
@@ -53,16 +53,3 @@ export const eliminarProducto = async (id_producto) => {
 };
 
 
-{/*SERVICIO QUE CONSUME EL ENDPOINT DEL LOGIN*/}
-export const loginUsuario = async (login, password) => {
-  try {
-    const res = await axios.post(`${API_URL}/login`, { login, password });
-    return res.data;
-  } catch (err) {
-    console.error('Error en login:', err);
-    if (err.response && err.response.data) {
-      return err.response.data;
-    }
-    return null;
-  }
-};
