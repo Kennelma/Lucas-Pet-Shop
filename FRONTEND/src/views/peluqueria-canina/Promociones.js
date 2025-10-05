@@ -3,7 +3,7 @@ import { SparklesIcon } from '@heroicons/react/24/outline';
 import Swal from 'sweetalert2';
 
 // Importar services reales
-import { verRegistro, insertarRegistro, actualizarRegistro, borrarRegistro } from '../../services/apiService.js';
+//import { verRegistro, insertarRegistro, actualizarRegistro, borrarRegistro } from '../../services/apiService.js';
 
 // Importar modales
 import ModalPromocion from './modal_promocion';
