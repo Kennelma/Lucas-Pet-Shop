@@ -35,7 +35,7 @@ const Login = () => {
       if (data.success) {
         sessionStorage.setItem('token', data.token)
         sessionStorage.setItem('usuario', JSON.stringify(data.usuario))
-        navigate('/Dashboard')
+        //navigate('/Dashboard')
       }
     }
 
