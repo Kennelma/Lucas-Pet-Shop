@@ -11,6 +11,7 @@ import './scss/examples.scss'
 import './tailwind.css'
 
 import ProtectedRoute from "./views/pages/login/ProtectedRoute"; 
+import Dashboard from "./views/dashboard/Dashboard";
 
 // Containers
 const DefaultLayout = React.lazy(() => import('./layout/DefaultLayout'))
@@ -67,11 +68,14 @@ const App = () => {
           <Route exact path="/404" name="Page 404" element={<Page404 />} />
           <Route exact path="/500" name="Page 500" element={<Page500 />} />
 
+          <Route exact path="/*"  element={<DefaultLayout/>} />
 
+          {/*
           <Route
             path="/*"
             element={<DefaultLayout />}
           />
+          * */}
 
         </Routes>
 
