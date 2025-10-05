@@ -56,8 +56,17 @@ exports.crear = async (req, res) => {
                     ]);
                 break;
             case 'MEDICAMENTOS':
-
-
+                const [medicamento] = await conn.query ('CALL sp_insert_producto_medicamento (?,?,?,?,?,?,?,?,?,?,?,?)',
+                    [...atributosComunes, 
+                        req.body.presentacion_medicamento,
+                        req.body.tipo_medicamento,
+                        req.body.cantidad_contenido,
+                        req.body.unidad_medida,
+                        req.body.codigo_lote,
+                        req.body.fecha_vencimiento,
+                        req.body.stock_lote
+                    ]);
+                break;
 
             default:
                throw new Error('Tipo de producto no válido');
@@ -89,6 +98,7 @@ exports.crear = async (req, res) => {
 //          ENDPOINT DE ACTUALIZAR PRODUCTOS
 // ─────────────────────────────────────────────────────────
 
+//ATRIBUTOS COMUNES EN LOS REGISTROS, MEDIANTE LOS SP, SE PUEDE ACTUALIZAR O VARIOS ATRIBUTOS
 function actualizarAtributosPadre (body) {
 
     return[
@@ -99,7 +109,6 @@ function actualizarAtributosPadre (body) {
         body.stock_minimo || null,
         body.activo || null,
         body.imagen_url || null
-
     ];
     
 }
@@ -140,7 +149,30 @@ exports.actualizar = async (req, res) => {
                     req.body.peso_alimento || null
                 ]);                               
                 break;
+            
+            case 'ACCESORIOS':
+                await conn.query('CALL sp_update_producto_accesorio(?,?,?,?,?,?,?,?,?)',
+                [   id_producto,
+                    ...atributosNuevos, 
+                    req.body.tipo_accesorio || null
+                ]);                               
+                break;
+            
+            case 'MEDICAMENTOS':
 
+                await conn.query('CALL sp_update_producto_medicamento(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                [   id_producto,
+                    ...atributosNuevos, 
+                    req.body.tipo_accesorio || null,
+                    req.body.presentacion_medicamento,
+                    req.body.tipo_medicamento,
+                    req.body.cantidad_contenido,
+                    req.body.unidad_medida,
+                    req.body.codigo_lote,
+                    req.body.fecha_vencimiento,
+                    req.body.stock_lote
+                ]);                               
+                break;
 
             default:
                 throw new Error('Tipo de producto no válido');
@@ -175,6 +207,30 @@ exports.actualizar = async (req, res) => {
 //ENDPOINT DE VER LISTA DE PRODUCTOS
 exports.ver = async (req, res) => {
 
+    const conn = await mysqlConnection.getConnection();
+
+    try {
+
+
+        const {tipo_producto} = req.body; 
+
+        const [filas] = await conn.query('CALL sp_ver_productos()');
+        const filtrados = filas[0].filter(p => p.tipo_producto_nombre === tipo_producto);
+
+        res.json({
+            Consulta: true,
+            productos: filtrados
+        });
+
+
+    } catch (err) {
+        res.json({
+            Consulta: false,
+            error: err.message
+        });
+    } finally {
+        conn.release();
+    }
 
 };
 
@@ -185,6 +241,35 @@ exports.ver = async (req, res) => {
 //            ENDPOINT PARA ELIMINAR PRODUCTOS
 // ─────────────────────────────────────────────────────────
 exports.eliminar = async (req, res) => {
+
+    const conn = await mysqlConnection.getConnection();
+
+    try {
+
+        await conn.beginTransaction();
+
+        const { id_producto } = req.body;
+
+        if (!id_producto) throw new Error("Debe enviar el ID del producto a eliminar");
+
+        await conn.query('CALL sp_delete_productos(?)', [id_producto]);
+
+        await conn.commit();
+        res.json({
+            Consulta: true,
+            mensaje: 'Producto eliminado con éxito',
+            id_producto
+        });
+
+    } catch (err) {
+        await conn.rollback();
+        res.json({
+            Consulta: false,
+            error: err.message
+        });
+    } finally {
+        conn.release();
+    }
 
 
 };
