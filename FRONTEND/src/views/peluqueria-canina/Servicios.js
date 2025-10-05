@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SparklesIcon } from '@heroicons/react/24/outline';
+import { ScissorsIcon } from '@heroicons/react/24/outline';
 import Swal from 'sweetalert2';
 
 import { 
@@ -9,17 +9,17 @@ import {
   eliminarServicio
 } from '../../AXIOS.SERVICES/services-axios.js';
 
-import ModalPromocion from './modal_promocion';
-import PromocionesSeccion from './PromocionesSeccion';
+import ModalServicio from './modal_servicio';
+import ServiciosSeccion from './ServiciosSeccion';
 
 import './peluqueria-canina.css';
 
-const Promociones = () => {
-  const [promociones, setPromociones] = useState([]);
+const Servicios = () => {
+  const [servicios, setServicios] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  const [modalPromocionAbierto, setModalPromocionAbierto] = useState(false);
-  const [promocionEditando, setPromocionEditando] = useState(null);
+  const [modalServicioAbierto, setModalServicioAbierto] = useState(false);
+  const [servicioEditando, setServicioEditando] = useState(null);
 
   useEffect(() => {
     cargarDatos();
@@ -28,15 +28,15 @@ const Promociones = () => {
   const cargarDatos = async () => {
     setLoading(true);
     try {
-      const promocionesData = await verServicios('PROMOCIONES');
-      console.log('Promociones cargadas:', promocionesData); // Para debug
-      setPromociones(promocionesData || []);
+      const serviciosData = await verServicios('PELUQUERIA');
+      console.log('Servicios cargados:', serviciosData); // Para debug
+      setServicios(serviciosData || []);
     } catch (error) {
       console.error('Error cargando datos:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error al cargar',
-        text: 'No se pudieron cargar las promociones. Intenta nuevamente.',
+        text: 'No se pudieron cargar los servicios. Intenta nuevamente.',
         confirmButtonColor: '#ef4444'
       });
     } finally {
@@ -44,65 +44,65 @@ const Promociones = () => {
     }
   };
 
-  const abrirModalPromocion = (promocion = null) => {
-    setPromocionEditando(promocion);
-    setModalPromocionAbierto(true);
+  const abrirModalServicio = (servicio = null) => {
+    setServicioEditando(servicio);
+    setModalServicioAbierto(true);
   };
 
-  const cerrarModalPromocion = () => {
-    setModalPromocionAbierto(false);
-    setPromocionEditando(null);
+  const cerrarModalServicio = () => {
+    setModalServicioAbierto(false);
+    setServicioEditando(null);
   };
 
-  const handleSubmitPromocion = async (formData) => {
+  const handleSubmitServicio = async (formData) => {
     try {
-      if (promocionEditando) {
+      if (servicioEditando) {
         await actualizarServicio({ 
-          id: promocionEditando.id_promocion_pk, 
+          id: servicioEditando.id_servicio_peluqueria_pk, 
           ...formData, 
-          tipo_servicio: 'PROMOCIONES' 
+          tipo_servicio: 'PELUQUERIA' 
         });
         await Swal.fire({
           icon: 'success',
           title: '¡Actualizado!',
-          text: 'La promoción se actualizó correctamente',
+          text: 'El servicio se actualizó correctamente',
           timer: 2000,
           showConfirmButton: false
         });
       } else {
-        await insertarServicio({ ...formData, tipo_servicio: 'PROMOCIONES' });
+        await insertarServicio({ ...formData, tipo_servicio: 'PELUQUERIA' });
         await Swal.fire({
           icon: 'success',
           title: '¡Creado!',
-          text: 'La promoción se creó correctamente',
+          text: 'El servicio se creó correctamente',
           timer: 2000,
           showConfirmButton: false
         });
       }
       
-      cerrarModalPromocion();
+      cerrarModalServicio();
       await cargarDatos();
     } catch (error) {
       console.error('Error:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'No se pudo guardar la promoción. Intenta nuevamente.',
+        text: 'No se pudo guardar el servicio. Intenta nuevamente.',
         confirmButtonColor: '#ef4444'
       });
     }
   };
 
-  const handleEliminarPromocion = async (promocion) => {
+  const handleEliminarServicio = async (servicio) => {
     const result = await Swal.fire({
       icon: 'warning',
-      title: '¿Eliminar promoción?',
+      title: '¿Eliminar servicio?',
       html: `
         <div style="text-align: left; margin-top: 16px; padding: 16px; background: #f9fafb; border-radius: 8px;">
-          <p style="margin-bottom: 8px;"><strong>Nombre:</strong> ${promocion.nombre_promocion}</p>
-          <p style="margin-bottom: 8px;"><strong>Precio:</strong> L. ${parseFloat(promocion.precio_promocion || 0).toFixed(2)}</p>
-          <p style="margin-bottom: 8px;"><strong>Duración:</strong> ${promocion.dias_promocion} días</p>
-          <p style="margin-bottom: 0;"><strong>Descripción:</strong> ${promocion.descripcion_promocion.substring(0, 60)}...</p>
+          <p style="margin-bottom: 8px;"><strong>Nombre:</strong> ${servicio.nombre_servicio_peluqueria}</p>
+          <p style="margin-bottom: 8px;"><strong>Precio:</strong> L. ${parseFloat(servicio.precio_servicio || 0).toFixed(2)}</p>
+          <p style="margin-bottom: 8px;"><strong>Duración:</strong> ${servicio.duracion_estimada} minutos</p>
+          <p style="margin-bottom: 0;"><strong>Descripción:</strong> ${servicio.descripcion_servicio.substring(0, 60)}...</p>
         </div>
         <p style="margin-top: 16px; color: #ef4444; font-weight: bold;">Esta acción no se puede deshacer</p>
       `,
@@ -116,11 +116,11 @@ const Promociones = () => {
 
     if (result.isConfirmed) {
       try {
-        await eliminarServicio(promocion.id_promocion_pk, 'PROMOCIONES');
+        await eliminarServicio(servicio.id_servicio_peluqueria_pk, 'PELUQUERIA');
         await Swal.fire({
           icon: 'success',
           title: '¡Eliminado!',
-          text: 'La promoción fue eliminada correctamente',
+          text: 'El servicio fue eliminado correctamente',
           timer: 2000,
           showConfirmButton: false
         });
@@ -130,7 +130,7 @@ const Promociones = () => {
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'No se pudo eliminar la promoción',
+          text: 'No se pudo eliminar el servicio',
           confirmButtonColor: '#ef4444'
         });
       }
@@ -144,37 +144,37 @@ const Promociones = () => {
         <div className="peluqueria-header">
           <div className="icon-container">
             <div className="icon-box">
-              <SparklesIcon style={{ width: '24px', height: '24px', color: '#3b82f6' }} />
+              <ScissorsIcon style={{ width: '24px', height: '24px', color: '#10b981' }} />
             </div>
           </div>
-          <h1 className="peluqueria-title">Promociones</h1>
-          <p className="peluqueria-subtitle">Gestiona las promociones especiales para tus clientes</p>
+          <h1 className="peluqueria-title">Servicios de Peluquería Canina</h1>
+          <p className="peluqueria-subtitle">Gestiona los servicios de peluquería para mascotas</p>
         </div>
 
         {loading ? (
           <div className="section">
             <div style={{ textAlign: 'center', padding: '48px' }}>
               <div className="loading-spinner"></div>
-              <p style={{ marginTop: '16px', color: '#6b7280' }}>Cargando promociones...</p>
+              <p style={{ marginTop: '16px', color: '#6b7280' }}>Cargando servicios...</p>
             </div>
           </div>
         ) : (
-          <PromocionesSeccion
-            promociones={promociones}
-            abrirModalPromocion={abrirModalPromocion}
-            eliminarPromocion={handleEliminarPromocion}
+          <ServiciosSeccion
+            servicios={servicios}
+            abrirModalServicio={abrirModalServicio}
+            eliminarServicio={handleEliminarServicio}
           />
         )}
       </div>
 
-      <ModalPromocion
-        isOpen={modalPromocionAbierto}
-        onClose={cerrarModalPromocion}
-        onSubmit={handleSubmitPromocion}
-        promocion={promocionEditando}
+      <ModalServicio
+        isOpen={modalServicioAbierto}
+        onClose={cerrarModalServicio}
+        onSubmit={handleSubmitServicio}
+        servicio={servicioEditando}
       />
     </div>
   );
 };
 
-export default Promociones;
+export default Servicios;
