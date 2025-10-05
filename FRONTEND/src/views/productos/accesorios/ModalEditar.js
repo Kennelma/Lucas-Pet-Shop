@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
 
 const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
-  const [data, setData] = useState({ nombre: '', categoria: 'Collar', cantidad: 0, precio: 0, imagenUrl: '' });
+  const [data, setData] = useState({ nombre: '', categoria: 'Collar', cantidad: 0, precio: 0, imagenBase64: '', imagenUrl: '' });
   const [errors, setErrors] = useState({});
 
-  useEffect(() => { if (isOpen && editData) setData(editData); }, [isOpen, editData]);
+  useEffect(() => { 
+    if (isOpen && editData) {
+      setData({
+        ...editData,
+        imagenBase64: '',
+        imagenUrl: editData.imagenUrl || ''
+      });
+    }
+  }, [isOpen, editData]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (files?.[0]) {
       const reader = new FileReader();
-      reader.onload = () => setData(prev => ({ ...prev, imagenUrl: reader.result }));
+      reader.onload = () => setData(prev => ({ ...prev, imagenBase64: reader.result }));
       reader.readAsDataURL(files[0]);
     } else setData(prev => ({ ...prev, [name]: value }));
   };
@@ -20,12 +28,14 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
     const newErrors = {};
     if (!data.nombre?.trim()) newErrors.nombre = true;
     if (data.cantidad < 0) newErrors.cantidad = true;
-    if (data.precio < 0) newErrors.precio = true;
+    if (data.precio <= 0) newErrors.precio = true;
     setErrors(newErrors);
     if (!Object.keys(newErrors).length && await onSave(data) !== false) onClose();
   };
 
   if (!isOpen) return null;
+
+  const imagenActual = data.imagenBase64 || (data.imagenUrl ? `http://localhost:4000${data.imagenUrl}` : '');
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur flex items-center justify-center p-4 z-50" style={{marginLeft: 'var(--cui-sidebar-occupy-start, 0px)', marginRight: 'var(--cui-sidebar-occupy-end, 0px)'}}>
@@ -35,7 +45,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
           <button onClick={onClose} className="text-2xl">&times;</button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex">
+        <div className="flex">
           <div className="flex-1 p-4 space-y-4">
             <div>
               <h6 className="text-sm font-semibold text-gray-700 mb-1">Tipo de Accesorio</h6>
@@ -56,19 +66,19 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
               </div>
               <div>
                 <h6 className="text-sm font-semibold text-gray-700 mb-1">Precio</h6>
-                <input type="number" name="precio" value={data.precio} onChange={handleChange} step="0.01" min="0" className={`w-full p-2 border rounded ${errors.precio ? 'border-red-500' : ''}`} />
+                <input type="number" name="precio" value={data.precio} onChange={handleChange} step="0.01" min="0.01" className={`w-full p-2 border rounded ${errors.precio ? 'border-red-500' : ''}`} />
               </div>
             </div>
 
-            <button type="submit" className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">Guardar</button>
+            <button type="button" onClick={handleSubmit} className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">Guardar</button>
           </div>
 
           <div className="w-48 border-l border-gray-300 p-4">
-            {data.imagenUrl ? (
+            {imagenActual ? (
               <div>
-                <img src={data.imagenUrl} alt="Producto" className="w-full h-32 object-cover border rounded mb-2" />
+                <img src={imagenActual} alt="Producto" className="w-full h-32 object-cover border rounded mb-2" />
                 <div className="text-center">
-                  <span onClick={() => setData(prev => ({ ...prev, imagenUrl: '' }))} className="cursor-pointer text-lg hover:text-red-500">🗑️</span>
+                  <span onClick={() => setData(prev => ({ ...prev, imagenBase64: '', imagenUrl: '' }))} className="cursor-pointer text-lg hover:text-red-500">🗑️</span>
                 </div>
               </div>
             ) : (
@@ -81,7 +91,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
               </label>
             )}
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
