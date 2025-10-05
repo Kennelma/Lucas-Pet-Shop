@@ -55,6 +55,7 @@ exports.crear = async (req, res) => {
                         req.body.tipo_accesorio
                     ]);
                 break;
+
             case 'MEDICAMENTOS':
                 const [medicamento] = await conn.query ('CALL sp_insert_producto_medicamento (?,?,?,?,?,?,?,?,?,?,?,?)',
                     [...atributosComunes, 
@@ -128,7 +129,6 @@ exports.actualizar = async (req, res) => {
 
         if (!id_producto) throw new Error("Debe enviar el ID del producto a actualizar");
 
-       
         switch (tipo_producto) {
             
             case 'ANIMALES':
@@ -198,8 +198,6 @@ exports.actualizar = async (req, res) => {
 };
 
 
-
-
 // ─────────────────────────────────────────────────────────
 //              ENDPOINT PARA VER LOS PRODUCTOS
 // ─────────────────────────────────────────────────────────
@@ -210,18 +208,14 @@ exports.ver = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
 
     try {
+        const {tipo_producto} =  req.query;; 
 
-
-        const {tipo_producto} = req.body; 
-
-        const [filas] = await conn.query('CALL sp_ver_productos()');
-        const filtrados = filas[0].filter(p => p.tipo_producto_nombre === tipo_producto);
+        const [registros] = await conn.query('CALL sp_ver_productos(?)', [tipo_producto]);
 
         res.json({
             Consulta: true,
-            productos: filtrados
+            productos: registros[0]
         });
-
 
     } catch (err) {
         res.json({
@@ -233,8 +227,6 @@ exports.ver = async (req, res) => {
     }
 
 };
-
-
 
 
 // ─────────────────────────────────────────────────────────
@@ -270,7 +262,6 @@ exports.eliminar = async (req, res) => {
     } finally {
         conn.release();
     }
-
 
 };
 
