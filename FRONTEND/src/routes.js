@@ -5,15 +5,10 @@ const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Clientes = React.lazy(() => import('./views/clientes/Clientes'))
 
 const Accesorios = React.lazy(() => import('./views/productos/accesorios/Accesorios'))
-<<<<<<< HEAD
-const Alimentos = React.lazy(() => import('./views/productos/alimentos/Alimentos'))
-const Medicamentos = React.lazy(() => import('./views/productos/medicamentos/Medicamentos'))
-=======
 const Aliumentos = React.lazy(() => import('./views/productos/alimentos/Alimentos'))
 const Medicamentos = React.lazy(() => import('./views/productos/medicamentos'))
->>>>>>> b2831545d1fc4c08f35436b66fe6634af132bac3
 const Animales = React.lazy(() => import('./views/productos/animales/Animales'))
-const Recordatorios = React.lazy(() => import('./views/recordatorios/Recordatorios'))
+
 
 
 //AQUI LAS UNIFICAMOS ENTONCES SOLO DEBERIA APARECER COMO UNO
