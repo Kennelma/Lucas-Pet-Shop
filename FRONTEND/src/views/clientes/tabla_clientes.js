@@ -6,7 +6,8 @@ import { Column } from 'primereact/column';
 
 import { faUserPlus, faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { verRegistro} from "../../services/apiService.js";
+
+import { verClientes} from "../../AXIOS.SERVICES/clients-axios.js";
 
 import FormularioCliente from "./modal_agregar.js";
 
@@ -20,7 +21,7 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const data = await verRegistro("tbl_clientes");
+                const data = await verClientes();
                 setClientes(data);
             } catch (error) {
                 console.error(error);
@@ -106,7 +107,7 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
         <FormularioCliente
           onClose={() => setOpenModal(false)}
           onClienteAgregado={async () => {
-            const data = await verRegistro("tbl_clientes");
+            const data = await verClientes();
             setClientes(data);
           }}
         />
