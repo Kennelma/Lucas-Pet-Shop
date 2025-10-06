@@ -3,7 +3,7 @@ import { InputText } from "primereact/inputtext";
 import { InputMask } from "primereact/inputmask";
 import { Button } from "primereact/button";
 
-import { insertarRegistro } from "../../services/apiService.js";
+//import { insertarRegistro } from "../../services/apiService.js";
 
 export default function FormularioCliente({ onClose, onClienteAgregado }) {
     const [nuevoCliente, setNuevoCliente] = useState({

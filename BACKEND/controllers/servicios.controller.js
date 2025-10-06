@@ -161,8 +161,8 @@ exports.eliminar = async (req, res) => {
             case 'PROMOCIONES':
                 
                 await conn.query('CALL sp_delete_promocion(?)', [id]);
-
                 break;
+                
             default:
                 throw new Error('Tipo de servicio no válido');
         }
