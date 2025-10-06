@@ -11,6 +11,7 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
     { label: 'PERRO', value: 'PERRO' },
     { label: 'GATO', value: 'GATO' },
     { label: 'AVE', value: 'AVE' },
+    { label: 'PEZ', value: 'PEZ' },
     { label: 'REPTIL', value: 'REPTIL' },
     { label: 'ANFIBIO', value: 'ANFIBIO' }
   ];

@@ -21,6 +21,7 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
     { label: 'PERRO', value: 'PERRO' },
     { label: 'GATO', value: 'GATO' },
     { label: 'AVE', value: 'AVE' },
+    { label: 'PEZ', value: 'PEZ' },
     { label: 'REPTIL', value: 'REPTIL' },
     { label: 'ANFIBIO', value: 'ANFIBIO' }
   ];
@@ -67,7 +68,6 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
           imagenUrl: data.imagenUrl || '',
           especie: data.especie,
           sexo: data.sexo,
-          sku: res.sku || 'SIN-SKU'
         };
 
         onSave(nuevoAnimal);
