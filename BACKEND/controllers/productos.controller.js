@@ -15,7 +15,7 @@ const TIPOS_PRODUCTOS = {
 // ─────────────────────────────────────────────────────────
 
 //ESTOS ATRIBUTOS SON COMUNES PARA TODOS LOS ENDPOINT
-function atributos_padre (body) {
+function insert_atributos_padre (body) {
     return[
         body.nombre_producto,
         body.precio_producto,
@@ -34,7 +34,7 @@ exports.crear = async (req, res) => {
         await conn.beginTransaction(); //INICIO LA TRANSACCIÓN
 
         //SE TRAE LA FUNCION CON LOS ATRIBUTOS PADRES
-        const atributosComunes = atributos_padre(req.body);
+        const atributosComunes = insert_atributos_padre(req.body);
 
         switch (req.body.tipo_producto) {
 
@@ -123,7 +123,7 @@ function update_atributos_padre (body) {
         body.sku || null,
         body.stock || null,
         body.stock_minimo || null,
-        body.activo || null,
+        body.activo !== undefined ? body.activo : null,
         body.imagen_url || null
     ];
     
@@ -138,7 +138,7 @@ exports.actualizar = async (req, res) => {
         await conn.beginTransaction();
 
         //ATRIBUTOS QUE USAN TODAS LAS TABLAS (ATRIBUTOS DE LA TABLA PADRE)
-        const atributosNuevos = actualizarAtributosPadre(req.body);
+        const atributosNuevos = update_atributos_padre(req.body);
 
         const { id_producto, tipo_producto } = req.body;
 
@@ -229,12 +229,10 @@ exports.ver = async (req, res) => {
 
 
             case 'ACCESORIOS':
-
                 [registros] = await conn.query('CALL sp_select_producto_accesorios()');
                 break;
             
             case 'ANIMALES':
-
                 [registros] = await conn.query('CALL sp_select_producto_animales()');
                 break;
             
@@ -243,9 +241,9 @@ exports.ver = async (req, res) => {
                 break;
 
             case 'MEDICAMENTOS':
-
                 [registros] = await conn.query('CALL sp_select_producto_medicamentos()');
-                break;    
+                break;
+
             default:
                 throw new Error('Tipo de producto no válido');
         }
@@ -277,7 +275,7 @@ exports.eliminar = async (req, res) => {
 
         await conn.beginTransaction();
 
-        const { id_producto } = req.body;
+        const {id_producto } = req.body;
 
         if (!id_producto) throw new Error("Debe enviar el ID del producto a eliminar");
 
