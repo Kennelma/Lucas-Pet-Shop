@@ -14,7 +14,7 @@ const routes = [
   { path: '/Dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/clientes', name: 'Clientes', element: Clientes },
 
-  { path: '/productos/alimentos', name: 'Productos / Alimentos', element: Alimentos },
+  { path: '/productos/Alimentos', name: 'Productos / Alimentos', element: Alimentos },
   { path: '/productos/animales', name: 'Productos / Animales', element: Animales },
   { path: '/productos/accesorios', name: 'Productos / Accesorios', element: Accesorios },
   { path: '/productos/medicamentos', name: 'Productos / Medicamentos', element: Medicamentos },
