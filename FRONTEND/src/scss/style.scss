@@ -4,6 +4,7 @@
 );
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
 
 body {
   background-color: var(--cui-tertiary-bg);
@@ -59,9 +60,13 @@ body {
   min-height: calc(3rem + 1px);
 }
 
+body {
+  background-color: #ffffff;  // ← Para tema claro (blanco)
+}
+
 @include color-mode(dark) {
   body {
-    background-color: #989A9A;
+    background-color: #111827;
   }
 
   .footer {
@@ -70,6 +75,21 @@ body {
 
   .sidebar-brand-full text {
     fill: var(--cui-sidebar-color) !important;
+  }
+}
+
+ol, ul {
+  padding-inline-start: 2rem;
+  &.p-dropdown-items {
+    padding-inline-start: 0rem !important;
+  }
+}
+
+/*
+.datatable-gridlines {
+  .p-datatable-tbody > tr > td,
+  .p-datatable-thead > tr > th {
+    border: 1px solid #d1d5db !important;
   }
 }
 
