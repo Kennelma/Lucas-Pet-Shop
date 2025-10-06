@@ -138,7 +138,7 @@ exports.actualizar = async (req, res) => {
         await conn.beginTransaction();
 
         //ATRIBUTOS QUE USAN TODAS LAS TABLAS (ATRIBUTOS DE LA TABLA PADRE)
-        const atributosNuevos = actualizarAtributosPadre(req.body);
+        const atributosNuevos = update_atributos_padre(req.body);
 
         const { id_producto, tipo_producto } = req.body;
 
