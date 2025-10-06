@@ -8,19 +8,19 @@ var  app = express();
 const bp = require('body-parser');
 
 //IMPORTO LA CONEXION DEL ARCHIVO CORRRESPONDIENTE
-const mysqlConnection = require('./conexion'); 
+const mysqlConnection = require('./config/conexion'); 
 
 //Enviando los datos de data-form a NODEJS API
 app.use(express.json());
-app.use(bp.urlencoded({ extended: true }))
+app.use(express.urlencoded({ extended: true }))
 
 const cors = require("cors");
 
 //Permitir todas las peticiones desde cualquier origen
 app.use(cors());
 
-//IMPORTACION DE LA RUTA GENERICA
-app.use('/api', require('./crud'));
+//IMPORTACION DE LAS RUTAS
+app.use('/api', require('./routes/rutas'));
 
 const PORT = 4000;
 app.listen(PORT, function() {
