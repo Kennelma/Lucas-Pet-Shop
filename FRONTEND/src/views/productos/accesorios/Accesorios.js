@@ -25,38 +25,40 @@ const Accesorios = () => {
   };
 
   const cargarInventario = async () => {
-    setLoading(true);
-    try {
-      const datos = await verProductos("ACCESORIOS");
-      console.log("Datos crudos del backend:", datos);
-      
-      const lista = Array.isArray(datos) ? datos : (Array.isArray(datos?.productos) ? datos.productos : []);
+  setLoading(true);
+  try {
+    const datos = await verProductos("ACCESORIOS");
+    console.log("Datos crudos del backend:", datos);
+    
+    const lista = Array.isArray(datos) ? datos : (Array.isArray(datos?.productos) ? datos.productos : []);
 
-      const inventarioMapeado = lista.map((item) => {
-        const id = item.id_producto_pk || item.id_producto || item.id_accesorio_pk || item.id;
-        console.log(`Producto: ${item.nombre_producto}, ID: ${id}, Activo: ${item.activo}`);
-        
-        return {
-          id: id,
-          sku: item.sku ?? "",
-          nombre: (item.nombre_producto ?? item.nombre_accesorio ?? item.nombre ?? "").toUpperCase(),
-          categoria: (item.tipo_accesorio ?? item.categoria ?? "").toUpperCase(),
-          cantidad: Number(item.stock ?? item.stock_accesorio ?? item.cantidad ?? 0) || 0,
-          precio: Number(item.precio_producto ?? item.precio_accesorio ?? item.precio ?? 0) || 0,
-          imagenUrl: "",
-          activo: item.activo !== undefined ? Boolean(item.activo) : true
-        };
-      });
+    const inventarioMapeado = lista.map((item) => {
+      const id = item.id_producto_pk || item.id_producto || item.id_accesorio_pk || item.id;
+      console.log(`Producto: ${item.nombre_producto}, ID: ${id}, Activo: ${item.activo}`);
 
-      console.log("Inventario mapeado con IDs:", inventarioMapeado.map(p => ({nombre: p.nombre, id: p.id, activo: p.activo})));
-      setInventario(inventarioMapeado);
-    } catch (error) {
-      console.error("Error al cargar inventario:", error);
-      mostrarMensaje("Error al cargar inventario");
-      setInventario([]);
-    }
-    setLoading(false);
-  };
+      return {
+        id: id,
+        sku: item.sku ?? "",
+        nombre: (item.nombre_producto ?? item.nombre_accesorio ?? item.nombre ?? "").toUpperCase(),
+        categoria: (item.tipo_accesorio ?? item.categoria ?? "").toUpperCase(),
+        cantidad: Number(item.stock ?? item.stock_accesorio ?? item.cantidad ?? 0) || 0,
+        precio: Number(item.precio_producto ?? item.precio_accesorio ?? item.precio ?? 0) || 0,
+        // Aquí mapeamos la imagen del backend a nuestro estado
+        imagenUrl: item.imagen_url ?? item.imagen ?? "", 
+        activo: item.activo !== undefined ? Boolean(item.activo) : true
+      };
+    });
+
+    console.log("Inventario mapeado con IDs:", inventarioMapeado.map(p => ({nombre: p.nombre, id: p.id, activo: p.activo})));
+    setInventario(inventarioMapeado);
+  } catch (error) {
+    console.error("Error al cargar inventario:", error);
+    mostrarMensaje("Error al cargar inventario");
+    setInventario([]);
+  }
+  setLoading(false);
+};
+
 
   const guardarAccesorio = async ({nombre, categoria, cantidad, precio, imagenUrl, activo}) => {
     // Convertir a mayúsculas antes de enviar

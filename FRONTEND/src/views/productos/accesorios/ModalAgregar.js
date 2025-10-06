@@ -1,8 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { InputText } from 'primereact/inputtext';
+import { InputNumber } from 'primereact/inputnumber';
+import { Dropdown } from 'primereact/dropdown';
+import { Button } from 'primereact/button';
+import { classNames } from 'primereact/utils';
 
 const ModalAgregar = ({ isOpen, onClose, onSave }) => {
   const [data, setData] = useState({ nombre: '', categoria: '', cantidad: 1, precio: 1, imagenUrl: '' });
   const [errors, setErrors] = useState({});
+
+  const categorias = [
+    { label: 'COLLAR', value: 'COLLAR' },
+    { label: 'CORREA', value: 'CORREA' },
+    { label: 'JUGUETE', value: 'JUGUETE' },
+    { label: 'CAMA', value: 'CAMA' },
+    { label: 'COMEDERO', value: 'COMEDERO' },
+    { label: 'TRANSPORTADORA', value: 'TRANSPORTADORA' },
+    { label: 'HIGIENE', value: 'HIGIENE' },
+    { label: 'ROPA', value: 'ROPA' }
+  ];
   
   useEffect(() => {
     if (isOpen) {
@@ -53,29 +69,59 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
           <div className="flex-1 p-4 space-y-4">
             <div>
               <h6 className="text-sm font-semibold text-gray-700 mb-1">TIPO DE ACCESORIO</h6>
-              <select name="categoria" value={data.categoria} onChange={handleChange} className={`w-full p-2 border rounded ${errors.categoria ? 'border-red-500' : ''}`}>
-                <option value="">Seleccione un tipo</option>
-                {['COLLAR','CORREA','JUGUETE','CAMA','COMEDERO','TRANSPORTADORA','HIGIENE','ROPA'].map(cat => <option key={cat} value={cat}>{cat}</option>)}
-              </select>
+              <Dropdown
+                name="categoria"
+                value={data.categoria}
+                options={categorias}
+                onChange={(e) => setData(prev => ({ ...prev, categoria: e.value }))}
+                placeholder="Seleccione un tipo"
+                className={classNames('w-full', { 'p-invalid': errors.categoria })}
+              />
             </div>
 
             <div>
               <h6 className="text-sm font-semibold text-gray-700 mb-1">NOMBRE Y DESCRIPCIÓN</h6>
-              <input name="nombre" value={data.nombre} onChange={handleChange} placeholder="Nombre y descripción" className={`w-full p-2 border rounded ${errors.nombre ? 'border-red-500' : ''}`} />
+              <InputText
+                name="nombre"
+                value={data.nombre}
+                onChange={handleChange}
+                placeholder="Nombre y descripción"
+                className={classNames('w-full', { 'p-invalid': errors.nombre })}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <h6 className="text-sm font-semibold text-gray-700 mb-1">STOCK</h6>
-                <input type="number" name="cantidad" value={data.cantidad} onChange={handleChange} min="0" className={`w-full p-2 border rounded ${errors.cantidad ? 'border-red-500' : ''}`} />
+                <InputNumber
+                  name="cantidad"
+                  value={data.cantidad}
+                  onValueChange={(e) => setData(prev => ({ ...prev, cantidad: e.value }))}
+                  min={0}
+                  className={classNames('w-full', { 'p-invalid': errors.cantidad })}
+                  inputClassName="w-full"
+                />
               </div>
               <div>
                 <h6 className="text-sm font-semibold text-gray-700 mb-1">PRECIO</h6>
-                <input type="number" name="precio" value={data.precio} onChange={handleChange} step="0.01" min="0.01" className={`w-full p-2 border rounded ${errors.precio ? 'border-red-500' : ''}`} />
+                <InputNumber
+                  name="precio"
+                  value={data.precio}
+                  onValueChange={(e) => setData(prev => ({ ...prev, precio: e.value }))}
+                  minFractionDigits={2}
+                  maxFractionDigits={2}
+                  min={0.01}
+                  className={classNames('w-full', { 'p-invalid': errors.precio })}
+                  inputClassName="w-full"
+                />
               </div>
             </div>
 
-            <button type="button" onClick={handleSubmit} className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">GUARDAR</button>
+            <Button 
+              label="GUARDAR" 
+              onClick={handleSubmit} 
+              className="w-full p-button-success"
+            />
           </div>
 
           <div className="w-48 border-l border-gray-300 p-4">

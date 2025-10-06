@@ -1,8 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { InputText } from 'primereact/inputtext';
+import { InputNumber } from 'primereact/inputnumber';
+import { Dropdown } from 'primereact/dropdown';
+import { Button } from 'primereact/button';
+import { classNames } from 'primereact/utils';
 
 const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
   const [data, setData] = useState({ nombre: '', categoria: 'Collar', cantidad: 0, precio: 0, imagenBase64: '', imagenUrl: '', activo: true });
   const [errors, setErrors] = useState({});
+
+  const categorias = [
+    { label: 'Collar', value: 'Collar' },
+    { label: 'Correa', value: 'Correa' },
+    { label: 'Juguete', value: 'Juguete' },
+    { label: 'Cama', value: 'Cama' },
+    { label: 'Comedero', value: 'Comedero' },
+    { label: 'Transportadora', value: 'Transportadora' },
+    { label: 'Higiene', value: 'Higiene' },
+    { label: 'Ropa', value: 'Ropa' }
+  ];
 
   useEffect(() => { 
     if (isOpen && editData) {
@@ -50,24 +66,58 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
           <div className="flex-1 p-4 space-y-4">
             <div>
               <h6 className="text-sm font-semibold text-gray-700 mb-1">Tipo de Accesorio</h6>
-              <select name="categoria" value={data.categoria} onChange={handleChange} disabled={!!editData} className={`w-full p-2 border rounded ${!!editData ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}>
-                {['Collar','Correa','Juguete','Cama','Comedero','Transportadora','Higiene','Ropa'].map(cat => <option key={cat} value={cat}>{cat}</option>)}
-              </select>
+              {editData ? (
+                <InputText
+                  value={data.categoria}
+                  disabled
+                  className="w-full"
+                />
+              ) : (
+                <Dropdown
+                  name="categoria"
+                  value={data.categoria}
+                  options={categorias}
+                  onChange={(e) => setData(prev => ({ ...prev, categoria: e.value }))}
+                  className="w-full"
+                />
+              )}
             </div>
 
             <div>
               <h6 className="text-sm font-semibold text-gray-700 mb-1">Nombre y Descripción</h6>
-              <input name="nombre" value={data.nombre} onChange={handleChange} placeholder="Nombre y descripción" className={`w-full p-2 border rounded ${errors.nombre ? 'border-red-500' : ''}`} />
+              <InputText
+                name="nombre"
+                value={data.nombre}
+                onChange={(e) => setData(prev => ({ ...prev, nombre: e.target.value }))}
+                placeholder="Nombre y descripción"
+                className={classNames('w-full', { 'p-invalid': errors.nombre })}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <h6 className="text-sm font-semibold text-gray-700 mb-1">Stock</h6>
-                <input type="number" name="cantidad" value={data.cantidad} onChange={handleChange} min="0" className={`w-full p-2 border rounded ${errors.cantidad ? 'border-red-500' : ''}`} />
+                <InputNumber
+                  name="cantidad"
+                  value={data.cantidad}
+                  onValueChange={(e) => setData(prev => ({ ...prev, cantidad: e.value }))}
+                  min={0}
+                  className={classNames('w-full', { 'p-invalid': errors.cantidad })}
+                  inputClassName="w-full"
+                />
               </div>
               <div>
                 <h6 className="text-sm font-semibold text-gray-700 mb-1">Precio</h6>
-                <input type="number" name="precio" value={data.precio} onChange={handleChange} step="0.01" min="0.01" className={`w-full p-2 border rounded ${errors.precio ? 'border-red-500' : ''}`} />
+                <InputNumber
+                  name="precio"
+                  value={data.precio}
+                  onValueChange={(e) => setData(prev => ({ ...prev, precio: e.value }))}
+                  minFractionDigits={2}
+                  maxFractionDigits={2}
+                  min={0.01}
+                  className={classNames('w-full', { 'p-invalid': errors.precio })}
+                  inputClassName="w-full"
+                />
               </div>
             </div>
 
@@ -94,7 +144,11 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
               </button>
             </div>
 
-            <button type="button" onClick={handleSubmit} className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">Guardar</button>
+            <Button 
+              label="Guardar" 
+              onClick={handleSubmit} 
+              className="w-full p-button-success"
+            />
           </div>
 
           <div className="w-48 border-l border-gray-300 p-4">
