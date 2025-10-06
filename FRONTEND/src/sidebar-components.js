@@ -17,8 +17,6 @@ import {
   faBone,
   faCoins,
   faShower, 
-  faStore,
-  faBuilding,
 } from '@fortawesome/free-solid-svg-icons'
 
 
@@ -109,50 +107,27 @@ const _nav = [
   {
     component: CNavGroup,
     name: 'Peluqueria Canina',
+    to: '/configuracion',
     icon: <FontAwesomeIcon icon={faCut} className="nav-icon" />,
     items: [
     
       {
         component: CNavItem,
+        name: 'Promociones',
+        style: { paddingLeft: '65px' },
+        icon: <FontAwesomeIcon icon={faShower} className="nav-icon" />,
+         to: '/peluqueria-canina/Promociones',
+        
+      },
+      {
+        component: CNavItem,
         name: 'Servicios',
         style: { paddingLeft: '65px' },
         icon: <FontAwesomeIcon icon={faShower} className="nav-icon" />,
-        to: '/peluqueria-canina/Servicios',
-      },
-      {
-        component: CNavItem,
-        name: 'Promociones',
-        style: { paddingLeft: '65px' },
-        icon: <FontAwesomeIcon icon={faTags} className="nav-icon" />,
-        to: '/peluqueria-canina/Promociones',
-      }, 
-    ],
-  },
-
-  //EMPRESA
-  {
-    component: CNavGroup,
-    name: 'Empresa',
-    icon: <FontAwesomeIcon icon={faBuilding} className="nav-icon" />,
-    items: [
-      {
-        component: CNavItem,
-        name: 'Sucursales',
-        style: { paddingLeft: '65px' },
-        icon: <FontAwesomeIcon icon={faStore} className="nav-icon" />,
-        to: '/',
+         to: '/peluqueria-canina/Servicios',
         
       },
-      {
-        component: CNavItem,
-        name: 'Usuarios',
-        style: { paddingLeft: '65px' },
-        icon: <FontAwesomeIcon icon={faUser} className="nav-icon" />,
-        to: '/',
-        
-      }, 
     ],
-
   },
 
   //RECORDATORIOS
@@ -166,7 +141,7 @@ const _nav = [
   //ESTILISTAS Y BONIFICACIONES
   {
     component: CNavItem,
-    name: 'Estilistas',
+    name: 'Bonificaciones',
     to: '/theme/colors',
     icon: <FontAwesomeIcon icon={faCoins} className="nav-icon" />,
   },
@@ -181,13 +156,16 @@ const _nav = [
    
   },
 
-  
+  //USUARIOS
+  {
+    component: CNavItem,
+    name: 'Usuarios',
+    to: '/',
+    icon: <FontAwesomeIcon icon={faUser} className="nav-icon" />,
+
+  },
  
 
 ]
 
 export default _nav
-
-
-
-  

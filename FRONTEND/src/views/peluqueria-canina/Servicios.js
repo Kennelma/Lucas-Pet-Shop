@@ -35,10 +35,10 @@ const Servicios = () => {
       const estadosGuardados = JSON.parse(localStorage.getItem('servicios-estados') || '{}');
       console.log('💾 Estados guardados en localStorage:', estadosGuardados);
       
-      // Normalizar servicios con estados guardados o por defecto 1 (activo)
+      // Normalizar servicios con estados guardados o por defecto true
       const serviciosNormalizados = serviciosData?.map(servicio => {
         const estadoGuardado = estadosGuardados[servicio.id_servicio_peluqueria_pk];
-        const activo = estadoGuardado !== undefined ? estadoGuardado : 1; // Default 1 (activo) si no existe
+        const activo = estadoGuardado !== undefined ? estadoGuardado : true; // Default true si no existe
         
         return {
           ...servicio,
@@ -117,58 +117,34 @@ const Servicios = () => {
   };
 
   const actualizarEstadoServicio = async (servicioActualizado) => {
-    const nuevoEstado = servicioActualizado.activo; // Mantener el valor 0/1 que viene del toggle
+    const nuevoEstado = Boolean(servicioActualizado.activo);
     
-    try {
-      // Preparar datos para enviar al backend usando la función existente
-      const datosParaActualizar = {
-        id: servicioActualizado.id_servicio_peluqueria_pk,
-        nombre_servicio_peluqueria: servicioActualizado.nombre_servicio_peluqueria,
-        descripcion_servicio: servicioActualizado.descripcion_servicio,
-        precio_servicio: servicioActualizado.precio_servicio,
-        duracion_estimada: servicioActualizado.duracion_estimada,
-        requisitos: servicioActualizado.requisitos,
-        activo: nuevoEstado, // Este es el cambio principal
-        tipo_servicio: 'PELUQUERIA'
-      };
-
-      // Guardar en el backend usando la función existente
-      const resultado = await actualizarServicio(datosParaActualizar);
-      
-      if (resultado.Consulta !== false) {
-        // Solo actualizar estado local si el backend respondió exitosamente
-        setServicios(prev => 
-          prev.map(s => 
-            s.id_servicio_peluqueria_pk === servicioActualizado.id_servicio_peluqueria_pk 
-              ? { ...servicioActualizado, activo: nuevoEstado }
-              : s
-          )
-        );
-
-        // También mantener en localStorage como respaldo
-        const estadosGuardados = JSON.parse(localStorage.getItem('servicios-estados') || '{}');
-        estadosGuardados[servicioActualizado.id_servicio_peluqueria_pk] = nuevoEstado;
-        localStorage.setItem('servicios-estados', JSON.stringify(estadosGuardados));
-        
-        await Swal.fire({
-          icon: 'success',
-          title: nuevoEstado === 1 ? '¡Servicio Activado!' : '¡Servicio Desactivado!',
-          text: `Estado actualizado en el servidor`,
-          timer: 2000,
-          showConfirmButton: false
-        });
-      } else {
-        throw new Error('Error en la respuesta del servidor');
-      }
-    } catch (error) {
-      console.error('Error actualizando estado:', error);
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se pudo actualizar el estado del servicio',
-        confirmButtonColor: '#ef4444'
-      });
-    }
+    // Actualizar estado local
+    setServicios(prev => 
+      prev.map(s => 
+        s.id_servicio_peluqueria_pk === servicioActualizado.id_servicio_peluqueria_pk 
+          ? { ...servicioActualizado, activo: nuevoEstado }
+          : s
+      )
+    );
+    
+    // Guardar en localStorage para persistir entre sesiones
+    const estadosGuardados = JSON.parse(localStorage.getItem('servicios-estados') || '{}');
+    estadosGuardados[servicioActualizado.id_servicio_peluqueria_pk] = nuevoEstado;
+    localStorage.setItem('servicios-estados', JSON.stringify(estadosGuardados));
+    
+    console.log('💾 Estado guardado en localStorage:', {
+      id: servicioActualizado.id_servicio_peluqueria_pk,
+      activo: nuevoEstado
+    });
+    
+    await Swal.fire({
+      icon: 'success',
+      title: nuevoEstado ? '¡Servicio Activado!' : '¡Servicio Desactivado!',
+      text: `Estado guardado localmente`,
+      timer: 2000,
+      showConfirmButton: false
+    });
   };
 
   const handleEliminarServicio = async (servicio) => {
