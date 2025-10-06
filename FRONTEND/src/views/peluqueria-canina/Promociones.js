@@ -28,8 +28,11 @@ const Promociones = () => {
   const cargarDatos = async () => {
     setLoading(true);
     try {
+      console.log('Iniciando carga de promociones...');
       const promocionesData = await verServicios('PROMOCIONES');
-      console.log('Promociones cargadas:', promocionesData); // Para debug
+      console.log('Datos recibidos:', promocionesData);
+      console.log('Tipo de datos:', typeof promocionesData);
+      console.log('Es array:', Array.isArray(promocionesData));
       setPromociones(promocionesData || []);
     } catch (error) {
       console.error('Error cargando datos:', error);
@@ -151,20 +154,12 @@ const Promociones = () => {
           <p className="peluqueria-subtitle">Gestiona las promociones especiales para tus clientes</p>
         </div>
 
-        {loading ? (
-          <div className="section">
-            <div style={{ textAlign: 'center', padding: '48px' }}>
-              <div className="loading-spinner"></div>
-              <p style={{ marginTop: '16px', color: '#6b7280' }}>Cargando promociones...</p>
-            </div>
-          </div>
-        ) : (
-          <PromocionesSeccion
-            promociones={promociones}
-            abrirModalPromocion={abrirModalPromocion}
-            eliminarPromocion={handleEliminarPromocion}
-          />
-        )}
+        <PromocionesSeccion
+          promociones={promociones}
+          abrirModalPromocion={abrirModalPromocion}
+          eliminarPromocion={handleEliminarPromocion}
+          loading={loading}
+        />
       </div>
 
       <ModalPromocion
