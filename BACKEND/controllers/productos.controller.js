@@ -298,4 +298,3 @@ exports.eliminar = async (req, res) => {
 
 };
 
-

@@ -12,10 +12,21 @@ const Animales = () => {
   const [mensaje, setMensaje] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const mostrarMensaje = (txt) => {
-    setMensaje(txt);
-    setTimeout(() => setMensaje(''), 3000);
+  const imagenStorage = {
+    guardar: (id, url) => {
+      const imgs = JSON.parse(localStorage.getItem('imagenesAnimales') || '{}');
+      imgs[id] = url;
+      localStorage.setItem('imagenesAnimales', JSON.stringify(imgs));
+    },
+    obtener: (id) => JSON.parse(localStorage.getItem('imagenesAnimales') || '{}')[id] || '',
+    eliminar: (id) => {
+      const imgs = JSON.parse(localStorage.getItem('imagenesAnimales') || '{}');
+      delete imgs[id];
+      localStorage.setItem('imagenesAnimales', JSON.stringify(imgs));
+    }
   };
+
+  const mostrarMensaje = (txt) => { setMensaje(txt); setTimeout(() => setMensaje(''), 3000); };
 
   const cargarAnimales = async () => {
     setLoading(true);
@@ -98,12 +109,11 @@ const Animales = () => {
         />
       </div>
 
-      {/* Lista */}
-      {animalesFiltrados.length === 0 ? (
+      {animalesFiltrados.length===0 ? (
         <div className="text-center mt-20 text-gray-500">
           <div className="text-6xl mb-4">🐾</div>
-          <h3 className="text-xl font-bold mb-2">Sin animales registrados</h3>
-          <p>{busqueda ? 'No hay coincidencias' : 'Agrega el primero'}</p>
+          <h3 className="text-xl font-bold mb-2">Sin animales</h3>
+          <p>{busqueda ? 'Sin resultados' : 'Agrega el primero'}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
