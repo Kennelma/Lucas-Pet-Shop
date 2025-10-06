@@ -16,11 +16,11 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
   const diasSemana = [
     { id: 'LUNES', label: 'LUNES' },
     { id: 'MARTES', label: 'MARTES' },
-    { id: 'MIÉRCOLES', label: 'MIÉRCOLES' },
+    { id: 'MIERCOLES', label: 'MIERCOLES' },
     { id: 'JUEVES', label: 'JUEVES' },
     { id: 'VIERNES', label: 'VIERNES' },
-    { id: 'SÁBADO', label: 'SÁBADO' },
-    { id: 'DOMINGO', label: 'DOMINGO' }
+    { id: 'SABADO', label: 'SABADO' },
+    { id: 'domingo', label: 'Domingo' }
   ];
 
   useEffect(() => {
@@ -136,7 +136,7 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
             <div style={{ padding: '8px', background: '#dbeafe', borderRadius: '8px' }}>
               <SparklesIcon style={{ width: '20px', height: '20px', color: '#3b82f6' }} />
             </div>
-            <h3 className="modal-title font-poppins">{promocion ? 'Editar Promoción' : 'Nueva Promoción'}</h3>
+            <h3 className="modal-title">{promocion ? 'Editar Promoción' : 'Nueva Promoción'}</h3>
           </div>
           <button onClick={handleClose} className="modal-close">
             <svg style={{ width: '24px', height: '24px' }} fill="none" viewBox="0 0 14 14">
@@ -147,22 +147,22 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
         <div className="modal-body">
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="nombre_promocion" className="form-label font-poppins">Nombre de la Promoción <span style={{ color: '#ef4444' }}>*</span></label>
-              <input type="text" name="nombre_promocion" id="nombre_promocion" value={formData.nombre_promocion} onChange={handleChange} className={`form-input font-poppins ${errores.nombre_promocion ? 'input-error' : ''}`} placeholder="Ej: Promoción Baño + Corte" />
-              {errores.nombre_promocion && <p className="form-error font-poppins">{errores.nombre_promocion}</p>}
+              <label htmlFor="nombre_promocion" className="form-label">Nombre de la Promoción <span style={{ color: '#ef4444' }}>*</span></label>
+              <input type="text" name="nombre_promocion" id="nombre_promocion" value={formData.nombre_promocion} onChange={handleChange} className={`form-input ${errores.nombre_promocion ? 'input-error' : ''}`} placeholder="Ej: Promoción Baño + Corte" />
+              {errores.nombre_promocion && <p className="form-error">{errores.nombre_promocion}</p>}
             </div>
             <div className="form-group">
-              <label htmlFor="descripcion_promocion" className="form-label font-poppins">Descripción de la Promoción <span style={{ color: '#ef4444' }}>*</span></label>
-              <textarea name="descripcion_promocion" id="descripcion_promocion" value={formData.descripcion_promocion} onChange={handleChange} className={`form-input form-textarea font-poppins ${errores.descripcion_promocion ? 'input-error' : ''}`} placeholder="Descripción detallada de la promoción..." />
-              {errores.descripcion_promocion && <p className="form-error font-poppins">{errores.descripcion_promocion}</p>}
+              <label htmlFor="descripcion_promocion" className="form-label">Descripción de la Promoción <span style={{ color: '#ef4444' }}>*</span></label>
+              <textarea name="descripcion_promocion" id="descripcion_promocion" value={formData.descripcion_promocion} onChange={handleChange} className={`form-input form-textarea ${errores.descripcion_promocion ? 'input-error' : ''}`} placeholder="Descripción detallada de la promoción..." />
+              {errores.descripcion_promocion && <p className="form-error">{errores.descripcion_promocion}</p>}
             </div>
             <div className="form-group">
-              <label htmlFor="precio_promocion" className="form-label font-poppins">Precio de la Promoción (L) <span style={{ color: '#ef4444' }}>*</span></label>
-              <input type="number" step="0.01" name="precio_promocion" id="precio_promocion" value={formData.precio_promocion} onChange={handleChange} className={`form-input font-poppins ${errores.precio_promocion ? 'input-error' : ''}`} placeholder="0.00" />
-              {errores.precio_promocion && <p className="form-error font-poppins">{errores.precio_promocion}</p>}
+              <label htmlFor="precio_promocion" className="form-label">Precio de la Promoción (L) <span style={{ color: '#ef4444' }}>*</span></label>
+              <input type="number" step="0.01" name="precio_promocion" id="precio_promocion" value={formData.precio_promocion} onChange={handleChange} className={`form-input ${errores.precio_promocion ? 'input-error' : ''}`} placeholder="0.00" />
+              {errores.precio_promocion && <p className="form-error">{errores.precio_promocion}</p>}
             </div>
             <div className="form-group">
-              <label className="form-label font-poppins">Días de la Promoción <span style={{ color: '#ef4444' }}>*</span></label>
+              <label className="form-label">Días de la Promoción <span style={{ color: '#ef4444' }}>*</span></label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', marginTop: '8px' }}>
                 {diasSemana.map(dia => (
                   <div key={dia.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -183,8 +183,7 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
                         cursor: 'pointer',
                         fontSize: '14px',
                         fontWeight: formData.dias_promocion.includes(dia.id) ? '600' : '400',
-                        color: formData.dias_promocion.includes(dia.id) ? '#3b82f6' : '#6b7280',
-                        fontFamily: 'Poppins, sans-serif'
+                        color: formData.dias_promocion.includes(dia.id) ? '#3b82f6' : '#6b7280'
                       }}
                     >
                       {dia.label}
