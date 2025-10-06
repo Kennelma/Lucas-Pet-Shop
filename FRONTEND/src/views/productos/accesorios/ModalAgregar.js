@@ -1,12 +1,28 @@
 import React, { useState, useEffect } from 'react';
+import { InputText } from 'primereact/inputtext';
+import { InputNumber } from 'primereact/inputnumber';
+import { Dropdown } from 'primereact/dropdown';
+import { Button } from 'primereact/button';
+import { classNames } from 'primereact/utils';
 
 const ModalAgregar = ({ isOpen, onClose, onSave }) => {
-  const [data, setData] = useState({ nombre: '', categoria: 'Collar', cantidad: 0, precio: 0, imagenUrl: '' });
+  const [data, setData] = useState({ nombre: '', categoria: '', cantidad: 1, precio: 1, imagenUrl: '' });
   const [errors, setErrors] = useState({});
+
+  const categorias = [
+    { label: 'COLLAR', value: 'COLLAR' },
+    { label: 'CORREA', value: 'CORREA' },
+    { label: 'JUGUETE', value: 'JUGUETE' },
+    { label: 'CAMA', value: 'CAMA' },
+    { label: 'COMEDERO', value: 'COMEDERO' },
+    { label: 'TRANSPORTADORA', value: 'TRANSPORTADORA' },
+    { label: 'HIGIENE', value: 'HIGIENE' },
+    { label: 'ROPA', value: 'ROPA' }
+  ];
   
   useEffect(() => {
     if (isOpen) {
-      setData({ nombre: '', categoria: 'Collar', cantidad: 0, precio: 0, imagenUrl: '' });
+      setData({ nombre: '', categoria: '', cantidad: 1, precio: 1, imagenUrl: '' });
       setErrors({});
     }
   }, [isOpen]);
@@ -17,17 +33,26 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
       const reader = new FileReader();
       reader.onload = () => setData(prev => ({ ...prev, imagenUrl: reader.result }));
       reader.readAsDataURL(files[0]);
-    } else setData(prev => ({ ...prev, [name]: value }));
+    } else {
+      const newValue = name === 'nombre' ? value.toUpperCase() : value;
+      setData(prev => ({ ...prev, [name]: newValue }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     const newErrors = {};
     if (!data.nombre?.trim()) newErrors.nombre = true;
-    if (!data.cantidad || data.cantidad < 0) newErrors.cantidad = true;
-    if (!data.precio || data.precio <= 0) newErrors.precio = true;
+    if (!data.categoria) newErrors.categoria = true;
+    if (data.cantidad < 0) newErrors.cantidad = true;
+    if (data.precio <= 0) newErrors.precio = true;
+    
     setErrors(newErrors);
-    if (!Object.keys(newErrors).length && await onSave(data) !== false) onClose();
+    
+    if (Object.keys(newErrors).length === 0) {
+      await onSave(data);
+    }
   };
 
   if (!isOpen) return null;
@@ -40,32 +65,63 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
           <button onClick={onClose} className="text-2xl">&times;</button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex">
+        <div className="flex">
           <div className="flex-1 p-4 space-y-4">
             <div>
-              <h6 className="text-sm font-semibold text-gray-700 mb-1">Tipo de Accesorio</h6>
-              <select name="categoria" value={data.categoria} onChange={handleChange} className="w-full p-2 border rounded">
-                {['Collar','Correa','Juguete','Cama','Comedero','Transportadora','Higiene','Ropa'].map(cat => <option key={cat} value={cat}>{cat}</option>)}
-              </select>
+              <h6 className="text-sm font-semibold text-gray-700 mb-1">TIPO DE ACCESORIO</h6>
+              <Dropdown
+                name="categoria"
+                value={data.categoria}
+                options={categorias}
+                onChange={(e) => setData(prev => ({ ...prev, categoria: e.value }))}
+                placeholder="Seleccione un tipo"
+                className={classNames('w-full', { 'p-invalid': errors.categoria })}
+              />
             </div>
 
             <div>
-              <h6 className="text-sm font-semibold text-gray-700 mb-1">Nombre y Descripción</h6>
-              <input name="nombre" value={data.nombre} onChange={handleChange} placeholder="Nombre y descripción" className={`w-full p-2 border rounded ${errors.nombre ? 'border-red-500' : ''}`} />
+              <h6 className="text-sm font-semibold text-gray-700 mb-1">NOMBRE Y DESCRIPCIÓN</h6>
+              <InputText
+                name="nombre"
+                value={data.nombre}
+                onChange={handleChange}
+                placeholder="Nombre y descripción"
+                className={classNames('w-full', { 'p-invalid': errors.nombre })}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <h6 className="text-sm font-semibold text-gray-700 mb-1">Stock</h6>
-                <input type="number" name="cantidad" value={data.cantidad} onChange={handleChange} min="0" className={`w-full p-2 border rounded ${errors.cantidad ? 'border-red-500' : ''}`} />
+                <h6 className="text-sm font-semibold text-gray-700 mb-1">STOCK</h6>
+                <InputNumber
+                  name="cantidad"
+                  value={data.cantidad}
+                  onValueChange={(e) => setData(prev => ({ ...prev, cantidad: e.value }))}
+                  min={0}
+                  className={classNames('w-full', { 'p-invalid': errors.cantidad })}
+                  inputClassName="w-full"
+                />
               </div>
               <div>
-                <h6 className="text-sm font-semibold text-gray-700 mb-1">Precio</h6>
-                <input type="number" name="precio" value={data.precio} onChange={handleChange} step="0.01" min="0" className={`w-full p-2 border rounded ${errors.precio ? 'border-red-500' : ''}`} />
+                <h6 className="text-sm font-semibold text-gray-700 mb-1">PRECIO</h6>
+                <InputNumber
+                  name="precio"
+                  value={data.precio}
+                  onValueChange={(e) => setData(prev => ({ ...prev, precio: e.value }))}
+                  minFractionDigits={2}
+                  maxFractionDigits={2}
+                  min={0.01}
+                  className={classNames('w-full', { 'p-invalid': errors.precio })}
+                  inputClassName="w-full"
+                />
               </div>
             </div>
 
-            <button type="submit" className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">Guardar</button>
+            <Button 
+              label="GUARDAR" 
+              onClick={handleSubmit} 
+              className="w-full p-button-success"
+            />
           </div>
 
           <div className="w-48 border-l border-gray-300 p-4">
@@ -80,13 +136,13 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
               <label className="w-full h-32 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer rounded bg-gray-50 text-sm text-gray-600 hover:bg-gray-100">
                 <div className="flex flex-col items-center justify-center h-full w-full">
                   <span className="text-2xl mb-1">📷</span>
-                  <span>Agregar imagen</span>
+                  <span>AGREGAR IMAGEN</span>
                 </div>
                 <input type="file" accept="image/*" onChange={handleChange} className="hidden" />
               </label>
             )}
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
