@@ -1,190 +1,248 @@
 import React, { useState, useEffect } from 'react';
+import { Dialog } from 'primereact/dialog';
+import { InputText } from 'primereact/inputtext';
+import { Dropdown } from 'primereact/dropdown';
+import { InputNumber } from 'primereact/inputnumber';
+import { Button } from 'primereact/button';
 import { actualizarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
 const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
+  const especies = [
+    { label: 'PERRO', value: 'PERRO' },
+    { label: 'GATO', value: 'GATO' },
+    { label: 'AVE', value: 'AVE' },
+    { label: 'REPTIL', value: 'REPTIL' },
+    { label: 'ANFIBIO', value: 'ANFIBIO' }
+  ];
+  const sexos = [
+    { label: 'HEMBRA', value: 'HEMBRA' },
+    { label: 'MACHO', value: 'MACHO' }
+  ];
+  const estados = [
+    { label: 'ACTIVO', value: 1 },
+    { label: 'INACTIVO', value: 0 }
+  ];
+
   const [data, setData] = useState({
-    id_producto: null,
-    nombre_producto: '',
-    precio_producto: 0,
-    stock: 0,
+    nombre: '',
+    especie: '',
+    sexo: '',
+    precio: 0,
+    cantidad: 0,
     stock_minimo: 0,
     activo: 1,
-    especie: '',
-    sexo: 'HEMBRA',
-    sku: ''
+    sku: '',
+    imagenUrl: ''
   });
+  const [loading, setLoading] = useState(false);
 
-  const [errors, setErrors] = useState({});
-
-  // Generar SKU en mayúsculas
-  const generarSKU = (nombre, id_producto) => {
+  // Generar SKU
+  const generarSKU = (nombre, id) => {
     if (!nombre) return '';
-    const palabras = nombre.trim().split(' ');
-    const partes = palabras.map(p => p.substring(0,3).toLowerCase());
-    return partes.join('-').toUpperCase() + `-${id_producto}`;
+    const partes = nombre.trim().split(' ').map(p => p.substring(0,3).toUpperCase());
+    return partes.join('-') + (id ? `-${id}` : '-XXX');
   };
 
- useEffect(() => {
-  if (isOpen && editData) {
-    setData({
-      id_producto: editData.id_producto,
-      nombre_producto: editData.nombre || '',
-      precio_producto: editData.precio || 0,
-      stock: editData.stock || 0,
-      stock_minimo: editData.stock_minimo || 0,
-      activo: Number(editData.activo) || 0, // <- así
-      especie: editData.especie || '',
-      sexo: editData.sexo || 'HEMBRA',
-      sku: generarSKU(editData.nombre || '', editData.id_producto)
-    });
-  }
-  setErrors({});
-}, [isOpen, editData]);
+  useEffect(() => {
+    if (isOpen && editData) {
+      setData({
+        nombre: (editData.nombre || '').toUpperCase(),
+        especie: (editData.especie || '').toUpperCase(),
+        sexo: (editData.sexo || '').toUpperCase(),
+        precio: editData.precio || 0,
+        cantidad: editData.stock || 0,
+        stock_minimo: editData.stock_minimo || 0,
+        activo: editData.activo ? 1 : 0,
+        sku: generarSKU(editData.nombre || '', editData.id_producto),
+        imagenUrl: editData.imagenUrl || ''
+      });
+    }
+  }, [isOpen, editData]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
+  const handleChange = (field, value) => {
+    const val = ['nombre','especie','sexo'].includes(field) ? value.toUpperCase() : value;
     setData(prev => {
-      const nuevoData = {
-        ...prev,
-        [name]: name === 'activo' ? Number(value) : value
+      const newData = { ...prev, [field]: val };
+      if(field === 'nombre') newData.sku = generarSKU(val, editData.id_producto);
+      return newData;
+    });
+  };
+
+  const handleSubmit = async () => {
+    if (!data.nombre || !data.precio || !data.cantidad) {
+      alert('Por favor completa los campos requeridos.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const body = {
+        id_producto: editData.id_producto,
+        nombre_producto: data.nombre,
+        precio_producto: data.precio,
+        stock: data.cantidad,
+        stock_minimo: data.stock_minimo,
+        activo: data.activo,
+        especie: data.especie,
+        sexo: data.sexo,
+        tipo_producto: 'ANIMALES',
+        imagen_url: data.imagenUrl || null
       };
 
-      if (name === 'nombre_producto') {
-        nuevoData.sku = generarSKU(value, prev.id_producto);
-      }
+      const res = await actualizarProducto(body);
 
-      if (errors[name]) setErrors(prevErrors => ({ ...prevErrors, [name]: '' }));
-
-      return nuevoData;
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const newErrors = {};
-    if (!data.nombre_producto.trim()) newErrors.nombre_producto = 'Nombre requerido';
-    if (!data.especie.trim()) newErrors.especie = 'Especie requerida';
-    if (data.stock < 0) newErrors.stock = 'Stock inválido';
-    if (data.precio_producto <= 0) newErrors.precio_producto = 'Precio inválido';
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length === 0) {
-      const payload = { ...data, tipo_producto: 'ANIMALES' };
-      const result = await actualizarProducto(payload);
-      if (result.Consulta) {
-        if (onSave) onSave();
+      if (res.Consulta) {
+        onSave({ ...editData, ...data });
         onClose();
       } else {
-        alert('Error al actualizar: ' + result.error);
+        alert(`Error al actualizar: ${res.error}`);
       }
+    } catch (err) {
+      console.error(err);
+      alert('Ocurrió un error al actualizar el animal.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (!isOpen) return null;
+  const footer = (
+    <div className="flex justify-end gap-3 mt-4">
+      <Button 
+        label="Cancelar" 
+        icon="pi pi-times" 
+        className="p-button-text p-button-rounded"
+        onClick={onClose}
+        disabled={loading}
+      />
+      <Button 
+        label="Guardar" 
+        icon="pi pi-check" 
+        className="p-button-success p-button-rounded"
+        onClick={handleSubmit}
+        loading={loading}
+      />
+    </div>
+  );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg w-full max-w-2xl p-4 flex flex-col gap-4">
-        <div className="flex justify-between items-center border-b pb-2">
-          <h2 className="text-lg font-bold">Actualizar Animal</h2>
-          <button onClick={onClose} className="text-xl font-bold">×</button>
+    <Dialog 
+      header="Actualizar Animal"
+      visible={isOpen}
+      style={{ width: '50rem', borderRadius: '1.5rem' }}
+      modal
+      closable={false}
+      onHide={onClose}
+      footer={footer}
+    >
+      <div className="flex flex-col gap-4 mt-2 text-sm">
+        {/* Nombre */}
+        <span className="p-float-label">
+          <InputText 
+            id="nombre" 
+            value={data.nombre} 
+            onChange={(e) => handleChange('nombre', e.target.value)} 
+            className="w-full rounded-xl h-10 text-sm"
+          />
+          <label htmlFor="nombre" className="text-xs">Nombre</label>
+        </span>
+
+        {/* SKU readonly */}
+        <span className="p-float-label">
+          <InputText 
+            id="sku"
+            value={data.sku}
+            readOnly
+            className="w-full rounded-xl h-10 text-sm bg-gray-100"
+          />
+          <label htmlFor="sku" className="text-xs">SKU</label>
+        </span>
+
+        {/* Especie, Sexo, Activo */}
+        <div className="grid grid-cols-3 gap-4">
+          <span className="p-float-label">
+            <Dropdown 
+              id="especie"
+              value={data.especie}
+              options={especies}
+              onChange={(e)=>handleChange('especie', e.value)}
+              className="w-full rounded-xl text-sm"
+              placeholder="Seleccionar"
+            />
+            <label htmlFor="especie" className="text-xs">Especie</label>
+          </span>
+
+          <span className="p-float-label">
+            <Dropdown 
+              id="sexo"
+              value={data.sexo}
+              options={sexos}
+              onChange={(e)=>handleChange('sexo', e.value)}
+              className="w-full rounded-xl text-sm"
+              placeholder="Seleccionar"
+            />
+            <label htmlFor="sexo" className="text-xs">Sexo</label>
+          </span>
+
+          <span className="p-float-label">
+            <Dropdown 
+              id="activo"
+              value={data.activo}
+              options={[{label:'ACTIVO', value:1},{label:'INACTIVO', value:0}]}
+              onChange={(e)=>handleChange('activo', e.value)}
+              className="w-full rounded-xl text-sm"
+            />
+            <label htmlFor="activo" className="text-xs">Estado</label>
+          </span>
         </div>
 
-        <form className="flex gap-4" onSubmit={handleSubmit}>
-          <div className="flex-1 flex flex-col gap-2">
-            {/* Nombre */}
-            <input
-              name="nombre_producto"
-              value={data.nombre_producto}
-              onChange={handleChange}
-              placeholder="Nombre"
-              className="border px-2 py-1 rounded"
+        {/* Precio, Stock, Stock mínimo */}
+        <div className="grid grid-cols-3 gap-4">
+          <span className="p-float-label">
+            <InputNumber 
+              id="precio" 
+              value={data.precio} 
+              onValueChange={(e) => handleChange('precio', e.value)} 
+              mode="currency" 
+              currency="HNL" 
+              locale="es-HN" 
+              className="w-full rounded-xl text-sm"
+              inputClassName="h-10 text-sm"
             />
-            {errors.nombre_producto && <div className="text-red-500 text-xs">{errors.nombre_producto}</div>}
+            <label htmlFor="precio" className="text-xs">Precio</label>
+          </span>
 
-            {/* SKU */}
-            <input
-              type="text"
-              name="sku"
-              value={data.sku}
-              readOnly
-              placeholder="SKU"
-              className="border px-2 py-1 rounded bg-gray-100 uppercase"
+          <span className="p-float-label">
+            <InputNumber 
+              id="cantidad" 
+              value={data.cantidad} 
+              onValueChange={(e) => handleChange('cantidad', e.value)} 
+              className="w-full rounded-xl text-sm"
+              inputClassName="h-10 text-sm"
             />
+            <label htmlFor="cantidad" className="text-xs">Stock</label>
+          </span>
 
-            {/* Precio */}
-            <input
-              type="number"
-              name="precio_producto"
-              value={data.precio_producto}
-              onChange={handleChange}
-              placeholder="Precio"
-              className="border px-2 py-1 rounded"
+          <span className="p-float-label">
+            <InputNumber 
+              id="stock_minimo" 
+              value={data.stock_minimo} 
+              onValueChange={(e) => handleChange('stock_minimo', e.value)} 
+              className="w-full rounded-xl text-sm"
+              inputClassName="h-10 text-sm"
             />
-            {errors.precio_producto && <div className="text-red-500 text-xs">{errors.precio_producto}</div>}
+            <label htmlFor="stock_minimo" className="text-xs">Stock mínimo</label>
+          </span>
+        </div>
 
-            {/* Stock */}
-            <input
-              type="number"
-              name="stock"
-              value={data.stock}
-              onChange={handleChange}
-              placeholder="Stock"
-              className="border px-2 py-1 rounded"
-            />
-            {errors.stock && <div className="text-red-500 text-xs">{errors.stock}</div>}
-
-            {/* Stock mínimo */}
-            <input
-              type="number"
-              name="stock_minimo"
-              value={data.stock_minimo}
-              onChange={handleChange}
-              placeholder="Stock mínimo"
-              className="border px-2 py-1 rounded"
-            />
-
-            {/* Activo / Inactivo */}
-            <select
-              name="activo"
-              value={Number(data.activo)} // <-- fuerza que sea número
-              onChange={handleChange}
-              className="border px-2 py-1 rounded"
-            >
-              <option value={1}>Activo</option>
-              <option value={0}>Inactivo</option>
-            </select>
-
-            {/* Especie */}
-            <input
-              name="especie"
-              value={data.especie}
-              onChange={handleChange}
-              placeholder="Especie"
-              className="border px-2 py-1 rounded"
-            />
-
-            {/* Sexo */}
-            <select
-              name="sexo"
-              value={data.sexo}
-              onChange={handleChange}
-              className="border px-2 py-1 rounded"
-            >
-              <option value="HEMBRA">HEMBRA</option>
-              <option value="MACHO">MACHO</option>
-            </select>
-          </div>
-
-          <div className="w-48 flex flex-col items-center">
-            <button type="submit" className="mt-2 px-4 py-1 bg-purple-600 text-white rounded">
-              Guardar
-            </button>
-          </div>
-        </form>
+        {/* Imagen visual */}
+        <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl p-4 mt-2 hover:border-blue-400 transition-all cursor-pointer">
+          <i className="pi pi-image text-3xl text-gray-400 mb-2"></i>
+          <p className="text-gray-500 text-sm text-center">
+            Haz clic para subir una imagen (solo visual)
+          </p>
+        </div>
       </div>
-    </div>
+    </Dialog>
   );
 };
 

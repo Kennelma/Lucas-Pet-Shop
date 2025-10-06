@@ -66,28 +66,36 @@ const Animales = () => {
 
   return (
     <div className="min-h-screen p-5 bg-white">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-5">
-        <h1 className="text-2xl font-bold">INVENTARIO DE ANIMALES</h1>
+      {/* Título */}
+      <h1 className="text-2xl font-bold mb-5">INVENTARIO DE ANIMALES</h1>
+
+      {/* Barra de búsqueda + botón Nuevo */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="relative w-80">
+          <input 
+            value={busqueda} 
+            onChange={(e)=>setBusqueda(e.target.value)} 
+            placeholder="Buscar..." 
+            className="w-full px-4 py-2 border rounded-full"
+          />
+          {busqueda && (
+            <button 
+              onClick={()=>setBusqueda('')} 
+              className="absolute right-3 top-2 text-gray-500"
+            >
+              ×
+            </button>
+          )}
+        </div>
+
         <Button 
           label="Nuevo" 
           icon="pi pi-plus" 
           severity="success" 
-          className="p-button-rounded"
+          className="p-button-rounded" 
           style={{ borderRadius: '12px' }}
           onClick={()=>setModalVisible(true)}
         />
-      </div>
-
-      {/* Barra de búsqueda */}
-      <div className="mb-6 relative w-80">
-        <input 
-          value={busqueda} 
-          onChange={(e)=>setBusqueda(e.target.value)} 
-          placeholder="Buscar..." 
-          className="w-full px-4 py-2 border rounded-full"
-        />
-        {busqueda && <button onClick={()=>setBusqueda('')} className="absolute right-3 top-2 text-gray-500">×</button>}
       </div>
 
       {/* Lista */}
