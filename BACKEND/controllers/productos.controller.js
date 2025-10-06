@@ -19,7 +19,6 @@ function insert_atributos_padre (body) {
     return[
         body.nombre_producto,
         body.precio_producto,
-        body.sku,
         body.stock,
         body.imagen_url || null
     ];
@@ -39,7 +38,7 @@ exports.crear = async (req, res) => {
         switch (req.body.tipo_producto) {
 
             case 'ACCESORIOS':
-                const [accesorio] = await conn.query ('CALL sp_insert_producto_accesorio (?,?,?,?,?,?,?)',
+                const [accesorio] = await conn.query ('CALL sp_insert_producto_accesorio (?,?,?,?,?,?)',
                     [...atributosComunes, 
                         TIPOS_PRODUCTOS.ACCESORIOS,
                         req.body.tipo_accesorio
@@ -48,7 +47,7 @@ exports.crear = async (req, res) => {
             
                 case 'ANIMALES':
                 
-                const [animal] = await conn.query ('CALL sp_insert_producto_animal(?,?,?,?,?,?,?,?)',
+                const [animal] = await conn.query ('CALL sp_insert_producto_animal(?,?,?,?,?,?,?)',
                     [...atributosComunes, 
                         TIPOS_PRODUCTOS.ANIMALES,
                         req.body.especie,
@@ -58,7 +57,7 @@ exports.crear = async (req, res) => {
 
             case 'ALIMENTOS':
 
-                const [alimento] = await conn.query ('CALL sp_insert_producto_alimento (?,?,?,?,?,?,?,?)',
+                const [alimento] = await conn.query ('CALL sp_insert_producto_alimento (?,?,?,?,?,?,?)',
                     [...atributosComunes, 
                         TIPOS_PRODUCTOS.ALIMENTOS,
                         req.body.alimento_destinado,
@@ -67,11 +66,10 @@ exports.crear = async (req, res) => {
                 break;
 
             case 'MEDICAMENTOS':
-                const [medicamento] = await conn.query ('CALL sp_insert_producto_medicamento (?,?,?,?,?,?,?,?,?,?,?,?)',
+                const [medicamento] = await conn.query ('CALL sp_insert_producto_medicamento (?,?,?,?,?,?,?,?,?,?,?)',
                     [
                         req.body.nombre_producto,
                         req.body.precio_producto,
-                        req.body.sku,
                         req.body.imagen_url || null,
                         TIPOS_PRODUCTOS.MEDICAMENTOS,
                         req.body.presentacion_medicamento,
