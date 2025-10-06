@@ -89,7 +89,7 @@ exports.actualizar = async (req, res) => {
                     req.body.precio_servicio || null, 
                     req.body.duracion_estimada || null, 
                     req.body.requisitos || null,
-                    req.body.activo || null
+                    req.body.activo !== undefined ?  req.body.activo : null,
                 ]);                               
                 break;
 
@@ -161,8 +161,8 @@ exports.eliminar = async (req, res) => {
             case 'PROMOCIONES':
                 
                 await conn.query('CALL sp_delete_promocion(?)', [id]);
-
                 break;
+                
             default:
                 throw new Error('Tipo de servicio no válido');
         }
