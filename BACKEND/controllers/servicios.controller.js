@@ -89,7 +89,7 @@ exports.actualizar = async (req, res) => {
                     req.body.precio_servicio || null, 
                     req.body.duracion_estimada || null, 
                     req.body.requisitos || null,
-                    req.body.activo || null
+                    req.body.activo !== undefined ?  req.body.activo : null,
                 ]);                               
                 break;
 
