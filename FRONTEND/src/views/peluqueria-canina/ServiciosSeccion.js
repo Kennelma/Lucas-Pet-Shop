@@ -1,18 +1,20 @@
-import React, { useState, useEffect } from 'react';
+
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { faPlus, faPenToSquare, faTrash, faScissors } from "@fortawesome/free-solid-svg-icons";
+import { InputText } from 'primereact/inputtext';
+import { faPlus, faPenToSquare, faTrash, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useState } from 'react';
 
 const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, actualizarEstadoServicio }) => {
-  const [loading, setLoading] = useState(false);
+  
   const [globalFilter, setGlobalFilter] = useState('');
 
   const handleEliminar = (servicio) => {
     eliminarServicio(servicio);
   };
 
-  // Función para renderizar los botones de acciones
+  // Botones de acciones para cada fila
   const actionBotones = (rowData) => {
     return (
       <div className="flex items-center space-x-2 w-full">
@@ -38,16 +40,18 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
     );
   };
 
-  // Función para renderizar el estado activo/inactivo
-  const estadoTemplate = (rowData) => {
-    const handleToggle = () => {
-      const servicioActualizado = {
-        ...rowData,
-        activo: rowData.activo === 1 ? 0 : 1
-      };
-      actualizarEstadoServicio(servicioActualizado);
-    };
+  // Formatear precio
+  const precioTemplate = (rowData) => {
+    return `L. ${parseFloat(rowData.precio_servicio || 0).toFixed(2)}`;
+  };
 
+  // Formatear duración
+  const duracionTemplate = (rowData) => {
+    return `${rowData.duracion_estimada} min`;
+  };
+
+  // Formatear estado con toggle
+  const estadoTemplate = (rowData) => {
     return (
       <div className="flex items-center">
         <label style={{
@@ -59,8 +63,8 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
         }}>
           <input
             type="checkbox"
-            checked={rowData.activo === 1}
-            onChange={handleToggle}
+            checked={rowData.activo}
+            onChange={() => actualizarEstadoServicio({ ...rowData, activo: !rowData.activo })}
             style={{
               opacity: 0,
               width: 0,
@@ -74,7 +78,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: rowData.activo === 1 ? '#10b981' : '#ccc',
+            backgroundColor: rowData.activo ? '#10b981' : '#ccc',
             transition: '0.4s',
             borderRadius: '20px'
           }}>
@@ -82,7 +86,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
               position: 'absolute',
               height: '16px',
               width: '16px',
-              left: rowData.activo === 1 ? '26px' : '2px',
+              left: rowData.activo ? '26px' : '2px',
               bottom: '2px',
               backgroundColor: 'white',
               transition: '0.4s',
@@ -91,38 +95,20 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
             }}></span>
           </span>
         </label>
-        <span style={{ marginLeft: '8px', fontWeight: 500, color: rowData.activo === 1 ? '#10b981' : '#6b7280' }}>
-          {rowData.activo === 1 ? 'Activo' : 'Inactivo'}
+        <span style={{ marginLeft: '8px', fontWeight: 500, color: rowData.activo ? '#10b981' : '#6b7280' }}>
+          {rowData.activo ? 'Activo' : 'Inactivo'}
         </span>
       </div>
     );
   };
 
-  // Función para renderizar el precio
-  const precioTemplate = (rowData) => {
-    return (
-      <span className="font-bold text-green-600 text-lg font-poppins">
-        L. {parseFloat(rowData.precio_servicio || 0).toFixed(2)}
-      </span>
-    );
-  };
-
-  // Función para renderizar la duración
-  const duracionTemplate = (rowData) => {
-    return (
-      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium font-poppins">
-        {rowData.duracion_estimada} min
-      </span>
-    );
-  };
-
   return (
     <>
-      <div className="bg-white border border-gray-200 rounded-2xl p-8 max-w-7xl mx-auto shadow-sm font-poppins">
+      <div className="bg-white border border-gray-300 rounded-xl p-6 max-w-7xl mx-auto font-poppins mt-6">
         
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-4">
-            
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex-grow text-center text-lg font-medium text-gray-700 font-poppins">
+        
           </div>
           <button 
             className="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600"
@@ -132,116 +118,94 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
           </button>
         </div>
 
-        {/* Barra de búsqueda */}
-        <div className="mb-8">
-          <div className="relative max-w-md">
-            <input
-              type="text"
-              placeholder="Buscar servicios..."
-              value={globalFilter}
-              onChange={(e) => setGlobalFilter(e.target.value)}
-              className="w-full px-6 py-4 pl-12 pr-4 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50 font-poppins"
-            />
-            <div className="absolute inset-y-0 left-0 flex items-center pl-4">
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
+        <div className="mb-4 relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <FontAwesomeIcon icon={faSearch} className="text-gray-400" />
           </div>
+          <InputText
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            placeholder="Buscar servicios..."
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
         </div>
 
-        <DataTable
-          value={servicios}
-          loading={loading}
-          loadingIcon={() => (
-            <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
-              <span>Cargando servicios...</span>
-            </div>
-          )}
-          globalFilter={globalFilter}
-          showGridlines
-          paginator
-          rows={10}
-          rowsPerPageOptions={[10, 20, 25]}
-          paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-          tableStyle={{ minWidth: '50rem' }}
-          className="font-poppins datatable-gridlines"
-          size="normal"
-          rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
-          emptyMessage={
-            <div className="text-center py-8">
-              <FontAwesomeIcon icon={faScissors} className="text-4xl text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-700 mb-2">No hay servicios</h3>
-              <p className="text-gray-500 mb-4">Crea tu primer servicio de peluquería canina.</p>
-              <button 
-                onClick={() => abrirModalServicio(null)} 
-                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-              >
-                <FontAwesomeIcon icon={faPlus} className="mr-2" />
-                Nuevo Servicio
-              </button>
-            </div>
-          }
-        >
+        <div className="overflow-x-auto shadow-sm rounded-lg border border-gray-200">
+          <DataTable
+            value={servicios}
+            loading={false}
+            loadingIcon={() => (
+              <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
+                <span>Cargando datos...</span>
+              </div>
+            )}
+            globalFilter={globalFilter}
+            showGridlines
+            paginator
+            rows={10}
+            rowsPerPageOptions={[10, 20, 25]}
+            paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+            tableStyle={{ minWidth: '80rem', width: '100%' }}
+            className="font-poppins datatable-gridlines"
+            size="normal"
+            rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}        
+          >
           <Column 
             field="id_servicio_peluqueria_pk" 
             header="ID" 
             sortable 
-            className="text-base font-poppins px-4 py-3"
-            style={{ width: '80px' }}
-          />
+            className="text-sm py-3" 
+            style={{ minWidth: '80px', width: '80px' }}
+          ></Column>
           <Column 
             field="nombre_servicio_peluqueria" 
             header="Servicio" 
             sortable 
-            className="text-base font-poppins px-4 py-3 font-semibold"
-            style={{ minWidth: '200px' }}
-          />
+            className="text-sm py-3 font-medium" 
+            style={{ minWidth: '200px', width: '200px' }}
+          ></Column>
           <Column 
             field="descripcion_servicio" 
             header="Descripción" 
-            className="text-base font-poppins px-4 py-3"
-            style={{ minWidth: '350px', maxWidth: '400px', wordWrap: 'break-word', whiteSpace: 'normal' }}
-          />
+            className="text-sm py-3" 
+            style={{ minWidth: '350px', width: '350px' }}
+          ></Column>
           <Column 
-            field="precio_servicio" 
             header="Precio" 
-            body={precioTemplate}
+            body={precioTemplate} 
             sortable 
-            className="text-base font-poppins px-4 py-3"
-            style={{ width: '120px' }}
-          />
+            className="text-sm py-3 font-semibold text-green-600" 
+            style={{ minWidth: '120px', width: '120px', textAlign: 'right' }}
+          ></Column>
           <Column 
-            field="duracion_estimada" 
             header="Duración" 
-            body={duracionTemplate}
-            sortable 
-            className="text-base font-poppins px-4 py-3"
-            style={{ width: '120px' }}
-          />
+            body={duracionTemplate} 
+            className="text-sm py-3" 
+            style={{ minWidth: '100px', width: '100px', textAlign: 'center' }}
+          ></Column>
           <Column 
             field="requisitos" 
             header="Requisitos" 
-            className="text-base font-poppins px-4 py-3"
-            style={{ minWidth: '180px' }}
-          />
+            className="text-sm py-3" 
+            style={{ minWidth: '200px', width: '200px' }}
+          ></Column>
           <Column 
-            field="activo" 
             header="Estado" 
-            body={estadoTemplate}
-            className="text-base font-poppins px-4 py-3"
-            style={{ width: '140px' }}
-          />
+            body={estadoTemplate} 
+            className="text-sm py-3" 
+            style={{ minWidth: '140px', width: '140px', textAlign: 'center' }}
+          ></Column>
           <Column 
             header="Acciones" 
             body={actionBotones} 
-            className="text-base font-poppins px-4 py-3"
-            style={{ width: '160px' }}
-          />
-        </DataTable>          
+            className="py-3 text-sm" 
+            style={{ minWidth: '120px', width: '120px', textAlign: 'center' }}
+          ></Column>
+          </DataTable>
+        </div>          
       </div>  
-    </>  
+    </>
   );
 };
 

@@ -95,7 +95,7 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
 
   return (
     <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ padding: '8px', background: '#dcfce7', borderRadius: '8px' }}>
@@ -118,7 +118,7 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
             </div>
             <div className="form-group">
               <label htmlFor="descripcion_servicio" className="form-label">Descripción del Servicio <span style={{ color: '#ef4444' }}>*</span></label>
-              <textarea name="descripcion_servicio" id="descripcion_servicio" value={formData.descripcion_servicio} onChange={handleChange} className={`form-input form-textarea ${errores.descripcion_servicio ? 'input-error' : ''}`} placeholder="Descripción detallada del servicio..." style={{ minHeight: '120px', resize: 'vertical'}} />
+              <textarea name="descripcion_servicio" id="descripcion_servicio" value={formData.descripcion_servicio} onChange={handleChange} className={`form-input form-textarea ${errores.descripcion_servicio ? 'input-error' : ''}`} placeholder="Descripción detallada del servicio..." />
               {errores.descripcion_servicio && <p className="form-error">{errores.descripcion_servicio}</p>}
             </div>
             <div className="form-group">
