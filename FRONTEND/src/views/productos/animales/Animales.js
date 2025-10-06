@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ModalNuevoAnimal from './modal_nuevo_animal';
 import ModalActualizarAnimal from './modal_actualizar_animal';
-import { verProductos } from '../../../AXIOS.SERVICES/products-axios';
+import { verProductos, eliminarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
 // Función para generar SKU
 const generarSKU = (nombre, id) => {
@@ -111,7 +111,30 @@ const Animales = () => {
               </div>
 
               {/* Botones */}
-              <button onClick={()=>console.log('Eliminar:', a.id_producto)} className="absolute bottom-2 left-2 p-1">🗑️</button>
+
+              <button
+                onClick={async () => {
+                  try {
+                    const confirmar = window.confirm(`¿Deseas eliminar ${a.nombre}?`);
+                    if (!confirmar) return;
+
+                    const resultado = await eliminarProducto(a.id_producto);
+
+                    if (resultado.Consulta) {
+                      mostrarMensaje('Animal eliminado con éxito');
+                      // Eliminamos de la lista local sin recargar toda la API (opcional)
+                      setAnimales(prev => prev.filter(animal => animal.id_producto !== a.id_producto));
+                    } else {
+                      mostrarMensaje(`Error: ${resultado.error}`);
+                    }
+                  } catch (err) {
+                    mostrarMensaje(`Error: ${err.message}`);
+                  }
+                }}
+                className="absolute bottom-2 left-2 p-1"
+              >
+                🗑️
+              </button>
               <button onClick={()=>{setEditIndex(index); setModalVisible(true)}} className="absolute bottom-2 right-2 p-1">⚙️</button>
             </div>
           ))}
