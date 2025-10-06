@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
-  const [data, setData] = useState({ nombre: '', categoria: 'Collar', cantidad: 0, precio: 0, imagenBase64: '', imagenUrl: '' });
+  const [data, setData] = useState({ nombre: '', categoria: 'Collar', cantidad: 0, precio: 0, imagenBase64: '', imagenUrl: '', activo: true });
   const [errors, setErrors] = useState({});
 
   useEffect(() => { 
@@ -9,7 +9,8 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
       setData({
         ...editData,
         imagenBase64: '',
-        imagenUrl: editData.imagenUrl || ''
+        imagenUrl: editData.imagenUrl || '',
+        activo: editData.activo !== undefined ? editData.activo : true
       });
     }
   }, [isOpen, editData]);
@@ -68,6 +69,29 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
                 <h6 className="text-sm font-semibold text-gray-700 mb-1">Precio</h6>
                 <input type="number" name="precio" value={data.precio} onChange={handleChange} step="0.01" min="0.01" className={`w-full p-2 border rounded ${errors.precio ? 'border-red-500' : ''}`} />
               </div>
+            </div>
+
+            {/* TOGGLE ACTIVO/INACTIVO */}
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded border">
+              <div>
+                <h6 className="text-sm font-semibold text-gray-700 mb-1">Estado del Producto</h6>
+                <span className="text-xs text-gray-600">
+                  {data.activo ? "Producto visible en el inventario" : "Producto oculto del inventario"}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setData(prev => ({ ...prev, activo: !prev.activo }))}
+                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
+                  data.activo ? 'bg-green-500' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                    data.activo ? 'translate-x-7' : 'translate-x-1'
+                  }`}
+                />
+              </button>
             </div>
 
             <button type="button" onClick={handleSubmit} className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">Guardar</button>

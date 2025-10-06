@@ -11,25 +11,12 @@ const Accesorios = () => {
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const generarSKU = (nombre) => {
-    const letras = nombre
-      .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ]/g, '')
-      .substring(0, 3)
-      .toUpperCase();
-    
-    const prefijo = letras.padEnd(3, 'X');
-    
-    const skusExistentes = inventario
-      .filter(item => item.sku && item.sku.startsWith(prefijo))
-      .map(item => {
-        const match = item.sku.match(/-(\d+)$/);
-        return match ? parseInt(match[1]) : 0;
-      });
-    
-    const numeroMaximo = skusExistentes.length > 0 ? Math.max(...skusExistentes) : 0;
-    const nuevoNumero = String(numeroMaximo + 1).padStart(3, '0');
-    
-    return `${prefijo}-${nuevoNumero}`;
+  // Función para generar SKU al actualizar
+  const generarSKU = (nombre, id) => {
+    if (!nombre) return '';
+    const palabras = nombre.trim().split(' ');
+    const primeras = palabras.map(p => p.slice(0,3).toUpperCase());
+    return id ? `${primeras.join('-')}-${id}` : primeras.join('-');
   };
 
   const mostrarMensaje = (texto) => {
@@ -46,21 +33,22 @@ const Accesorios = () => {
       const lista = Array.isArray(datos) ? datos : (Array.isArray(datos?.productos) ? datos.productos : []);
 
       const inventarioMapeado = lista.map((item) => {
-        const id = item.id_producto || item.id_accesorio_pk || item.id;
-        console.log(`Producto: ${item.nombre_producto}, ID extraído: ${id}`, item);
+        const id = item.id_producto_pk || item.id_producto || item.id_accesorio_pk || item.id;
+        console.log(`Producto: ${item.nombre_producto}, ID: ${id}, Activo: ${item.activo}`);
         
         return {
           id: id,
           sku: item.sku ?? "",
-          nombre: item.nombre_producto ?? item.nombre_accesorio ?? item.nombre ?? "",
-          categoria: item.tipo_accesorio ?? item.categoria ?? "",
+          nombre: (item.nombre_producto ?? item.nombre_accesorio ?? item.nombre ?? "").toUpperCase(),
+          categoria: (item.tipo_accesorio ?? item.categoria ?? "").toUpperCase(),
           cantidad: Number(item.stock ?? item.stock_accesorio ?? item.cantidad ?? 0) || 0,
           precio: Number(item.precio_producto ?? item.precio_accesorio ?? item.precio ?? 0) || 0,
           imagenUrl: "",
+          activo: item.activo !== undefined ? Boolean(item.activo) : true
         };
       });
 
-      console.log("Inventario mapeado:", inventarioMapeado);
+      console.log("Inventario mapeado con IDs:", inventarioMapeado.map(p => ({nombre: p.nombre, id: p.id, activo: p.activo})));
       setInventario(inventarioMapeado);
     } catch (error) {
       console.error("Error al cargar inventario:", error);
@@ -70,41 +58,56 @@ const Accesorios = () => {
     setLoading(false);
   };
 
-  const guardarAccesorio = async ({nombre, categoria, cantidad, precio, imagenUrl}) => {
-    const skuGenerado = editIndex >= 0 ? inventario[editIndex].sku : generarSKU(nombre);
-
+  const guardarAccesorio = async ({nombre, categoria, cantidad, precio, imagenUrl, activo}) => {
+    // Convertir a mayúsculas antes de enviar
+    const nombreMayuscula = nombre.toUpperCase();
+    const categoriaMayuscula = categoria.toUpperCase();
+    
     const datosDB = {
-      nombre_producto: nombre,
-      sku: skuGenerado,
-      tipo_accesorio: categoria,
+      nombre_producto: nombreMayuscula,
+      tipo_accesorio: categoriaMayuscula,
       stock: parseInt(cantidad) || 0,
       precio_producto: parseFloat(precio) || 0,
-      tipo_producto: "ACCESORIOS"
+      tipo_producto: "ACCESORIOS",
+      activo: activo !== undefined ? activo : true
     };
 
     try {
       let resultado;
       
       if (editIndex >= 0) {
+        // ACTUALIZAR - Regenerar SKU con el nuevo nombre
         const accesorio = inventario[editIndex];
+        const skuNuevo = generarSKU(nombreMayuscula, accesorio.id);
         
         resultado = await actualizarProducto({
           ...datosDB,
+          sku: skuNuevo,
           id_producto: accesorio.id
         });
         
         if (resultado && resultado.Consulta !== false) {
           setInventario(prev => prev.map(item => 
             item.id === accesorio.id 
-              ? {...item, nombre, categoria, cantidad: parseInt(cantidad), precio: parseFloat(precio), imagenUrl: imagenUrl || ""}
+              ? {
+                  ...item, 
+                  sku: skuNuevo, 
+                  nombre: nombreMayuscula, 
+                  categoria: categoriaMayuscula, 
+                  cantidad: parseInt(cantidad), 
+                  precio: parseFloat(precio), 
+                  imagenUrl: imagenUrl || "",
+                  activo: activo
+                }
               : item
           ));
           
-          mostrarMensaje(`${nombre} actualizado correctamente`);
+          mostrarMensaje(`${nombreMayuscula} actualizado correctamente`);
           setModalVisible(false);
           setEditIndex(-1);
         }
       } else {
+        // INSERTAR - El backend genera el SKU automáticamente
         resultado = await insertarProducto(datosDB);
         
         if (!resultado || resultado.Consulta === false) {
@@ -112,37 +115,14 @@ const Accesorios = () => {
           return;
         }
 
-        mostrarMensaje(`${nombre} agregado correctamente`);
+        mostrarMensaje(`${nombreMayuscula} agregado correctamente`);
         setModalVisible(false);
         setEditIndex(-1);
 
-        setTimeout(async () => {
-          const datosActualizados = await verProductos("ACCESORIOS");
-          const lista = Array.isArray(datosActualizados) 
-            ? datosActualizados 
-            : (Array.isArray(datosActualizados?.productos) ? datosActualizados.productos : []);
-          
-          const productoNuevo = lista.find(p => p.sku === skuGenerado);
-          
-          if (productoNuevo) {
-            const nuevoId = productoNuevo.id_producto || productoNuevo.id_accesorio_pk || productoNuevo.id;
-            
-            setInventario(prev => [
-              ...prev,
-              {
-                id: nuevoId,
-                sku: skuGenerado,
-                nombre: nombre,
-                categoria: categoria,
-                cantidad: parseInt(cantidad) || 0,
-                precio: parseFloat(precio) || 0,
-                imagenUrl: imagenUrl || ""
-              }
-            ]);
-          } else {
-            cargarInventario();
-          }
-        }, 1000);
+        // Recargar inventario para obtener el SKU generado por el backend
+        setTimeout(() => {
+          cargarInventario();
+        }, 500);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -151,9 +131,10 @@ const Accesorios = () => {
   };
 
   const eliminarAccesorio = async (productoId) => {
-    console.log("ID para eliminar:", productoId);
+    console.log("=== ELIMINACIÓN ===");
+    console.log("ID a eliminar:", productoId);
     
-    if (!productoId) {
+    if (!productoId || productoId === null || productoId === undefined) {
       mostrarMensaje("Error: ID de producto inválido");
       return;
     }
@@ -169,19 +150,18 @@ const Accesorios = () => {
     if (!window.confirm(`¿Eliminar "${producto.nombre}"?`)) return;
     
     try {
-      console.log("Enviando ID al backend:", producto.id);
-      const resultado = await eliminarProducto(producto.id);
-      console.log("Resultado del backend:", resultado);
+      const resultado = await eliminarProducto(productoId);
+      console.log("Resultado backend:", resultado);
       
-      if (resultado && resultado.Consulta !== false) {
-        setInventario(prev => prev.filter(item => item.id !== producto.id));
+      if (resultado && resultado.Consulta === true) {
+        setInventario(prev => prev.filter(item => item.id !== productoId));
         mostrarMensaje("Eliminado correctamente");
       } else {
         mostrarMensaje(`Error: ${resultado?.error || "No se pudo eliminar"}`);
       }
     } catch (error) {
       console.error("Error al eliminar:", error);
-      mostrarMensaje("Error al eliminar");
+      mostrarMensaje(`Error: ${error.message}`);
     }
   };
 
@@ -236,7 +216,7 @@ const Accesorios = () => {
       {productosFiltrados.length === 0 ? (
         <div className="text-center mt-20 text-gray-500">
           <div className="text-6xl mb-4">🛍️</div>
-          <h3 className="text-xl font-bold mb-2">Sin accesorios</h3>
+          <h3 className="text-xl font-bold mb-2">SIN ACCESORIOS</h3>
           <p>{busqueda ? "Sin resultados" : "Agrega el primero"}</p>
         </div>
       ) : (
@@ -244,7 +224,12 @@ const Accesorios = () => {
           {productosFiltrados.map((producto) => {
             const index = inventario.findIndex((i) => i.id === producto.id);
             return (
-              <div key={producto.id} className="bg-gray-100 rounded-lg p-4 relative">
+              <div 
+                key={producto.id} 
+                className={`rounded-lg p-4 relative ${
+                  producto.activo ? 'bg-gray-100' : 'bg-gray-200 opacity-60'
+                }`}
+              >
                 <div className="bg-white rounded-lg p-2 mb-4 h-32 flex items-center justify-center overflow-hidden">
                   {producto.imagenUrl ? (
                     <img
@@ -265,9 +250,20 @@ const Accesorios = () => {
                   <div className={producto.cantidad < 5 ? "text-red-600" : "text-gray-600"}>
                     Stock: {producto.cantidad}
                   </div>
+                  <div className={`text-sm flex items-center justify-center gap-1 mt-1 ${
+                    producto.activo ? 'text-green-600' : 'text-gray-400'
+                  }`}>
+                    <span>●</span>
+                    <span>{producto.activo ? 'Activo' : 'Inactivo'}</span>
+                  </div>
                 </div>
                 <button
-                  onClick={() => eliminarAccesorio(producto.id)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log("Click eliminar - ID:", producto.id);
+                    eliminarAccesorio(producto.id);
+                  }}
                   className="absolute bottom-2 left-2 p-1 hover:scale-110 transition-transform"
                   title="Eliminar"
                 >
