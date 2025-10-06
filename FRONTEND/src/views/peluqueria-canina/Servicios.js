@@ -29,8 +29,31 @@ const Servicios = () => {
     setLoading(true);
     try {
       const serviciosData = await verServicios('PELUQUERIA');
-      console.log('Servicios cargados:', serviciosData); // Para debug
-      setServicios(serviciosData || []);
+      console.log('🔄 Servicios cargados desde BD:', serviciosData); // Para debug
+      
+      // Obtener estados guardados en localStorage
+      const estadosGuardados = JSON.parse(localStorage.getItem('servicios-estados') || '{}');
+      console.log('💾 Estados guardados en localStorage:', estadosGuardados);
+      
+      // Normalizar servicios con estados guardados o por defecto true
+      const serviciosNormalizados = serviciosData?.map(servicio => {
+        const estadoGuardado = estadosGuardados[servicio.id_servicio_peluqueria_pk];
+        const activo = estadoGuardado !== undefined ? estadoGuardado : true; // Default true si no existe
+        
+        return {
+          ...servicio,
+          activo: activo
+        };
+      }) || [];
+      
+      console.log('✅ Servicios normalizados:', serviciosNormalizados?.map(s => ({ 
+        id: s.id_servicio_peluqueria_pk,
+        nombre: s.nombre_servicio_peluqueria, 
+        activo: s.activo, 
+        tipo: typeof s.activo 
+      })));
+      
+      setServicios(serviciosNormalizados);
     } catch (error) {
       console.error('Error cargando datos:', error);
       Swal.fire({
@@ -81,7 +104,7 @@ const Servicios = () => {
       }
       
       cerrarModalServicio();
-      await cargarDatos();
+      await cargarDatos(); // Esto ya normaliza los datos
     } catch (error) {
       console.error('Error:', error);
       Swal.fire({
@@ -91,6 +114,37 @@ const Servicios = () => {
         confirmButtonColor: '#ef4444'
       });
     }
+  };
+
+  const actualizarEstadoServicio = async (servicioActualizado) => {
+    const nuevoEstado = Boolean(servicioActualizado.activo);
+    
+    // Actualizar estado local
+    setServicios(prev => 
+      prev.map(s => 
+        s.id_servicio_peluqueria_pk === servicioActualizado.id_servicio_peluqueria_pk 
+          ? { ...servicioActualizado, activo: nuevoEstado }
+          : s
+      )
+    );
+    
+    // Guardar en localStorage para persistir entre sesiones
+    const estadosGuardados = JSON.parse(localStorage.getItem('servicios-estados') || '{}');
+    estadosGuardados[servicioActualizado.id_servicio_peluqueria_pk] = nuevoEstado;
+    localStorage.setItem('servicios-estados', JSON.stringify(estadosGuardados));
+    
+    console.log('💾 Estado guardado en localStorage:', {
+      id: servicioActualizado.id_servicio_peluqueria_pk,
+      activo: nuevoEstado
+    });
+    
+    await Swal.fire({
+      icon: 'success',
+      title: nuevoEstado ? '¡Servicio Activado!' : '¡Servicio Desactivado!',
+      text: `Estado guardado localmente`,
+      timer: 2000,
+      showConfirmButton: false
+    });
   };
 
   const handleEliminarServicio = async (servicio) => {
@@ -163,6 +217,7 @@ const Servicios = () => {
             servicios={servicios}
             abrirModalServicio={abrirModalServicio}
             eliminarServicio={handleEliminarServicio}
+            actualizarEstadoServicio={actualizarEstadoServicio}
           />
         )}
       </div>
