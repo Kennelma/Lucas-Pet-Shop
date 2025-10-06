@@ -6,7 +6,6 @@ import { Column } from 'primereact/column';
 
 import { faUserPlus, faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
 import { verRegistro} from "../../services/apiService.js";
 
 import FormularioCliente from "./modal_agregar.js";
