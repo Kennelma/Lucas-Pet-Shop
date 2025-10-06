@@ -1,113 +1,186 @@
 import React, { useState, useEffect } from 'react';
+import { actualizarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
 const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
-  const [data, setData] = useState({nombre: '', especie: '', sexo: 'HEMBRA', cantidad: 0, precio: 0, imagenUrl: ''});
+  const [data, setData] = useState({
+    id_producto: null,
+    nombre_producto: '',
+    precio_producto: 0,
+    stock: 0,
+    stock_minimo: 0,
+    activo: 1,
+    especie: '',
+    sexo: 'HEMBRA',
+    sku: ''
+  });
+
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    if (isOpen && editData) {
-      setData({
-        nombre: editData.nombre || '',
-        especie: editData.especie || '',
-        sexo: editData.sexo || 'HEMBRA',
-        cantidad: editData.cantidad || 0,
-        precio: editData.precio || 0,
-        imagenUrl: editData.imagenUrl || editData.imagen || ''
-      });
-    }
-    setErrors({});
-  }, [isOpen, editData]);
+  // Generar SKU en mayúsculas
+  const generarSKU = (nombre, id_producto) => {
+    if (!nombre) return '';
+    const palabras = nombre.trim().split(' ');
+    const partes = palabras.map(p => p.substring(0,3).toLowerCase());
+    return partes.join('-').toUpperCase() + `-${id_producto}`;
+  };
+
+ useEffect(() => {
+  if (isOpen && editData) {
+    setData({
+      id_producto: editData.id_producto,
+      nombre_producto: editData.nombre || '',
+      precio_producto: editData.precio || 0,
+      stock: editData.stock || 0,
+      stock_minimo: editData.stock_minimo || 0,
+      activo: Number(editData.activo) || 0, // <- así
+      especie: editData.especie || '',
+      sexo: editData.sexo || 'HEMBRA',
+      sku: generarSKU(editData.nombre || '', editData.id_producto)
+    });
+  }
+  setErrors({});
+}, [isOpen, editData]);
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (files && files[0]) {
-      const reader = new FileReader();
-      reader.onload = () => setData(prev => ({ ...prev, imagenUrl: reader.result }));
-      reader.readAsDataURL(files[0]);
-    } else {
-      setData(prev => ({ ...prev, [name]: value }));
-      if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    const { name, value } = e.target;
+
+    setData(prev => {
+      const nuevoData = {
+        ...prev,
+        [name]: name === 'activo' ? Number(value) : value
+      };
+
+      if (name === 'nombre_producto') {
+        nuevoData.sku = generarSKU(value, prev.id_producto);
+      }
+
+      if (errors[name]) setErrors(prevErrors => ({ ...prevErrors, [name]: '' }));
+
+      return nuevoData;
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
-    if (!data.nombre.trim()) newErrors.nombre = 'Nombre requerido';
+    if (!data.nombre_producto.trim()) newErrors.nombre_producto = 'Nombre requerido';
     if (!data.especie.trim()) newErrors.especie = 'Especie requerida';
-    if (data.cantidad <= 0) newErrors.cantidad = 'Datos inválidos';
-    if (data.precio <= 0) newErrors.precio = 'Datos inválidos';
+    if (data.stock < 0) newErrors.stock = 'Stock inválido';
+    if (data.precio_producto <= 0) newErrors.precio_producto = 'Precio inválido';
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      const success = await onSave(data);
-      if (success !== false) onClose();
+      const payload = { ...data, tipo_producto: 'ANIMALES' };
+      const result = await actualizarProducto(payload);
+      if (result.Consulta) {
+        if (onSave) onSave();
+        onClose();
+      } else {
+        alert('Error al actualizar: ' + result.error);
+      }
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div style={{position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16}}>
-      <div style={{background: 'white', borderRadius: 8, width: '100%', maxWidth: 800, display: 'flex', flexDirection: 'column'}}>
-        <div style={{padding: 16, borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-          <h2 style={{margin: 0, flex: 1, textAlign: 'center'}}>EDITAR ANIMAL</h2>
-          <button onClick={onClose} style={{background: 'none', border: 'none', fontSize: 20, cursor: 'pointer'}}>×</button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg w-full max-w-2xl p-4 flex flex-col gap-4">
+        <div className="flex justify-between items-center border-b pb-2">
+          <h2 className="text-lg font-bold">Actualizar Animal</h2>
+          <button onClick={onClose} className="text-xl font-bold">×</button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{display: 'flex'}}>
-          <div style={{flex: 1, padding: 20}}>
-            <div style={{marginBottom: 16}}>
-              <label>Nombre:</label>
-              <input name="nombre" value={data.nombre} onChange={handleChange} style={{width: '100%', padding: 8, border: errors.nombre ? '1px solid red' : '1px solid #ddd'}}/>
-              {errors.nombre && <div style={{color: 'red', fontSize: 12}}>{errors.nombre}</div>}
-            </div>
+        <form className="flex gap-4" onSubmit={handleSubmit}>
+          <div className="flex-1 flex flex-col gap-2">
+            {/* Nombre */}
+            <input
+              name="nombre_producto"
+              value={data.nombre_producto}
+              onChange={handleChange}
+              placeholder="Nombre"
+              className="border px-2 py-1 rounded"
+            />
+            {errors.nombre_producto && <div className="text-red-500 text-xs">{errors.nombre_producto}</div>}
 
-            <div style={{marginBottom: 16}}>
-              <label>Especie:</label>
-              <input name="especie" value={data.especie} onChange={handleChange} style={{width: '100%', padding: 8, border: errors.especie ? '1px solid red' : '1px solid #ddd'}}/>
-              {errors.especie && <div style={{color: 'red', fontSize: 12}}>{errors.especie}</div>}
-            </div>
+            {/* SKU */}
+            <input
+              type="text"
+              name="sku"
+              value={data.sku}
+              readOnly
+              placeholder="SKU"
+              className="border px-2 py-1 rounded bg-gray-100 uppercase"
+            />
 
-            <div style={{marginBottom: 16}}>
-              <label>Sexo:</label>
-              <select name="sexo" value={data.sexo} onChange={handleChange} style={{width: '100%', padding: 8, border: '1px solid #ddd'}}>
-                {['HEMBRA', 'MACHO'].map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
+            {/* Precio */}
+            <input
+              type="number"
+              name="precio_producto"
+              value={data.precio_producto}
+              onChange={handleChange}
+              placeholder="Precio"
+              className="border px-2 py-1 rounded"
+            />
+            {errors.precio_producto && <div className="text-red-500 text-xs">{errors.precio_producto}</div>}
 
-            <div style={{display: 'flex', gap: 16, marginBottom: 16}}>
-              <div style={{flex: 1}}>
-                <label>Stock:</label>
-                <input type="number" name="cantidad" value={data.cantidad} onChange={handleChange} style={{width: '100%', padding: 8, border: errors.cantidad ? '1px solid red' : '1px solid #ddd'}}/>
-                {errors.cantidad && <div style={{color: 'red', fontSize: 12}}>{errors.cantidad}</div>}
-              </div>
-              <div style={{flex: 1}}>
-                <label>Precio:</label>
-                <input type="number" name="precio" value={data.precio} onChange={handleChange} step="0.01" style={{width: '100%', padding: 8, border: errors.precio ? '1px solid red' : '1px solid #ddd'}}/>
-                {errors.precio && <div style={{color: 'red', fontSize: 12}}>{errors.precio}</div>}
-              </div>
-            </div>
+            {/* Stock */}
+            <input
+              type="number"
+              name="stock"
+              value={data.stock}
+              onChange={handleChange}
+              placeholder="Stock"
+              className="border px-2 py-1 rounded"
+            />
+            {errors.stock && <div className="text-red-500 text-xs">{errors.stock}</div>}
 
-            <div style={{textAlign: 'center'}}>
-              <button type="submit" style={{background: '#4bc099ff', color: 'white', padding: '10px 20px', border: 'none', borderRadius: 4, cursor: 'pointer'}}>Guardar</button>
-            </div>
+            {/* Stock mínimo */}
+            <input
+              type="number"
+              name="stock_minimo"
+              value={data.stock_minimo}
+              onChange={handleChange}
+              placeholder="Stock mínimo"
+              className="border px-2 py-1 rounded"
+            />
+
+            {/* Activo / Inactivo */}
+            <select
+              name="activo"
+              value={Number(data.activo)} // <-- fuerza que sea número
+              onChange={handleChange}
+              className="border px-2 py-1 rounded"
+            >
+              <option value={1}>Activo</option>
+              <option value={0}>Inactivo</option>
+            </select>
+
+            {/* Especie */}
+            <input
+              name="especie"
+              value={data.especie}
+              onChange={handleChange}
+              placeholder="Especie"
+              className="border px-2 py-1 rounded"
+            />
+
+            {/* Sexo */}
+            <select
+              name="sexo"
+              value={data.sexo}
+              onChange={handleChange}
+              className="border px-2 py-1 rounded"
+            >
+              <option value="HEMBRA">HEMBRA</option>
+              <option value="MACHO">MACHO</option>
+            </select>
           </div>
 
-          <div style={{width: 250, borderLeft: '1px solid #ddd', padding: 20}}>
-            {data.imagenUrl ? (
-              <>
-                <img src={data.imagenUrl} alt="Animal" style={{width: '100%', height: 150, objectFit: 'cover', border: '1px solid #ddd'}}/>
-                <div style={{display: 'flex', justifyContent: 'center', marginTop: 10}}>
-                  <span onClick={() => setData(prev => ({...prev, imagenUrl: ''}))} style={{cursor: 'pointer', fontSize: 20}}>🗑️</span>
-                </div>
-              </>
-            ) : (
-              <label style={{width: '100%', height: 150, border: '2px dashed #ddd', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 4, backgroundColor: '#f9f9f9', fontSize: 14, color: '#666'}}>
-                Agregar imagen
-                <input type="file" accept="image/*" onChange={handleChange} style={{display: 'none'}}/>
-              </label>
-            )}
+          <div className="w-48 flex flex-col items-center">
+            <button type="submit" className="mt-2 px-4 py-1 bg-purple-600 text-white rounded">
+              Guardar
+            </button>
           </div>
         </form>
       </div>

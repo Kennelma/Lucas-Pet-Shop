@@ -138,7 +138,7 @@ exports.actualizar = async (req, res) => {
         await conn.beginTransaction();
 
         //ATRIBUTOS QUE USAN TODAS LAS TABLAS (ATRIBUTOS DE LA TABLA PADRE)
-        const atributosNuevos = actualizarAtributosPadre(req.body);
+        const atributosNuevos = update_atributos_padre(req.body);
 
         const { id_producto, tipo_producto } = req.body;
 
@@ -222,13 +222,37 @@ exports.ver = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
 
     try {
-        const {tipo_producto} =  req.query;
 
-        const [registros] = await conn.query('CALL sp_select_productos(?)', [tipo_producto]);
+        let registros; //VARIABLE DE APOYO
+
+        switch (req.query.tipo_producto) {
+
+
+            case 'ACCESORIOS':
+
+                [registros] = await conn.query('CALL sp_select_producto_accesorios()');
+                break;
+            
+            case 'ANIMALES':
+
+                [registros] = await conn.query('CALL sp_select_producto_animales()');
+                break;
+            
+            case 'ALIMENTOS':
+                [registros] = await conn.query('CALL sp_select_producto_alimentos()');
+                break;
+
+            case 'MEDICAMENTOS':
+
+                [registros] = await conn.query('CALL sp_select_producto_medicamentos()');
+                break;    
+            default:
+                throw new Error('Tipo de producto no válido');
+        }
 
         res.json({
             Consulta: true,
-            productos: registros[0]
+            productos: registros[0] || []
         });
 
     } catch (err) {
