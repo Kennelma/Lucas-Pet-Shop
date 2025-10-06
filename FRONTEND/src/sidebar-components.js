@@ -110,15 +110,7 @@ const _nav = [
     to: '/configuracion',
     icon: <FontAwesomeIcon icon={faCut} className="nav-icon" />,
     items: [
-      
-      {
-        component: CNavItem,
-        name: 'Servicios y Promociones',
-        style: { paddingLeft: '65px' },
-        icon: <FontAwesomeIcon icon={faShower} className="nav-icon" />,
-         to: '/peluqueria-canina/PeluqueriaCanina',
-        
-      },
+    
       {
         component: CNavItem,
         name: 'Promociones',

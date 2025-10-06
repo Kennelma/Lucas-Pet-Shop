@@ -347,7 +347,7 @@ const PeluqueriaCanina = () => {
                         </div>
                         <div className="detail-row">
                           <span className="detail-label"><CalendarDaysIcon style={{ width: '16px', height: '16px', display: 'inline', marginRight: '4px' }} />Duración:</span>
-                          <span className="detail-value detail-duration">{promo.dias_promocion} días</span>
+                          <span className="detail-value detail-duration">{promo.dias_promocion.join(', ')}</span>
                         </div>
                       </div>
                       <div className="card-actions">
