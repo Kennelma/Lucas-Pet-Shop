@@ -1,25 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { SparklesIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from "react";
+import { 
+  verServicios, 
+  insertarServicio, 
+  actualizarServicio, 
+  eliminarServicio 
+} from "../../AXIOS.SERVICES/services-axios.js";
 import Swal from 'sweetalert2';
 
-import { 
-  verServicios,
-  insertarServicio,
-  actualizarServicio,
-  eliminarServicio
-} from '../../AXIOS.SERVICES/services-axios.js';
-
-import ModalPromocion from './modal_promocion';
-import PromocionesSeccion from './PromocionesSeccion';
-
-import './peluqueria-canina.css';
+import PromocionesSeccion from "./PromocionesSeccion";
+import ModalPromocion from "./modal_promocion";
 
 const Promociones = () => {
   const [promociones, setPromociones] = useState([]);
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [promocionSeleccionada, setPromocionSeleccionada] = useState(null);
   const [loading, setLoading] = useState(true);
-  
-  const [modalPromocionAbierto, setModalPromocionAbierto] = useState(false);
-  const [promocionEditando, setPromocionEditando] = useState(null);
 
   useEffect(() => {
     cargarDatos();
@@ -28,19 +23,20 @@ const Promociones = () => {
   const cargarDatos = async () => {
     setLoading(true);
     try {
-      console.log('Iniciando carga de promociones...');
-      const promocionesData = await verServicios('PROMOCIONES');
-      console.log('Datos recibidos:', promocionesData);
-      console.log('Tipo de datos:', typeof promocionesData);
-      console.log('Es array:', Array.isArray(promocionesData));
-      setPromociones(promocionesData || []);
+      const data = await verServicios("PROMOCIONES");
+      // Normalizar datos numéricos para ordenamiento correcto
+      const promocionesNormalizadas = (data || []).map(promocion => ({
+        ...promocion,
+        precio_promocion: parseFloat(promocion.precio_promocion || 0),
+        activo: promocion.activo !== undefined ? Boolean(promocion.activo) : true
+      }));
+      setPromociones(promocionesNormalizadas);
     } catch (error) {
-      console.error('Error cargando datos:', error);
+      console.error("Error al cargar promociones:", error);
       Swal.fire({
         icon: 'error',
-        title: 'Error al cargar',
-        text: 'No se pudieron cargar las promociones. Intenta nuevamente.',
-        confirmButtonColor: '#ef4444'
+        title: 'Error',
+        text: 'No se pudieron cargar las promociones'
       });
     } finally {
       setLoading(false);
@@ -48,125 +44,165 @@ const Promociones = () => {
   };
 
   const abrirModalPromocion = (promocion = null) => {
-    setPromocionEditando(promocion);
-    setModalPromocionAbierto(true);
+    setPromocionSeleccionada(promocion);
+    setModalAbierto(true);
   };
 
-  const cerrarModalPromocion = () => {
-    setModalPromocionAbierto(false);
-    setPromocionEditando(null);
+  const cerrarModal = () => {
+    setModalAbierto(false);
+    setPromocionSeleccionada(null);
   };
 
-  const handleSubmitPromocion = async (formData) => {
+  const manejarSubmit = async (datosPromocion) => {
     try {
-      if (promocionEditando) {
-        await actualizarServicio({ 
-          id: promocionEditando.id_promocion_pk, 
-          ...formData, 
-          tipo_servicio: 'PROMOCIONES' 
-        });
-        await Swal.fire({
-          icon: 'success',
-          title: '¡Actualizado!',
-          text: 'La promoción se actualizó correctamente',
-          timer: 2000,
-          showConfirmButton: false
+      let resultado;
+      
+      if (promocionSeleccionada) {
+        // Actualizar promoción existente
+        resultado = await actualizarServicio({
+          ...datosPromocion,
+          id: promocionSeleccionada.id_promocion_pk || promocionSeleccionada.id,
+          tipo_servicio: "PROMOCIONES"
         });
       } else {
-        await insertarServicio({ ...formData, tipo_servicio: 'PROMOCIONES' });
-        await Swal.fire({
+        // Crear nueva promoción
+        resultado = await insertarServicio({
+          ...datosPromocion,
+          tipo_servicio: "PROMOCIONES"
+        });
+      }
+
+      if (resultado.Consulta) {
+        Swal.fire({
           icon: 'success',
-          title: '¡Creado!',
-          text: 'La promoción se creó correctamente',
+          title: promocionSeleccionada ? 'Promoción actualizada' : 'Promoción creada',
+          text: resultado.message || 'Operación completada exitosamente',
           timer: 2000,
           showConfirmButton: false
         });
+        cerrarModal();
+        cargarDatos(); // Recargar datos
+      } else {
+        throw new Error(resultado.error || 'Error en la operación');
       }
-      
-      cerrarModalPromocion();
-      await cargarDatos();
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error al guardar promoción:", error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'No se pudo guardar la promoción. Intenta nuevamente.',
-        confirmButtonColor: '#ef4444'
+        text: error.message || 'No se pudo guardar la promoción'
       });
     }
   };
 
-  const handleEliminarPromocion = async (promocion) => {
-    const result = await Swal.fire({
-      icon: 'warning',
-      title: '¿Eliminar promoción?',
-      html: `
-        <div style="text-align: left; margin-top: 16px; padding: 16px; background: #f9fafb; border-radius: 8px;">
-          <p style="margin-bottom: 8px;"><strong>Nombre:</strong> ${promocion.nombre_promocion}</p>
-          <p style="margin-bottom: 8px;"><strong>Precio:</strong> L. ${parseFloat(promocion.precio_promocion || 0).toFixed(2)}</p>
-          <p style="margin-bottom: 8px;"><strong>Duración:</strong> ${promocion.dias_promocion} días</p>
-          <p style="margin-bottom: 0;"><strong>Descripción:</strong> ${promocion.descripcion_promocion.substring(0, 60)}...</p>
-        </div>
-        <p style="margin-top: 16px; color: #ef4444; font-weight: bold;">Esta acción no se puede deshacer</p>
-      `,
-      showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
-      reverseButtons: true
-    });
+  const actualizarEstadoPromocion = async (promocion) => {
+    try {
+      const nuevoEstado = !promocion.activo;
+      
+      // Actualizar en el backend
+      const resultado = await actualizarServicio({
+        id: promocion.id_promocion_pk,
+        nombre_promocion: promocion.nombre_promocion,
+        descripcion_promocion: promocion.descripcion_promocion,
+        precio_promocion: promocion.precio_promocion,
+        dias_promocion: promocion.dias_promocion,
+        activo: nuevoEstado,
+        tipo_servicio: "PROMOCIONES"
+      });
 
-    if (result.isConfirmed) {
-      try {
-        await eliminarServicio(promocion.id_promocion_pk, 'PROMOCIONES');
-        await Swal.fire({
+      if (resultado.Consulta) {
+        // Actualizar estado local
+        setPromociones(prev => 
+          prev.map(p => 
+            p.id_promocion_pk === promocion.id_promocion_pk 
+              ? { ...p, activo: nuevoEstado }
+              : p
+          )
+        );
+
+        Swal.fire({
           icon: 'success',
-          title: '¡Eliminado!',
-          text: 'La promoción fue eliminada correctamente',
-          timer: 2000,
+          title: nuevoEstado ? '¡Promoción Activada!' : '¡Promoción Desactivada!',
+          text: 'Estado actualizado correctamente',
+          timer: 1500,
           showConfirmButton: false
         });
-        await cargarDatos();
-      } catch (error) {
-        console.error('Error:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudo eliminar la promoción',
-          confirmButtonColor: '#ef4444'
-        });
+      } else {
+        throw new Error(resultado.error || 'Error al actualizar estado');
       }
+    } catch (error) {
+      console.error("Error al actualizar estado:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'No se pudo actualizar el estado de la promoción'
+      });
+    }
+  };
+
+  const eliminarPromocion = async (promocion) => {
+    try {
+      const result = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: `¿Quieres eliminar la promoción "${promocion.nombre_promocion}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+      });
+
+      if (result.isConfirmed) {
+        const resultado = await eliminarServicio(
+          promocion.id_promocion_pk || promocion.id, 
+          "PROMOCIONES"
+        );
+
+        if (resultado.Consulta) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Eliminado',
+            text: 'La promoción ha sido eliminada exitosamente',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          cargarDatos(); // Recargar datos
+        } else {
+          throw new Error(resultado.error || 'Error al eliminar');
+        }
+      }
+    } catch (error) {
+      console.error("Error al eliminar promoción:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'No se pudo eliminar la promoción'
+      });
     }
   };
 
   return (
-    <div className="peluqueria-container">
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        
-        <div className="peluqueria-header">
-          <div className="icon-container">
-            <div className="icon-box">
-              <SparklesIcon style={{ width: '24px', height: '24px', color: '#3b82f6' }} />
-            </div>
-          </div>
-          <h1 className="peluqueria-title">Promociones</h1>
-          <p className="peluqueria-subtitle">Gestiona las promociones especiales para tus clientes</p>
+    <div className="min-h-screen p-6 bg-gray-50">
+      {loading ? (
+        <div className="flex items-center justify-center min-h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+          <span className="ml-3 text-gray-600">Cargando promociones...</span>
         </div>
-
+      ) : (
         <PromocionesSeccion
           promociones={promociones}
           abrirModalPromocion={abrirModalPromocion}
-          eliminarPromocion={handleEliminarPromocion}
-          loading={loading}
+          eliminarPromocion={eliminarPromocion}
+          actualizarEstadoPromocion={actualizarEstadoPromocion}
         />
-      </div>
+      )}
 
       <ModalPromocion
-        isOpen={modalPromocionAbierto}
-        onClose={cerrarModalPromocion}
-        onSubmit={handleSubmitPromocion}
-        promocion={promocionEditando}
+        isOpen={modalAbierto}
+        onClose={cerrarModal}
+        onSubmit={manejarSubmit}
+        promocion={promocionSeleccionada}
       />
     </div>
   );
