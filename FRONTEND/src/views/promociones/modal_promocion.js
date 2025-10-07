@@ -8,7 +8,8 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
     nombre_promocion: '',
     descripcion_promocion: '',
     precio_promocion: '',
-    dias_promocion: []
+    dias_promocion: [],
+    activo: true
   });
 
   const [errores, setErrores] = useState({});
@@ -20,7 +21,7 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
     { id: 'JUEVES', label: 'JUEVES' },
     { id: 'VIERNES', label: 'VIERNES' },
     { id: 'SABADO', label: 'SABADO' },
-    { id: 'domingo', label: 'Domingo' }
+    { id: 'DOMINGO', label: 'DOMINGO' }
   ];
 
   useEffect(() => {
@@ -45,15 +46,16 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
         nombre_promocion: promocion?.nombre_promocion || '',
         descripcion_promocion: promocion?.descripcion_promocion || '',
         precio_promocion: promocion?.precio_promocion || '',
-        dias_promocion: diasPromocion
+        dias_promocion: diasPromocion,
+        activo: promocion?.activo ?? true
       });
       setErrores({});
     }
   }, [promocion, isOpen]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     if (errores[name]) setErrores(prev => ({ ...prev, [name]: '' }));
   };
 
@@ -129,74 +131,116 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
   console.log('Modal se va a mostrar');
   
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ padding: '8px', background: '#dbeafe', borderRadius: '8px' }}>
-              <SparklesIcon style={{ width: '20px', height: '20px', color: '#3b82f6' }} />
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={handleClose}>
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <SparklesIcon className="w-6 h-6 text-blue-600" />
             </div>
-            <h3 className="modal-title">{promocion ? 'Editar Promoción' : 'Nueva Promoción'}</h3>
+            <h3 className="text-xl font-semibold text-gray-800">{promocion ? 'Editar Promoción' : 'Nueva Promoción'}</h3>
           </div>
-          <button onClick={handleClose} className="modal-close">
-            <svg style={{ width: '24px', height: '24px' }} fill="none" viewBox="0 0 14 14">
+          <button onClick={handleClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 14 14">
               <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
             </svg>
           </button>
         </div>
-        <div className="modal-body">
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="nombre_promocion" className="form-label">Nombre de la Promoción <span style={{ color: '#ef4444' }}>*</span></label>
-              <input type="text" name="nombre_promocion" id="nombre_promocion" value={formData.nombre_promocion} onChange={handleChange} className={`form-input ${errores.nombre_promocion ? 'input-error' : ''}`} placeholder="Ej: Promoción Baño + Corte" />
-              {errores.nombre_promocion && <p className="form-error">{errores.nombre_promocion}</p>}
+        <div className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label htmlFor="nombre_promocion" className="block text-sm font-medium text-gray-700">
+                Nombre de la Promoción <span className="text-red-500">*</span>
+              </label>
+              <input 
+                type="text" 
+                name="nombre_promocion" 
+                id="nombre_promocion" 
+                value={formData.nombre_promocion} 
+                onChange={handleChange} 
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errores.nombre_promocion ? 'border-red-500' : 'border-gray-300'}`}
+                placeholder="Ej: Promoción Baño + Corte" 
+              />
+              {errores.nombre_promocion && <p className="text-sm text-red-600">{errores.nombre_promocion}</p>}
             </div>
-            <div className="form-group">
-              <label htmlFor="descripcion_promocion" className="form-label">Descripción de la Promoción <span style={{ color: '#ef4444' }}>*</span></label>
-              <textarea name="descripcion_promocion" id="descripcion_promocion" value={formData.descripcion_promocion} onChange={handleChange} className={`form-input form-textarea ${errores.descripcion_promocion ? 'input-error' : ''}`} placeholder="Descripción detallada de la promoción..." />
-              {errores.descripcion_promocion && <p className="form-error">{errores.descripcion_promocion}</p>}
+
+            <div className="space-y-2">
+              <label htmlFor="descripcion_promocion" className="block text-sm font-medium text-gray-700">
+                Descripción de la Promoción <span className="text-red-500">*</span>
+              </label>
+              <textarea 
+                name="descripcion_promocion" 
+                id="descripcion_promocion" 
+                value={formData.descripcion_promocion} 
+                onChange={handleChange} 
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-24 ${errores.descripcion_promocion ? 'border-red-500' : 'border-gray-300'}`}
+                placeholder="Descripción detallada de la promoción..." 
+              />
+              {errores.descripcion_promocion && <p className="text-sm text-red-600">{errores.descripcion_promocion}</p>}
             </div>
-            <div className="form-group">
-              <label htmlFor="precio_promocion" className="form-label">Precio de la Promoción (L) <span style={{ color: '#ef4444' }}>*</span></label>
-              <input type="number" step="0.01" name="precio_promocion" id="precio_promocion" value={formData.precio_promocion} onChange={handleChange} className={`form-input ${errores.precio_promocion ? 'input-error' : ''}`} placeholder="0.00" />
-              {errores.precio_promocion && <p className="form-error">{errores.precio_promocion}</p>}
+
+            <div className="space-y-2">
+              <label htmlFor="precio_promocion" className="block text-sm font-medium text-gray-700">
+                Precio de la Promoción (L) <span className="text-red-500">*</span>
+              </label>
+              <input 
+                type="number" 
+                step="0.01" 
+                name="precio_promocion" 
+                id="precio_promocion" 
+                value={formData.precio_promocion} 
+                onChange={handleChange} 
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errores.precio_promocion ? 'border-red-500' : 'border-gray-300'}`}
+                placeholder="0.00" 
+              />
+              {errores.precio_promocion && <p className="text-sm text-red-600">{errores.precio_promocion}</p>}
             </div>
-            <div className="form-group">
-              <label className="form-label">Días de la Promoción <span style={{ color: '#ef4444' }}>*</span></label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', marginTop: '8px' }}>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Días de la Promoción <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
                 {diasSemana.map(dia => (
-                  <div key={dia.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div key={dia.id} className="flex items-center space-x-2">
                     <input
                       type="checkbox"
                       id={dia.id}
                       checked={formData.dias_promocion.includes(dia.id)}
                       onChange={() => handleDiaToggle(dia.id)}
-                      style={{
-                        width: '18px',
-                        height: '18px',
-                        cursor: 'pointer'
-                      }}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
                     />
                     <label 
                       htmlFor={dia.id} 
-                      style={{ 
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: formData.dias_promocion.includes(dia.id) ? '600' : '400',
-                        color: formData.dias_promocion.includes(dia.id) ? '#3b82f6' : '#6b7280'
-                      }}
+                      className={`text-sm cursor-pointer select-none ${
+                        formData.dias_promocion.includes(dia.id) 
+                          ? 'font-semibold text-blue-700' 
+                          : 'font-normal text-gray-600'
+                      }`}
                     >
                       {dia.label}
                     </label>
                   </div>
                 ))}
               </div>
-              <p className="form-hint">Seleccione los días de la semana en que estará disponible la promoción</p>
-              {errores.dias_promocion && <p className="form-error">{errores.dias_promocion}</p>}
+              <p className="text-xs text-gray-500 mt-1">Seleccione los días de la semana en que estará disponible la promoción</p>
+              {errores.dias_promocion && <p className="text-sm text-red-600">{errores.dias_promocion}</p>}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
-              <button type="button" onClick={handleClose} className="btn btn-secondary">Cancelar</button>
-              <button type="submit" className="btn btn-primary">{promocion ? 'Actualizar' : 'Guardar'} Promoción</button>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+              <button 
+                type="button" 
+                onClick={handleClose} 
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                className="px-6 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors font-medium"
+              >
+                {promocion ? 'Actualizar' : 'Guardar'} Promoción
+              </button>
             </div>
           </form>
         </div>
