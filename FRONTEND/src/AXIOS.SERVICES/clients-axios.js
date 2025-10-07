@@ -36,7 +36,7 @@ export const actualizarCliente = async (datosCliente) => {
 };
 
 //SERVICIO PARA ELIMINAR CLIENTE
-export const eliminarCliente = async (id) => { // 👈 uso "id" para coincidir con Node
+export const eliminarCliente = async (id) => { 
   try {
     const res = await axios.delete(`${API_URL}/eliminar`, {
       data: { id }
