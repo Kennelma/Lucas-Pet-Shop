@@ -1,16 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { faUserPlus, faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Button } from 'primereact/button';
+import { Dialog } from 'primereact/dialog';
+import { Toast } from 'primereact/toast';
 
 import { verClientes, eliminarCliente } from "../../AXIOS.SERVICES/clients-axios.js";
+
 import FormularioCliente from "./modal_agregar.js";
+import FormularioActualizarCliente from "./modal_actualizar.js"; 
 
 const TablaClientes = ({ setClienteSeleccionado }) => {
+    //ESTADOS A UTILIZAR
     const [clientes, setClientes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [openModal, setOpenModal] = useState(false);
+    const [openModalActualizar, setOpenModalActualizar] = useState(false); 
+    const [clienteAEditar, setClienteAEditar] = useState(null);
+
+    //CONSTANTES PARA LA ELIMINACION DE CLIENTES
+    const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
+    const [clienteAEliminar, setClienteAEliminar] = useState(null);
+
+    const toast = useRef(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -26,35 +40,74 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
         fetchData();
     }, []);
 
-    //SE EVITA EL SCROLL MIENTRAS HAY MODAL ABIERTO
+    //EVITA EL SCROLL EN LOS MODALES
     useEffect(() => {
-        if (openModal) {
+        if (openModal || openModalActualizar) {
             document.body.classList.add('overflow-hidden');
         } else {
             document.body.classList.remove('overflow-hidden');
         }
-    }, [openModal]);
+    }, [openModal, openModalActualizar]);
 
-    const handleAgregarCliente = () => {
-        setOpenModal(true);
+
+    //CONSTANTE PARA ABRIR LOS MODALES DE AGREGAR Y ACTUALIZAR CLIENTES
+    const handleAgregarCliente = () => setOpenModal(true);
+    const handleActualizarCliente = (cliente, index) => {
+        setClienteAEditar({ ...cliente, indexVisual: index + 1 }); //SE AGREGA EL ID VISUAL
+        setOpenModalActualizar(true);
     };
 
+    //ESTADO DE ELIMINACION, AQUI SE MANEJA LOS TOAST DE CONFIRMACION
+    const handleEliminar = async () => {
+        try {
+            const resultado = await eliminarCliente(clienteAEliminar.id_cliente_pk);
+
+            if (resultado.Consulta) {
+
+                const data = await verClientes();
+                setClientes(data);
+                toast.current.show({ 
+                    severity: 'success',
+                    summary: 'Cliente eliminado',
+                    detail: `${clienteAEliminar.nombre_cliente} fue eliminado`,
+                    life: 3000
+                });
+            } else {
+                toast.current.show({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'No se pudo eliminar el cliente',
+                    life: 3000
+                });
+            }
+        } catch (error) {
+            toast.current.show({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Ocurrió un error inesperado',
+                life: 3000
+            });
+        }
+        setConfirmDialogVisible(false);
+    };
+
+    //CONSTANTE QUE CONTROLAN LAS ACCIONES DE LOS BOTONES DE ACTUALIZAR Y BORRAR
     const actionBotones = (rowData) => (
         <div className="flex items-center space-x-2 w-full">
-            <button className="text-blue-500 hover:text-blue-700 p-2 rounded" onClick={(e) => e.stopPropagation()}>
+            <button
+                className="text-blue-500 hover:text-blue-700 p-2 rounded"
+                onClick={(e) => { e.stopPropagation(); 
+                handleActualizarCliente(rowData, clientes.indexOf(rowData)); }}
+            >
                 <FontAwesomeIcon icon={faPenToSquare} size="lg" />
             </button>
-            <button 
-                className="text-red-500 hover:text-red-700 p-2 rounded" 
-                onClick={async (e) => {
+
+            <button
+                className="text-red-500 hover:text-red-700 p-2 rounded"
+                onClick={(e) => {
                     e.stopPropagation();
-                    if (window.confirm('¿Estás seguro de eliminar este cliente?')) {
-                        const resultado = await eliminarCliente(rowData.id_cliente_pk);
-                        if (resultado.Consulta) {
-                            const data = await verClientes();
-                            setClientes(data);
-                        }
-                    }
+                    setClienteAEliminar(rowData);
+                    setConfirmDialogVisible(true);
                 }}
             >
                 <FontAwesomeIcon icon={faTrash} size="lg" />
@@ -64,12 +117,14 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
 
     return (
         <>
+            <Toast ref={toast} position="top-center" />
+
             <div className="bg-white border border-gray-300 rounded-xl p-6 max-w-5xl mx-auto font-poppins">
                 <div className="flex justify-between items-center mb-4">
-                    <div className="flex-grow text-center text-lg font-medium text-gray-700 font-poppins">
+                    <div className="w-full text-center text-lg font-bold">
                         REGISTRO DE CLIENTES
                     </div>
-                    <button className="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600"
+                    <button className="bg-green-800 text-white px-3 py-1 text-sm rounded hover:bg-green-800"
                         onClick={handleAgregarCliente}>
                         <FontAwesomeIcon icon={faUserPlus} />
                     </button>
@@ -80,7 +135,7 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                     loading={loading}
                     showGridlines
                     paginator
-                    rows={10}
+                    rows={5}
                     rowsPerPageOptions={[5, 10, 15]}
                     paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
                     tableStyle={{ minWidth: '50rem' }}
@@ -99,7 +154,7 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                 </DataTable>
             </div>
 
-            {/*MODAL DE INGRESAR NUEVO CLIENTE*/}
+            {/*MODAL PARA AGREGAR CLIENTES*/}
             <FormularioCliente
                 isOpen={openModal}
                 onClose={() => setOpenModal(false)}
@@ -108,6 +163,42 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                     setClientes(data);
                 }}
             />
+
+            {/*MODAL PARA ACTUALIZAR CLIENTE*/}
+            {clienteAEditar && (
+                <FormularioActualizarCliente
+                    isOpen={openModalActualizar}
+                    cliente={clienteAEditar}
+                    onClose={() => setOpenModalActualizar(false)}
+                    onClienteActualizado={async () => {
+                        const data = await verClientes();
+                        setClientes(data);
+                    }}
+                />
+            )}
+
+            {/*DIALOG PARA ELIMINAR CLIENTE*/}
+            <Dialog
+                header="Confirmar eliminación"
+                visible={confirmDialogVisible}
+                style={{ width: '30rem' }}
+                onHide={() => setConfirmDialogVisible(false)}
+                modal
+            >
+                <p>¿Estás seguro de eliminar al cliente <strong>{clienteAEliminar?.nombre_cliente}</strong>?</p>
+                <div className="flex justify-end gap-3 mt-4">
+                    <Button 
+                        label="Cancelar" 
+                        className="p-button-text" 
+                        onClick={() => setConfirmDialogVisible(false)} 
+                    />
+                    <Button 
+                        label="Eliminar" 
+                        className="bg-green-800 hover:bg-green-900 text-white" 
+                        onClick={handleEliminar} 
+                    />
+                </div>
+            </Dialog>
         </>
     );
 };
