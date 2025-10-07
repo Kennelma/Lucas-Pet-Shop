@@ -1,11 +1,17 @@
 import React, { useState } from "react";
+
+
+import clienteImage from "../../views/clientes/icon-formulario-clientes.png";
+
+import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { InputMask } from "primereact/inputmask";
 import { Button } from "primereact/button";
 
-//import { insertarRegistro } from "../../services/apiService.js";
+import { insertarCliente } from "../../AXIOS.SERVICES/clients-axios.js";
 
-export default function FormularioCliente({ onClose, onClienteAgregado }) {
+export default function FormularioCliente({ isOpen, onClose, onClienteAgregado }) {
+
     const [nuevoCliente, setNuevoCliente] = useState({
         nombre_cliente: "",
         apellido_cliente: "",
@@ -20,79 +26,105 @@ export default function FormularioCliente({ onClose, onClienteAgregado }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await insertarRegistro("tbl_clientes", nuevoCliente);
-            onClienteAgregado();
-            onClose();
+            const res = await insertarCliente(nuevoCliente);
+            if (res.Consulta !== false) {
+                onClienteAgregado();
+                onClose();
+            } else {
+                console.error("Error en la consulta:", res.error);
+            }
         } catch (error) {
-            console.error(error);
+            console.error("Error al guardar cliente:", error);
         }
     };
 
+    const footer = (
+        <div className="flex justify-end gap-3 mt-2">
+            <Button label="Cancelar" icon="pi pi-times" className="p-button-text p-button-rounded" onClick={onClose} />
+            <Button label="Guardar" icon="pi pi-check" className="p-button-success p-button-rounded" onClick={handleSubmit} />
+        </div>
+    );
+
     return (
-        <div className="bg-white rounded-xl p-6 w-full max-w-md relative">
-            <button 
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 font-bold text-xl"
-                onClick={onClose}
-            >
-                &times;
-            </button>
 
-            <h2 className="flex-grow text-center text-lg font-medium text-gray-700 font-poppins">NUEVO CLIENTE</h2>
+        <Dialog
+            header={<div className="w-full text-center text-lg font-bold">NUEVO CLIENTE</div>}
+            visible={isOpen}
+            style={{ width: '42rem', borderRadius: '1.5rem' }}
+            modal
+            closable={false}
+            onHide={onClose}
+            footer={footer}
+        >
+        <div className="flex flex-row gap-6 mt-2">
 
-            <form className="space-y-4" onSubmit={handleSubmit}>
-                {/* Nombre y Apellido en la misma fila */}
+            {/*IMAGEN A LA IZQUIERDA*/}
+            <div className="flex-shrink-0 flex items-start justify-center pt-3">
+                <img
+                    src={clienteImage}
+                    alt="Cliente"
+                    className="w-24 h-30 object-cover rounded-xl border-[1px] border-white"
+                />
+            </div>
+
+            {/*FORMULARIO A LA DERECHA*/}
+            <div className="flex-1 flex flex-col gap-3">
+                {/* Nombre y Apellido */}
                 <div className="grid grid-cols-2 gap-3">
-                    <div>
-                        <label htmlFor="nombre_cliente" className="block text-gray-600 mb-1">NOMBRE</label>
-                        <InputText 
+                    <span>
+                        <label htmlFor="nombre_cliente" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE</label>
+                        <InputText
                             id="nombre_cliente"
                             name="nombre_cliente"
                             value={nuevoCliente.nombre_cliente}
                             onChange={handleChange}
-                            className="w-full border border-gray-300 rounded px-3 py-2"
+                            className="w-full rounded-xl h-9 text-sm"
                         />
-                    </div>
-                    
-                    <div>
-                        <label htmlFor="apellido_cliente" className="block text-gray-600 mb-1">APELLIDO</label>
-                        <InputText 
+                    </span>
+
+                    <span>
+                        <label htmlFor="apellido_cliente" className="text-xs font-semibold text-gray-700 mb-1">APELLIDO</label>
+                        <InputText
                             id="apellido_cliente"
                             name="apellido_cliente"
                             value={nuevoCliente.apellido_cliente}
                             onChange={handleChange}
-                            className="w-full border border-gray-300 rounded px-3 py-2"
+                            className="w-full rounded-xl h-9 text-sm"
                         />
-                    </div>
+                    </span>
                 </div>
 
-                {/* Identidad */}
-                <div>
-                    <label htmlFor="identidad_cliente" className="block text-gray-600 mb-1">IDENTIDAD</label>
-                    <InputMask 
-                        id="identidad_cliente"
-                        value={nuevoCliente.identidad_cliente}
-                        onChange={handleChange}
-                        mask="0000-00000-000000"
-                        placeholder="0000-00000-000000"
-                        className="w-full border border-gray-300 rounded px-3 py-2"
-                    />
-                </div>
+                {/*IDENTIDAD Y TELEFONO*/}
+                <div className="grid grid-cols-2 gap-3">
+                    <span>
+                        <label htmlFor="identidad_cliente" className="text-xs font-semibold text-gray-700 mb-1">IDENTIDAD</label>
+                        <InputMask
+                            id="identidad_cliente"
+                            name="identidad_cliente"
+                            value={nuevoCliente.identidad_cliente}
+                            onChange={(e) => setNuevoCliente({ ...nuevoCliente, identidad_cliente: e.value })}
+                            mask="9999-9999-99999"
+                            className="w-full rounded-xl h-9 text-sm"
+                            placeholder="0000-0000-00000"
+                        />
+                    </span>
 
-                {/* Teléfono */}
-                <div>
-                    <label htmlFor="telefono_cliente" className="block text-gray-600 mb-1">TELÉFONO</label>
-                    <InputText 
-                        id="telefono_cliente"
-                        name="telefono_cliente"
-                        type="tel"
-                        value={nuevoCliente.telefono_cliente}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 rounded px-3 py-2"
-                    />
+                    <span>
+                        <label htmlFor="telefono_cliente" className="text-xs font-semibold text-gray-700 mb-1">TÉLEFONO</label>
+                        <InputText
+                            id="telefono_cliente"
+                            name="telefono_cliente"
+                            value={nuevoCliente.telefono_cliente}
+                            onChange={handleChange}
+                            className="w-full rounded-xl h-9 text-sm"
+                            placeholder="0000-0000"
+                        />
+                    </span>
                 </div>
+            </div>
 
-                <Button type="submit" label="Guardar" className="w-full mt-2" />
-            </form>
+            
         </div>
+    </Dialog>
     );
 }
