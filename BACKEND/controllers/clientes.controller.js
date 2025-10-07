@@ -70,13 +70,16 @@ exports.ver = async (req, res) => {
 exports.actualizar = async (req, res) => {
 
     const conn = await mysqlConnection.getConnection();
-   
-    const { id } = req.body;
+
+    await conn.beginTransaction();
 
     try{
 
+        const {id_cliente} = req.body;
+
         await conn.query('CALL sp_update_cliente (?,?,?,?,?)',
             [
+                id_cliente,
                 req.body.nombre_cliente || null,  
                 req.body.apellido_cliente || null,
                 req.body.identidad_cliente || null,
@@ -87,8 +90,9 @@ exports.actualizar = async (req, res) => {
         await conn.commit();
         res.status(200).json({
             Consulta: true,
-            mensaje: 'Servicio eliminado con éxito',
-            id
+            mensaje: 'Servicio actualizado con éxito',
+            id_cliente
+            
         });
         
     } catch (err) {
