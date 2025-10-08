@@ -9,77 +9,102 @@ const TIPOS_PRODUCTOS = {
     MEDICAMENTOS: 4    
 };
 
-
-// ─────────────────────────────────────────────────────────
-//        ENDPOINT DE INSERTAR PRODUCTOS
-// ─────────────────────────────────────────────────────────
-
 //ESTOS ATRIBUTOS SON COMUNES PARA TODOS LOS ENDPOINT
 function insert_atributos_padre (body) {
     return[
         body.nombre_producto,
         body.precio_producto,
         body.stock,
-        body.imagen_url || null
+        body.imagen_url || null,
+        TIPOS_PRODUCTOS[body.tipo_producto]
     ];
 }
 
-//ENDOPINT DE INGRESAR PRODUCTOS
+
+// ─────────────────────────────────────────────────────────
+//        ENDPOINT DE INSERTAR PRODUCTOS
+// ─────────────────────────────────────────────────────────
 exports.crear = async (req, res) => {
 
+
     const conn = await mysqlConnection.getConnection();    
+
     try {
         
         await conn.beginTransaction(); //INICIO LA TRANSACCIÓN
 
-        //SE TRAE LA FUNCION CON LOS ATRIBUTOS PADRES
-        const atributosComunes = insert_atributos_padre(req.body);
+        //SE LLENA LA TABLA PADRE PRIMERO
+        const [result] = await conn.query(
+            `INSERT INTO tbl_productos (nombre_producto, precio_producto, stock, imagen_url, tipo_producto_fk)
+             VALUES (?, ?, ?, ?, ?)`,
+            insert_atributos_padre(req.body)
+        );
+
+        //OBTENGO EL ID DEL PRODUCTO INSERTADO
+        const id_producto = result.insertId;
+
 
         switch (req.body.tipo_producto) {
 
             case 'ACCESORIOS':
-                const [accesorio] = await conn.query ('CALL sp_insert_producto_accesorio (?,?,?,?,?,?)',
-                    [...atributosComunes, 
-                        TIPOS_PRODUCTOS.ACCESORIOS,
-                        req.body.tipo_accesorio
+                
+                const [accesorio] = await conn.query (
+                    `INSERT INTO tbl_accesorios_info (tipo_accesorio, id_producto_fk) VALUES (?, ?)`,
+                    [
+                        req.body.tipo_accesorio, 
+                        id_producto
                     ]);
                 break;
             
                 case 'ANIMALES':
                 
-                const [animal] = await conn.query ('CALL sp_insert_producto_animal(?,?,?,?,?,?,?)',
-                    [...atributosComunes, 
-                        TIPOS_PRODUCTOS.ANIMALES,
+                const [animal] = await conn.query (
+                    `INSERT INTO tbl_animales_info (especie, sexo, id_producto_fk) VALUES (?, ?)`,
+                    [
                         req.body.especie,
-                        req.body.sexo
+                        req.body.sexo,
+                        id_producto
                     ]);                               
                 break;
 
             case 'ALIMENTOS':
 
-                const [alimento] = await conn.query ('CALL sp_insert_producto_alimento (?,?,?,?,?,?,?)',
-                    [...atributosComunes, 
-                        TIPOS_PRODUCTOS.ALIMENTOS,
+                const [alimento] = await conn.query (
+                    `INSERT INTO tbl_alimentos_info (alimento_destinado, peso_alimento, id_producto_fk)
+                     VALUES (?,?,?)`,
+                    [
                         req.body.alimento_destinado,
-                        req.body.peso_alimento
+                        req.body.peso_alimento,
+                        id_producto
                     ]);                               
                 break;
 
             case 'MEDICAMENTOS':
-                const [medicamento] = await conn.query ('CALL sp_insert_producto_medicamento (?,?,?,?,?,?,?,?,?,?,?)',
+                const [medicamento] = await conn.query (
+                    `INSERT INTO tbl_medicamentos_info (presentacion_medicamento, tipo_medicamento, cantidad_contenido, 
+                                                        unidad_medida, id_producto_fk) 
+                                                        VALUES (?,?,?,?,?)`,
                     [
-                        req.body.nombre_producto,
-                        req.body.precio_producto,
-                        req.body.imagen_url || null,
-                        TIPOS_PRODUCTOS.MEDICAMENTOS,
                         req.body.presentacion_medicamento,
                         req.body.tipo_medicamento,
                         req.body.cantidad_contenido,
                         req.body.unidad_medida,
-                        req.body.codigo_lote,
-                        req.body.fecha_vencimiento,
-                        req.body.stock_lote
+                        id_producto
                     ]);
+
+                    //OBTENGO EL ID DEL MEDICAMENTO PARA PODER INGRESAR EL PRIMER LOTE
+                    const id_medicamento = medicamento.insertId;
+
+                    const [lote] = await conn.query(
+                        `INSERT INTO tbl_lotes_medicamentos (codigo_lote, fecha_vencimiento, stock_lote, id_medicamento_fk)
+                        VALUES (?, ?, ?, ?)`,
+                        [
+                            req.body.codigo_lote,
+                            req.body.fecha_vencimiento,
+                            req.body.stock_lote,
+                            id_medicamento
+                        ]
+                    );
                 break;
 
             default:
@@ -135,54 +160,85 @@ exports.actualizar = async (req, res) => {
 
         await conn.beginTransaction();
 
-        //ATRIBUTOS QUE USAN TODAS LAS TABLAS (ATRIBUTOS DE LA TABLA PADRE)
-        const atributosNuevos = update_atributos_padre(req.body);
-
         const { id_producto, tipo_producto } = req.body;
 
-        if (!id_producto) throw new Error("Debe enviar el ID del producto a actualizar");
+        //SE ACTUALIZA PRIMERO LA TABLA PADRE
+        const [result] = await conn.query(
+            `UPDATE tbl_productos
+            SET
+                nombre_producto = COALESCE(?, nombre_producto),
+                precio_producto = COALESCE(?, precio_producto),
+                sku             = COALESCE(?, sku),
+                stock           = COALESCE(?, stock),
+                stock_minimo    = COALESCE(?, stock_minimo),
+                activo          = COALESCE(?, activo),
+                imagen_url      = COALESCE(?, imagen_url)
+            WHERE id_producto_pk = ?`, 
+            [...update_atributos_padre(req.body), id_producto]
+        );
+        
+        
 
         switch (tipo_producto) {
             
             case 'ANIMALES':
 
-                await conn.query('CALL sp_update_producto_animal(?,?,?,?,?,?,?,?,?,?)',
-                [   id_producto,
-                    ...atributosNuevos, 
+                await conn.query(
+                `UPDATE tbl_animales_info
+                SET 
+                    especie = COALESCE(?, especie),
+                    sexo    = COALESCE(?, sexo)
+                WHERE id_producto_fk = ?`,
+                [   
                     req.body.especie || null,
-                    req.body.sexo || null
+                    req.body.sexo || null,
+                    id_producto,
                 ]);                               
                 break;
             
             case 'ALIMENTOS':
-                await conn.query('CALL sp_update_producto_alimento(?,?,?,?,?,?,?,?,?,?)',
-                [   id_producto,
-                    ...atributosNuevos, 
+                
+                await conn.query(
+                `UPDATE tbl_alimentos_info
+                SET 
+                    alimento_destinado = COALESCE(?, alimento_destinado),
+                    peso_alimento    = COALESCE(?, peso_alimento)
+                WHERE id_producto_fk = ?`,
+                [   
                     req.body.alimento_destinado || null,
-                    req.body.peso_alimento || null
+                    req.body.peso_alimento || null,
+                    id_producto,
                 ]);                               
                 break;
             
             case 'ACCESORIOS':
-                await conn.query('CALL sp_update_producto_accesorio(?,?,?,?,?,?,?,?,?)',
-                [   id_producto,
-                    ...atributosNuevos, 
-                    req.body.tipo_accesorio || null
+                await conn.query(
+                `UPDATE tbl_accesorios_info
+                SET
+                    tipo_accesorio = COALESCE(?, tipo_accesorio)
+                WHERE id_producto_fk = ?`,
+                [   
+                    req.body.tipo_accesorio || null,
+                    id_producto
                 ]);                               
                 break;
             
             case 'MEDICAMENTOS':
 
-                await conn.query('CALL sp_update_producto_medicamento(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-                [   id_producto,
-                    ...atributosNuevos, 
-                    req.body.presentacion_medicamento,
-                    req.body.tipo_medicamento,
-                    req.body.cantidad_contenido,
-                    req.body.unidad_medida,
-                    req.body.codigo_lote,
-                    req.body.fecha_vencimiento,
-                    req.body.stock_lote
+                await conn.query(
+                `UPDATE tbl_medicamentos_info
+                SET 
+                    presentacion_medicamento = COALESCE(?, presentacion_medicamento),
+                    tipo_medicamento         = COALESCE(?, tipo_medicamento),
+                    cantidad_contenido       = COALESCE(?, cantidad_contenido),
+                    unidad_medida            = COALESCE(?, unidad_medida)
+                WHERE id_producto_fk = ?`,
+                [   
+                    req.body.presentacion_medicamento || null,
+                    req.body.tipo_medicamento || null,
+                    req.body.cantidad_contenido || null,
+                    req.body.unidad_medida || null,
+                    id_producto
                 ]);                               
                 break;
 
@@ -213,7 +269,6 @@ exports.actualizar = async (req, res) => {
 // ─────────────────────────────────────────────────────────
 //              ENDPOINT PARA VER LOS PRODUCTOS
 // ─────────────────────────────────────────────────────────
-
 //ENDPOINT DE VER LISTA DE PRODUCTOS
 exports.ver = async (req, res) => {
 
@@ -227,19 +282,75 @@ exports.ver = async (req, res) => {
 
 
             case 'ACCESORIOS':
-                [registros] = await conn.query('CALL sp_select_producto_accesorios()');
+                [registros] = await conn.query(
+                    `SELECT 
+                        p.id_producto_pk,
+                        p.nombre_producto,
+                        p.precio_producto,
+                        p.sku,
+                        p.stock,
+                        p.stock_minimo,
+                        p.activo,
+                        p.imagen_url,
+                        ac.tipo_accesorio
+                    FROM tbl_productos p 
+                    INNER JOIN tbl_accesorios_info ac ON p.id_producto_pk = ac.id_producto_fk`);
                 break;
             
             case 'ANIMALES':
-                [registros] = await conn.query('CALL sp_select_producto_animales()');
+                [registros] = await conn.query(
+                    `SELECT 
+                        p.id_producto_pk,
+                        p.nombre_producto,
+                        p.precio_producto,
+                        p.sku,
+                        p.stock,
+                        p.stock_minimo,
+                        p.activo,
+                        p.imagen_url,
+                        a.especie,
+                        a.sexo
+                    FROM tbl_productos p
+                    INNER JOIN tbl_animales_info a 
+                        ON p.id_producto_pk = a.id_producto_fk`);
                 break;
             
             case 'ALIMENTOS':
-                [registros] = await conn.query('CALL sp_select_producto_alimentos()');
+                [registros] = await conn.query(
+                    `SELECT 
+                        p.id_producto_pk,
+                        p.nombre_producto,
+                        p.precio_producto,
+                        p.sku,
+                        p.stock,
+                        p.stock_minimo,
+                        p.activo,
+                        p.imagen_url,
+                        al.alimento_destinado,
+                        al.peso_alimento
+                    FROM tbl_productos p
+                    INNER JOIN tbl_alimentos_info al ON p.id_producto_pk = al.id_producto_fk`
+                );
                 break;
 
             case 'MEDICAMENTOS':
-                [registros] = await conn.query('CALL sp_select_producto_medicamentos()');
+                [registros] = await conn.query(
+                    `SELECT 
+                        p.id_producto_pk,
+                        p.nombre_producto,
+                        p.precio_producto,
+                        p.sku,
+                        p.stock,
+                        p.stock_minimo,
+                        p.activo,
+                        p.imagen_url,
+                        m.presentacion_medicamento,
+                        m.tipo_medicamento,
+                        m.cantidad_contenido,
+                        m.unidad_medida
+                    FROM tbl_productos p
+                    INNER JOIN tbl_medicamentos_info m 
+                        ON p.id_producto_pk = m.id_producto_fk`);
                 break;
 
             default:
@@ -248,7 +359,7 @@ exports.ver = async (req, res) => {
 
         res.json({
             Consulta: true,
-            productos: registros[0] || []
+            productos: registros || []
         });
 
     } catch (err) {
@@ -275,9 +386,7 @@ exports.eliminar = async (req, res) => {
 
         const {id_producto } = req.body;
 
-        if (!id_producto) throw new Error("Debe enviar el ID del producto a eliminar");
-
-        await conn.query('CALL sp_delete_productos(?)', [id_producto]);
+        await conn.query(`DELETE FROM tbl_productos WHERE id_producto_pk = ?`, [id_producto]);
 
         await conn.commit();
         res.json({
@@ -297,4 +406,3 @@ exports.eliminar = async (req, res) => {
     }
 
 };
-
