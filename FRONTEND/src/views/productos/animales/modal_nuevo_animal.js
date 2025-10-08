@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
@@ -13,9 +13,10 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
     sexo: '',
     precio: '',
     cantidad: '',
-    imagenUrl: ''
+    imagenUrl: '' 
   });
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const especies = [
     { label: 'PERRO', value: 'PERRO' },
@@ -33,7 +34,18 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
 
   const handleChange = (field, value) => {
     const val = ['nombre','especie','sexo'].includes(field) ? value.toUpperCase() : value;
-    setData((prev) => ({ ...prev, [field]: val }));
+    setData(prev => ({ ...prev, [field]: val }));
+  };
+
+  // ⚡ Convierte archivo a Base64
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setData(prev => ({ ...prev, imagenUrl: reader.result }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async () => {
@@ -48,7 +60,7 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
         nombre_producto: data.nombre,
         precio_producto: data.precio,
         stock: data.cantidad,
-        imagen_url: data.imagenUrl || null,
+        imagen_base64: data.imagenUrl || null, 
         tipo_producto: 'ANIMALES',
         especie: data.especie,
         sexo: data.sexo
@@ -67,7 +79,7 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
           tipo_producto: 'ANIMALES',
           imagenUrl: data.imagenUrl || '',
           especie: data.especie,
-          sexo: data.sexo,
+          sexo: data.sexo
         };
 
         onSave(nuevoAnimal);
@@ -108,7 +120,7 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
       visible={isOpen}
       style={{ width: '38rem', borderRadius: '1.5rem' }}
       modal
-      closable={false}  // 🔹 Oculta la X de la esquina superior
+      closable={false}
       onHide={onClose}
       footer={footer}
     >
@@ -179,13 +191,30 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
           </span>
         </div>
 
-        {/* Imagen visual (solo visual) */}
-        <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl p-4 mt-2 hover:border-blue-400 transition-all cursor-pointer">
-          <i className="pi pi-image text-3xl text-gray-400 mb-2"></i>
-          <p className="text-gray-500 text-sm text-center">
-            Haz clic para subir una imagen (solo visual)
-          </p>
+        {/* Selector de Imagen */}
+        <div
+          className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl p-4 mt-2 hover:border-blue-400 transition-all cursor-pointer"
+          onClick={() => fileInputRef.current.click()}
+        >
+          {data.imagenUrl ? (
+            <img src={data.imagenUrl} alt="preview" className="h-32 w-32 object-contain rounded-xl" />
+          ) : (
+            <>
+              <i className="pi pi-image text-3xl text-gray-400 mb-2"></i>
+              <p className="text-gray-500 text-sm text-center">
+                Haz clic para subir una imagen
+              </p>
+            </>
+          )}
         </div>
+
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept="image/*"
+          onChange={handleFileChange}
+        />
       </div>
     </Dialog>
   );

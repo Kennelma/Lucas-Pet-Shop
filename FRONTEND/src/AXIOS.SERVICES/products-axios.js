@@ -16,7 +16,7 @@ export const verProductos = async (tipo_producto) => {
 };
 
 
-/*SERVICIO PARA INSERTAR PRODUCTO*/
+//SERVICIO PARA INSERTAR PRODUCTO
 export const insertarProducto = async (datosProducto) => {
   try {
     const res = await axios.post(`${API_URL}/insertar`, datosProducto);
@@ -26,6 +26,8 @@ export const insertarProducto = async (datosProducto) => {
     return { Consulta: false, error: err.message };
   }
 };
+
+
 
 /*SERVICIO PARA ACTUALIZAR PRODUCTO*/
 export const actualizarProducto = async (datosProducto) => {
