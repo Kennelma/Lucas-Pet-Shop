@@ -120,7 +120,7 @@ const Animales = () => {
           {animalesFiltrados.map((a, index)=>(
             <div key={a.id_producto} className="bg-gray-100 rounded-xl shadow-sm p-4 relative hover:shadow-md transition">
               
-              <div className="bg-white rounded-lg p-2 mb-4 h-32 flex items-center justify-center overflow-hidden">
+              <div className="w-full h-32 flex items-center justify-center">
                 {a.imagenUrl ? (
                   <img src={a.imagenUrl} alt={a.nombre} className="w-full h-full object-contain"/>
                 ) : (
