@@ -9,10 +9,11 @@ import { Toast } from 'primereact/toast';
 
 import { verClientes, eliminarCliente } from "../../AXIOS.SERVICES/clients-axios.js";
 
-import FormularioCliente from "./modal_agregar.js";
-import FormularioActualizarCliente from "./modal_actualizar.js"; 
+import FormularioCliente from "./modal-agregar.js";
+import FormularioActualizarCliente from "./modal-actualizar.js"; 
 
 const TablaClientes = ({ setClienteSeleccionado }) => {
+    
     //ESTADOS A UTILIZAR
     const [clientes, setClientes] = useState([]);
     const [loading, setLoading] = useState(true);
