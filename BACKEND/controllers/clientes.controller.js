@@ -11,14 +11,14 @@ exports.crear = async (req, res) => {
 
     try {
 
-        await conn.query(`INSERT INTO tbl_clientes (nombre_cliente, apellido_cliente, identidad_cliente, telefono_cliente) 
-                        VALUES (?, ?, ?, ?)`,
-                        [   
-                            req.body.nombre_cliente,  
-                            req.body.apellido_cliente,
-                            req.body.identidad_cliente,
-                            req.body.telefono_cliente 
-                        ]
+        await conn.query(
+        `INSERT INTO tbl_clientes (nombre_cliente, apellido_cliente, identidad_cliente, telefono_cliente) VALUES (?, ?, ?, ?)`,
+        [   
+           req.body.nombre_cliente,  
+           req.body.apellido_cliente,
+           req.body.identidad_cliente,
+           req.body.telefono_cliente 
+        ]                
         );
 
         await conn.commit();
