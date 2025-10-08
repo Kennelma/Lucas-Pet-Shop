@@ -9,8 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { InputText } from 'primereact/inputtext';
-import { faPlus, faPenToSquare, faTrash, faSearch } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from 'react';
 
@@ -72,111 +71,128 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
-      <div className="flex justify-between items-center mb-5 pb-4 border-b border-gray-200">
-      <h2 className="text-xl font-semibold text-gray-800">Gestión de Servicios de Peluquería</h2>
-      <button 
-        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
-        onClick={() => abrirModalServicio(null)}
-      >
-        <FontAwesomeIcon icon={faPlus} />
-        Nuevo Servicio
-      </button>
+      {/* Título con imagen decorativa */}
+      <div className="flex justify-center items-center mb-5 relative">
+        <div className="absolute left-0 opacity-20">
+          <img 
+            src="/cat.png" 
+            alt="Mascota" 
+            className="w-12 h-12 object-contain"
+          />
+        </div>
+        <h2 className="text-2xl font-bold text-center uppercase text-gray-800">
+          Servicios de Peluquería
+        </h2>
+      </div>
+
+      {/* Barra de búsqueda + botón Nuevo */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="relative w-80">
+          <input
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            placeholder="Buscar servicios..."
+            className="w-full px-4 py-2 border rounded-full"
+          />
+          {globalFilter && (
+            <button
+              onClick={() => setGlobalFilter('')}
+              className="absolute right-3 top-2 text-gray-500"
+            >
+              ×
+            </button>
+          )}
+        </div>
+
+        {/* Botón NUEVO redondeado tipo píldora */}
+        <button
+          className="bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-600 transition-colors flex items-center gap-2"
+          onClick={() => abrirModalServicio(null)}
+        >
+          <FontAwesomeIcon icon={faPlus} />
+          Nuevo Servicio
+        </button>
       </div>
 
       {servicios.length === 0 ? (
-      <div className="text-center py-12">
-        <ScissorsIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">No hay servicios</h3>
-        <p className="text-gray-500 mb-6">Crea tu primer servicio de peluquería para mascotas.</p>
-        <button 
-        className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors inline-flex items-center gap-2"
-        onClick={() => abrirModalServicio(null)}
-        >
-        <FontAwesomeIcon icon={faPlus} />
-        </button>
-      </div>
+        <div className="text-center py-12">
+          <ScissorsIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+          <h3 className="text-lg font-semibold text-gray-700 mb-2 uppercase">No hay servicios</h3>
+          <p className="text-gray-500 mb-6">Crea tu primer servicio de peluquería para mascotas.</p>
+          <button 
+            className="bg-green-500 text-white px-6 py-3 rounded-full hover:bg-green-600 transition-colors inline-flex items-center gap-2"
+            onClick={() => abrirModalServicio(null)}
+          >
+            <FontAwesomeIcon icon={faPlus} />
+            Nuevo Servicio
+          </button>
+        </div>
       ) : (
-      <>
-        <div className="mb-4 relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <FontAwesomeIcon icon={faSearch} className="text-gray-400" />
-        </div>
-        <InputText
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          placeholder="Buscar servicios..."
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-        />
-        </div>
-
-        <DataTable
-        value={servicios}
-        loading={false}
-        loadingIcon={() => (
-          <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
-          <span>Cargando datos...</span>
-          </div>
-        )}
-        globalFilter={globalFilter}
-        showGridlines
-        paginator
-        rows={10}
-        rowsPerPageOptions={[10, 20, 25]}
-        paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-        tableStyle={{ minWidth: '50rem' }}
-        className="mt-4"
-        size="small"
-        selectionMode="single"
-        rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}        
-        >
-
-        <Column field="id_servicio_peluqueria_pk" header="ID" body={(rowData, options) => options.rowIndex + 1} sortable className="text-sm"/>
-        <Column field="nombre_servicio_peluqueria" header="Servicio" sortable className="text-sm"></Column>
-        <Column field="descripcion_servicio" header="Descripción" className="text-sm"></Column>
-        <Column 
-          field="precio_servicio"
-          header="Precio" 
-          body={(rowData) => `L. ${parseFloat(rowData.precio_servicio || 0).toFixed(2)}`}
-          sortable 
-          sortField="precio_servicio"
-          dataType="numeric"
-          sortFunction={(e) => {
-          const value1 = parseFloat(e.data1.precio_servicio || 0);
-          const value2 = parseFloat(e.data2.precio_servicio || 0);
-          return e.order * (value1 - value2);
-          }}
-          className="text-sm"
-        ></Column>
-        <Column 
-          field="duracion_estimada"
-          header="Duración" 
-          body={(rowData) => `${rowData.duracion_estimada} min`}
-          sortable
-          sortField="duracion_estimada"
-          dataType="numeric"
-          sortFunction={(e) => {
-          const value1 = parseInt(e.data1.duracion_estimada || 0);
-          const value2 = parseInt(e.data2.duracion_estimada || 0);
-          return e.order * (value1 - value2);
-          }}
-          className="text-sm"
-        ></Column>
-        <Column field="requisitos" header="Requisitos" className="text-sm"></Column>
-        <Column 
-          field="activo"
-          header="Estado" 
-          body={estadoTemplate}
-          sortable
-          sortField="activo"
-          className="text-sm"
-        ></Column>
-        <Column header="Acciones" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm"></Column>
-        </DataTable>
-      </>
+        <>
+          <DataTable
+            value={servicios}
+            loading={false}
+            loadingIcon={() => (
+              <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
+                <span>Cargando datos...</span>
+              </div>
+            )}
+            globalFilter={globalFilter}
+            globalFilterFields={['id_servicio_peluqueria_pk', 'nombre_servicio_peluqueria', 'descripcion_servicio', 'precio_servicio', 'duracion_estimada', 'requisitos']}
+            showGridlines
+            paginator
+            rows={10}
+            rowsPerPageOptions={[10, 20, 25]}
+            paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+            tableStyle={{ minWidth: '50rem' }}
+            className="mt-4"
+            size="small"
+            selectionMode="single"
+            rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}        
+          >
+            <Column 
+              field="id_servicio_peluqueria_pk" 
+              header="ID" 
+              body={(rowData) => servicios.indexOf(rowData) + 1} 
+              sortable 
+              className="text-sm"
+            />
+            <Column field="nombre_servicio_peluqueria" header="Servicio" sortable className="text-sm"></Column>
+            <Column field="descripcion_servicio" header="Descripción" className="text-sm"></Column>
+            <Column 
+              field="precio_servicio"
+              header="Precio" 
+              body={(rowData) => `L. ${parseFloat(rowData.precio_servicio || 0).toFixed(2)}`}
+              sortable 
+              sortField="precio_servicio"
+              dataType="numeric"
+              className="text-sm"
+            ></Column>
+            <Column 
+              field="duracion_estimada"
+              header="Duración" 
+              body={(rowData) => `${rowData.duracion_estimada} Min`}
+              sortable
+              sortField="duracion_estimada"
+              dataType="numeric"
+              className="text-sm"
+            ></Column>
+            <Column field="requisitos" header="Requisitos" className="text-sm"></Column>
+            <Column 
+              field="activo"
+              header="Estado" 
+              body={estadoTemplate}
+              sortable
+              sortField="activo"
+              className="text-sm"
+            ></Column>
+            <Column header="Acciones" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm"></Column>
+          </DataTable>
+        </>
       )}
     </div>
-    );
+  );
 };
 
 export default ServiciosSeccion;

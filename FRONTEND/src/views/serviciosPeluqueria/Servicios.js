@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { ScissorsIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 
 import { 
@@ -154,20 +153,22 @@ const Servicios = () => {
       icon: 'warning',
       title: '¿Eliminar servicio?',
       html: `
-        <div style="text-align: left; margin-top: 16px; padding: 16px; background: #f9fafb; border-radius: 8px;">
-          <p style="margin-bottom: 8px;"><strong>Nombre:</strong> ${servicio.nombre_servicio_peluqueria}</p>
-          <p style="margin-bottom: 8px;"><strong>Precio:</strong> L. ${parseFloat(servicio.precio_servicio || 0).toFixed(2)}</p>
-          <p style="margin-bottom: 8px;"><strong>Duración:</strong> ${servicio.duracion_estimada} minutos</p>
-          <p style="margin-bottom: 0;"><strong>Descripción:</strong> ${servicio.descripcion_servicio.substring(0, 60)}...</p>
+        <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
+          <p class="mb-1 text-sm"><span class="font-bold">Nombre:</span> ${servicio.nombre_servicio_peluqueria}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Precio:</span> L. ${parseFloat(servicio.precio_servicio || 0).toFixed(2)}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Duración:</span> ${servicio.duracion_estimada} min</p>
+          <p class="mb-0 text-sm"><span class="font-bold">Descripción:</span> ${servicio.descripcion_servicio.substring(0, 40)}...</p>
         </div>
-        <p style="margin-top: 16px; color: #ef4444; font-weight: bold;">Esta acción no se puede deshacer</p>
+        <p class="mt-2 text-red-500 font-bold text-xs">Esta acción no se puede deshacer</p>
       `,
       showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'Eliminar',
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#ef4444',
       cancelButtonColor: '#6b7280',
-      reverseButtons: true
+      reverseButtons: true,
+      width: 380,
+      padding: '16px'
     });
 
     if (result.isConfirmed) {
