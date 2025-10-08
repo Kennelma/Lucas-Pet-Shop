@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import loginPhoto from './login-photo.jpg'
-import { loginUsuario } from '../../../services/apiService.js'
+
+//import { loginUsuario } from '../../../services/apiService.js'
 
 const Login = () => {
   const navigate = useNavigate()
@@ -120,4 +121,4 @@ const Login = () => {
   )
 }
 
-//export default Login
+export default Login

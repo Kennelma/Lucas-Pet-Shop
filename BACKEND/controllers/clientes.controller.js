@@ -7,20 +7,21 @@ exports.crear = async (req, res) => {
 
     const conn = await mysqlConnection.getConnection();
 
-    await conn.beginTransaction(); //INICIO LA TRANSACCIÓN
+    await conn.beginTransaction();
 
     try {
-        
-        await conn.query('CALL sp_insert_cliente (?,?,?,?)',
-            [
-                req.body.nombre_cliente, 
-                req.body.apellido_cliente,
-                req.body.identidad_cliente, 
-                req.body.telefono_cliente
-            ]
+
+        await conn.query(
+        `INSERT INTO tbl_clientes (nombre_cliente, apellido_cliente, identidad_cliente, telefono_cliente) VALUES (?, ?, ?, ?)`,
+        [   
+           req.body.nombre_cliente,  
+           req.body.apellido_cliente,
+           req.body.identidad_cliente,
+           req.body.telefono_cliente 
+        ]                
         );
 
-        await conn.commit(); //CONFIRMO LA TRANSACCIÓN
+        await conn.commit();
 
         res.status(200).json({
             Consulta: true,
@@ -28,14 +29,14 @@ exports.crear = async (req, res) => {
         });
 
     } catch (err) {
-        await conn.rollback(); //REVIERTO LA CONSULTA SI HAY ERROR
+
+        await conn.rollback();
         res.status(500).json({
             Consulta: false,
             error: err.message
         });
-
     } finally {
-        conn.release(); //LIBERO LA CONEXION
+        conn.release();
     }
 };
 
@@ -47,11 +48,11 @@ exports.ver = async (req, res) => {
 
     try {
         //SE EJECUTA EL PROCEDIMIENTO
-        const [rows] = await conn.query('CALL sp_select_clientes()');
+        const [clientes] = await conn.query(`SELECT * FROM tbl_clientes ORDER BY id_cliente_pk DESC`);
 
         res.status(200).json({
             Consulta: true,
-            clientes: rows [0] || []
+            clientes: clientes || []
         });
 
     } catch (error) {
@@ -70,25 +71,35 @@ exports.ver = async (req, res) => {
 exports.actualizar = async (req, res) => {
 
     const conn = await mysqlConnection.getConnection();
-   
-    const { id } = req.body;
+
+    await conn.beginTransaction();
 
     try{
 
-        await conn.query('CALL sp_update_cliente (?,?,?,?,?)',
+        const { id_cliente } = req.body;
+
+        await conn.query(
+                `UPDATE tbl_clientes
+                SET nombre_cliente = COALESCE(?, nombre_cliente),
+                    apellido_cliente = COALESCE(?, apellido_cliente),
+                    identidad_cliente = COALESCE(?, identidad_cliente),
+                    telefono_cliente = COALESCE(?, telefono_cliente)
+                WHERE id_cliente_pk = ?`,
             [
-                req.body.nombre_cliente || null,  
+                req.body.nombre_cliente || null,
                 req.body.apellido_cliente || null,
                 req.body.identidad_cliente || null,
-                req.body.telefono_cliente || null
+                req.body.telefono_cliente || null,
+                id_cliente
             ]
         );
 
         await conn.commit();
         res.status(200).json({
             Consulta: true,
-            mensaje: 'Servicio eliminado con éxito',
-            id
+            mensaje: 'Servicio actualizado con éxito',
+            id_cliente
+            
         });
         
     } catch (err) {
@@ -110,14 +121,14 @@ exports.actualizar = async (req, res) => {
 exports.eliminar = async (req, res) => {
 
     const conn = await mysqlConnection.getConnection();
-   
-    const { id } = req.body;
 
 
     try {
         await conn.beginTransaction();
 
-        await conn.query('CALL sp_delete_cliente(?)', [id]);
+        const { id } = req.body;
+
+        await conn.query(`DELETE FROM tbl_clientes WHERE id_cliente_pk = ?`, [id]);
 
         await conn.commit();
 
