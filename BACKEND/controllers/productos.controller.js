@@ -11,11 +11,14 @@ const TIPOS_PRODUCTOS = {
 
 //ESTOS ATRIBUTOS SON COMUNES PARA TODOS LOS ENDPOINT
 function insert_atributos_padre (body) {
+
+    const imagen = body.imagen_base64 ? body.imagen_base64 : null;
+
     return[
         body.nombre_producto,
         body.precio_producto,
         body.stock,
-        body.imagen_url || null,
+        imagen,
         TIPOS_PRODUCTOS[body.tipo_producto]
     ];
 }
@@ -25,7 +28,6 @@ function insert_atributos_padre (body) {
 //        ENDPOINT DE INSERTAR PRODUCTOS
 // ─────────────────────────────────────────────────────────
 exports.crear = async (req, res) => {
-
 
     const conn = await mysqlConnection.getConnection();    
 
@@ -56,16 +58,16 @@ exports.crear = async (req, res) => {
                     ]);
                 break;
             
-                case 'ANIMALES':
+            case 'ANIMALES':
                 
                 const [animal] = await conn.query (
-                    `INSERT INTO tbl_animales_info (especie, sexo, id_producto_fk) VALUES (?, ?)`,
+                    `INSERT INTO tbl_animales_info (especie, sexo, id_producto_fk) VALUES (?, ?, ?)`,
                     [
                         req.body.especie,
                         req.body.sexo,
                         id_producto
                     ]);                               
-                break;
+                break;    
 
             case 'ALIMENTOS':
 
@@ -140,6 +142,8 @@ exports.crear = async (req, res) => {
 //ATRIBUTOS COMUNES EN LOS REGISTROS, MEDIANTE LOS SP, SE PUEDE ACTUALIZAR O VARIOS ATRIBUTOS
 function update_atributos_padre (body) {
 
+    const imagen = body.imagen_base64 ? body.imagen_base64 : null;
+
     return[
         body.nombre_producto || null,
         body.precio_producto || null ,
@@ -147,7 +151,7 @@ function update_atributos_padre (body) {
         body.stock || null,
         body.stock_minimo || null,
         body.activo !== undefined ? body.activo : null,
-        body.imagen_url || null
+        imagen,
     ];
     
 }

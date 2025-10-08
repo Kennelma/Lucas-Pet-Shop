@@ -12,8 +12,6 @@ const servicios = require('../controllers/servicios.controller')
 //========== RUTAS DE AUTENTICACIÓN ==========
 router.post('/login', auth.login);
 
-
-
 //========== RUTAS DE SERVICIOS PELUQUERIA Y PROMOCIONES ==========
 router.post('/servicios-peluqueria/insertar', servicios.crear);
 router.put('/servicios-peluqueria/actualizar', servicios.actualizar);
