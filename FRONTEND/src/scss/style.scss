@@ -1,15 +1,14 @@
-
 @use "@coreui/coreui/scss/coreui" as * with (
     $enable-deprecation-messages: false
 );
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
 
 body {
   background-color: var(--cui-tertiary-bg);
+  font-family: 'Poppins', sans-serif;
 }
-
 
 .wrapper {
   width: 100%;
@@ -17,7 +16,6 @@ body {
   will-change: auto;
   @include transition(padding .15s);
 }
-
 
 .header > .container-fluid,
 .sidebar-header {
@@ -55,13 +53,30 @@ body {
   min-height: 3rem;
 }
 
-
 .footer {
   min-height: calc(3rem + 1px);
 }
 
 body {
-  background-color: #ffffff;  // ← Para tema claro (blanco)
+  background-color: #ffffff;
+}
+
+/* Header con el mismo color que sidebar */
+.header {
+  background-color: #f0f4f8 !important;
+}
+
+/* Footer con el mismo color */
+.footer {
+  background-color: #f0f4f8 !important;
+  min-height: calc(3rem + 1px);
+}
+
+ol, ul {
+  padding-inline-start: 2rem;
+  &.p-dropdown-items {
+    padding-inline-start: 0rem !important;
+  }
 }
 
 @include color-mode(dark) {
@@ -78,26 +93,188 @@ body {
   }
 }
 
-ol, ul {
-  padding-inline-start: 2rem;
-  &.p-dropdown-items {
-    padding-inline-start: 0rem !important;
+/* ========================================
+   ESTILOS MEJORADOS DEL SIDEBAR
+   ======================================== */
+
+/* Tipografía mejorada para el sidebar */
+.sidebar {
+  font-family: 'Poppins', sans-serif;
+  
+  /* OPCIÓN 2: Azul muy claro - Profesional y tech */
+  background-color: #f0f4f8 !important;
+  
+  /* Brand / Logo en negro */
+  .sidebar-brand {
+    color: #000000 !important;
+    font-weight: 600;
+    
+    svg, .sidebar-brand-full, .sidebar-brand-narrow {
+      color: #000000 !important;
+      fill: #000000 !important;
+    }
+  }
+
+  /* Títulos de sección en negro */
+  .nav-title {
+    color: #000000 !important;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-top: 1.5rem;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Links de navegación en negro */
+  .nav-link {
+    color: #000000 !important;
+    font-weight: 400;
+    font-size: 0.9375rem;
+    letter-spacing: 0.01em;
+    transition: all 0.2s ease;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.25rem;
+    border-radius: 0.5rem;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+
+    &:hover {
+      color: #000000 !important;
+      font-weight: 500;
+      background-color: rgba(0, 0, 0, 0.05);
+      transform: translateX(4px);
+    }
+
+    &.active {
+      color: #2563eb !important; // Azul vibrante
+      font-weight: 600;
+      background-color: rgba(37, 99, 235, 0.08); // Fondo azul suave
+      border-left: 4px solid #2563eb; // Borde azul
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+    }
+  }
+
+  /* Iconos en negro, azul cuando activo */
+  .nav-icon {
+    color: #000000 !important;
+    fill: #000000 !important;
+    margin-right: 0.75rem;
+    font-size: 1rem;
+    font-weight: 300;
+    transition: all 0.2s ease;
+  }
+
+  .nav-link.active .nav-icon {
+    color: #2563eb !important;
+    fill: #2563eb !important;
+    transform: scale(1.1);
+  }
+
+  /* Grupos desplegables */
+  .nav-group-toggle {
+    color: #000000 !important;
+    font-weight: 500;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.25rem;
+    border-radius: 0.5rem;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+      transform: translateX(4px);
+    }
+
+    // Cuando el grupo está activo (expandido y con un hijo seleccionado)
+    &.active {
+      color: #dc2626 !important; // Rojo
+      font-weight: 600;
+      background-color: rgba(220, 38, 38, 0.08);
+      border-left: 4px solid #dc2626;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+
+      .nav-icon {
+        color: #dc2626 !important;
+        fill: #dc2626 !important;
+      }
+    }
+  }
+
+  // Forzar estilo rojo cuando el nav-group tiene la clase active
+  .nav-group.active > .nav-group-toggle {
+    color: #dc2626 !important;
+    font-weight: 600;
+    background-color: rgba(220, 38, 38, 0.08);
+    border-left: 4px solid #dc2626;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+
+    .nav-icon, svg {
+      color: #dc2626 !important;
+      fill: #dc2626 !important;
+    }
+  }
+
+  .nav-group-items {
+    .nav-link {
+      padding-left: 3rem;
+      padding-top: 0.625rem;
+      padding-bottom: 0.625rem;
+      font-size: 0.875rem;
+      font-weight: 400;
+      margin-bottom: 0.125rem;
+      border-radius: 0.5rem;
+      margin-left: 0.5rem;
+      margin-right: 0.5rem;
+      
+      &:hover {
+        font-weight: 500;
+        transform: translateX(4px);
+      }
+      
+      // Sub-items activos en azul
+      &.active {
+        font-weight: 600;
+        color: #2563eb !important; // Azul
+        background-color: rgba(37, 99, 235, 0.08);
+        border-left: 4px solid #2563eb;
+        box-shadow: 0 1px 4px rgba(37, 99, 235, 0.1);
+
+        .nav-icon {
+          color: #2563eb !important;
+          fill: #2563eb !important;
+        }
+      }
+    }
+  }
+
+  /* Footer del sidebar */
+  .sidebar-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  /* Toggler en negro */
+  .sidebar-toggler {
+    color: #000000 !important;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
   }
 }
 
-/*
-.datatable-gridlines {
-  .p-datatable-tbody > tr > td,
-  .p-datatable-thead > tr > th {
-    border: 1px solid #d1d5db !important;
+/* Botón de cerrar en negro */
+.sidebar-header {
+  .btn-close {
+    filter: brightness(0);
   }
 }
 
-/*.sidebar .nav-link,
-.sidebar .nav-title,
-.sidebar .nav-item,
-.sidebar .sidebar-footer,
-.sidebar .sidebar-header .btn {
-  font-family: 'Poppins', Verdana, Arial, sans-serif !important;
-  font-weight: 400;
-}*/
+/* Border más definido */
+.sidebar.border-end {
+  border-right: 2px solid rgba(0, 0, 0, 0.08) !important;
+}
