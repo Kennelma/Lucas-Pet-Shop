@@ -1,5 +1,5 @@
 import React from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import PropTypes from 'prop-types'
 
 import SimpleBar from 'simplebar-react'
@@ -8,6 +8,20 @@ import 'simplebar-react/dist/simplebar.min.css'
 import { CBadge, CNavLink, CSidebarNav } from '@coreui/react'
 
 export const AppSidebarNav = ({ items }) => {
+  const location = useLocation()
+
+  // Función para verificar si un grupo tiene un hijo activo
+  const isGroupActive = (item) => {
+    if (!item.items) return false
+    return item.items.some(subItem => {
+      if (subItem.items) {
+        // Si el sub-item también tiene hijos, verificar recursivamente
+        return isGroupActive(subItem)
+      }
+      return location.pathname === subItem.to
+    })
+  }
+
   const navLink = (name, icon, badge, indent = false) => {
     return (
       <>
@@ -51,8 +65,17 @@ export const AppSidebarNav = ({ items }) => {
   const navGroup = (item, index) => {
     const { component, name, icon, items, to, ...rest } = item
     const Component = component
+    const hasActiveChild = isGroupActive(item)
+    
     return (
-      <Component compact as="div" key={index} toggler={navLink(name, icon)} {...rest}>
+      <Component 
+        compact 
+        as="div" 
+        key={index} 
+        toggler={navLink(name, icon)} 
+        className={hasActiveChild ? 'active' : ''}
+        {...rest}
+      >
         {items?.map((item, index) =>
           item.items ? navGroup(item, index) : navItem(item, index, true),
         )}
