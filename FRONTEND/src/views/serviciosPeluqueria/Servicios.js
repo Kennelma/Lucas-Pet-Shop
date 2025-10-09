@@ -10,6 +10,7 @@ import {
 
 import ModalServicio from './modal_servicio';
 import ServiciosSeccion from './ServiciosSeccion';
+import ServiciosFavoritos from './ServiciosFavoritos';
 
 const Servicios = () => {
   const [servicios, setServicios] = useState([]);
@@ -202,12 +203,18 @@ const Servicios = () => {
           <span className="ml-3 text-gray-600">Cargando servicios...</span>
         </div>
       ) : (
-        <ServiciosSeccion
-          servicios={servicios}
-          abrirModalServicio={abrirModalServicio}
-          eliminarServicio={handleEliminarServicio}
-          actualizarEstadoServicio={actualizarEstadoServicio}
-        />
+        <>
+          {/* Dashboard de Servicios Favoritos */}
+          <ServiciosFavoritos servicios={servicios} />
+          
+          {/* Tabla de Servicios */}
+          <ServiciosSeccion
+            servicios={servicios}
+            abrirModalServicio={abrirModalServicio}
+            eliminarServicio={handleEliminarServicio}
+            actualizarEstadoServicio={actualizarEstadoServicio}
+          />
+        </>
       )}
 
       <ModalServicio
