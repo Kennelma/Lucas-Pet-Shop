@@ -103,10 +103,9 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
             </button>
           )}
         </div>
-
-        {/* Botón NUEVO redondeado tipo píldora */}
+        
         <button
-          className="bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-600 transition-colors flex items-center gap-2"
+          className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors flex items-center gap-2"
           onClick={() => abrirModalServicio(null)}
         >
           <FontAwesomeIcon icon={faPlus} />
@@ -120,7 +119,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
           <h3 className="text-lg font-semibold text-gray-700 mb-2 uppercase">No hay servicios</h3>
           <p className="text-gray-500 mb-6">Crea tu primer servicio de peluquería para mascotas.</p>
           <button 
-            className="bg-green-500 text-white px-6 py-3 rounded-full hover:bg-green-600 transition-colors inline-flex items-center gap-2"
+            className="bg-green-500 text-white px-6 py-3 rounded hover:bg-green-600 transition-colors inline-flex items-center gap-2"
             onClick={() => abrirModalServicio(null)}
           >
             <FontAwesomeIcon icon={faPlus} />
