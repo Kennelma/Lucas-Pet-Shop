@@ -18,7 +18,13 @@ exports.crear = async (req, res) => {
 
             case 'PELUQUERIA':
 
-                const [servicio] = await conn.query ('CALL sp_insert_servicio_peluqueria (?,?,?,?,?)',
+                const [servicio] = await conn.query (
+                    `INSERT INTO tbl_servicios_peluqueria_canina (
+                    nombre_servicio_peluqueria,
+                    descripcion_servicio,
+                    precio_servicio,
+                    duracion_estimada,
+                    requisitos) VALUES (?,?,?,?,?)`,
                     [
                         req.body.nombre_servicio_peluqueria,
                         req.body.descripcion_servicio, 
@@ -30,12 +36,18 @@ exports.crear = async (req, res) => {
 
             case 'PROMOCIONES':
                 
-                const [promocion] = await conn.query ('CALL sp_insert_promocion (?,?,?,?)',
+                const [promocion] = await conn.query (
+                    `INSERT INTO tbl_promociones (
+                    nombre_promocion,
+                    descripcion_promocion,
+                    precio_promocion,
+                    dias_promocion) 
+                    VALUES (?,?,?,?)`,
                     [
                         req.body.nombre_promocion,
                         req.body.descripcion_promocion, 
                         req.body.precio_promocion, 
-                        req.body.dias_promocion
+                        req.body.dias_promocion, 
                     ]);
                 break;
         
@@ -75,32 +87,52 @@ exports.actualizar = async (req, res) => {
 
         await conn.beginTransaction();
 
-          const {id, tipo_servicio } = req.body;
+        const {id, tipo_servicio } = req.body;
 
         switch (tipo_servicio) {
 
             case 'PELUQUERIA':
                 
 
-                await conn.query('CALL sp_update_servicio_peluqueria(?,?,?,?,?,?,?)',
-                [   id,
+                await conn.query(`
+                UPDATE tbl_servicios_peluqueria_canina
+                SET
+                    nombre_servicio_peluqueria = COALESCE(?, nombre_servicio_peluqueria),
+                    descripcion_servicio       = COALESCE(?, descripcion_servicio),
+                    precio_servicio            = COALESCE(?, precio_servicio),
+                    duracion_estimada          = COALESCE(?, duracion_estimada),
+                    requisitos                 = COALESCE(?, requisitos),
+                    activo                     = COALESCE(?, activo)
+                WHERE id_servicio_peluqueria_pk = ?`,
+                [   
                     req.body.nombre_servicio_peluqueria || null,
                     req.body.descripcion_servicio || null, 
                     req.body.precio_servicio || null, 
                     req.body.duracion_estimada || null, 
                     req.body.requisitos || null,
                     req.body.activo !== undefined ?  req.body.activo : null,
+                    id,
                 ]);                               
                 break;
 
             case 'PROMOCIONES':
                 
-                await conn.query('CALL sp_update_promocion(?,?,?,?,?)',
-                [   id,
+                await conn.query(
+                    `UPDATE tbl_promociones
+                    SET
+                        nombre_promocion     = COALESCE(?, nombre_promocion),
+                        descripcion_promocion= COALESCE(?, descripcion_promocion),
+                        precio_promocion     = COALESCE(?, precio_promocion),
+                        dias_promocion       = COALESCE(?, dias_promocion),
+                        activo               = COALESCE(?, activo)
+                    WHERE id_promocion_pk = ?`,
+                [   
                     req.body.nombre_promocion || null,
                     req.body.descripcion_promocion || null, 
                     req.body.precio_promocion || null, 
-                    req.body.dias_promocion || null
+                    req.body.dias_promocion || null,
+                    req.body.activo !== undefined ?  req.body.activo : null,
+                    id,
                 ]);                               
                 break;
 
@@ -154,15 +186,21 @@ exports.eliminar = async (req, res) => {
 
             case 'PELUQUERIA':
 
-                await conn.query('CALL sp_delete_servicio_peluqueria(?)', [id]);
+                await conn.query(
+                    `DELETE FROM tbl_servicios_peluqueria_canina
+                     WHERE id_servicio_peluqueria_pk = ?`, 
+                     [id]);
                 
                 break;
         
             case 'PROMOCIONES':
                 
-                await conn.query('CALL sp_delete_promocion(?)', [id]);
-
+                await conn.query(
+                    `DELETE FROM tbl_promociones
+                    WHERE id_promocion_pk = ?`, 
+                    [id]);
                 break;
+                
             default:
                 throw new Error('Tipo de servicio no válido');
         }
@@ -204,12 +242,14 @@ exports.visualizar = async (req, res) => {
         switch (req.query.tipo_servicio) {
 
             case 'PELUQUERIA':
-                [filas] = await conn.query('CALL sp_select_servicios_peluqueria()');
+                [filas] = await conn.query(`
+                    SELECT * FROM tbl_servicios_peluqueria_canina ORDER BY id_servicio_peluqueria_pk DESC`);
                 break;
 
             case 'PROMOCIONES':
 
-                [filas] = await conn.query('CALL sp_select_promociones()');
+                [filas] = await conn.query(
+                    `SELECT * FROM tbl_promociones ORDER BY id_promocion_pk DESC`);
                 break;
 
             default:
@@ -218,7 +258,7 @@ exports.visualizar = async (req, res) => {
 
         res.json({
             Consulta: true,
-            servicios: filas[0] || []
+            servicios: filas || []
         });
 
     } catch (error) {

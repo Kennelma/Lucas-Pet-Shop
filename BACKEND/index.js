@@ -20,6 +20,7 @@ const cors = require("cors");
 app.use(cors());
 
 //IMPORTACION DE LAS RUTAS
+app.use('/uploads', express.static('uploads'));
 app.use('/api', require('./routes/rutas'));
 
 const PORT = 4000;
