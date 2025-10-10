@@ -151,7 +151,7 @@ const Animales = () => {
               </div>
 
               {/* Botones circulares */}
-              <div className="flex justify-between absolute bottom-2 left-2 right-2 px-2">
+              <div className="text-blue-500 hover:text-blue-700 p-2 rounded">
                 <Button 
                   icon="pi pi-trash" 
                   severity="danger" 
