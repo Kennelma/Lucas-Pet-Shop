@@ -82,7 +82,8 @@ exports.crear = async (req, res) => {
                 break;
 
             case 'MEDICAMENTOS':
-                const [medicamento] = await conn.query (
+
+                const [medicamentos] = await conn.query (
                     `INSERT INTO tbl_medicamentos_info (presentacion_medicamento, tipo_medicamento, cantidad_contenido, 
                                                         unidad_medida, id_producto_fk) 
                                                         VALUES (?,?,?,?,?)`,
@@ -95,7 +96,7 @@ exports.crear = async (req, res) => {
                     ]);
 
                     //OBTENGO EL ID DEL MEDICAMENTO PARA PODER INGRESAR EL PRIMER LOTE
-                    const id_medicamento = medicamento.insertId;
+                    const id_medicamento = medicamentos.insertId;
 
                     const [lote] = await conn.query(
                         `INSERT INTO tbl_lotes_medicamentos (codigo_lote, fecha_vencimiento, stock_lote, id_medicamento_fk)
@@ -108,6 +109,38 @@ exports.crear = async (req, res) => {
                         ]
                     );
                 break;
+
+            case 'LOTES':
+
+                //OBTENGO EL MEDICAMENTO FK DESDE PRODUCTOS
+                const [medicamento] = await conn.query (
+                    `SELECT id_medicamento_pk 
+                    FROM tbl_medicamentos_info 
+                    WHERE id_producto_fk = ?`,
+                    [req.body.id_producto]
+                );
+                
+                //GUARDA EN UNA VARIABLE ESA FK DE MEDICAMENTOS
+                const id_med_fk = medicamento[0].id_medicamento_pk;
+
+                
+                //INSERTO EL LOTE CORRESPONDIENTE A ESE MEDICAMENTO
+                 await conn.query(
+                    `INSERT INTO tbl_lotes_medicamentos(
+                        codigo_lote, 
+                        fecha_vencimiento, 
+                        stock_lote, 
+                        id_medicamento_fk
+                    ) VALUES (?, ?, ?, ?)`,
+                    [
+                        req.body.codigo_lote,
+                        req.body.fecha_vencimiento,
+                        req.body.stock_lote,
+                        id_med_fk
+                    ]
+                );
+                
+            break;
 
             default:
                throw new Error('Tipo de producto no válido');
@@ -246,6 +279,22 @@ exports.actualizar = async (req, res) => {
                 ]);                               
                 break;
 
+            case 'LOTES':    
+
+                await conn.query(
+                `UPDATE tbl_lotes_medicamentos
+                SET 
+                    codigo_lote       = COALESCE(?, codigo_lote),
+                    fecha_vencimiento = COALESCE(?, fecha_vencimiento),
+                    stock_lote        = COALESCE(?, stock_lote)
+                WHERE id_lote_medicamentos_pk = ?`,
+                [
+                    req.body.codigo_lote || null,
+                    req.body.fecha_vencimiento || null,
+                    req.body.stock_lote || null,
+                    req.body.id_lote_medicamentos_pk
+                ]);
+
             default:
                 throw new Error('Tipo de producto no válido');
         }
@@ -357,6 +406,23 @@ exports.ver = async (req, res) => {
                         ON p.id_producto_pk = m.id_producto_fk`);
                 break;
 
+            case 'LOTES':
+                [registros] = await conn.query(
+                    `SELECT 
+                        l.id_lote_medicamentos_pk,
+                        l.codigo_lote,
+                        l.fecha_ingreso,
+                        l.fecha_vencimiento,
+                        l.stock_lote,
+                        l.estado_lote_fk,
+                        m.id_medicamento_pk
+                    FROM tbl_lotes_medicamentos l
+                    INNER JOIN tbl_medicamentos_info m ON l.id_medicamento_fk = m.id_medicamento_pk
+                    INNER JOIN tbl_productos p ON m.id_producto_fk = p.id_producto_pk`
+                );
+                break;
+    
+
             default:
                 throw new Error('Tipo de producto no válido');
         }
@@ -388,16 +454,36 @@ exports.eliminar = async (req, res) => {
 
         await conn.beginTransaction();
 
-        const {id_producto } = req.body;
+        //SI USO UN ID LOTE SE BORRA
+        const { id_lote } = req.body;
 
-        await conn.query(`DELETE FROM tbl_productos WHERE id_producto_pk = ?`, [id_producto]);
+        if (id_lote) {
+            
+            await conn.query(
+                `DELETE FROM tbl_lotes_medicamentos WHERE id_lote_medicamentos_pk = ?`,[id_lote]
+            );
 
-        await conn.commit();
-        res.json({
-            Consulta: true,
-            mensaje: 'Producto eliminado con éxito',
-            id_producto
-        });
+            await conn.commit();
+            return res.json({
+                Consulta: true,
+                mensaje: 'Lote eliminado con éxito',
+                id_lote
+            });
+
+        } else {
+
+            const {id_producto } = req.body;
+
+            await conn.query(`DELETE FROM tbl_productos WHERE id_producto_pk = ?`, [id_producto]);
+
+            await conn.commit();
+            res.json({
+                Consulta: true,
+                mensaje: 'Producto eliminado con éxito',
+                id_producto
+            });
+
+        }
 
     } catch (err) {
         await conn.rollback();
