@@ -18,7 +18,6 @@ import {
   faCoins,
   faShower, 
   faStore,
-  faBuilding,
 } from '@fortawesome/free-solid-svg-icons'
 
 
@@ -124,28 +123,10 @@ const _nav = [
 
   //EMPRESA
   {
-    component: CNavGroup,
-    name: 'Empresa',
-    icon: <FontAwesomeIcon icon={faBuilding} className="nav-icon" />,
-    items: [
-      {
-        component: CNavItem,
-        name: 'Sucursales',
-        style: { paddingLeft: '65px' },
-        icon: <FontAwesomeIcon icon={faStore} className="nav-icon" />,
-        to: '/',
-        
-      },
-      {
-        component: CNavItem,
-        name: 'Usuarios',
-        style: { paddingLeft: '65px' },
-        icon: <FontAwesomeIcon icon={faUser} className="nav-icon" />,
-        to: '/',
-        
-      }, 
-    ],
-
+    component: CNavItem,
+    name: 'Empresa y sucursales',
+    icon: <FontAwesomeIcon icon={faStore} className="nav-icon" />,
+    to: '/theme/colors',  
   },
 
   //RECORDATORIOS
