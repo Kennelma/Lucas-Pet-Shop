@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
@@ -6,35 +6,55 @@ import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
 import { insertarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
-const ModalNuevoAlimento = ({ isOpen, onClose, onSave }) => {
-  const [data, setData] = useState({
-    nombre: '',
-    precio: '',
-    stock: '',
-    destino: '',
-    peso: '',
-    imagenUrl: ''
-  });
-  const [loading, setLoading] = useState(false);
-
-  // opciones del campo "alimento_destinado"
-  const destinos = [
-  { label: 'PERROS', value: 'PERROS' },
-  { label: 'GATOS', value: 'GATOS' },
-  { label: 'AVES', value: 'AVES' },
-  { label: 'PECES', value: 'PECES' },
-  { label: 'REPTILES', value: 'REPTILES' },
-  { label: 'ANFIBIOS', value: 'ANFIBIOS' }
+const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
+  
+  const especies = [
+    { label: 'PERRO', value: 'PERRO' },
+    { label: 'GATO', value: 'GATO' },
+    { label: 'AVE', value: 'AVE' },
+    { label: 'PEZ', value: 'PEZ' },
+    { label: 'REPTIL', value: 'REPTIL' },
+    { label: 'ANFIBIO', value: 'ANFIBIO' }
   ];
 
+  const sexos = [
+    { label: 'HEMBRA', value: 'HEMBRA' },
+    { label: 'MACHO', value: 'MACHO' }
+  ];
 
+  const [data, setData] = useState({
+    nombre: '',
+    precio: 0,
+    cantidad: 0,
+    peso: 0,
+    destino: '',
+    imagenUrl: ''
+  });
+
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  // Manejar cambios de input
   const handleChange = (field, value) => {
     const val = ['nombre', 'destino'].includes(field) ? value.toUpperCase() : value;
-    setData((prev) => ({ ...prev, [field]: val }));
+    setData(prev => ({ ...prev, [field]: val }));
   };
 
+  // Manejar imagen seleccionada
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setData(prev => ({ ...prev, imagenUrl: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Guardar nuevo alimento
   const handleSubmit = async () => {
-    if (!data.nombre || !data.precio || !data.stock) {
+    if (!data.nombre || !data.precio) {
       alert('Por favor completa los campos requeridos.');
       return;
     }
@@ -44,32 +64,30 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave }) => {
       const body = {
         nombre_producto: data.nombre,
         precio_producto: data.precio,
-        stock: data.stock,
+        stock: data.cantidad,
         tipo_producto: 'ALIMENTOS',
-        alimento_destinado: data.destino,
         peso_alimento: data.peso,
-        imagen_url: data.imagenUrl || null
+        alimento_destinado: data.destino,
+        activo: 1
       };
+
+      if (data.imagenUrl && data.imagenUrl.startsWith('data:image')) {
+        body.imagen_base64 = data.imagenUrl;
+      }
 
       const res = await insertarProducto(body);
 
       if (res.Consulta) {
-        const nuevoAlimento = {
-          id_producto: res.id_producto_pk,
-          nombre: data.nombre,
-          precio: parseFloat(data.precio),
-          stock: data.stock,
-          stock_minimo: 0,
-          activo: true,
-          tipo_producto: 'ALIMENTOS',
-          destino: data.destino,
-          peso: data.peso,
-          imagenUrl: data.imagenUrl || '',
-          sku: res.sku || 'SIN-SKU'
-        };
-
-        onSave(nuevoAlimento);
+        onSave();
         onClose();
+        setData({
+          nombre: '',
+          precio: 0,
+          cantidad: 0,
+          peso: 0,
+          destino: '',
+          imagenUrl: ''
+        });
       } else {
         alert(`Error al guardar: ${res.error}`);
       }
@@ -82,7 +100,7 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave }) => {
   };
 
   const footer = (
-    <div className="flex justify-end gap-3 mt-2">
+    <div className="flex justify-end gap-3 mt-4">
       <Button
         label="Cancelar"
         icon="pi pi-times"
@@ -102,88 +120,100 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave }) => {
 
   return (
     <Dialog
-      header="Agregar Nuevo Alimento"
+      header="Nuevo Alimento"
       visible={isOpen}
-      style={{ width: '38rem', borderRadius: '1.5rem' }}
+      style={{ width: '45rem', borderRadius: '1.5rem' }}
       modal
       closable={false}
       onHide={onClose}
       footer={footer}
     >
-      <div className="flex flex-col gap-3 mt-1 text-sm">
+      <div className="flex flex-col gap-4 mt-2 text-sm">
         {/* Nombre */}
         <span className="p-float-label">
           <InputText
-            id="nombre"
             value={data.nombre}
             onChange={(e) => handleChange('nombre', e.target.value)}
-            className="w-full rounded-xl h-9 text-sm"
+            className="w-full rounded-xl h-10 text-sm"
           />
-          <label htmlFor="nombre" className="text-xs">Nombre</label>
+          <label className="text-xs">Nombre</label>
         </span>
 
-        {/* Precio y Stock */}
-        <div className="grid grid-cols-2 gap-3">
+        {/* Destino y Peso */}
+        <div className="grid grid-cols-2 gap-4">
+          <span className="p-float-label">
+            <Dropdown
+              value={data.destino}
+              options={destinosBase}
+              onChange={(e) => handleChange('destino', e.value)}
+              className="w-full rounded-xl text-sm"
+              placeholder="Seleccionar"
+            />
+            <label className="text-xs">Destinado a</label>
+          </span>
+
           <span className="p-float-label">
             <InputNumber
-              id="precio"
+              value={data.peso}
+              onValueChange={(e) => handleChange('peso', e.value)}
+              className="w-full rounded-xl text-sm"
+              inputClassName="h-10 text-sm"
+              suffix=" kg"
+            />
+            <label className="text-xs">Peso (kg)</label>
+          </span>
+        </div>
+
+        {/* Precio y Stock */}
+        <div className="grid grid-cols-2 gap-4">
+          <span className="p-float-label">
+            <InputNumber
               value={data.precio}
               onValueChange={(e) => handleChange('precio', e.value)}
               mode="currency"
               currency="HNL"
               locale="es-HN"
               className="w-full rounded-xl text-sm"
-              inputClassName="h-9 text-sm"
+              inputClassName="h-10 text-sm"
             />
-            <label htmlFor="precio" className="text-xs">Precio</label>
+            <label className="text-xs">Precio</label>
           </span>
 
           <span className="p-float-label">
             <InputNumber
-              id="stock"
-              value={data.stock}
-              onValueChange={(e) => handleChange('stock', e.value)}
+              value={data.cantidad}
+              onValueChange={(e) => handleChange('cantidad', e.value)}
               className="w-full rounded-xl text-sm"
-              inputClassName="h-9 text-sm"
+              inputClassName="h-10 text-sm"
             />
-            <label htmlFor="stock" className="text-xs">Stock</label>
+            <label className="text-xs">Stock</label>
           </span>
         </div>
 
-        {/* Destinado y Peso */}
-        <div className="grid grid-cols-2 gap-3">
-          <span className="p-float-label">
-            <Dropdown
-              id="destino"
-              value={data.destino}
-              options={destinos}
-              onChange={(e) => handleChange('destino', e.value)}
-              className="w-full rounded-xl text-sm"
-              placeholder="Seleccionar"
+        {/* Imagen */}
+        <div
+          className="w-full h-40 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl mt-2 hover:border-blue-400 transition-all cursor-pointer"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {data.imagenUrl ? (
+            <img
+              src={data.imagenUrl}
+              alt="alimento"
+              className="w-full h-full object-cover rounded-2xl"
             />
-            <label htmlFor="destino" className="text-xs">Alimento destinado</label>
-          </span>
-
-          <span className="p-float-label">
-            <InputNumber
-              id="peso"
-              value={data.peso}
-              onValueChange={(e) => handleChange('peso', e.value)}
-              suffix=" kg"
-              minFractionDigits={2}
-              className="w-full rounded-xl text-sm"
-              inputClassName="h-9 text-sm"
-            />
-            <label htmlFor="peso" className="text-xs">Peso</label>
-          </span>
-        </div>
-
-        {/* Imagen visual (solo visual) */}
-        <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl p-4 mt-2 hover:border-blue-400 transition-all cursor-pointer">
-          <i className="pi pi-image text-3xl text-gray-400 mb-2"></i>
-          <p className="text-gray-500 text-sm text-center">
-            Haz clic para subir una imagen (solo visual)
-          </p>
+          ) : (
+            <div className="flex flex-col items-center justify-center text-gray-400">
+              <i className="pi pi-image text-3xl mb-2"></i>
+              <p className="text-sm text-center">Haz clic para subir una imagen</p>
+            </div>
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+          />
         </div>
       </div>
     </Dialog>
