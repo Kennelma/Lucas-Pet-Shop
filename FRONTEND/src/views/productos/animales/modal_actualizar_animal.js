@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
@@ -15,10 +15,12 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
     { label: 'REPTIL', value: 'REPTIL' },
     { label: 'ANFIBIO', value: 'ANFIBIO' }
   ];
+
   const sexos = [
     { label: 'HEMBRA', value: 'HEMBRA' },
     { label: 'MACHO', value: 'MACHO' }
   ];
+
   const estados = [
     { label: 'ACTIVO', value: 1 },
     { label: 'INACTIVO', value: 0 }
@@ -32,17 +34,11 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
     cantidad: 0,
     stock_minimo: 0,
     activo: 1,
-    sku: '',
-    imagenUrl: ''
+    imagenUrl: '' 
   });
-  const [loading, setLoading] = useState(false);
 
-  // Generar SKU
-  const generarSKU = (nombre, id) => {
-    if (!nombre) return '';
-    const partes = nombre.trim().split(' ').map(p => p.substring(0,3).toUpperCase());
-    return partes.join('-') + (id ? `-${id}` : '-XXX');
-  };
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (isOpen && editData) {
@@ -50,11 +46,10 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
         nombre: (editData.nombre || '').toUpperCase(),
         especie: (editData.especie || '').toUpperCase(),
         sexo: (editData.sexo || '').toUpperCase(),
-        precio: editData.precio || 0,
-        cantidad: editData.stock || 0,
-        stock_minimo: editData.stock_minimo || 0,
+        precio: Number(editData.precio) || 0,
+        cantidad: Number(editData.stock) || 0,
+        stock_minimo: Number(editData.stock_minimo) || 0,
         activo: editData.activo ? 1 : 0,
-        sku: generarSKU(editData.nombre || '', editData.id_producto),
         imagenUrl: editData.imagenUrl || ''
       });
     }
@@ -62,11 +57,31 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
 
   const handleChange = (field, value) => {
     const val = ['nombre','especie','sexo'].includes(field) ? value.toUpperCase() : value;
-    setData(prev => {
-      const newData = { ...prev, [field]: val };
-      if(field === 'nombre') newData.sku = generarSKU(val, editData.id_producto);
-      return newData;
-    });
+    setData(prev => ({ ...prev, [field]: val }));
+  };
+
+  // ⚡ Manejo de imagen con restricciones
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formatosValidos = ['image/png','image/jpeg','image/jpg','image/gif','image/webp'];
+    if (!formatosValidos.includes(file.type)) {
+      alert('Formato no válido. Solo png, jpg, jpeg, gif, webp');
+      return;
+    }
+
+    const maxSizeMB = 5;
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      alert(`El archivo es demasiado grande. Máx ${maxSizeMB} MB`);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setData(prev => ({ ...prev, imagenUrl: reader.result }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async () => {
@@ -86,9 +101,14 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
         activo: data.activo,
         especie: data.especie,
         sexo: data.sexo,
-        tipo_producto: 'ANIMALES',
-        imagen_url: data.imagenUrl || null
+        tipo_producto: 'ANIMALES'
       };
+
+      if (data.imagenUrl && data.imagenUrl.startsWith('data:image')) {
+        body.imagen_base64 = data.imagenUrl;
+      } else if (data.imagenUrl) {
+        body.imagen_url = data.imagenUrl;
+      }
 
       const res = await actualizarProducto(body);
 
@@ -108,16 +128,16 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
 
   const footer = (
     <div className="flex justify-end gap-3 mt-4">
-      <Button 
-        label="Cancelar" 
-        icon="pi pi-times" 
+      <Button
+        label="Cancelar"
+        icon="pi pi-times"
         className="p-button-text p-button-rounded"
         onClick={onClose}
         disabled={loading}
       />
-      <Button 
-        label="Guardar" 
-        icon="pi pi-check" 
+      <Button
+        label="Guardar"
+        icon="pi pi-check"
         className="p-button-success p-button-rounded"
         onClick={handleSubmit}
         loading={loading}
@@ -126,7 +146,7 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
   );
 
   return (
-    <Dialog 
+    <Dialog
       header="Actualizar Animal"
       visible={isOpen}
       style={{ width: '50rem', borderRadius: '1.5rem' }}
@@ -138,109 +158,109 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
       <div className="flex flex-col gap-4 mt-2 text-sm">
         {/* Nombre */}
         <span className="p-float-label">
-          <InputText 
-            id="nombre" 
-            value={data.nombre} 
-            onChange={(e) => handleChange('nombre', e.target.value)} 
+          <InputText
+            value={data.nombre}
+            onChange={(e) => handleChange('nombre', e.target.value)}
             className="w-full rounded-xl h-10 text-sm"
           />
-          <label htmlFor="nombre" className="text-xs">Nombre</label>
+          <label className="text-xs">Nombre</label>
         </span>
 
-        {/* SKU readonly */}
-        <span className="p-float-label">
-          <InputText 
-            id="sku"
-            value={data.sku}
-            readOnly
-            className="w-full rounded-xl h-10 text-sm bg-gray-100"
-          />
-          <label htmlFor="sku" className="text-xs">SKU</label>
-        </span>
-
-        {/* Especie, Sexo, Activo */}
+        {/* Especie, Sexo, Estado */}
         <div className="grid grid-cols-3 gap-4">
           <span className="p-float-label">
-            <Dropdown 
-              id="especie"
+            <Dropdown
               value={data.especie}
               options={especies}
               onChange={(e)=>handleChange('especie', e.value)}
               className="w-full rounded-xl text-sm"
               placeholder="Seleccionar"
             />
-            <label htmlFor="especie" className="text-xs">Especie</label>
+            <label className="text-xs">Especie</label>
           </span>
 
           <span className="p-float-label">
-            <Dropdown 
-              id="sexo"
+            <Dropdown
               value={data.sexo}
               options={sexos}
               onChange={(e)=>handleChange('sexo', e.value)}
               className="w-full rounded-xl text-sm"
               placeholder="Seleccionar"
             />
-            <label htmlFor="sexo" className="text-xs">Sexo</label>
+            <label className="text-xs">Sexo</label>
           </span>
 
           <span className="p-float-label">
-            <Dropdown 
-              id="activo"
+            <Dropdown
               value={data.activo}
-              options={[{label:'ACTIVO', value:1},{label:'INACTIVO', value:0}]}
+              options={estados}
               onChange={(e)=>handleChange('activo', e.value)}
               className="w-full rounded-xl text-sm"
             />
-            <label htmlFor="activo" className="text-xs">Estado</label>
+            <label className="text-xs">Estado</label>
           </span>
         </div>
 
         {/* Precio, Stock, Stock mínimo */}
         <div className="grid grid-cols-3 gap-4">
           <span className="p-float-label">
-            <InputNumber 
-              id="precio" 
-              value={data.precio} 
-              onValueChange={(e) => handleChange('precio', e.value)} 
-              mode="currency" 
-              currency="HNL" 
-              locale="es-HN" 
+            <InputNumber
+              value={data.precio}
+              onValueChange={(e) => handleChange('precio', e.value)}
+              mode="currency"
+              currency="HNL"
+              locale="es-HN"
               className="w-full rounded-xl text-sm"
               inputClassName="h-10 text-sm"
             />
-            <label htmlFor="precio" className="text-xs">Precio</label>
+            <label className="text-xs">Precio</label>
           </span>
 
           <span className="p-float-label">
-            <InputNumber 
-              id="cantidad" 
-              value={data.cantidad} 
-              onValueChange={(e) => handleChange('cantidad', e.value)} 
+            <InputNumber
+              value={data.cantidad}
+              onValueChange={(e) => handleChange('cantidad', e.value)}
               className="w-full rounded-xl text-sm"
               inputClassName="h-10 text-sm"
             />
-            <label htmlFor="cantidad" className="text-xs">Stock</label>
+            <label className="text-xs">Stock</label>
           </span>
 
           <span className="p-float-label">
-            <InputNumber 
-              id="stock_minimo" 
-              value={data.stock_minimo} 
-              onValueChange={(e) => handleChange('stock_minimo', e.value)} 
+            <InputNumber
+              value={data.stock_minimo}
+              onValueChange={(e) => handleChange('stock_minimo', e.value)}
               className="w-full rounded-xl text-sm"
               inputClassName="h-10 text-sm"
             />
-            <label htmlFor="stock_minimo" className="text-xs">Stock mínimo</label>
+            <label className="text-xs">Stock mínimo</label>
           </span>
         </div>
 
-        {/* Imagen visual */}
-        <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl p-4 mt-2 hover:border-blue-400 transition-all cursor-pointer">
-          <i className="pi pi-image text-3xl text-gray-400 mb-2"></i>
-          <p className="text-gray-500 text-sm text-center">
-            Haz clic para subir una imagen (solo visual)
-          </p>
+        {/* Imagen */}
+        <div
+          className="w-full h-40 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl mt-2 hover:border-blue-400 transition-all cursor-pointer"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {data.imagenUrl ? (
+            <img
+              src={data.imagenUrl}
+              alt="animal"
+              className="w-full h-full object-cover rounded-2xl"
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center text-gray-400">
+              <i className="pi pi-image text-3xl mb-2"></i>
+              <p className="text-sm text-center">Haz clic para subir una imagen</p>
+            </div>
+          )}
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept=".png,.jpg,.jpeg,.gif,.webp"
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+          />
         </div>
       </div>
     </Dialog>
