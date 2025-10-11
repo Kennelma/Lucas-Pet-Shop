@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { ScissorsIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 
 import { 
@@ -11,8 +10,7 @@ import {
 
 import ModalServicio from './modal_servicio';
 import ServiciosSeccion from './ServiciosSeccion';
-
-import './peluqueria-canina.css';
+import ServiciosFavoritos from './ServiciosFavoritos';
 
 const Servicios = () => {
   const [servicios, setServicios] = useState([]);
@@ -29,38 +27,24 @@ const Servicios = () => {
     setLoading(true);
     try {
       const serviciosData = await verServicios('PELUQUERIA');
-      console.log('🔄 Servicios cargados desde BD:', serviciosData); // Para debug
-      
-      // Obtener estados guardados en localStorage
-      const estadosGuardados = JSON.parse(localStorage.getItem('servicios-estados') || '{}');
-      console.log('💾 Estados guardados en localStorage:', estadosGuardados);
-      
-      // Normalizar servicios con estados guardados o por defecto true
-      const serviciosNormalizados = serviciosData?.map(servicio => {
-        const estadoGuardado = estadosGuardados[servicio.id_servicio_peluqueria_pk];
-        const activo = estadoGuardado !== undefined ? estadoGuardado : true; // Default true si no existe
+      // Normalizar datos numéricos para ordenamiento correcto
+      const serviciosNormalizados = (serviciosData || []).map(servicio => {
         
         return {
           ...servicio,
-          activo: activo
+          precio_servicio: parseFloat(servicio.precio_servicio || 0),
+          duracion_estimada: parseInt(servicio.duracion_estimada || 0),
+          activo: servicio.activo !== undefined ? Boolean(servicio.activo) : true
         };
       }) || [];
-      
-      console.log('✅ Servicios normalizados:', serviciosNormalizados?.map(s => ({ 
-        id: s.id_servicio_peluqueria_pk,
-        nombre: s.nombre_servicio_peluqueria, 
-        activo: s.activo, 
-        tipo: typeof s.activo 
-      })));
       
       setServicios(serviciosNormalizados);
     } catch (error) {
       console.error('Error cargando datos:', error);
       Swal.fire({
         icon: 'error',
-        title: 'Error al cargar',
-        text: 'No se pudieron cargar los servicios. Intenta nuevamente.',
-        confirmButtonColor: '#ef4444'
+        title: 'Error',
+        text: 'No se pudieron cargar los servicios'
       });
     } finally {
       setLoading(false);
@@ -77,95 +61,113 @@ const Servicios = () => {
     setServicioEditando(null);
   };
 
-  const handleSubmitServicio = async (formData) => {
+  const handleSubmitServicio = async (datosServicio) => {
     try {
+      let resultado;
+      
       if (servicioEditando) {
-        await actualizarServicio({ 
-          id: servicioEditando.id_servicio_peluqueria_pk, 
-          ...formData, 
-          tipo_servicio: 'PELUQUERIA' 
-        });
-        await Swal.fire({
-          icon: 'success',
-          title: '¡Actualizado!',
-          text: 'El servicio se actualizó correctamente',
-          timer: 2000,
-          showConfirmButton: false
+        // Actualizar servicio existente
+        resultado = await actualizarServicio({
+          ...datosServicio,
+          id: servicioEditando.id_servicio_peluqueria_pk || servicioEditando.id,
+          tipo_servicio: "PELUQUERIA"
         });
       } else {
-        await insertarServicio({ ...formData, tipo_servicio: 'PELUQUERIA' });
-        await Swal.fire({
+        // Crear nuevo servicio
+        resultado = await insertarServicio({
+          ...datosServicio,
+          tipo_servicio: "PELUQUERIA"
+        });
+      }
+
+      if (resultado.Consulta) {
+        Swal.fire({
           icon: 'success',
-          title: '¡Creado!',
-          text: 'El servicio se creó correctamente',
+          title: servicioEditando ? 'Servicio actualizado' : 'Servicio creado',
+          text: resultado.message || 'Operación completada exitosamente',
           timer: 2000,
           showConfirmButton: false
         });
+        cerrarModalServicio();
+        cargarDatos(); // Recargar datos
+      } else {
+        throw new Error(resultado.error || 'Error en la operación');
       }
-      
-      cerrarModalServicio();
-      await cargarDatos(); // Esto ya normaliza los datos
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error al guardar servicio:", error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'No se pudo guardar el servicio. Intenta nuevamente.',
-        confirmButtonColor: '#ef4444'
+        text: error.message || 'No se pudo guardar el servicio'
       });
     }
   };
 
-  const actualizarEstadoServicio = async (servicioActualizado) => {
-    const nuevoEstado = Boolean(servicioActualizado.activo);
-    
-    // Actualizar estado local
-    setServicios(prev => 
-      prev.map(s => 
-        s.id_servicio_peluqueria_pk === servicioActualizado.id_servicio_peluqueria_pk 
-          ? { ...servicioActualizado, activo: nuevoEstado }
-          : s
-      )
-    );
-    
-    // Guardar en localStorage para persistir entre sesiones
-    const estadosGuardados = JSON.parse(localStorage.getItem('servicios-estados') || '{}');
-    estadosGuardados[servicioActualizado.id_servicio_peluqueria_pk] = nuevoEstado;
-    localStorage.setItem('servicios-estados', JSON.stringify(estadosGuardados));
-    
-    console.log('💾 Estado guardado en localStorage:', {
-      id: servicioActualizado.id_servicio_peluqueria_pk,
-      activo: nuevoEstado
-    });
-    
-    await Swal.fire({
-      icon: 'success',
-      title: nuevoEstado ? '¡Servicio Activado!' : '¡Servicio Desactivado!',
-      text: `Estado guardado localmente`,
-      timer: 2000,
-      showConfirmButton: false
-    });
+  const actualizarEstadoServicio = async (servicio) => {
+    try {
+      const nuevoEstado = !servicio.activo;
+      
+      // Actualizar en el backend
+      const resultado = await actualizarServicio({
+        id: servicio.id_servicio_peluqueria_pk,
+        nombre_servicio_peluqueria: servicio.nombre_servicio_peluqueria,
+        descripcion_servicio: servicio.descripcion_servicio,
+        precio_servicio: servicio.precio_servicio,
+        duracion_estimada: servicio.duracion_estimada,
+        requisitos: servicio.requisitos,
+        activo: nuevoEstado,
+        tipo_servicio: "PELUQUERIA"
+      });
+
+      if (resultado.Consulta) {
+        // Actualizar estado local
+        setServicios(prev => 
+          prev.map(s => 
+            s.id_servicio_peluqueria_pk === servicio.id_servicio_peluqueria_pk 
+              ? { ...s, activo: nuevoEstado }
+              : s
+          )
+        );
+
+        Swal.fire({
+          icon: 'success',
+          title: nuevoEstado ? '¡Servicio Activado!' : '¡Servicio Desactivado!',
+          text: 'Estado actualizado correctamente',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      } else {
+        throw new Error(resultado.error || 'Error al actualizar estado');
+      }
+    } catch (error) {
+      console.error("Error al actualizar estado:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'No se pudo actualizar el estado del servicio'
+      });
+    }
   };
 
   const handleEliminarServicio = async (servicio) => {
     const result = await Swal.fire({
-      icon: 'warning',
       title: '¿Eliminar servicio?',
       html: `
-        <div style="text-align: left; margin-top: 16px; padding: 16px; background: #f9fafb; border-radius: 8px;">
-          <p style="margin-bottom: 8px;"><strong>Nombre:</strong> ${servicio.nombre_servicio_peluqueria}</p>
-          <p style="margin-bottom: 8px;"><strong>Precio:</strong> L. ${parseFloat(servicio.precio_servicio || 0).toFixed(2)}</p>
-          <p style="margin-bottom: 8px;"><strong>Duración:</strong> ${servicio.duracion_estimada} minutos</p>
-          <p style="margin-bottom: 0;"><strong>Descripción:</strong> ${servicio.descripcion_servicio.substring(0, 60)}...</p>
+        <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
+          <p class="mb-1 text-sm"><span class="font-bold">Nombre:</span> ${servicio.nombre_servicio_peluqueria}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Precio:</span> L. ${parseFloat(servicio.precio_servicio || 0).toFixed(2)}</p>
         </div>
-        <p style="margin-top: 16px; color: #ef4444; font-weight: bold;">Esta acción no se puede deshacer</p>
       `,
       showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'Eliminar',
       cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
-      reverseButtons: true
+      reverseButtons: true,
+      width: 380,
+      padding: '16px',
+      customClass: {
+        confirmButton: 'bg-green-800 hover:bg-green-900 text-white p-button p-component',
+        cancelButton: 'p-button-text p-button p-component'
+      }
     });
 
     if (result.isConfirmed) {
@@ -192,35 +194,42 @@ const Servicios = () => {
   };
 
   return (
-    <div className="peluqueria-container">
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        
-        <div className="peluqueria-header">
-          <div className="icon-container">
-            <div className="icon-box">
-              <ScissorsIcon style={{ width: '24px', height: '24px', color: '#10b981' }} />
-            </div>
-          </div>
-          <h1 className="peluqueria-title">Servicios de Peluquería Canina</h1>
-          <p className="peluqueria-subtitle">Gestiona los servicios de peluquería para mascotas</p>
+    <div className="min-h-screen p-6 bg-gray-50">
+      {loading ? (
+        <div className="flex items-center justify-center min-h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+          <span className="ml-3 text-gray-600">Cargando servicios...</span>
         </div>
-
-        {loading ? (
-          <div className="section">
-            <div style={{ textAlign: 'center', padding: '48px' }}>
-              <div className="loading-spinner"></div>
-              <p style={{ marginTop: '16px', color: '#6b7280' }}>Cargando servicios...</p>
+      ) : (
+        <>
+          {/* Título con imagen decorativa */}
+          <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-200 mb-3">
+            <div className="flex justify-center items-center mt-6 mb-1 relative">
+              <div className="absolute left-0 opacity-20">
+                <img 
+                  src="/cat.png" 
+                  alt="Mascota" 
+                  className="w-12 h-12 object-contain"
+                />
+              </div>
+              <h2 className="text-2xl font-black text-center uppercase text-gray-800">
+                Servicios de Peluquería
+              </h2>
             </div>
           </div>
-        ) : (
+
+          {/* Dashboard de Servicios Favoritos */}
+          <ServiciosFavoritos servicios={servicios} />
+          
+          {/* Tabla de Servicios */}
           <ServiciosSeccion
             servicios={servicios}
             abrirModalServicio={abrirModalServicio}
             eliminarServicio={handleEliminarServicio}
             actualizarEstadoServicio={actualizarEstadoServicio}
           />
-        )}
-      </div>
+        </>
+      )}
 
       <ModalServicio
         isOpen={modalServicioAbierto}
