@@ -7,6 +7,7 @@ import { Button } from 'primereact/button';
 import { actualizarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
 const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
+  
   const especies = [
     { label: 'PERRO', value: 'PERRO' },
     { label: 'GATO', value: 'GATO' },
