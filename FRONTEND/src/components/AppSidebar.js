@@ -1,6 +1,5 @@
 import React from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-
 import {
   CCloseButton,
   CSidebar,
@@ -10,15 +9,9 @@ import {
   CSidebarToggler,
   useColorModes
 } from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-
 import { AppSidebarNav } from './AppSidebarNav'
-
-//import { logo }  from 'src/assets/brand/logo'
-//import { sygnet } from 'src/assets/brand/sygnet'
-
-// sidebar nav config
 import navigation from '../sidebar-components'
+import logo from '../assets/brand/logo-empresa.png'
 
 const AppSidebar = () => {
   const dispatch = useDispatch()
@@ -26,7 +19,6 @@ const AppSidebar = () => {
   const sidebarShow = useSelector((state) => state.sidebarShow)
 
   const { colorMode } = useColorModes('coreui-free-react-admin-template-theme')
-
   const sidebarColorScheme = colorMode === 'light' ? 'light' : 'dark'
 
   return (
@@ -36,27 +28,43 @@ const AppSidebar = () => {
       position="fixed"
       unfoldable={unfoldable}
       visible={sidebarShow}
-      onVisibleChange={(visible) => {
-        dispatch({ type: 'set', sidebarShow: visible })
-      }}
+      onVisibleChange={(visible) => dispatch({ type: 'set', sidebarShow: visible })}
     >
-      
-      <CSidebarHeader className="border-bottom">
-        <CSidebarBrand to="/">
+      {/* HEADER */}
+      <CSidebarHeader className="border-bottom flex justify-between items-center">
+        <CSidebarBrand 
+          to="/" 
+          className="flex items-center no-underline"
+          style={{ textDecoration: 'none' }} // quitar subrayado
+        >
+          {/* Modo abierto */}
+          <div className="flex items-center sidebar-brand-full">
+            <img src={logo} alt="Lucas Pet Shop" className="h-16 w-auto" />
+            <span className="font-bold text-lg whitespace-nowrap" style={{ fontFamily: 'Poppins, Roboto, Arial, sans-serif' }}>
+              LUCAS PET SHOP
+            </span>
+          </div>
 
-        
+          {/* Modo colapsado / narrow */}
+          <div className="sidebar-brand-narrow">
+            <img src={logo} alt="logo-small" className="h-10 w-auto" />
+          </div>
         </CSidebarBrand>
+
         <CCloseButton
           className="d-lg-none"
           dark={sidebarColorScheme === 'dark'}
           onClick={() => dispatch({ type: 'set', sidebarShow: false })}
         />
       </CSidebarHeader>
+
+      {/* NAV */}
       <AppSidebarNav items={navigation} />
+
+      {/* FOOTER */}
       <CSidebarFooter className="border-top d-none d-lg-flex">
         <CSidebarToggler
-          onClick={() =>
-             dispatch({ type: 'set', sidebarUnfoldable: !unfoldable })}
+          onClick={() => dispatch({ type: 'set', sidebarUnfoldable: !unfoldable })}
         />
       </CSidebarFooter>
     </CSidebar>
