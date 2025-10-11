@@ -16,8 +16,22 @@ exports.login = async (req, res) => {
     try {
 
         //SE EEJCUTA EL SP PARA OBTENER DATOS DEL USUARIO
-        const result = await queryAsync('CALL SP_LOGIN(?)', [login]);
-        const user = result?.[0]?.[0];
+        const result = await queryAsync(
+            `SELECT 
+                id_usuario_pk,
+                usuario,
+                email_usuario, 
+                contrasena_usuario,
+                estado_usuario, 
+                id_rol_fk
+            FROM tbl_usuarios
+                WHERE LOWER(TRIM(email_usuario)) = LOWER(TRIM(?))
+                OR LOWER(TRIM(usuario)) = LOWER(TRIM(?))
+                LIMIT 1`,
+            [login]);
+
+
+        const user = result?.[0];
         
         //VALIDACION PARA USUARIOS NO REGISTRADOS O INACTIVOS
         let mensaje; 
@@ -74,7 +88,6 @@ exports.login = async (req, res) => {
                 nombre: user.usuario,
                 email: user.email_usuario,
                 rol: user.id_rol_fk === 1 ? 'ADMINISTRADOR' : 'VENDEDOR',
-                empresa: user.id_empresa_fk,
                 estado: user.estado_usuario
             } : null,
             token

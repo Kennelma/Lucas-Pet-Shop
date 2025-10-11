@@ -1,117 +1,294 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Dialog } from 'primereact/dialog';
+import { InputText } from 'primereact/inputtext';
+import { Dropdown } from 'primereact/dropdown';
+import { InputNumber } from 'primereact/inputnumber';
+import { Button } from 'primereact/button';
+import { actualizarProducto, API_BASE_URL } from '../../../AXIOS.SERVICES/products-axios';
 
 const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
-  const [data, setData] = useState({nombre: '', especie: '', sexo: 'HEMBRA', cantidad: 0, precio: 0, imagenUrl: ''});
-  const [errors, setErrors] = useState({});
+  const especies = [
+    { label: 'PERRO', value: 'PERRO' },
+    { label: 'GATO', value: 'GATO' },
+    { label: 'AVE', value: 'AVE' },
+    { label: 'PEZ', value: 'PEZ' },
+    { label: 'REPTIL', value: 'REPTIL' },
+    { label: 'ANFIBIO', value: 'ANFIBIO' }
+  ];
+  const sexos = [
+    { label: 'HEMBRA', value: 'HEMBRA' },
+    { label: 'MACHO', value: 'MACHO' }
+  ];
+
+  const [data, setData] = useState({
+    nombre: '',
+    especie: '',
+    sexo: '',
+    precio: 0,
+    cantidad: 0,
+    stock_minimo: 0,
+    activo: 1,
+    sku: '',
+    file: null,
+    preview: null
+  });
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  // Generar SKU
+  const generarSKU = (nombre, id) => {
+    if (!nombre) return '';
+    const partes = nombre.trim().split(' ').map(p => p.substring(0,3).toUpperCase());
+    return partes.join('-') + (id ? `-${id}` : '-XXX');
+  };
 
   useEffect(() => {
     if (isOpen && editData) {
       setData({
-        nombre: editData.nombre || '',
-        especie: editData.especie || '',
-        sexo: editData.sexo || 'HEMBRA',
-        cantidad: editData.cantidad || 0,
+        nombre: (editData.nombre || '').toUpperCase(),
+        especie: (editData.especie || '').toUpperCase(),
+        sexo: (editData.sexo || '').toUpperCase(),
         precio: editData.precio || 0,
-        imagenUrl: editData.imagenUrl || editData.imagen || ''
+        cantidad: editData.stock || 0,
+        stock_minimo: editData.stock_minimo || 0,
+        activo: editData.activo ? 1 : 0,
+        sku: generarSKU(editData.nombre || '', editData.id_producto),
+        file: null,
+        preview: editData.imagenUrl ? `${API_BASE_URL}${editData.imagenUrl}` : null
       });
     }
-    setErrors({});
   }, [isOpen, editData]);
 
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (files && files[0]) {
-      const reader = new FileReader();
-      reader.onload = () => setData(prev => ({ ...prev, imagenUrl: reader.result }));
-      reader.readAsDataURL(files[0]);
-    } else {
-      setData(prev => ({ ...prev, [name]: value }));
-      if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+  const handleChange = (field, value) => {
+    const val = ['nombre','especie','sexo'].includes(field) ? value.toUpperCase() : value;
+    setData(prev => {
+      const newData = { ...prev, [field]: val };
+      if(field === 'nombre') newData.sku = generarSKU(val, editData.id_producto);
+      return newData;
+    });
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setData(prev => ({ ...prev, file, preview: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async () => {
+    if (!data.nombre || !data.precio || !data.cantidad) {
+      alert('Por favor completa los campos requeridos.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // ✅ Crea un objeto simple con los datos
+      const datosProducto = {
+        id_producto: editData.id_producto,
+        nombre_producto: data.nombre,
+        precio_producto: data.precio,
+        stock: data.cantidad,
+        stock_minimo: data.stock_minimo,
+        activo: data.activo,
+        especie: data.especie,
+        sexo: data.sexo,
+        tipo_producto: 'ANIMALES'
+      };
+
+      // ✅ Pasa el objeto y el archivo por separado
+      const res = await actualizarProducto(datosProducto, data.file);
+
+      if (res.Consulta) {
+        onSave(); // Recarga la lista desde el servidor
+        onClose();
+      } else {
+        alert(`Error al actualizar: ${res.error}`);
+      }
+    } catch (err) {
+      console.error('Error en handleSubmit:', err);
+      alert('Ocurrió un error al actualizar el animal.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const newErrors = {};
-    if (!data.nombre.trim()) newErrors.nombre = 'Nombre requerido';
-    if (!data.especie.trim()) newErrors.especie = 'Especie requerida';
-    if (data.cantidad <= 0) newErrors.cantidad = 'Datos inválidos';
-    if (data.precio <= 0) newErrors.precio = 'Datos inválidos';
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length === 0) {
-      const success = await onSave(data);
-      if (success !== false) onClose();
-    }
-  };
-
-  if (!isOpen) return null;
+  const footer = (
+    <div className="flex justify-end gap-3 mt-4">
+      <Button 
+        label="Cancelar" 
+        icon="pi pi-times" 
+        className="p-button-text p-button-rounded"
+        onClick={onClose}
+        disabled={loading}
+      />
+      <Button 
+        label="Guardar" 
+        icon="pi pi-check" 
+        className="p-button-success p-button-rounded"
+        onClick={handleSubmit}
+        loading={loading}
+      />
+    </div>
+  );
 
   return (
-    <div style={{position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16}}>
-      <div style={{background: 'white', borderRadius: 8, width: '100%', maxWidth: 800, display: 'flex', flexDirection: 'column'}}>
-        <div style={{padding: 16, borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-          <h2 style={{margin: 0, flex: 1, textAlign: 'center'}}>EDITAR ANIMAL</h2>
-          <button onClick={onClose} style={{background: 'none', border: 'none', fontSize: 20, cursor: 'pointer'}}>×</button>
+    <Dialog 
+      header="Actualizar Animal"
+      visible={isOpen}
+      style={{ width: '50rem', borderRadius: '1.5rem' }}
+      modal
+      closable={false}
+      onHide={onClose}
+      footer={footer}
+    >
+      <div className="flex flex-col gap-4 mt-2 text-sm">
+        {/* Nombre */}
+        <span className="p-float-label">
+          <InputText 
+            id="nombre" 
+            value={data.nombre} 
+            onChange={(e) => handleChange('nombre', e.target.value)} 
+            className="w-full rounded-xl h-10 text-sm"
+          />
+          <label htmlFor="nombre" className="text-xs">Nombre</label>
+        </span>
+
+        {/* SKU readonly */}
+        <span className="p-float-label">
+          <InputText 
+            id="sku"
+            value={data.sku}
+            readOnly
+            className="w-full rounded-xl h-10 text-sm bg-gray-100"
+          />
+          <label htmlFor="sku" className="text-xs">SKU</label>
+        </span>
+
+        {/* Especie, Sexo, Activo */}
+        <div className="grid grid-cols-3 gap-4">
+          <span className="p-float-label">
+            <Dropdown 
+              id="especie"
+              value={data.especie}
+              options={especies}
+              onChange={(e)=>handleChange('especie', e.value)}
+              className="w-full rounded-xl text-sm"
+              placeholder="Seleccionar"
+            />
+            <label htmlFor="especie" className="text-xs">Especie</label>
+          </span>
+
+          <span className="p-float-label">
+            <Dropdown 
+              id="sexo"
+              value={data.sexo}
+              options={sexos}
+              onChange={(e)=>handleChange('sexo', e.value)}
+              className="w-full rounded-xl text-sm"
+              placeholder="Seleccionar"
+            />
+            <label htmlFor="sexo" className="text-xs">Sexo</label>
+          </span>
+
+          <span className="p-float-label">
+            <Dropdown 
+              id="activo"
+              value={data.activo}
+              options={[{label:'ACTIVO', value:1},{label:'INACTIVO', value:0}]}
+              onChange={(e)=>handleChange('activo', e.value)}
+              className="w-full rounded-xl text-sm"
+            />
+            <label htmlFor="activo" className="text-xs">Estado</label>
+          </span>
         </div>
 
-        <form onSubmit={handleSubmit} style={{display: 'flex'}}>
-          <div style={{flex: 1, padding: 20}}>
-            <div style={{marginBottom: 16}}>
-              <label>Nombre:</label>
-              <input name="nombre" value={data.nombre} onChange={handleChange} style={{width: '100%', padding: 8, border: errors.nombre ? '1px solid red' : '1px solid #ddd'}}/>
-              {errors.nombre && <div style={{color: 'red', fontSize: 12}}>{errors.nombre}</div>}
-            </div>
+        {/* Precio, Stock, Stock mínimo */}
+        <div className="grid grid-cols-3 gap-4">
+          <span className="p-float-label">
+            <InputNumber 
+              id="precio" 
+              value={data.precio} 
+              onValueChange={(e) => handleChange('precio', e.value)} 
+              mode="currency" 
+              currency="HNL" 
+              locale="es-HN" 
+              className="w-full rounded-xl text-sm"
+              inputClassName="h-10 text-sm"
+            />
+            <label htmlFor="precio" className="text-xs">Precio</label>
+          </span>
 
-            <div style={{marginBottom: 16}}>
-              <label>Especie:</label>
-              <input name="especie" value={data.especie} onChange={handleChange} style={{width: '100%', padding: 8, border: errors.especie ? '1px solid red' : '1px solid #ddd'}}/>
-              {errors.especie && <div style={{color: 'red', fontSize: 12}}>{errors.especie}</div>}
-            </div>
+          <span className="p-float-label">
+            <InputNumber 
+              id="cantidad" 
+              value={data.cantidad} 
+              onValueChange={(e) => handleChange('cantidad', e.value)} 
+              className="w-full rounded-xl text-sm"
+              inputClassName="h-10 text-sm"
+            />
+            <label htmlFor="cantidad" className="text-xs">Stock</label>
+          </span>
 
-            <div style={{marginBottom: 16}}>
-              <label>Sexo:</label>
-              <select name="sexo" value={data.sexo} onChange={handleChange} style={{width: '100%', padding: 8, border: '1px solid #ddd'}}>
-                {['HEMBRA', 'MACHO'].map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
+          <span className="p-float-label">
+            <InputNumber 
+              id="stock_minimo" 
+              value={data.stock_minimo} 
+              onValueChange={(e) => handleChange('stock_minimo', e.value)} 
+              className="w-full rounded-xl text-sm"
+              inputClassName="h-10 text-sm"
+            />
+            <label htmlFor="stock_minimo" className="text-xs">Stock mínimo</label>
+          </span>
+        </div>
 
-            <div style={{display: 'flex', gap: 16, marginBottom: 16}}>
-              <div style={{flex: 1}}>
-                <label>Stock:</label>
-                <input type="number" name="cantidad" value={data.cantidad} onChange={handleChange} style={{width: '100%', padding: 8, border: errors.cantidad ? '1px solid red' : '1px solid #ddd'}}/>
-                {errors.cantidad && <div style={{color: 'red', fontSize: 12}}>{errors.cantidad}</div>}
-              </div>
-              <div style={{flex: 1}}>
-                <label>Precio:</label>
-                <input type="number" name="precio" value={data.precio} onChange={handleChange} step="0.01" style={{width: '100%', padding: 8, border: errors.precio ? '1px solid red' : '1px solid #ddd'}}/>
-                {errors.precio && <div style={{color: 'red', fontSize: 12}}>{errors.precio}</div>}
-              </div>
+        {/* Selector de Imagen */}
+        <div
+          className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl p-4 mt-2 hover:border-blue-400 transition-all cursor-pointer"
+          onClick={() => fileInputRef.current.click()}
+        >
+          {data.preview ? (
+            <div className="relative">
+              <img 
+                src={data.preview} 
+                alt="preview" 
+                className="h-32 w-32 object-contain rounded-xl" 
+              />
+              <Button
+                icon="pi pi-times"
+                rounded
+                text
+                severity="danger"
+                className="absolute -top-2 -right-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setData(prev => ({ ...prev, file: null, preview: null }));
+                }}
+              />
             </div>
+          ) : (
+            <>
+              <i className="pi pi-image text-3xl text-gray-400 mb-2"></i>
+              <p className="text-gray-500 text-sm text-center">
+                Haz clic para cambiar la imagen
+              </p>
+            </>
+          )}
+        </div>
 
-            <div style={{textAlign: 'center'}}>
-              <button type="submit" style={{background: '#4bc099ff', color: 'white', padding: '10px 20px', border: 'none', borderRadius: 4, cursor: 'pointer'}}>Guardar</button>
-            </div>
-          </div>
-
-          <div style={{width: 250, borderLeft: '1px solid #ddd', padding: 20}}>
-            {data.imagenUrl ? (
-              <>
-                <img src={data.imagenUrl} alt="Animal" style={{width: '100%', height: 150, objectFit: 'cover', border: '1px solid #ddd'}}/>
-                <div style={{display: 'flex', justifyContent: 'center', marginTop: 10}}>
-                  <span onClick={() => setData(prev => ({...prev, imagenUrl: ''}))} style={{cursor: 'pointer', fontSize: 20}}>🗑️</span>
-                </div>
-              </>
-            ) : (
-              <label style={{width: '100%', height: 150, border: '2px dashed #ddd', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: 4, backgroundColor: '#f9f9f9', fontSize: 14, color: '#666'}}>
-                Agregar imagen
-                <input type="file" accept="image/*" onChange={handleChange} style={{display: 'none'}}/>
-              </label>
-            )}
-          </div>
-        </form>
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept="image/*"
+          onChange={handleFileChange}
+        />
       </div>
-    </div>
+    </Dialog>
   );
 };
 
