@@ -126,17 +126,8 @@ const _nav = [
     component: CNavItem,
     name: 'Empresa y sucursales',
     icon: <FontAwesomeIcon icon={faStore} className="nav-icon" />,
-    to: '/',    
+    to: '/theme/colors',  
   },
-
-  //USUARIOS
-  {
-    component: CNavItem,
-    name: 'Usuarios',
-    icon: <FontAwesomeIcon icon={faUser} className="nav-icon" />,
-    to: '/',
-        
-  }, 
 
   //RECORDATORIOS
   {

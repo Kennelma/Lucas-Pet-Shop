@@ -1,3 +1,5 @@
+//CONTROLADORES PARA EL MÓDULO DE PRODUCTOS (MEDICAMENTOS, ALIMENTOS, ACCESORIOS, ANIMALES Y LOTES)
+
 const express = require('express');
 const mysqlConnection = require('../config/conexion');
 
@@ -10,15 +12,12 @@ const TIPOS_PRODUCTOS = {
 };
 
 //ESTOS ATRIBUTOS SON COMUNES PARA TODOS LOS ENDPOINT
-function insert_atributos_padre (body) {
-
-    const imagen = body.imagen_base64 ? body.imagen_base64 : null;
-
+function insert_atributos_padre (body, imagen_url = null) {
     return[
         body.nombre_producto,
         body.precio_producto,
         body.stock,
-        imagen,
+        imagen_url,
         TIPOS_PRODUCTOS[body.tipo_producto]
     ];
 }
@@ -29,17 +28,34 @@ function insert_atributos_padre (body) {
 // ─────────────────────────────────────────────────────────
 exports.crear = async (req, res) => {
 
+    console.log('═══════════════════════════════════');
+    console.log('req.body:', req.body);
+    console.log('req.files:', req.files);
+    console.log('Keys de body:', Object.keys(req.body || {}));
+    console.log('═══════════════════════════════════');
+
     const conn = await mysqlConnection.getConnection();    
 
     try {
         
         await conn.beginTransaction(); //INICIO LA TRANSACCIÓN
 
+        //MANEJA QUE LA IAMGEN DE SUBA 
+        let imagen_url = null;
+
+        if (req.files && req.files.imagen) {
+            const imagen = req.files.imagen;
+            const nombreImagen = Date.now() + '-' + imagen.name;
+            const rutaImagen = __dirname + '/../uploads/' + nombreImagen;
+            await imagen.mv(rutaImagen);
+            imagen_url = '/uploads/' + nombreImagen;
+        }
+
         //SE LLENA LA TABLA PADRE PRIMERO
         const [result] = await conn.query(
             `INSERT INTO tbl_productos (nombre_producto, precio_producto, stock, imagen_url, tipo_producto_fk)
              VALUES (?, ?, ?, ?, ?)`,
-            insert_atributos_padre(req.body)
+            insert_atributos_padre(req.body, imagen_url)
         );
 
         //OBTENGO EL ID DEL PRODUCTO INSERTADO
@@ -150,6 +166,8 @@ exports.crear = async (req, res) => {
         res.json ({
             Consulta: true,
             mensaje: 'Registro realizado con éxito',
+            insertId: id_producto, 
+            imagen_url: imagen_url         
         });
 
 
@@ -173,9 +191,7 @@ exports.crear = async (req, res) => {
 // ─────────────────────────────────────────────────────────
 
 //ATRIBUTOS COMUNES EN LOS REGISTROS, MEDIANTE LOS SP, SE PUEDE ACTUALIZAR O VARIOS ATRIBUTOS
-function update_atributos_padre (body) {
-
-    const imagen = body.imagen_base64 ? body.imagen_base64 : null;
+function update_atributos_padre (body, imagen_url = null) {
 
     return[
         body.nombre_producto || null,
@@ -184,7 +200,7 @@ function update_atributos_padre (body) {
         body.stock || null,
         body.stock_minimo || null,
         body.activo !== undefined ? body.activo : null,
-        imagen,
+        imagen_url,
     ];
     
 }
@@ -196,6 +212,15 @@ exports.actualizar = async (req, res) => {
     try {
 
         await conn.beginTransaction();
+
+        let imagen_url = null;
+        if (req.files && req.files.imagen) {
+            const imagen = req.files.imagen;
+            const nombreImagen = Date.now() + '-' + imagen.name;
+            const rutaImagen = __dirname + '/../uploads/' + nombreImagen;
+            await imagen.mv(rutaImagen);
+            imagen_url = '/uploads/' + nombreImagen;
+        }
 
         const { id_producto, tipo_producto } = req.body;
 
@@ -211,7 +236,7 @@ exports.actualizar = async (req, res) => {
                 activo          = COALESCE(?, activo),
                 imagen_url      = COALESCE(?, imagen_url)
             WHERE id_producto_pk = ?`, 
-            [...update_atributos_padre(req.body), id_producto]
+            [...update_atributos_padre(req.body, imagen_url), id_producto]
         );
         
         
@@ -365,7 +390,8 @@ exports.ver = async (req, res) => {
                         a.sexo
                     FROM tbl_productos p
                     INNER JOIN tbl_animales_info a 
-                        ON p.id_producto_pk = a.id_producto_fk`);
+                        ON p.id_producto_pk = a.id_producto_fk
+                    ORDER BY p.id_producto_pk DESC`);
                 break;
             
             case 'ALIMENTOS':
@@ -382,7 +408,8 @@ exports.ver = async (req, res) => {
                         al.alimento_destinado,
                         al.peso_alimento
                     FROM tbl_productos p
-                    INNER JOIN tbl_alimentos_info al ON p.id_producto_pk = al.id_producto_fk`
+                    INNER JOIN tbl_alimentos_info al ON p.id_producto_pk = al.id_producto_fk
+                    ORDER BY p.id_producto_pk DESC`
                 );
                 break;
 
@@ -403,7 +430,8 @@ exports.ver = async (req, res) => {
                         m.unidad_medida
                     FROM tbl_productos p
                     INNER JOIN tbl_medicamentos_info m 
-                        ON p.id_producto_pk = m.id_producto_fk`);
+                        ON p.id_producto_pk = m.id_producto_fk
+                        ORDER BY p.id_producto_pk DESC`);
                 break;
 
             case 'LOTES':
@@ -424,7 +452,7 @@ exports.ver = async (req, res) => {
     
 
             default:
-                throw new Error('Tipo de producto no válido');
+                throw new Error('TIPO DE PRODUCTO NO VALIDO');
         }
 
         res.json({

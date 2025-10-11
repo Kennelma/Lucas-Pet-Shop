@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from 'primereact/button';
 import ModalNuevoAnimal from './modal_nuevo_animal';
 import ModalActualizarAnimal from './modal_actualizar_animal';
-import { verProductos, eliminarProducto } from '../../../AXIOS.SERVICES/products-axios';
+import { verProductos, eliminarProducto, API_BASE_URL } from '../../../AXIOS.SERVICES/products-axios';
 
 const Animales = () => {
   const [animales, setAnimales] = useState([]);
@@ -11,20 +11,6 @@ const Animales = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [mensaje, setMensaje] = useState('');
   const [loading, setLoading] = useState(true);
-
-  const imagenStorage = {
-    guardar: (id, url) => {
-      const imgs = JSON.parse(localStorage.getItem('imagenesAnimales') || '{}');
-      imgs[id] = url;
-      localStorage.setItem('imagenesAnimales', JSON.stringify(imgs));
-    },
-    obtener: (id) => JSON.parse(localStorage.getItem('imagenesAnimales') || '{}')[id] || '',
-    eliminar: (id) => {
-      const imgs = JSON.parse(localStorage.getItem('imagenesAnimales') || '{}');
-      delete imgs[id];
-      localStorage.setItem('imagenesAnimales', JSON.stringify(imgs));
-    }
-  };
 
   const mostrarMensaje = (txt) => { setMensaje(txt); setTimeout(() => setMensaje(''), 3000); };
 
@@ -122,7 +108,9 @@ const Animales = () => {
               
               <div className="w-full h-32 flex items-center justify-center">
                 {a.imagenUrl ? (
-                  <img src={a.imagenUrl} alt={a.nombre} className="w-full h-full object-contain"/>
+                  <img src={`${API_BASE_URL}${a.imagenUrl}`}  alt={a.nombre} className="w-full h-full object-contain" onError={(e) => {
+                   e.target.src = '/placeholder.jpg'; // Imagen por si falla
+                }}/>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">Sin imagen</div>
                 )}
