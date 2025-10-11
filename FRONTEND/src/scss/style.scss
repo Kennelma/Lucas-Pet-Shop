@@ -1,5 +1,5 @@
 @use "@coreui/coreui/scss/coreui" as * with (
-    $enable-deprecation-messages: false
+  $enable-deprecation-messages: false
 );
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
@@ -15,6 +15,18 @@ body {
   padding-inline: var(--cui-sidebar-occupy-start, 0) var(--cui-sidebar-occupy-end, 0);
   will-change: auto;
   @include transition(padding .15s);
+}
+
+.sidebar-header {
+  padding: 0 !important;
+}
+
+.sidebar-brand-full {
+  margin-left: 0 !important;
+}
+
+.sidebar-brand {
+  margin-left: 0 !important;
 }
 
 .header > .container-fluid,
@@ -43,7 +55,8 @@ body {
   margin-inline-start: auto;
 }
 
-.sidebar-narrow, .sidebar-narrow-unfoldable:not(:hover) {
+.sidebar-narrow,
+.sidebar-narrow-unfoldable:not(:hover) {
   .sidebar-toggler {
     margin-inline-end: auto;
   }
@@ -72,7 +85,8 @@ body {
   min-height: calc(3rem + 1px);
 }
 
-ol, ul {
+ol,
+ul {
   padding-inline-start: 2rem;
   &.p-dropdown-items {
     padding-inline-start: 0rem !important;
@@ -100,16 +114,18 @@ ol, ul {
 /* Tipografía mejorada para el sidebar */
 .sidebar {
   font-family: 'Poppins', sans-serif;
-  
+
   /* OPCIÓN 2: Azul muy claro - Profesional y tech */
   background-color: #f0f4f8 !important;
-  
+
   /* Brand / Logo en negro */
   .sidebar-brand {
     color: #000000 !important;
     font-weight: 600;
-    
-    svg, .sidebar-brand-full, .sidebar-brand-narrow {
+
+    svg,
+    .sidebar-brand-full,
+    .sidebar-brand-narrow {
       color: #000000 !important;
       fill: #000000 !important;
     }
@@ -138,7 +154,7 @@ ol, ul {
     padding-bottom: 0.75rem;
     margin-bottom: 0.25rem;
     border-radius: 0.5rem;
-    margin-left: 0.5rem;
+    margin-left: 0rem;
     margin-right: 0.5rem;
 
     &:hover {
@@ -181,10 +197,10 @@ ol, ul {
     padding-bottom: 0.75rem;
     margin-bottom: 0.25rem;
     border-radius: 0.5rem;
-    margin-left: 0.5rem;
+    margin-left: 0rem;
     margin-right: 0.5rem;
     transition: all 0.2s ease;
-    
+
     &:hover {
       background-color: rgba(0, 0, 0, 0.05);
       transform: translateX(4px);
@@ -213,7 +229,8 @@ ol, ul {
     border-left: 4px solid #dc2626;
     box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
 
-    .nav-icon, svg {
+    .nav-icon,
+    svg {
       color: #dc2626 !important;
       fill: #dc2626 !important;
     }
@@ -228,14 +245,14 @@ ol, ul {
       font-weight: 400;
       margin-bottom: 0.125rem;
       border-radius: 0.5rem;
-      margin-left: 0.5rem;
+      margin-left: 0.8rem;
       margin-right: 0.5rem;
-      
+
       &:hover {
         font-weight: 500;
         transform: translateX(4px);
       }
-      
+
       // Sub-items activos en azul
       &.active {
         font-weight: 600;
@@ -260,7 +277,7 @@ ol, ul {
   /* Toggler en negro */
   .sidebar-toggler {
     color: #000000 !important;
-    
+
     &:hover {
       background-color: rgba(0, 0, 0, 0.05);
     }

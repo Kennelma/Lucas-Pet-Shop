@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Button } from 'primereact/button';
 import ModalNuevoAnimal from './modal_nuevo_animal';
 import ModalActualizarAnimal from './modal_actualizar_animal';
-import { verProductos, eliminarProducto } from '../../../AXIOS.SERVICES/products-axios';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { verProductos, eliminarProducto, API_BASE_URL } from '../../../AXIOS.SERVICES/products-axios';
 
 const Animales = () => {
   const [animales, setAnimales] = useState([]);
@@ -114,7 +114,9 @@ const Animales = () => {
               {/* Imagen */}
               <div className="w-full h-32 flex items-center justify-center">
                 {a.imagenUrl ? (
-                  <img src={a.imagenUrl} alt={a.nombre} className="w-full h-full object-contain"/>
+                  <img src={`${API_BASE_URL}${a.imagenUrl}`}  alt={a.nombre} className="w-full h-full object-contain" onError={(e) => {
+                   e.target.src = '/placeholder.jpg'; // Imagen por si falla
+                }}/>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">Sin imagen</div>
                 )}
