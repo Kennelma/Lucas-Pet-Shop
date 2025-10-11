@@ -6,14 +6,20 @@ import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
 import { insertarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
-const ModalNuevoAlimento = ({ isOpen, onClose, onSave }) => {
-  const destinosBase = [
-    { label: 'PERROS', value: 'PERROS' },
-    { label: 'GATOS', value: 'GATOS' },
-    { label: 'AVES', value: 'AVES' },
-    { label: 'PECES', value: 'PECES' },
-    { label: 'REPTILES', value: 'REPTILES' },
-    { label: 'ANFIBIOS', value: 'ANFIBIOS' }
+const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
+  
+  const especies = [
+    { label: 'PERRO', value: 'PERRO' },
+    { label: 'GATO', value: 'GATO' },
+    { label: 'AVE', value: 'AVE' },
+    { label: 'PEZ', value: 'PEZ' },
+    { label: 'REPTIL', value: 'REPTIL' },
+    { label: 'ANFIBIO', value: 'ANFIBIO' }
+  ];
+
+  const sexos = [
+    { label: 'HEMBRA', value: 'HEMBRA' },
+    { label: 'MACHO', value: 'MACHO' }
   ];
 
   const [data, setData] = useState({
