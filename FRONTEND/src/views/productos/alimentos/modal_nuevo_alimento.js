@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
-import { actualizarProducto } from '../../../AXIOS.SERVICES/products-axios';
+import { insertarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
 const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
   
@@ -24,61 +24,37 @@ const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
 
   const [data, setData] = useState({
     nombre: '',
-    especie: '',
-    sexo: '',
     precio: 0,
     cantidad: 0,
-    stock_minimo: 0,
-    activo: 1,
-    sku: '',
+    peso: 0,
+    destino: '',
     imagenUrl: ''
   });
 
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
 
-  //Generar SKU
-  const generarSKU = (nombre, id) => {
-    if (!nombre) return '';
-    const partes = nombre.trim().split(' ').map(p => p.substring(0,3).toUpperCase());
-    return partes.join('-') + (id ? `-${id}` : '-XXX');
-  };
-
-  useEffect(() => {
-    if (isOpen && editData) {
-      setData({
-        nombre: (editData.nombre || '').toUpperCase(),
-        especie: (editData.especie || '').toUpperCase(),
-        sexo: (editData.sexo || '').toUpperCase(),
-        precio: editData.precio || 0,
-        cantidad: editData.stock || 0,
-        stock_minimo: editData.stock_minimo || 0,
-        activo: editData.activo ? 1 : 0,
-        sku: generarSKU(editData.nombre || '', editData.id_producto),
-        imagenUrl: editData.imagenUrl || ''
-      });
-    }
-  }, [isOpen, editData]);
-
+  // Manejar cambios de input
   const handleChange = (field, value) => {
-    const val = ['nombre', 'especie', 'sexo'].includes(field) ? value.toUpperCase() : value;
-    setData(prev => {
-      const newData = { ...prev, [field]: val };
-      if (field === 'nombre') newData.sku = generarSKU(val, editData.id_producto);
-      return newData;
-    });
+    const val = ['nombre', 'destino'].includes(field) ? value.toUpperCase() : value;
+    setData(prev => ({ ...prev, [field]: val }));
   };
 
+  // Manejar imagen seleccionada
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setData(prev => ({ ...prev, imagenUrl: url }));
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setData(prev => ({ ...prev, imagenUrl: reader.result }));
+    };
+    reader.readAsDataURL(file);
   };
 
+  // Guardar nuevo alimento
   const handleSubmit = async () => {
-    if (!data.nombre || !data.precio || !data.cantidad) {
+    if (!data.nombre || !data.precio) {
       alert('Por favor completa los campos requeridos.');
       return;
     }
@@ -86,29 +62,38 @@ const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
     setLoading(true);
     try {
       const body = {
-        id_producto: editData.id_producto,
         nombre_producto: data.nombre,
         precio_producto: data.precio,
         stock: data.cantidad,
-        stock_minimo: data.stock_minimo,
-        activo: data.activo,
-        especie: data.especie,
-        sexo: data.sexo,
-        tipo_producto: 'ANIMALES',
-        imagen_url: data.imagenUrl || null
+        tipo_producto: 'ALIMENTOS',
+        peso_alimento: data.peso,
+        alimento_destinado: data.destino,
+        activo: 1
       };
 
-      const res = await actualizarProducto(body);
+      if (data.imagenUrl && data.imagenUrl.startsWith('data:image')) {
+        body.imagen_base64 = data.imagenUrl;
+      }
+
+      const res = await insertarProducto(body);
 
       if (res.Consulta) {
-        onSave({ ...editData, ...data });
+        onSave();
         onClose();
+        setData({
+          nombre: '',
+          precio: 0,
+          cantidad: 0,
+          peso: 0,
+          destino: '',
+          imagenUrl: ''
+        });
       } else {
-        alert(`Error al actualizar: ${res.error}`);
+        alert(`Error al guardar: ${res.error}`);
       }
     } catch (err) {
       console.error(err);
-      alert('Ocurrió un error al actualizar el animal.');
+      alert('Ocurrió un error al guardar el alimento.');
     } finally {
       setLoading(false);
     }
@@ -135,9 +120,9 @@ const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
 
   return (
     <Dialog
-      header="Editar Animal"
+      header="Nuevo Alimento"
       visible={isOpen}
-      style={{ width: '50rem', borderRadius: '1.5rem' }}
+      style={{ width: '45rem', borderRadius: '1.5rem' }}
       modal
       closable={false}
       onHide={onClose}
@@ -147,68 +132,42 @@ const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
         {/* Nombre */}
         <span className="p-float-label">
           <InputText
-            id="nombre"
             value={data.nombre}
             onChange={(e) => handleChange('nombre', e.target.value)}
             className="w-full rounded-xl h-10 text-sm"
           />
-          <label htmlFor="nombre" className="text-xs">Nombre</label>
+          <label className="text-xs">Nombre</label>
         </span>
 
-        {/* SKU readonly */}
-        <span className="p-float-label">
-          <InputText
-            id="sku"
-            value={data.sku}
-            readOnly
-            className="w-full rounded-xl h-10 text-sm bg-gray-100"
-          />
-          <label htmlFor="sku" className="text-xs">SKU</label>
-        </span>
-
-        {/* Especie, Sexo, Activo */}
-        <div className="grid grid-cols-3 gap-4">
+        {/* Destino y Peso */}
+        <div className="grid grid-cols-2 gap-4">
           <span className="p-float-label">
             <Dropdown
-              id="especie"
-              value={data.especie}
-              options={especies}
-              onChange={(e) => handleChange('especie', e.value)}
+              value={data.destino}
+              options={destinosBase}
+              onChange={(e) => handleChange('destino', e.value)}
               className="w-full rounded-xl text-sm"
               placeholder="Seleccionar"
             />
-            <label htmlFor="especie" className="text-xs">Especie</label>
+            <label className="text-xs">Destinado a</label>
           </span>
 
           <span className="p-float-label">
-            <Dropdown
-              id="sexo"
-              value={data.sexo}
-              options={sexos}
-              onChange={(e) => handleChange('sexo', e.value)}
+            <InputNumber
+              value={data.peso}
+              onValueChange={(e) => handleChange('peso', e.value)}
               className="w-full rounded-xl text-sm"
-              placeholder="Seleccionar"
+              inputClassName="h-10 text-sm"
+              suffix=" kg"
             />
-            <label htmlFor="sexo" className="text-xs">Sexo</label>
-          </span>
-
-          <span className="p-float-label">
-            <Dropdown
-              id="activo"
-              value={data.activo}
-              options={[{ label: 'ACTIVO', value: 1 }, { label: 'INACTIVO', value: 0 }]}
-              onChange={(e) => handleChange('activo', e.value)}
-              className="w-full rounded-xl text-sm"
-            />
-            <label htmlFor="activo" className="text-xs">Estado</label>
+            <label className="text-xs">Peso (kg)</label>
           </span>
         </div>
 
-        {/* Precio, Stock, Stock mínimo */}
-        <div className="grid grid-cols-3 gap-4">
+        {/* Precio y Stock */}
+        <div className="grid grid-cols-2 gap-4">
           <span className="p-float-label">
             <InputNumber
-              id="precio"
               value={data.precio}
               onValueChange={(e) => handleChange('precio', e.value)}
               mode="currency"
@@ -217,39 +176,31 @@ const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
               className="w-full rounded-xl text-sm"
               inputClassName="h-10 text-sm"
             />
-            <label htmlFor="precio" className="text-xs">Precio</label>
+            <label className="text-xs">Precio</label>
           </span>
 
           <span className="p-float-label">
             <InputNumber
-              id="cantidad"
               value={data.cantidad}
               onValueChange={(e) => handleChange('cantidad', e.value)}
               className="w-full rounded-xl text-sm"
               inputClassName="h-10 text-sm"
             />
-            <label htmlFor="cantidad" className="text-xs">Stock</label>
-          </span>
-
-          <span className="p-float-label">
-            <InputNumber
-              id="stock_minimo"
-              value={data.stock_minimo}
-              onValueChange={(e) => handleChange('stock_minimo', e.value)}
-              className="w-full rounded-xl text-sm"
-              inputClassName="h-10 text-sm"
-            />
-            <label htmlFor="stock_minimo" className="text-xs">Stock mínimo</label>
+            <label className="text-xs">Stock</label>
           </span>
         </div>
 
-        {/* Imagen visual */}
+        {/* Imagen */}
         <div
-          className="w-full h-32 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl mt-2 hover:border-blue-400 transition-all cursor-pointer"
+          className="w-full h-40 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl mt-2 hover:border-blue-400 transition-all cursor-pointer"
           onClick={() => fileInputRef.current?.click()}
         >
           {data.imagenUrl ? (
-            <img src={data.imagenUrl} alt="animal" className="w-full h-full object-cover rounded-2xl" />
+            <img
+              src={data.imagenUrl}
+              alt="alimento"
+              className="w-full h-full object-cover rounded-2xl"
+            />
           ) : (
             <div className="flex flex-col items-center justify-center text-gray-400">
               <i className="pi pi-image text-3xl mb-2"></i>
@@ -269,4 +220,4 @@ const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
   );
 };
 
-export default ModalEditarAnimal;
+export default ModalNuevoAlimento;
