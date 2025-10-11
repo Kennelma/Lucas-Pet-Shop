@@ -71,20 +71,6 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
-      {/* Título con imagen decorativa */}
-      <div className="flex justify-center items-center mb-5 relative">
-        <div className="absolute left-0 opacity-20">
-          <img 
-            src="/cat.png" 
-            alt="Mascota" 
-            className="w-12 h-12 object-contain"
-          />
-        </div>
-        <h2 className="text-2xl font-bold text-center uppercase text-gray-800">
-          Servicios de Peluquería
-        </h2>
-      </div>
-
       {/* Barra de búsqueda + botón Nuevo */}
       <div className="flex justify-between items-center mb-6">
         <div className="relative w-80">
@@ -103,7 +89,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
             </button>
           )}
         </div>
-        
+
         <button
           className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors flex items-center gap-2"
           onClick={() => abrirModalServicio(null)}

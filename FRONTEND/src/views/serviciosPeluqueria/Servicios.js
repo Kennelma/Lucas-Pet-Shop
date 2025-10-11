@@ -151,25 +151,23 @@ const Servicios = () => {
 
   const handleEliminarServicio = async (servicio) => {
     const result = await Swal.fire({
-      icon: 'warning',
       title: '¿Eliminar servicio?',
       html: `
         <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
           <p class="mb-1 text-sm"><span class="font-bold">Nombre:</span> ${servicio.nombre_servicio_peluqueria}</p>
           <p class="mb-1 text-sm"><span class="font-bold">Precio:</span> L. ${parseFloat(servicio.precio_servicio || 0).toFixed(2)}</p>
-          <p class="mb-1 text-sm"><span class="font-bold">Duración:</span> ${servicio.duracion_estimada} min</p>
-          <p class="mb-0 text-sm"><span class="font-bold">Descripción:</span> ${servicio.descripcion_servicio.substring(0, 40)}...</p>
         </div>
-        <p class="mt-2 text-red-500 font-bold text-xs">Esta acción no se puede deshacer</p>
       `,
       showCancelButton: true,
       confirmButtonText: 'Eliminar',
       cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
       reverseButtons: true,
       width: 380,
-      padding: '16px'
+      padding: '16px',
+      customClass: {
+        confirmButton: 'bg-green-800 hover:bg-green-900 text-white p-button p-component',
+        cancelButton: 'p-button-text p-button p-component'
+      }
     });
 
     if (result.isConfirmed) {
@@ -204,6 +202,22 @@ const Servicios = () => {
         </div>
       ) : (
         <>
+          {/* Título con imagen decorativa */}
+          <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-200 mb-3">
+            <div className="flex justify-center items-center mt-6 mb-1 relative">
+              <div className="absolute left-0 opacity-20">
+                <img 
+                  src="/cat.png" 
+                  alt="Mascota" 
+                  className="w-12 h-12 object-contain"
+                />
+              </div>
+              <h2 className="text-2xl font-black text-center uppercase text-gray-800">
+                Servicios de Peluquería
+              </h2>
+            </div>
+          </div>
+
           {/* Dashboard de Servicios Favoritos */}
           <ServiciosFavoritos servicios={servicios} />
           
