@@ -2,33 +2,49 @@ import { useEffect, useState } from "react";
 import { SparklesIcon } from '@heroicons/react/24/outline';
 
 export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = null }) {
+  console.log('ModalPromocion renderizado - isOpen:', isOpen, 'promocion:', promocion);
+  
   const [formData, setFormData] = useState({
     nombre_promocion: '',
     descripcion_promocion: '',
     precio_promocion: '',
-    dias_promocion: ''
+    dias_promocion: []
   });
 
   const [errores, setErrores] = useState({});
-
-  // Días de la semana
   const diasSemana = [
-    { id: 'domingo', nombre: 'Domingo', abrev: 'Dom' },
-    { id: 'lunes', nombre: 'Lunes', abrev: 'Lun' },
-    { id: 'martes', nombre: 'Martes', abrev: 'Mar' },
-    { id: 'miercoles', nombre: 'Miércoles', abrev: 'Mié' },
-    { id: 'jueves', nombre: 'Jueves', abrev: 'Jue' },
-    { id: 'viernes', nombre: 'Viernes', abrev: 'Vie' },
-    { id: 'sabado', nombre: 'Sábado', abrev: 'Sáb' }
+    { id: 'LUNES', label: 'LUNES' },
+    { id: 'MARTES', label: 'MARTES' },
+    { id: 'MIERCOLES', label: 'MIERCOLES' },
+    { id: 'JUEVES', label: 'JUEVES' },
+    { id: 'VIERNES', label: 'VIERNES' },
+    { id: 'SABADO', label: 'SABADO' },
+    { id: 'domingo', label: 'Domingo' }
   ];
 
   useEffect(() => {
     if (isOpen) {
+      // Parsear dias_promocion si viene como string desde la BD
+      let diasPromocion = [];
+      if (promocion?.dias_promocion) {
+        try {
+          // Si es un string, intentar parsearlo como JSON
+          if (typeof promocion.dias_promocion === 'string') {
+            diasPromocion = JSON.parse(promocion.dias_promocion);
+          } else if (Array.isArray(promocion.dias_promocion)) {
+            diasPromocion = promocion.dias_promocion;
+          }
+        } catch (error) {
+          console.warn('Error parseando dias_promocion:', error);
+          diasPromocion = [];
+        }
+      }
+
       setFormData({
         nombre_promocion: promocion?.nombre_promocion || '',
         descripcion_promocion: promocion?.descripcion_promocion || '',
         precio_promocion: promocion?.precio_promocion || '',
-        dias_promocion: promocion?.dias_promocion || []
+        dias_promocion: diasPromocion
       });
       setErrores({});
     }
@@ -40,20 +56,14 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
     if (errores[name]) setErrores(prev => ({ ...prev, [name]: '' }));
   };
 
-  // Toggle día de la semana
-  const toggleDia = (diaId) => {
+  const handleDiaToggle = (diaId) => {
     setFormData(prev => {
-      const diasActuales = prev.dias_promocion;
-      const nuevosDias = diasActuales.includes(diaId)
-        ? diasActuales.filter(d => d !== diaId)
-        : [...diasActuales, diaId];
-      return { ...prev, dias_promocion: nuevosDias };
+      const nuevos_dias = prev.dias_promocion.includes(diaId)
+        ? prev.dias_promocion.filter(dia => dia !== diaId)
+        : [...prev.dias_promocion, diaId];
+      return { ...prev, dias_promocion: nuevos_dias };
     });
-    
-    // Limpiar error de días si existe
-    if (errores.dias_promocion) {
-      setErrores(prev => ({ ...prev, dias_promocion: '' }));
-    }
+    if (errores.dias_promocion) setErrores(prev => ({ ...prev, dias_promocion: '' }));
   };
 
   const validarFormulario = () => {
@@ -79,9 +89,8 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
     } else if (precio > 10000) {
       nuevosErrores.precio_promocion = 'El precio parece demasiado alto (máx: L. 10,000)';
     }
-    
-    if (formData.dias_promocion.length === 0) {
-      nuevosErrores.dias_promocion = 'Debes seleccionar al menos un día';
+    if (!formData.dias_promocion || formData.dias_promocion.length === 0) {
+      nuevosErrores.dias_promocion = 'Debe seleccionar al menos un día de la semana';
     }
     
     return nuevosErrores;
@@ -94,22 +103,34 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
       setErrores(nuevosErrores);
       return;
     }
-    onSubmit(formData);
+    
+    // Convertir array a string para la base de datos
+    const dataParaEnviar = {
+      ...formData,
+      dias_promocion: JSON.stringify(formData.dias_promocion)
+    };
+    
+    console.log('Datos del formulario:', formData);
+    console.log('Datos para enviar:', dataParaEnviar);
+    
+    onSubmit(dataParaEnviar);
   };
 
   const handleClose = () => {
-    setFormData({ 
-      nombre_promocion: '', 
-      descripcion_promocion: '', 
-      precio_promocion: '', 
-      dias_promocion: [] 
-    });
+    setFormData({ nombre_promocion: '', descripcion_promocion: '', precio_promocion: '', dias_promocion: [] });
     setErrores({});
     onClose();
   };
 
-  if (!isOpen) return null;
+  console.log('Verificando si mostrar modal - isOpen:', isOpen);
+  
+  if (!isOpen) {
+    console.log('Modal no se muestra porque isOpen es false');
+    return null;
+  }
 
+  console.log('Modal se va a mostrar');
+  
   return (
     <div className="modal-overlay" onClick={handleClose}>
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
@@ -177,27 +198,36 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
             </div>
 
             <div className="form-group">
-              <label className="form-label">
-                Días de la Promoción <span style={{ color: '#ef4444' }}>*</span>
-              </label>
-              <div className="days-selector">
+              <label className="form-label">Días de la Promoción <span style={{ color: '#ef4444' }}>*</span></label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', marginTop: '8px' }}>
                 {diasSemana.map(dia => (
-                  <button
-                    key={dia.id}
-                    type="button"
-                    onClick={() => toggleDia(dia.id)}
-                    className={`day-button ${formData.dias_promocion.includes(dia.id) ? 'selected' : ''}`}
-                  >
-                    <div style={{ fontSize: '0.85rem', fontWeight: '700' }}>{dia.abrev}</div>
-                    <div style={{ fontSize: '0.65rem', marginTop: '2px', opacity: '0.8' }}>
-                      {dia.nombre}
-                    </div>
-                  </button>
+                  <div key={dia.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input
+                      type="checkbox"
+                      id={dia.id}
+                      checked={formData.dias_promocion.includes(dia.id)}
+                      onChange={() => handleDiaToggle(dia.id)}
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        cursor: 'pointer'
+                      }}
+                    />
+                    <label 
+                      htmlFor={dia.id} 
+                      style={{ 
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: formData.dias_promocion.includes(dia.id) ? '600' : '400',
+                        color: formData.dias_promocion.includes(dia.id) ? '#3b82f6' : '#6b7280'
+                      }}
+                    >
+                      {dia.label}
+                    </label>
+                  </div>
                 ))}
               </div>
-              <p className="form-hint">
-                Selecciona los días de la semana en que aplica esta promoción
-              </p>
+              <p className="form-hint">Seleccione los días de la semana en que estará disponible la promoción</p>
               {errores.dias_promocion && <p className="form-error">{errores.dias_promocion}</p>}
             </div>
 
