@@ -143,14 +143,23 @@ const Promociones = () => {
   const eliminarPromocion = async (promocion) => {
     try {
       const result = await Swal.fire({
-        title: '¿Estás seguro?',
-        text: `¿Quieres eliminar la promoción "${promocion.nombre_promocion}"?`,
-        icon: 'warning',
+        title: '¿Eliminar promoción?',
+        html: `
+          <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
+            <p class="mb-1 text-sm"><span class="font-bold">Nombre:</span> ${promocion.nombre_promocion}</p>
+            <p class="mb-1 text-sm"><span class="font-bold">Precio:</span> L. ${parseFloat(promocion.precio_promocion || 0).toFixed(2)}</p>
+          </div>
+        `,
         showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
+        confirmButtonText: 'Eliminar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+        width: 380,
+        padding: '16px',
+        customClass: {
+          confirmButton: 'bg-green-800 hover:bg-green-900 text-white p-button p-component',
+          cancelButton: 'p-button-text p-button p-component'
+        }
       });
 
       if (result.isConfirmed) {

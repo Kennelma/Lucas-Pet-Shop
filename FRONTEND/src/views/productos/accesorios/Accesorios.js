@@ -11,6 +11,21 @@ const Accesorios = () => {
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // Sistema de almacenamiento de imágenes (igual que en Animales)
+  const imagenStorage = {
+    guardar: (id, url) => {
+      const imgs = JSON.parse(localStorage.getItem('imagenesAccesorios') || '{}');
+      imgs[id] = url;
+      localStorage.setItem('imagenesAccesorios', JSON.stringify(imgs));
+    },
+    obtener: (id) => JSON.parse(localStorage.getItem('imagenesAccesorios') || '{}')[id] || '',
+    eliminar: (id) => {
+      const imgs = JSON.parse(localStorage.getItem('imagenesAccesorios') || '{}');
+      delete imgs[id];
+      localStorage.setItem('imagenesAccesorios', JSON.stringify(imgs));
+    }
+  };
+
   // Función para generar SKU al actualizar
   const generarSKU = (nombre, id) => {
     if (!nombre) return '';
@@ -25,68 +40,73 @@ const Accesorios = () => {
   };
 
   const cargarInventario = async () => {
-  setLoading(true);
-  try {
-    const datos = await verProductos("ACCESORIOS");
-    console.log("Datos crudos del backend:", datos);
-    
-    const lista = Array.isArray(datos) ? datos : (Array.isArray(datos?.productos) ? datos.productos : []);
+    setLoading(true);
+    try {
+      const datos = await verProductos("ACCESORIOS");
+      console.log("Datos crudos del backend:", datos);
+      
+      const lista = Array.isArray(datos) ? datos : (Array.isArray(datos?.productos) ? datos.productos : []);
 
-    const inventarioMapeado = lista.map((item) => {
-      const id = item.id_producto_pk || item.id_producto || item.id_accesorio_pk || item.id;
-      console.log(`Producto: ${item.nombre_producto}, ID: ${id}, Activo: ${item.activo}`);
+      const inventarioMapeado = lista.map((item) => {
+        const id = item.id_producto_pk || item.id_producto || item.id_accesorio_pk || item.id;
+        console.log(`Producto: ${item.nombre_producto}, ID: ${id}, Activo: ${item.activo}`);
 
-      return {
-        id: id,
-        sku: item.sku ?? "",
-        nombre: (item.nombre_producto ?? item.nombre_accesorio ?? item.nombre ?? "").toUpperCase(),
-        categoria: (item.tipo_accesorio ?? item.categoria ?? "").toUpperCase(),
-        cantidad: Number(item.stock ?? item.stock_accesorio ?? item.cantidad ?? 0) || 0,
-        precio: Number(item.precio_producto ?? item.precio_accesorio ?? item.precio ?? 0) || 0,
-        // Aquí mapeamos la imagen del backend a nuestro estado
-        imagenUrl: item.imagen_url ?? item.imagen ?? "", 
-        activo: item.activo !== undefined ? Boolean(item.activo) : true
-      };
-    });
+        return {
+          id: id,
+          sku: item.sku ?? "",
+          nombre: (item.nombre_producto ?? item.nombre_accesorio ?? item.nombre ?? "").toUpperCase(),
+          categoria: (item.tipo_accesorio ?? item.categoria ?? "").toUpperCase(),
+          cantidad: Number(item.stock ?? item.stock_accesorio ?? item.cantidad ?? 0) || 0,
+          precio: Number(item.precio_producto ?? item.precio_accesorio ?? item.precio ?? 0) || 0,
+          imagenUrl: item.imagen_url ?? item.imagen ?? "", 
+          activo: item.activo !== undefined ? Boolean(item.activo) : true
+        };
+      });
 
-    console.log("Inventario mapeado con IDs:", inventarioMapeado.map(p => ({nombre: p.nombre, id: p.id, activo: p.activo})));
-    setInventario(inventarioMapeado);
-  } catch (error) {
-    console.error("Error al cargar inventario:", error);
-    mostrarMensaje("Error al cargar inventario");
-    setInventario([]);
-  }
-  setLoading(false);
-};
-
+      console.log("Inventario mapeado con IDs:", inventarioMapeado.map(p => ({nombre: p.nombre, id: p.id, activo: p.activo})));
+      setInventario(inventarioMapeado);
+    } catch (error) {
+      console.error("Error al cargar inventario:", error);
+      mostrarMensaje("Error al cargar inventario");
+      setInventario([]);
+    }
+    setLoading(false);
+  };
 
   const guardarAccesorio = async ({nombre, categoria, cantidad, precio, imagenUrl, activo}) => {
     // Convertir a mayúsculas antes de enviar
     const nombreMayuscula = nombre.toUpperCase();
     const categoriaMayuscula = categoria.toUpperCase();
     
-    const datosDB = {
-      nombre_producto: nombreMayuscula,
-      tipo_accesorio: categoriaMayuscula,
-      stock: parseInt(cantidad) || 0,
-      precio_producto: parseFloat(precio) || 0,
-      tipo_producto: "ACCESORIOS",
-      activo: activo !== undefined ? activo : true
-    };
-
     try {
       let resultado;
       
       if (editIndex >= 0) {
-        // ACTUALIZAR - Regenerar SKU con el nuevo nombre
+        // ACTUALIZAR
         const accesorio = inventario[editIndex];
         const skuNuevo = generarSKU(nombreMayuscula, accesorio.id);
         
-        resultado = await actualizarProducto({
-          ...datosDB,
+        // Si hay nueva imagen (base64), enviarla
+        const datosDB = {
+          nombre_producto: nombreMayuscula,
+          tipo_accesorio: categoriaMayuscula,
+          stock: parseInt(cantidad) || 0,
+          precio_producto: parseFloat(precio) || 0,
+          tipo_producto: "ACCESORIOS",
           sku: skuNuevo,
-          id_producto: accesorio.id
-        });
+          id_producto: accesorio.id,
+          activo: activo !== undefined ? activo : true
+        };
+
+        // Solo agregar imagen si es nueva (base64)
+        if (imagenUrl && imagenUrl.startsWith('data:image')) {
+          datosDB.imagen_base64 = imagenUrl;
+        } else if (imagenUrl && !imagenUrl.startsWith('data:image')) {
+          // Si es URL existente, mantenerla
+          datosDB.imagen_url = imagenUrl;
+        }
+        
+        resultado = await actualizarProducto(datosDB);
         
         if (resultado && resultado.Consulta !== false) {
           setInventario(prev => prev.map(item => 
@@ -98,7 +118,7 @@ const Accesorios = () => {
                   categoria: categoriaMayuscula, 
                   cantidad: parseInt(cantidad), 
                   precio: parseFloat(precio), 
-                  imagenUrl: imagenUrl || "",
+                  imagenUrl: imagenUrl || item.imagenUrl, // Mantener imagen existente si no hay nueva
                   activo: activo
                 }
               : item
@@ -109,7 +129,21 @@ const Accesorios = () => {
           setEditIndex(-1);
         }
       } else {
-        // INSERTAR - El backend genera el SKU automáticamente
+        // INSERTAR NUEVO
+        const datosDB = {
+          nombre_producto: nombreMayuscula,
+          tipo_accesorio: categoriaMayuscula,
+          stock: parseInt(cantidad) || 0,
+          precio_producto: parseFloat(precio) || 0,
+          tipo_producto: "ACCESORIOS",
+          activo: activo !== undefined ? activo : true
+        };
+
+        // Solo agregar imagen si existe
+        if (imagenUrl && imagenUrl.startsWith('data:image')) {
+          datosDB.imagen_base64 = imagenUrl;
+        }
+        
         resultado = await insertarProducto(datosDB);
         
         if (!resultado || resultado.Consulta === false) {
@@ -232,19 +266,21 @@ const Accesorios = () => {
                   producto.activo ? 'bg-gray-100' : 'bg-gray-200 opacity-60'
                 }`}
               >
-                <div className="bg-white rounded-lg p-2 mb-4 h-32 flex items-center justify-center overflow-hidden">
+                {/* Contenedor de imagen - IGUAL QUE EN ANIMALES */}
+                <div className="w-full h-32 flex items-center justify-center mb-4">
                   {producto.imagenUrl ? (
-                    <img
-                      src={producto.imagenUrl}
-                      alt={producto.nombre}
+                    <img 
+                      src={producto.imagenUrl} 
+                      alt={producto.nombre} 
                       className="w-full h-full object-contain"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gray-50 flex items-center justify-center">
-                      <span className="text-gray-300 text-4xl">📦</span>
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      Sin imagen
                     </div>
                   )}
                 </div>
+
                 <div className="text-center mb-8">
                   <div className="text-xs text-gray-500 mb-1 font-mono">{producto.sku}</div>
                   <div className="font-bold text-sm mb-1">{producto.nombre}</div>
