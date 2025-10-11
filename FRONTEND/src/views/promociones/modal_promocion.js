@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { SparklesIcon } from '@heroicons/react/24/outline';
+import { Dialog } from "primereact/dialog";
+import { InputText } from "primereact/inputtext";
+import { Button } from "primereact/button";
 
 export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = null }) {
   console.log('ModalPromocion renderizado - isOpen:', isOpen, 'promocion:', promocion);
@@ -15,7 +18,7 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
   const [errores, setErrores] = useState({});
 
   const diasSemana = [
-    { id: 'LUNES', label: 'LUNES' },
+    { id: 'LUNES', label: ' LUNES' },
     { id: 'MARTES', label: 'MARTES' },
     { id: 'MIERCOLES', label: 'MIERCOLES' },
     { id: 'JUEVES', label: 'JUEVES' },
@@ -55,7 +58,14 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    let finalValue = type === 'checkbox' ? checked : value;
+    
+    // Convertir a mayúsculas los campos de texto (excepto números)
+    if (type !== 'checkbox' && name !== 'precio_promocion') {
+      finalValue = value.toUpperCase();
+    }
+    
+    setFormData(prev => ({ ...prev, [name]: finalValue }));
     if (errores[name]) setErrores(prev => ({ ...prev, [name]: '' }));
   };
 
@@ -96,7 +106,7 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     const nuevosErrores = validarFormulario();
     if (Object.keys(nuevosErrores).length > 0) {
       setErrores(nuevosErrores);
@@ -121,130 +131,107 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
     onClose();
   };
 
-  console.log('Verificando si mostrar modal - isOpen:', isOpen);
-  
-  if (!isOpen) {
-    console.log('Modal no se muestra porque isOpen es false');
-    return null;
-  }
+  const footer = (
+    <div className="flex justify-end gap-3 mt-2">
+      <Button label="Cancelar" icon="pi pi-times" className="p-button-text p-button-rounded" onClick={handleClose} />
+      <Button label="Guardar" icon="pi pi-check" className="p-button-success p-button-rounded" onClick={handleSubmit} />
+    </div>
+  );
 
-  console.log('Modal se va a mostrar');
+  if (!isOpen) return null;
   
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={handleClose}>
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <SparklesIcon className="w-6 h-6 text-blue-600" />
+    <Dialog
+      header={<div className="w-full text-center text-lg font-bold">{promocion ? 'EDITAR PROMOCIÓN' : 'NUEVA PROMOCIÓN'}</div>}
+      visible={isOpen}
+      style={{ width: '28rem', borderRadius: '1.5rem' }}
+      modal
+      closable={false}
+      onHide={handleClose}
+      footer={footer}
+      position="center"
+      dismissableMask={false}
+      draggable={false}
+      resizable={false}
+    >
+      <div className="mt-2">
+        {/* Formulario */}
+        <div className="flex flex-col gap-3">
+          {/* Nombre de la Promoción */}
+          <span>
+            <label htmlFor="nombre_promocion" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE DE LA PROMOCIÓN</label>
+            <InputText
+              id="nombre_promocion"
+              name="nombre_promocion"
+              value={formData.nombre_promocion}
+              onChange={handleChange}
+              className="w-full rounded-xl h-9 text-sm"
+              placeholder="Ej: Promoción Baño + Corte"
+            />
+            {errores.nombre_promocion && <p className="text-xs text-red-600 mt-1">{errores.nombre_promocion}</p>}
+          </span>
+
+          {/* Descripción */}
+          <span>
+            <label htmlFor="descripcion_promocion" className="text-xs font-semibold text-gray-700 mb-1">DESCRIPCIÓN</label>
+            <textarea 
+              name="descripcion_promocion" 
+              id="descripcion_promocion" 
+              value={formData.descripcion_promocion} 
+              onChange={handleChange} 
+              className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 min-h-20 text-sm resize-none"
+              placeholder="Descripción detallada de la promoción..." 
+            />
+            {errores.descripcion_promocion && <p className="text-xs text-red-600 mt-1">{errores.descripcion_promocion}</p>}
+          </span>
+
+          {/* Precio */}
+          <span>
+            <label htmlFor="precio_promocion" className="text-xs font-semibold text-gray-700 mb-1">PRECIO (L)</label>
+            <InputText
+              id="precio_promocion"
+              name="precio_promocion"
+              value={formData.precio_promocion}
+              onChange={handleChange}
+              className="w-full rounded-xl h-9 text-sm"
+              placeholder="0.00"
+              keyfilter="num"
+            />
+            {errores.precio_promocion && <p className="text-xs text-red-600 mt-1">{errores.precio_promocion}</p>}
+          </span>
+
+          {/* Días de la Promoción */}
+          <div>
+            <label className="text-xs font-semibold text-gray-700 mb-1">DÍAS DE LA PROMOCIÓN</label>
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              {diasSemana.map(dia => (
+                <div key={dia.id} className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id={dia.id}
+                    checked={formData.dias_promocion.includes(dia.id)}
+                    onChange={() => handleDiaToggle(dia.id)}
+                    className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
+                  />
+                  <label 
+                    htmlFor={dia.id} 
+                    className={`text-xs cursor-pointer select-none ${
+                      formData.dias_promocion.includes(dia.id) 
+                        ? 'font-semibold text-green-700' 
+                        : 'font-normal text-gray-600'
+                    }`}
+                  >
+                    {dia.label}
+                  </label>
+                </div>
+              ))}
             </div>
-            <h3 className="text-xl font-semibold text-gray-800">{promocion ? 'Editar Promoción' : 'Nueva Promoción'}</h3>
+            {errores.dias_promocion && <p className="text-xs text-red-600 mt-1">{errores.dias_promocion}</p>}
           </div>
-          <button onClick={handleClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 14 14">
-              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-            </svg>
-          </button>
         </div>
-        <div className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="nombre_promocion" className="block text-sm font-medium text-gray-700">
-                Nombre de la Promoción <span className="text-red-500">*</span>
-              </label>
-              <input 
-                type="text" 
-                name="nombre_promocion" 
-                id="nombre_promocion" 
-                value={formData.nombre_promocion} 
-                onChange={handleChange} 
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errores.nombre_promocion ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder="Ej: Promoción Baño + Corte" 
-              />
-              {errores.nombre_promocion && <p className="text-sm text-red-600">{errores.nombre_promocion}</p>}
-            </div>
 
-            <div className="space-y-2">
-              <label htmlFor="descripcion_promocion" className="block text-sm font-medium text-gray-700">
-                Descripción de la Promoción <span className="text-red-500">*</span>
-              </label>
-              <textarea 
-                name="descripcion_promocion" 
-                id="descripcion_promocion" 
-                value={formData.descripcion_promocion} 
-                onChange={handleChange} 
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-24 ${errores.descripcion_promocion ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder="Descripción detallada de la promoción..." 
-              />
-              {errores.descripcion_promocion && <p className="text-sm text-red-600">{errores.descripcion_promocion}</p>}
-            </div>
 
-            <div className="space-y-2">
-              <label htmlFor="precio_promocion" className="block text-sm font-medium text-gray-700">
-                Precio de la Promoción (L) <span className="text-red-500">*</span>
-              </label>
-              <input 
-                type="number" 
-                step="0.01" 
-                name="precio_promocion" 
-                id="precio_promocion" 
-                value={formData.precio_promocion} 
-                onChange={handleChange} 
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errores.precio_promocion ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder="0.00" 
-              />
-              {errores.precio_promocion && <p className="text-sm text-red-600">{errores.precio_promocion}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Días de la Promoción <span className="text-red-500">*</span>
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
-                {diasSemana.map(dia => (
-                  <div key={dia.id} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id={dia.id}
-                      checked={formData.dias_promocion.includes(dia.id)}
-                      onChange={() => handleDiaToggle(dia.id)}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <label 
-                      htmlFor={dia.id} 
-                      className={`text-sm cursor-pointer select-none ${
-                        formData.dias_promocion.includes(dia.id) 
-                          ? 'font-semibold text-blue-700' 
-                          : 'font-normal text-gray-600'
-                      }`}
-                    >
-                      {dia.label}
-                    </label>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">Seleccione los días de la semana en que estará disponible la promoción</p>
-              {errores.dias_promocion && <p className="text-sm text-red-600">{errores.dias_promocion}</p>}
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-              <button 
-                type="button" 
-                onClick={handleClose} 
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                Cancelar
-              </button>
-              <button 
-                type="submit" 
-                className="px-6 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors font-medium"
-              >
-                {promocion ? 'Actualizar' : 'Guardar'} Promoción
-              </button>
-            </div>
-          </form>
-        </div>
       </div>
-    </div>
+    </Dialog>
   );
 }
