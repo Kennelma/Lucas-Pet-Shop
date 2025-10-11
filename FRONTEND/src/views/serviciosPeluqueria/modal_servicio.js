@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { ScissorsIcon } from '@heroicons/react/24/outline';
+import { Dialog } from "primereact/dialog";
+import { InputText } from "primereact/inputtext";
+import { Button } from "primereact/button";
 
 export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = null }) {
   const [formData, setFormData] = useState({
@@ -29,7 +32,14 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    let finalValue = type === 'checkbox' ? checked : value;
+    
+    // Convertir a mayúsculas los campos de texto (excepto números)
+    if (type !== 'checkbox' && name !== 'precio_servicio' && name !== 'duracion_estimada') {
+      finalValue = value.toUpperCase();
+    }
+    
+    setFormData(prev => ({ ...prev, [name]: finalValue }));
     if (errores[name]) setErrores(prev => ({ ...prev, [name]: '' }));
   };
 
@@ -42,8 +52,8 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
     }
     if (!formData.descripcion_servicio.trim()) {
       nuevosErrores.descripcion_servicio = 'La descripción es requerida';
-    } else if (formData.descripcion_servicio.trim().length < 10) {
-      nuevosErrores.descripcion_servicio = 'La descripción debe tener al menos 10 caracteres';
+    } else if (formData.descripcion_servicio.trim().length < 20) {
+      nuevosErrores.descripcion_servicio = 'La descripción debe tener al menos 20 caracteres';
     }
     const precio = parseFloat(formData.precio_servicio);
     if (!formData.precio_servicio || isNaN(precio)) {
@@ -66,7 +76,7 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
     return nuevosErrores;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const nuevosErrores = validarFormulario();
     if (Object.keys(nuevosErrores).length > 0) {
@@ -91,126 +101,102 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
     onClose();
   };
 
-  if (!isOpen) return null;
+  const footer = (
+    <div className="flex justify-end gap-3 mt-2">
+      <Button label="Cancelar" icon="pi pi-times" className="p-button-text p-button-rounded" onClick={handleClose} />
+      <Button label="Guardar" icon="pi pi-check" className="p-button-success p-button-rounded" onClick={handleSubmit} />
+    </div>
+  );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={handleClose}>
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <ScissorsIcon className="w-6 h-6 text-green-600" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-800">{servicio ? 'Editar Servicio' : 'Nuevo Servicio'}</h3>
-          </div>
-          <button onClick={handleClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 14 14">
-              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-            </svg>
-          </button>
+    <Dialog
+      header={<div className="w-full text-center text-lg font-bold">{servicio ? 'EDITAR SERVICIO' : 'NUEVO SERVICIO'}</div>}
+      visible={isOpen}
+      style={{ width: '28rem', borderRadius: '1.5rem' }}
+      modal
+      closable={false}
+      onHide={handleClose}
+      footer={footer}
+      position="center"
+      dismissableMask={false}
+      draggable={false}
+      resizable={false}
+    >
+      <div className="mt-2">
+        {/* Formulario */}
+        <div className="flex flex-col gap-3">
+          {/* Nombre del Servicio */}
+          <span>
+            <label htmlFor="nombre_servicio_peluqueria" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE DEL SERVICIO</label>
+            <InputText
+              id="nombre_servicio_peluqueria"
+              name="nombre_servicio_peluqueria"
+              value={formData.nombre_servicio_peluqueria}
+              onChange={handleChange}
+              className="w-full rounded-xl h-9 text-sm"
+              placeholder="Ej: Baño completo"
+            />
+            {errores.nombre_servicio_peluqueria && <p className="text-xs text-red-600 mt-1">{errores.nombre_servicio_peluqueria}</p>}
+          </span>
+
+          {/* Descripción */}
+          <span>
+            <label htmlFor="descripcion_servicio" className="text-xs font-semibold text-gray-700 mb-1">DESCRIPCIÓN</label>
+            <textarea 
+              name="descripcion_servicio" 
+              id="descripcion_servicio" 
+              value={formData.descripcion_servicio} 
+              onChange={handleChange} 
+              className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 min-h-20 text-sm resize-none"
+              placeholder="Descripción detallada del servicio..." 
+            />
+            {errores.descripcion_servicio && <p className="text-xs text-red-600 mt-1">{errores.descripcion_servicio}</p>}
+          </span>
+
+          {/* Precio */}
+          <span>
+            <label htmlFor="precio_servicio" className="text-xs font-semibold text-gray-700 mb-1">PRECIO (L)</label>
+            <InputText
+              id="precio_servicio"
+              name="precio_servicio"
+              value={formData.precio_servicio}
+              onChange={handleChange}
+              className="w-full rounded-xl h-9 text-sm"
+              placeholder="0.00"
+              keyfilter="num"
+            />
+            {errores.precio_servicio && <p className="text-xs text-red-600 mt-1">{errores.precio_servicio}</p>}
+          </span>
+
+          {/* Duración */}
+          <span>
+            <label htmlFor="duracion_estimada" className="text-xs font-semibold text-gray-700 mb-1">DURACIÓN (MIN)</label>
+            <InputText
+              id="duracion_estimada"
+              name="duracion_estimada"
+              value={formData.duracion_estimada}
+              onChange={handleChange}
+              className="w-full rounded-xl h-9 text-sm"
+              placeholder="Ej: 30"
+              keyfilter="int"
+            />
+            {errores.duracion_estimada && <p className="text-xs text-red-600 mt-1">{errores.duracion_estimada}</p>}
+          </span>
+          <span>
+            <label htmlFor="requisitos" className="text-xs font-semibold text-gray-700 mb-1">REQUISITOS (OPCIONAL)</label>
+            <InputText
+              id="requisitos"
+              name="requisitos"
+              value={formData.requisitos}
+              onChange={handleChange}
+              className="w-full rounded-xl h-9 text-sm"
+              placeholder="Ej: Mascota vacunada, sin pulgas..."
+            />
+          </span>
         </div>
-        <div className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="nombre_servicio_peluqueria" className="block text-sm font-medium text-gray-700">
-                Nombre del Servicio <span className="text-red-500">*</span>
-              </label>
-              <input 
-                type="text" 
-                name="nombre_servicio_peluqueria" 
-                id="nombre_servicio_peluqueria" 
-                value={formData.nombre_servicio_peluqueria} 
-                onChange={handleChange} 
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errores.nombre_servicio_peluqueria ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder="Ej: Baño completo con corte" 
-              />
-              {errores.nombre_servicio_peluqueria && <p className="text-sm text-red-600">{errores.nombre_servicio_peluqueria}</p>}
-            </div>
 
-            <div className="space-y-2">
-              <label htmlFor="descripcion_servicio" className="block text-sm font-medium text-gray-700">
-                Descripción del Servicio <span className="text-red-500">*</span>
-              </label>
-              <textarea 
-                name="descripcion_servicio" 
-                id="descripcion_servicio" 
-                value={formData.descripcion_servicio} 
-                onChange={handleChange} 
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 min-h-24 ${errores.descripcion_servicio ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder="Descripción detallada del servicio..." 
-              />
-              {errores.descripcion_servicio && <p className="text-sm text-red-600">{errores.descripcion_servicio}</p>}
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="precio_servicio" className="block text-sm font-medium text-gray-700">
-                  Precio del Servicio (L) <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  type="number" 
-                  step="0.01" 
-                  name="precio_servicio" 
-                  id="precio_servicio" 
-                  value={formData.precio_servicio} 
-                  onChange={handleChange} 
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errores.precio_servicio ? 'border-red-500' : 'border-gray-300'}`}
-                  placeholder="0.00" 
-                />
-                {errores.precio_servicio && <p className="text-sm text-red-600">{errores.precio_servicio}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="duracion_estimada" className="block text-sm font-medium text-gray-700">
-                  Duración (minutos) <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  type="number" 
-                  name="duracion_estimada" 
-                  id="duracion_estimada" 
-                  value={formData.duracion_estimada} 
-                  onChange={handleChange} 
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errores.duracion_estimada ? 'border-red-500' : 'border-gray-300'}`}
-                  placeholder="Ej: 60" 
-                />
-                <p className="text-xs text-gray-500">Tiempo aproximado (mín: 5, máx: 480)</p>
-                {errores.duracion_estimada && <p className="text-sm text-red-600">{errores.duracion_estimada}</p>}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="requisitos" className="block text-sm font-medium text-gray-700">
-                Requisitos del Servicio
-              </label>
-              <textarea 
-                name="requisitos" 
-                id="requisitos" 
-                value={formData.requisitos} 
-                onChange={handleChange} 
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 min-h-20"
-                placeholder="Ej: Mascota vacunada, sin pulgas, temperamento tranquilo..." 
-              />
-              <p className="text-xs text-gray-500">Requisitos o condiciones para el servicio (opcional)</p>
-            </div>
-            
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-              <button 
-                type="button" 
-                onClick={handleClose} 
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                Cancelar
-              </button>
-              <button 
-                type="submit" 
-                className="px-6 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg transition-colors font-medium"
-              >
-                {servicio ? 'Actualizar' : 'Guardar'} Servicio
-              </button>
-            </div>
-          </form>
-        </div>
       </div>
-    </div>
+    </Dialog>
   );
 }
