@@ -133,7 +133,7 @@ const _nav = [
   {
     component: CNavItem,
     name: 'Recordatorios',
-    to: '/Recordatorios',
+    to: '/recordatorios',
     icon: <FontAwesomeIcon icon={faBell} className="nav-icon" />,
   },
 
