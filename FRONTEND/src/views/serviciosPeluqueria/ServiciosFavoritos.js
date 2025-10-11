@@ -13,8 +13,6 @@ const ServiciosFavoritos = ({ servicios = [] }) => {
       return [];
     }
 
-    // Simuladores
-
     const serviciosConPopularidad = serviciosReales
       .filter(servicio => servicio.activo) // Solo servicios activos
       .map((servicio, index) => {
@@ -74,65 +72,33 @@ const ServiciosFavoritos = ({ servicios = [] }) => {
 
   return (
     <div className="bg-white rounded-2xl p-6 border border-gray-200 mb-6">
-      <div className="flex flex-col items-center justify-center mb-6 text-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-1">
-            SERVICIOS FAVORITOS
-          </h2>
-          <p className="text-gray-600 text-sm">
-            BASADO EN LAS FACTURAS DEL MES ACTUAL
-          </p>
-        </div>
+      <div className="flex flex-col items-center justify-center mb-8 text-center">
+        <h className="text-xl font-bold text-gray-800 mb-1">FAVORITOS</h>
+        <p className="text-gray-600 text-sm">BASADO EN LAS FACTURAS DEL MES ACTUAL</p>
       </div>
-
       <div className="flex items-start gap-6">
-        {/* Cards de servicios */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 flex-1 items-stretch">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 flex-1 items-stretch">
           {serviciosFavoritos.map((servicio, index) => (
-            <div 
-              key={servicio.id}
-              className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-white/50 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 flex flex-col h-full"
-            >
-              {/* Información */}
-              <div className="flex-grow space-y-2">
-                <h3 className="font-bold text-gray-800 text-xs leading-tight min-h-[2.5rem] flex items-center">
-                  {servicio.nombre}
-                </h3>
-                
-                <div className="text-xs text-gray-600">
-                  <span className="font-bold text-gray-800">{servicio.cantidad_pedidos}</span> pedidos
-                </div>
+            <div key={servicio.id} className="bg-white/80 backdrop-blur-sm rounded-md p-2 border border-white/50 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 flex flex-col h-52">
+              <div className="flex-grow flex items-center justify-center">
+                <h className="font-semibold text-gray-800 text-[18px] leading-tight text-center mb-2">{servicio.nombre}</h>
               </div>
-              
-              {/* Barra de progreso - siempre al mismo nivel */}
-              <div className="mt-auto space-y-1">
+              <div className="mt-auto space-y-0.5">
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div 
-                    className={`${servicio.color} h-1.5 rounded-full transition-all duration-500`}
-                    style={{ width: `${servicio.porcentaje}%` }}
-                  ></div>
+                  <div className={`${servicio.color} h-1.5 rounded-full transition-all duration-500`} style={{ width: `${servicio.porcentaje}%` }}></div>
                 </div>
-                
                 <div className="text-right">
-                  <span className={`text-xs font-bold ${servicio.color.replace('bg-', 'text-')}`}>
-                    {servicio.porcentaje}%
-                  </span>
+                  <span className={`text-xs font-bold ${servicio.color.replace('bg-', 'text-')}`}>{servicio.porcentaje}%</span>
+                </div>
+                <div className="text-xs text-gray-600 text-center">
+                  <span className="font-bold text-gray-800">{servicio.cantidad_pedidos}</span> pedidos
                 </div>
               </div>
             </div>
           ))}
         </div>
-
-        {/* Imagen decorativa a la derecha */}
         <div className="hidden lg:flex items-center justify-center">
-          <div className="relative">
-            <img 
-              src="/perrito.jpg" 
-              alt="Servicios para mascotas" 
-              className="w-48 h-48 object-cover rounded-2xl shadow-lg opacity-80"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-white-600/20 to-transparent rounded-2xl"></div>
-          </div>
+          <img src="/uwu2.jpg" alt="Servicios para mascotas" className="w-45 h-53 object-cover rounded-xl shadow-md" />
         </div>
       </div>
     </div>

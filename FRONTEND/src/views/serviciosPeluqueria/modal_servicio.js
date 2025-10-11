@@ -52,8 +52,8 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
     }
     if (!formData.descripcion_servicio.trim()) {
       nuevosErrores.descripcion_servicio = 'La descripción es requerida';
-    } else if (formData.descripcion_servicio.trim().length < 10) {
-      nuevosErrores.descripcion_servicio = 'La descripción debe tener al menos 10 caracteres';
+    } else if (formData.descripcion_servicio.trim().length < 20) {
+      nuevosErrores.descripcion_servicio = 'La descripción debe tener al menos 20 caracteres';
     }
     const precio = parseFloat(formData.precio_servicio);
     if (!formData.precio_servicio || isNaN(precio)) {
