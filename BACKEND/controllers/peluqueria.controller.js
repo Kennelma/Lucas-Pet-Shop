@@ -1,3 +1,6 @@
+
+//CONTROLADORES DEL MODULO DE SERVICIOS DE PELUQUERIA  (SERVICIOS Y PROMOCIONES)
+
 const express = require('express');
 const mysqlConnection = require('../config/conexion');
 
