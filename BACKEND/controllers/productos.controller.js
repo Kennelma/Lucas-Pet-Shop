@@ -15,11 +15,10 @@ const TIPOS_PRODUCTOS = {
 // ─────────────────────────────────────────────────────────
 
 //ESTOS ATRIBUTOS SON COMUNES PARA TODOS LOS ENDPOINT
-function atributos_padre (body) {
+function insert_atributos_padre (body) {
     return[
         body.nombre_producto,
         body.precio_producto,
-        body.sku,
         body.stock,
         body.imagen_url || null
     ];
@@ -34,12 +33,12 @@ exports.crear = async (req, res) => {
         await conn.beginTransaction(); //INICIO LA TRANSACCIÓN
 
         //SE TRAE LA FUNCION CON LOS ATRIBUTOS PADRES
-        const atributosComunes = atributos_padre(req.body);
+        const atributosComunes = insert_atributos_padre(req.body);
 
         switch (req.body.tipo_producto) {
 
             case 'ACCESORIOS':
-                const [accesorio] = await conn.query ('CALL sp_insert_producto_accesorio (?,?,?,?,?,?,?)',
+                const [accesorio] = await conn.query ('CALL sp_insert_producto_accesorio (?,?,?,?,?,?)',
                     [...atributosComunes, 
                         TIPOS_PRODUCTOS.ACCESORIOS,
                         req.body.tipo_accesorio
@@ -48,7 +47,7 @@ exports.crear = async (req, res) => {
             
                 case 'ANIMALES':
                 
-                const [animal] = await conn.query ('CALL sp_insert_producto_animal(?,?,?,?,?,?,?,?)',
+                const [animal] = await conn.query ('CALL sp_insert_producto_animal(?,?,?,?,?,?,?)',
                     [...atributosComunes, 
                         TIPOS_PRODUCTOS.ANIMALES,
                         req.body.especie,
@@ -58,7 +57,7 @@ exports.crear = async (req, res) => {
 
             case 'ALIMENTOS':
 
-                const [alimento] = await conn.query ('CALL sp_insert_producto_alimento (?,?,?,?,?,?,?,?)',
+                const [alimento] = await conn.query ('CALL sp_insert_producto_alimento (?,?,?,?,?,?,?)',
                     [...atributosComunes, 
                         TIPOS_PRODUCTOS.ALIMENTOS,
                         req.body.alimento_destinado,
@@ -67,11 +66,10 @@ exports.crear = async (req, res) => {
                 break;
 
             case 'MEDICAMENTOS':
-                const [medicamento] = await conn.query ('CALL sp_insert_producto_medicamento (?,?,?,?,?,?,?,?,?,?,?,?)',
+                const [medicamento] = await conn.query ('CALL sp_insert_producto_medicamento (?,?,?,?,?,?,?,?,?,?,?)',
                     [
                         req.body.nombre_producto,
                         req.body.precio_producto,
-                        req.body.sku,
                         req.body.imagen_url || null,
                         TIPOS_PRODUCTOS.MEDICAMENTOS,
                         req.body.presentacion_medicamento,
@@ -123,7 +121,7 @@ function update_atributos_padre (body) {
         body.sku || null,
         body.stock || null,
         body.stock_minimo || null,
-        body.activo || null,
+        body.activo !== undefined ? body.activo : null,
         body.imagen_url || null
     ];
     
@@ -138,7 +136,7 @@ exports.actualizar = async (req, res) => {
         await conn.beginTransaction();
 
         //ATRIBUTOS QUE USAN TODAS LAS TABLAS (ATRIBUTOS DE LA TABLA PADRE)
-        const atributosNuevos = actualizarAtributosPadre(req.body);
+        const atributosNuevos = update_atributos_padre(req.body);
 
         const { id_producto, tipo_producto } = req.body;
 
@@ -222,13 +220,35 @@ exports.ver = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
 
     try {
-        const {tipo_producto} =  req.query;
 
-        const [registros] = await conn.query('CALL sp_select_productos(?)', [tipo_producto]);
+        let registros; //VARIABLE DE APOYO
+
+        switch (req.query.tipo_producto) {
+
+
+            case 'ACCESORIOS':
+                [registros] = await conn.query('CALL sp_select_producto_accesorios()');
+                break;
+            
+            case 'ANIMALES':
+                [registros] = await conn.query('CALL sp_select_producto_animales()');
+                break;
+            
+            case 'ALIMENTOS':
+                [registros] = await conn.query('CALL sp_select_producto_alimentos()');
+                break;
+
+            case 'MEDICAMENTOS':
+                [registros] = await conn.query('CALL sp_select_producto_medicamentos()');
+                break;
+
+            default:
+                throw new Error('Tipo de producto no válido');
+        }
 
         res.json({
             Consulta: true,
-            productos: registros[0]
+            productos: registros[0] || []
         });
 
     } catch (err) {
@@ -253,7 +273,7 @@ exports.eliminar = async (req, res) => {
 
         await conn.beginTransaction();
 
-        const { id_producto } = req.body;
+        const {id_producto } = req.body;
 
         if (!id_producto) throw new Error("Debe enviar el ID del producto a eliminar");
 
@@ -277,5 +297,4 @@ exports.eliminar = async (req, res) => {
     }
 
 };
-
 

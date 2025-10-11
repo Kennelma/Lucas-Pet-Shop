@@ -73,13 +73,15 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
       setErrores(nuevosErrores);
       return;
     }
-    const dataToSubmit = servicio ? formData : {
+    const dataToSubmit = {
       nombre_servicio_peluqueria: formData.nombre_servicio_peluqueria,
       descripcion_servicio: formData.descripcion_servicio,
       precio_servicio: formData.precio_servicio,
       duracion_estimada: formData.duracion_estimada,
-      requisitos: formData.requisitos
+      requisitos: formData.requisitos,
+      activo: formData.activo
     };
+    
     onSubmit(dataToSubmit);
   };
 
@@ -135,15 +137,7 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
               <textarea name="requisitos" id="requisitos" value={formData.requisitos} onChange={handleChange} className="form-input form-textarea" placeholder="Ej: Mascota vacunada, sin pulgas, temperamento tranquilo..." style={{ minHeight: '80px' }} />
               <p className="form-hint">Requisitos o condiciones para el servicio (opcional)</p>
             </div>
-            {servicio && (
-              <div className="form-group">
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <input type="checkbox" name="activo" checked={formData.activo} onChange={handleChange} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
-                  <span className="form-label" style={{ marginBottom: 0 }}>Servicio activo</span>
-                </label>
-                <p className="form-hint">Desactiva el servicio si no está disponible temporalmente</p>
-              </div>
-            )}
+            
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
               <button type="button" onClick={handleClose} className="btn btn-secondary">Cancelar</button>
               <button type="submit" className="btn btn-success">{servicio ? 'Actualizar' : 'Guardar'} Servicio</button>

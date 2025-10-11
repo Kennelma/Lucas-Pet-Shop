@@ -5,7 +5,7 @@ const router = express.Router();
 
 
 const auth = require('../controllers/auth.controller');
-//const clientes = require('../controllers/clientes.controller');
+const clientes = require('../controllers/clientes.controller');
 const productos = require('../controllers/productos.controller');
 const servicios = require('../controllers/servicios.controller')
 
@@ -27,8 +27,10 @@ router.delete ('/productos/eliminar', productos.eliminar);
 router.get ('/productos/ver', productos.ver)
 
 //========== RUTAS DE MÓDULO DE CLIENTES ==========
-
-
+router.get ('/clientes/ver', clientes.ver)
+router.post('/clientes/insertar', clientes.crear);
+router.delete ('/clientes/eliminar', clientes.eliminar);
+router.put('/clientes/actualizar', clientes.actualizar);
 
 //========== RUTAS DE FACTURACIÓN ==========
 
