@@ -13,10 +13,8 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
     sexo: '',
     precio: '',
     cantidad: '',
-    file: null, 
-    preview: null
+    imagenUrl: '' 
   });
-
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -39,75 +37,63 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
     setData(prev => ({ ...prev, [field]: val }));
   };
 
- 
+  // ⚡ Convierte archivo a Base64
   const handleFileChange = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onloadend = () => {
-    setData(prev => ({ ...prev, file, preview: reader.result }));
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setData(prev => ({ ...prev, imagenUrl: reader.result }));
+    };
+    reader.readAsDataURL(file);
   };
-  reader.readAsDataURL(file);
-};
 
   const handleSubmit = async () => {
-  if (!data.nombre || !data.precio || !data.cantidad) {
-    alert('Por favor completa los campos requeridos.');
-    return;
-  }
+    if (!data.nombre || !data.precio || !data.cantidad) {
+      alert('Por favor completa los campos requeridos.');
+      return;
+    }
 
-  setLoading(true);
-  try {
-    // ✅ Crea un objeto simple con los datos
-    const datosProducto = {
-      nombre_producto: data.nombre,
-      precio_producto: data.precio,
-      stock: data.cantidad,
-      tipo_producto: 'ANIMALES',
-      especie: data.especie,
-      sexo: data.sexo
-    };
-
-    // ✅ Pasa el objeto y el archivo por separado
-    const res = await insertarProducto(datosProducto, data.file);
-
-    if (res.Consulta) {
-      const nuevoAnimal = {
-        id_producto: res.insertId || res.id_producto,
-        nombre: data.nombre,
-        precio: parseFloat(data.precio),
+    setLoading(true);
+    try {
+      const body = {
+        nombre_producto: data.nombre,
+        precio_producto: data.precio,
         stock: data.cantidad,
+        imagen_base64: data.imagenUrl || null, 
         tipo_producto: 'ANIMALES',
-        imagenUrl: res.imagen_url || null,
         especie: data.especie,
         sexo: data.sexo
       };
 
-      onSave(nuevoAnimal);
-      
-      // Limpia el formulario
-      setData({
-        nombre: '',
-        especie: '',
-        sexo: '',
-        precio: '',
-        cantidad: '',
-        file: null,
-        preview: null
-      });
-      
-      onClose();
-    } else {
-      alert(`Error al guardar: ${res.error}`);
+      const res = await insertarProducto(body);
+
+      if (res.Consulta) {
+        const nuevoAnimal = {
+          id_producto: res.id_producto_pk,
+          nombre: data.nombre,
+          precio: parseFloat(data.precio),
+          stock: data.cantidad,
+          stock_minimo: 0,
+          activo: true,
+          tipo_producto: 'ANIMALES',
+          imagenUrl: data.imagenUrl || '',
+          especie: data.especie,
+          sexo: data.sexo
+        };
+
+        onSave(nuevoAnimal);
+        onClose();
+      } else {
+        alert(`Error al guardar: ${res.error}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Ocurrió un error al guardar el animal.');
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error('Error en handleSubmit:', err);
-    alert('Ocurrió un error al guardar el animal.');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const footer = (
     <div className="flex justify-end gap-3 mt-2">
@@ -210,8 +196,8 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
           className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl p-4 mt-2 hover:border-blue-400 transition-all cursor-pointer"
           onClick={() => fileInputRef.current.click()}
         >
-          {data.preview ? (
-            <img src={data.preview} alt="preview" className="h-32 w-32 object-contain rounded-xl" />
+          {data.imagenUrl ? (
+            <img src={data.imagenUrl} alt="preview" className="h-32 w-32 object-contain rounded-xl" />
           ) : (
             <>
               <i className="pi pi-image text-3xl text-gray-400 mb-2"></i>
@@ -219,8 +205,7 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
                 Haz clic para subir una imagen
               </p>
             </>
-)}
-
+          )}
         </div>
 
         <input

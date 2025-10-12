@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
-import { actualizarProducto, API_BASE_URL } from '../../../AXIOS.SERVICES/products-axios';
+import { actualizarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
 const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
   const especies = [
@@ -19,6 +19,10 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
     { label: 'HEMBRA', value: 'HEMBRA' },
     { label: 'MACHO', value: 'MACHO' }
   ];
+  const estados = [
+    { label: 'ACTIVO', value: 1 },
+    { label: 'INACTIVO', value: 0 }
+  ];
 
   const [data, setData] = useState({
     nombre: '',
@@ -29,11 +33,9 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
     stock_minimo: 0,
     activo: 1,
     sku: '',
-    file: null,
-    preview: null
+    imagenUrl: ''
   });
   const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef(null);
 
   // Generar SKU
   const generarSKU = (nombre, id) => {
@@ -53,8 +55,7 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
         stock_minimo: editData.stock_minimo || 0,
         activo: editData.activo ? 1 : 0,
         sku: generarSKU(editData.nombre || '', editData.id_producto),
-        file: null,
-        preview: editData.imagenUrl ? `${API_BASE_URL}${editData.imagenUrl}` : null
+        imagenUrl: editData.imagenUrl || ''
       });
     }
   }, [isOpen, editData]);
@@ -68,17 +69,6 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
     });
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setData(prev => ({ ...prev, file, preview: reader.result }));
-    };
-    reader.readAsDataURL(file);
-  };
-
   const handleSubmit = async () => {
     if (!data.nombre || !data.precio || !data.cantidad) {
       alert('Por favor completa los campos requeridos.');
@@ -87,8 +77,7 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
 
     setLoading(true);
     try {
-      // ✅ Crea un objeto simple con los datos
-      const datosProducto = {
+      const body = {
         id_producto: editData.id_producto,
         nombre_producto: data.nombre,
         precio_producto: data.precio,
@@ -97,20 +86,20 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
         activo: data.activo,
         especie: data.especie,
         sexo: data.sexo,
-        tipo_producto: 'ANIMALES'
+        tipo_producto: 'ANIMALES',
+        imagen_url: data.imagenUrl || null
       };
 
-      // ✅ Pasa el objeto y el archivo por separado
-      const res = await actualizarProducto(datosProducto, data.file);
+      const res = await actualizarProducto(body);
 
       if (res.Consulta) {
-        onSave(); // Recarga la lista desde el servidor
+        onSave({ ...editData, ...data });
         onClose();
       } else {
         alert(`Error al actualizar: ${res.error}`);
       }
     } catch (err) {
-      console.error('Error en handleSubmit:', err);
+      console.error(err);
       alert('Ocurrió un error al actualizar el animal.');
     } finally {
       setLoading(false);
@@ -246,47 +235,13 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
           </span>
         </div>
 
-        {/* Selector de Imagen */}
-        <div
-          className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl p-4 mt-2 hover:border-blue-400 transition-all cursor-pointer"
-          onClick={() => fileInputRef.current.click()}
-        >
-          {data.preview ? (
-            <div className="relative">
-              <img 
-                src={data.preview} 
-                alt="preview" 
-                className="h-32 w-32 object-contain rounded-xl" 
-              />
-              <Button
-                icon="pi pi-times"
-                rounded
-                text
-                severity="danger"
-                className="absolute -top-2 -right-2"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setData(prev => ({ ...prev, file: null, preview: null }));
-                }}
-              />
-            </div>
-          ) : (
-            <>
-              <i className="pi pi-image text-3xl text-gray-400 mb-2"></i>
-              <p className="text-gray-500 text-sm text-center">
-                Haz clic para cambiar la imagen
-              </p>
-            </>
-          )}
+        {/* Imagen visual */}
+        <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl p-4 mt-2 hover:border-blue-400 transition-all cursor-pointer">
+          <i className="pi pi-image text-3xl text-gray-400 mb-2"></i>
+          <p className="text-gray-500 text-sm text-center">
+            Haz clic para subir una imagen (solo visual)
+          </p>
         </div>
-
-        <input
-          type="file"
-          ref={fileInputRef}
-          className="hidden"
-          accept="image/*"
-          onChange={handleFileChange}
-        />
       </div>
     </Dialog>
   );
