@@ -29,11 +29,8 @@ function insert_atributos_padre (body) {
 // ─────────────────────────────────────────────────────────
 exports.crear = async (req, res) => {
 
-    console.log('═══════════════════════════════════');
     console.log('req.body:', req.body);
     console.log('req.files:', req.files);
-    console.log('Keys de body:', Object.keys(req.body || {}));
-    console.log('═══════════════════════════════════');
 
     const conn = await mysqlConnection.getConnection();    
 
@@ -157,8 +154,6 @@ exports.crear = async (req, res) => {
         res.json ({
             Consulta: true,
             mensaje: 'Registro realizado con éxito',
-            insertId: id_producto, 
-            imagen_url: imagen_url         
         });
 
 
@@ -202,6 +197,7 @@ exports.actualizar = async (req, res) => {
     try {
 
         await conn.beginTransaction();
+
 
         const { id_producto, tipo_producto } = req.body;
 
