@@ -1,5 +1,6 @@
 //Constante para el paquete Express
 const express = require('express');
+const cors = require("cors");
 
 //constante para los metodos de express.
 var  app = express();
@@ -14,13 +15,11 @@ const mysqlConnection = require('./config/conexion');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
 
-const cors = require("cors");
 
 //Permitir todas las peticiones desde cualquier origen
 app.use(cors());
 
 //IMPORTACION DE LAS RUTAS
-app.use('/uploads', express.static('uploads'));
 app.use('/api', require('./routes/rutas'));
 
 const PORT = 4000;
