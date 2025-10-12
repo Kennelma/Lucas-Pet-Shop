@@ -25,14 +25,15 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
     nombre: '',
     especie: '',
     sexo: '',
-    precio: 0,
-    cantidad: 0,
-    stock_minimo: 0,
+    precio: '',
+    cantidad: '',
+    stock_minimo: '',
     sku: ''
   });
+
+  const [errores, setErrores] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Generar SKU automáticamente
   const generarSKU = (nombre, id) => {
     if (!nombre) return '';
     const partes = nombre.trim().split(' ').map(p => p.substring(0, 3).toUpperCase());
@@ -45,11 +46,12 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
         nombre: (editData.nombre || '').toUpperCase(),
         especie: (editData.especie || '').toUpperCase(),
         sexo: (editData.sexo || '').toUpperCase(),
-        precio: editData.precio || 0,
-        cantidad: editData.stock || 0,
-        stock_minimo: editData.stock_minimo || 0,
+        precio: editData.precio || '',
+        cantidad: editData.stock || '',
+        stock_minimo: editData.stock_minimo || '',
         sku: generarSKU(editData.nombre || '', editData.id_producto)
       });
+      setErrores({});
     }
   }, [isOpen, editData]);
 
@@ -57,18 +59,40 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
     const val = ['nombre', 'especie', 'sexo'].includes(field)
       ? value.toUpperCase()
       : value;
+
     setData(prev => {
       const newData = { ...prev, [field]: val };
       if (field === 'nombre') newData.sku = generarSKU(val, editData.id_producto);
       return newData;
     });
+
+    // Validación en tiempo real
+    setErrores(prev => {
+      const newErrores = { ...prev };
+      if (['nombre', 'especie', 'sexo'].includes(field)) {
+        newErrores[field] = val ? '' : 'Campo obligatorio';
+      } else if (['precio', 'cantidad', 'stock_minimo'].includes(field)) {
+        newErrores[field] = val > 0 ? '' : 'Debe ser mayor a 0';
+      }
+      return newErrores;
+    });
+  };
+
+  const validarDatos = () => {
+    let temp = {};
+    if (!data.nombre) temp.nombre = 'Campo obligatorio';
+    if (!data.especie) temp.especie = 'Campo obligatorio';
+    if (!data.sexo) temp.sexo = 'Campo obligatorio';
+    if (!data.precio || data.precio <= 0) temp.precio = 'Debe ser mayor a 0';
+    if (!data.cantidad || data.cantidad <= 0) temp.cantidad = 'Debe ser mayor a 0';
+    if (!data.stock_minimo || data.stock_minimo <= 0) temp.stock_minimo = 'Debe ser mayor a 0';
+
+    setErrores(temp);
+    return Object.keys(temp).length === 0;
   };
 
   const handleSubmit = async () => {
-    if (!data.nombre || !data.precio || !data.cantidad) {
-      alert('Por favor completa los campos requeridos.');
-      return;
-    }
+    if (!validarDatos()) return;
 
     setLoading(true);
     try {
@@ -127,96 +151,91 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
       closable={false}
       onHide={onClose}
       footer={footer}
-      draggable={false}        // Evita que el modal se mueva
-      resizable={false}        // Evita que se cambie de tamaño
+      draggable={false}
+      resizable={false}
     >
-      <div className="flex flex-col gap-4 mt-2 text-sm">
+      <div className="flex flex-col gap-2 text-sm">
         {/* Nombre */}
-        <span className="p-float-label">
-          <InputText
-            id="nombre"
-            value={data.nombre}
-            onChange={(e) => handleChange('nombre', e.target.value)}
-            className="w-full rounded-xl h-10 text-sm"
-          />
-          <label htmlFor="nombre" className="text-xs">Nombre</label>
-        </span>
+        <label className="text-xs font-semibold">Nombre</label>
+        <InputText
+          value={data.nombre}
+          onChange={(e) => handleChange('nombre', e.target.value)}
+          className="w-full rounded-xl h-8 text-sm"
+        />
+        {errores.nombre && <small className="text-red-500">{errores.nombre}</small>}
 
-        {/* SKU readonly */}
-        <span className="p-float-label">
-          <InputText
-            id="sku"
-            value={data.sku}
-            readOnly
-            className="w-full rounded-xl h-10 text-sm bg-gray-100"
-          />
-          <label htmlFor="sku" className="text-xs">SKU</label>
-        </span>
+        {/* SKU */}
+        <label className="text-xs font-semibold">SKU</label>
+        <InputText
+          value={data.sku}
+          readOnly
+          className="w-full rounded-xl h-8 text-sm bg-gray-100"
+        />
 
         {/* Especie y Sexo */}
-        <div className="grid grid-cols-2 gap-4">
-          <span className="p-float-label">
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="text-xs font-semibold">Especie</label>
             <Dropdown
-              id="especie"
               value={data.especie}
               options={especies}
               onChange={(e) => handleChange('especie', e.value)}
-              className="w-full rounded-xl text-sm"
+              className="w-full rounded-xl text-sm mt-1"
               placeholder="Seleccionar"
             />
-            <label htmlFor="especie" className="text-xs">Especie</label>
-          </span>
+            {errores.especie && <small className="text-red-500">{errores.especie}</small>}
+          </div>
 
-          <span className="p-float-label">
+          <div>
+            <label className="text-xs font-semibold">Sexo</label>
             <Dropdown
-              id="sexo"
               value={data.sexo}
               options={sexos}
               onChange={(e) => handleChange('sexo', e.value)}
-              className="w-full rounded-xl text-sm"
+              className="w-full rounded-xl text-sm mt-1"
               placeholder="Seleccionar"
             />
-            <label htmlFor="sexo" className="text-xs">Sexo</label>
-          </span>
+            {errores.sexo && <small className="text-red-500">{errores.sexo}</small>}
+          </div>
         </div>
 
         {/* Precio, Stock y Stock mínimo */}
-        <div className="grid grid-cols-3 gap-4">
-          <span className="p-float-label">
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <label className="text-xs font-semibold">Precio</label>
             <InputNumber
-              id="precio"
               value={data.precio}
               onValueChange={(e) => handleChange('precio', e.value)}
               mode="currency"
               currency="HNL"
               locale="es-HN"
-              className="w-full rounded-xl text-sm"
-              inputClassName="h-10 text-sm"
+              className="w-full rounded-xl text-sm mt-1"
+              inputClassName="h-8 text-sm"
             />
-            <label htmlFor="precio" className="text-xs">Precio</label>
-          </span>
+            {errores.precio && <small className="text-red-500">{errores.precio}</small>}
+          </div>
 
-          <span className="p-float-label">
+          <div>
+            <label className="text-xs font-semibold">Stock</label>
             <InputNumber
-              id="cantidad"
               value={data.cantidad}
               onValueChange={(e) => handleChange('cantidad', e.value)}
-              className="w-full rounded-xl text-sm"
-              inputClassName="h-10 text-sm"
+              className="w-full rounded-xl text-sm mt-1"
+              inputClassName="h-8 text-sm"
             />
-            <label htmlFor="cantidad" className="text-xs">Stock</label>
-          </span>
+            {errores.cantidad && <small className="text-red-500">{errores.cantidad}</small>}
+          </div>
 
-          <span className="p-float-label">
+          <div>
+            <label className="text-xs font-semibold">Stock mínimo</label>
             <InputNumber
-              id="stock_minimo"
               value={data.stock_minimo}
               onValueChange={(e) => handleChange('stock_minimo', e.value)}
-              className="w-full rounded-xl text-sm"
-              inputClassName="h-10 text-sm"
+              className="w-full rounded-xl text-sm mt-1"
+              inputClassName="h-8 text-sm"
             />
-            <label htmlFor="stock_minimo" className="text-xs">Stock mínimo</label>
-          </span>
+            {errores.stock_minimo && <small className="text-red-500">{errores.stock_minimo}</small>}
+          </div>
         </div>
       </div>
     </Dialog>
