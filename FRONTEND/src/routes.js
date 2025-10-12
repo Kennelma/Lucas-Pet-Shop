@@ -10,6 +10,7 @@ const Medicamentos = React.lazy(() => import('./views/productos/medicamentos/Med
 const Animales = React.lazy(() => import('./views/productos/animales/Animales'))
 const Promociones = React.lazy(() => import('./views/promociones/Promociones'))
 const Servicios = React.lazy(() => import('./views/serviciosPeluqueria/Servicios'))
+const Recordatorios = React.lazy(() => import('./views/recordatorios/Recordatorios'))
 const Empresa = React.lazy(() => import('./views/empresa/Empresa'))
 
 
@@ -22,6 +23,7 @@ const routes = [
   { path: '/productos/medicamentos', name: 'Productos / Medicamentos', element: Medicamentos },
   { path: '/peluqueria_canina/promociones', name: 'Peluquería Canina / Promociones', element: Promociones },
   { path: '/peluqueria_canina/servicios', name: 'Peluquería Canina / Servicios', element: Servicios },
+  { path: '/recordatorios', name: 'Recordatorios', element: Recordatorios },
   { path: '/empresa', name: 'Empresa y Sucursales', element: Empresa }
 
 ]
