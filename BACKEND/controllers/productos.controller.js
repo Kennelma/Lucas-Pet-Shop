@@ -12,7 +12,8 @@ const TIPOS_PRODUCTOS = {
 };
 
 //ESTOS ATRIBUTOS SON COMUNES PARA TODOS LOS ENDPOINT
-function insert_atributos_padre (body, imagen_url = null) {
+function insert_atributos_padre (body) {
+
     return[
         body.nombre_producto,
         body.precio_producto,
@@ -40,22 +41,12 @@ exports.crear = async (req, res) => {
         
         await conn.beginTransaction(); //INICIO LA TRANSACCIÓN
 
-        //MANEJA QUE LA IAMGEN DE SUBA 
-        let imagen_url = null;
-
-        if (req.files && req.files.imagen) {
-            const imagen = req.files.imagen;
-            const nombreImagen = Date.now() + '-' + imagen.name;
-            const rutaImagen = __dirname + '/../uploads/' + nombreImagen;
-            await imagen.mv(rutaImagen);
-            imagen_url = '/uploads/' + nombreImagen;
-        }
 
         //SE LLENA LA TABLA PADRE PRIMERO
         const [result] = await conn.query(
             `INSERT INTO tbl_productos (nombre_producto, precio_producto, stock, imagen_url, tipo_producto_fk)
              VALUES (?, ?, ?, ?, ?)`,
-            insert_atributos_padre(req.body, imagen_url)
+            insert_atributos_padre(req.body)
         );
 
         //OBTENGO EL ID DEL PRODUCTO INSERTADO
@@ -191,7 +182,7 @@ exports.crear = async (req, res) => {
 // ─────────────────────────────────────────────────────────
 
 //ATRIBUTOS COMUNES EN LOS REGISTROS, MEDIANTE LOS SP, SE PUEDE ACTUALIZAR O VARIOS ATRIBUTOS
-function update_atributos_padre (body, imagen_url = null) {
+function update_atributos_padre (body) {
 
     return[
         body.nombre_producto || null,
@@ -200,7 +191,6 @@ function update_atributos_padre (body, imagen_url = null) {
         body.stock || null,
         body.stock_minimo || null,
         body.activo !== undefined ? body.activo : null,
-        imagen_url,
     ];
     
 }
@@ -212,15 +202,6 @@ exports.actualizar = async (req, res) => {
     try {
 
         await conn.beginTransaction();
-
-        let imagen_url = null;
-        if (req.files && req.files.imagen) {
-            const imagen = req.files.imagen;
-            const nombreImagen = Date.now() + '-' + imagen.name;
-            const rutaImagen = __dirname + '/../uploads/' + nombreImagen;
-            await imagen.mv(rutaImagen);
-            imagen_url = '/uploads/' + nombreImagen;
-        }
 
         const { id_producto, tipo_producto } = req.body;
 
@@ -236,7 +217,7 @@ exports.actualizar = async (req, res) => {
                 activo          = COALESCE(?, activo),
                 imagen_url      = COALESCE(?, imagen_url)
             WHERE id_producto_pk = ?`, 
-            [...update_atributos_padre(req.body, imagen_url), id_producto]
+            [...update_atributos_padre(req.body), id_producto]
         );
         
         
