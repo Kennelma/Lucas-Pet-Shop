@@ -126,7 +126,7 @@ const _nav = [
     component: CNavItem,
     name: 'Empresa y sucursales',
     icon: <FontAwesomeIcon icon={faStore} className="nav-icon" />,
-    to: '/',    
+    to: '/empresa',    
   },
 
   //USUARIOS
