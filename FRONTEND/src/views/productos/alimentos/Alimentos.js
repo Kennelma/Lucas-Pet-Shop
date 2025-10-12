@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from 'primereact/button';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPenToSquare, faTrash, faUserPlus } from '@fortawesome/free-solid-svg-icons';
 import ModalNuevoAlimento from './modal_nuevo_alimento';
 import ModalActualizarAlimento from './modal_actualizar_alimento';
 import { verProductos, eliminarProducto } from '../../../AXIOS.SERVICES/products-axios';
@@ -106,15 +108,14 @@ const Alimentos = () => {
           )}
         </div>
 
-        {/* Botón NUEVO redondeado tipo píldora */}
-        <Button
-          label="Nuevo"
-          icon="pi pi-plus"
-          severity="success"
-          className="p-button-rounded"
-          style={{ borderRadius: '12px' }}
+        {/* Botón NUEVO */}
+        <button
           onClick={() => setModalVisible(true)}
-        />
+          className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full transition"
+        >
+          <FontAwesomeIcon icon={faUserPlus} />
+          <span>Nuevo</span>
+        </button>
       </div>
 
       {/* Contenido */}
@@ -147,7 +148,7 @@ const Alimentos = () => {
               </div>
 
               {/* Información */}
-              <div className="text-center mb-8">
+              <div className="text-center mb-10">
                 <div className="text-sm font-bold mb-1">{a.nombre}</div>
                 <div className="text-xs text-gray-500 mb-2">SKU: {a.sku}</div>
                 <div className="text-sm text-gray-600 mb-1">
@@ -175,40 +176,27 @@ const Alimentos = () => {
                 </div>
               </div>
 
-              {/* Botones circulares (igual que en Animales) */}
-              <div className="flex justify-between absolute bottom-2 left-2 right-2 px-2">
-                <Button
-                  icon="pi pi-trash"
-                  severity="danger"
-                  rounded
-                  size="small"
-                  style={{
-                    borderRadius: '50%',
-                    width: '36px',
-                    height: '36px',
-                    padding: '0',
-                    margin: '0 4px',
-                  }}
-                  onClick={() => eliminarAlimento(a.id_producto, a.nombre)}
-                />
-                <Button
-                  icon="pi pi-cog"
-                  severity="info"
-                  rounded
-                  size="small"
-                  style={{
-                    borderRadius: '50%',
-                    width: '36px',
-                    height: '36px',
-                    padding: '0',
-                    margin: '0 4px',
-                  }}
-                  onClick={() => {
-                    setEditIndex(index);
-                    setModalVisible(true);
-                  }}
-                />
-              </div>
+              {/* 🔹 Botones en esquinas opuestas */}
+              <button
+                className="absolute bottom-3 left-3 text-blue-500 hover:text-blue-700 p-2 rounded transition"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditIndex(index);
+                  setModalVisible(true);
+                }}
+              >
+                <FontAwesomeIcon icon={faPenToSquare} size="lg" />
+              </button>
+
+              <button
+                className="absolute bottom-3 right-3 text-red-500 hover:text-red-700 p-2 rounded transition"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  eliminarAlimento(a.id_producto, a.nombre);
+                }}
+              >
+                <FontAwesomeIcon icon={faTrash} size="lg" />
+              </button>
             </div>
           ))}
         </div>
