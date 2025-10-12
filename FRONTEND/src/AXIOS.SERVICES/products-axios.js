@@ -1,9 +1,6 @@
 import axios from "axios";
 
-
-export const API_BASE_URL = "http://localhost:4000";  
-export const API_URL = `${API_BASE_URL}/api/productos`;
-
+const API_URL = "http://localhost:4000/api/productos";
 
 /*SERVICIO PARA VER PRODUCTOS POR TIPO*/
 export const verProductos = async (tipo_producto) => {
@@ -19,35 +16,29 @@ export const verProductos = async (tipo_producto) => {
 };
 
 
-
-// SERVICIO PARA INSERTAR PRODUCTO CON IMAGEN
-export const insertarProducto = async (datosProducto, file) => {
-  const formData = new FormData();
-  for (const key in datosProducto) {
-    formData.append(key, datosProducto[key]);
+//SERVICIO PARA INSERTAR PRODUCTO
+export const insertarProducto = async (datosProducto) => {
+  try {
+    const res = await axios.post(`${API_URL}/insertar`, datosProducto);
+    return res.data;
+  } catch (err) {
+    console.error(`Error al insertar producto:`, err);
+    return { Consulta: false, error: err.message };
   }
-  if (file) formData.append('imagen', file);
-
-  const res = await axios.post(`${API_URL}/insertar`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  });
-  return res.data;
 };
 
-//SERVICIO PARA ACTUALIZAR PRODUCTO
-export const actualizarProducto = async (datosProducto, file) => {
-  const formData = new FormData();
-  for (const key in datosProducto) {
-    formData.append(key, datosProducto[key]);
+
+
+/*SERVICIO PARA ACTUALIZAR PRODUCTO*/
+export const actualizarProducto = async (datosProducto) => {
+  try {
+    const res = await axios.put(`${API_URL}/actualizar`, datosProducto);
+    return res.data;
+  } catch (err) {
+    console.error(`Error al actualizar producto:`, err);
+    return { Consulta: false, error: err.message };
   }
-  if (file) formData.append('imagen', file);
-
-  const res = await axios.put(`${API_URL}/actualizar`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  });
-  return res.data;
 };
-
 
 
 /*SERVICIO PARA ELIMINAR PRODUCTO*/
