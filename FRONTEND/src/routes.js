@@ -22,7 +22,7 @@ const routes = [
   { path: '/productos/medicamentos', name: 'Productos / Medicamentos', element: Medicamentos },
   { path: '/peluqueria_canina/promociones', name: 'Peluquería Canina / Promociones', element: Promociones },
   { path: '/peluqueria_canina/servicios', name: 'Peluquería Canina / Servicios', element: Servicios },
-  { path: '/recordatorios/Recordatorios', name: 'Recordatorios', element: Recordatorios },
+  { path: '/recordatorios', name: 'Recordatorios', element: Recordatorios },
 
 ]
 
