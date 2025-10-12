@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const API_URL = "http://localhost:4000/api/productos"; 
+const API_URL = "http://localhost:4000/api/productos";
 
 /*SERVICIO PARA VER PRODUCTOS POR TIPO*/
 export const verProductos = async (tipo_producto) => {
@@ -15,7 +15,8 @@ export const verProductos = async (tipo_producto) => {
   }
 };
 
-//SERVICIO PARA INSERTAR UN PRODUCTO
+
+//SERVICIO PARA INSERTAR PRODUCTO
 export const insertarProducto = async (datosProducto) => {
   try {
     const res = await axios.post(`${API_URL}/insertar`, datosProducto);
@@ -25,6 +26,8 @@ export const insertarProducto = async (datosProducto) => {
     return { Consulta: false, error: err.message };
   }
 };
+
+
 
 /*SERVICIO PARA ACTUALIZAR PRODUCTO*/
 export const actualizarProducto = async (datosProducto) => {
