@@ -112,7 +112,7 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
 
   return (
     <Dialog
-      header="Agregar Nuevo Animal"
+      header={<div className="w-full text-center text-lg font-bold">AGREGAR ALIMENTO</div>}
       visible={isOpen}
       style={{ width: '38rem', borderRadius: '1.5rem' }}
       modal

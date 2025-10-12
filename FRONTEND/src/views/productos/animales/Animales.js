@@ -24,7 +24,7 @@ const Animales = () => {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [animalEditando, setAnimalEditando] = useState(null);
   const [first, setFirst] = useState(0);
-  const [rows, setRows] = useState(10);
+  const [rows, setRows] = useState(5);
 
   useEffect(() => {
     cargarDatos();
