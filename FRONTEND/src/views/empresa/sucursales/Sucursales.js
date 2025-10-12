@@ -1,9 +1,9 @@
 import React from 'react';
 
-export default function Usuarios() {
+export default function Sucursales() {
   return (
     <div>
-      usuarios
+      sucursales
     </div>
   );
 }
