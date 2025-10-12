@@ -16,48 +16,40 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
     { label: 'ANFIBIOS', value: 'ANFIBIOS' }
   ];
 
-  const estados = [
-    { label: 'ACTIVO', value: 1 },
-    { label: 'INACTIVO', value: 0 }
-  ];
-
   const [data, setData] = useState({
     nombre: '',
-    precio: 0,
-    cantidad: 0,
-    peso: 0,
+    precio: '',
+    cantidad: '',
+    peso: '',
     destino: '',
-    stock_minimo: 0,
-    activo: 1,
+    stock_minimo: '',
     sku: ''
   });
 
+  const [errores, setErrores] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Generar SKU
   const generarSKU = (nombre, id) => {
     if (!nombre) return '';
     const partes = nombre.trim().split(' ').map(p => p.substring(0, 3).toUpperCase());
     return partes.join('-') + (id ? `-${id}` : '-XXX');
   };
 
-  // Precargar datos
   useEffect(() => {
     if (isOpen && editData) {
       setData({
         nombre: (editData.nombre || '').toUpperCase(),
-        precio: Number(editData.precio) || 0,
-        cantidad: Number(editData.stock) || 0,
-        peso: Number(editData.peso) || 0,
+        precio: editData.precio || '',
+        cantidad: editData.stock || '',
+        peso: editData.peso || '',
         destino: (editData.destino || '').toUpperCase(),
-        stock_minimo: Number(editData.stock_minimo) || 0,
-        activo: editData.activo ? 1 : 0,
+        stock_minimo: editData.stock_minimo || '',
         sku: generarSKU(editData.nombre || '', editData.id_producto)
       });
+      setErrores({});
     }
   }, [isOpen, editData]);
 
-  // Manejar cambios
   const handleChange = (field, value) => {
     const val = ['nombre', 'destino'].includes(field) ? value.toUpperCase() : value;
     setData(prev => {
@@ -65,14 +57,23 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
       if (field === 'nombre') newData.sku = generarSKU(val, editData.id_producto);
       return newData;
     });
+    setErrores(prev => ({ ...prev, [field]: '' }));
   };
 
-  // Enviar actualización
+  const validarDatos = () => {
+    let temp = {};
+    if (!data.nombre) temp.nombre = 'Campo obligatorio';
+    if (!data.precio || data.precio <= 0) temp.precio = 'Debe ser mayor a 0';
+    if (!data.cantidad || data.cantidad <= 0) temp.cantidad = 'Debe ser mayor a 0';
+    if (!data.peso || data.peso <= 0) temp.peso = 'Debe ser mayor a 0';
+    if (!data.stock_minimo || data.stock_minimo <= 0) temp.stock_minimo = 'Debe ser mayor a 0';
+
+    setErrores(temp);
+    return Object.keys(temp).length === 0;
+  };
+
   const handleSubmit = async () => {
-    if (!data.nombre || !data.precio) {
-      alert('Por favor completa los campos requeridos.');
-      return;
-    }
+    if (!validarDatos()) return;
 
     setLoading(true);
     try {
@@ -82,7 +83,6 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
         precio_producto: data.precio,
         stock: data.cantidad,
         stock_minimo: data.stock_minimo,
-        activo: data.activo,
         tipo_producto: 'ALIMENTOS',
         peso_alimento: data.peso,
         alimento_destinado: data.destino,
@@ -138,99 +138,90 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
       closable={false}
       onHide={onClose}
       footer={footer}
-      draggable={false}        // Evita que el modal se mueva
-      resizable={false}        // Evita que se cambie de tamaño
+      draggable={false}
+      resizable={false}
     >
-      <div className="flex flex-col gap-4 mt-2 text-sm">
+      <div className="flex flex-col gap-2 text-sm">
         {/* Nombre */}
-        <span className="p-float-label">
-          <InputText
-            value={data.nombre}
-            onChange={(e) => handleChange('nombre', e.target.value)}
-            className="w-full rounded-xl h-10 text-sm"
-          />
-          <label className="text-xs">Nombre</label>
-        </span>
+        <label className="text-xs font-semibold">Nombre</label>
+        <InputText
+          value={data.nombre}
+          onChange={(e) => handleChange('nombre', e.target.value)}
+          className="w-full rounded-xl h-10 text-sm"
+        />
+        {errores.nombre && (<small className="text-red-500">{errores.nombre}</small>)}
 
         {/* SKU */}
-        <span className="p-float-label">
-          <InputText
-            value={data.sku}
-            readOnly
-            className="w-full rounded-xl h-10 text-sm bg-gray-100"
-          />
-          <label className="text-xs">SKU</label>
-        </span>
+        <label className="text-xs font-semibold">SKU</label>
+        <InputText
+          value={data.sku}
+          readOnly
+          className="w-full rounded-xl h-10 text-sm bg-gray-100"
+        />
 
-        {/* Destino, Peso, Estado */}
-        <div className="grid grid-cols-3 gap-4">
-          <span className="p-float-label">
+        {/* Destino y Peso */}
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="text-xs font-semibold">Destinado a</label>
             <Dropdown
               value={data.destino}
               options={destinos}
               onChange={(e) => handleChange('destino', e.value)}
-              className="w-full rounded-xl text-sm"
+              className="w-full rounded-xl text-sm mt-1"
               placeholder="Seleccionar"
             />
-            <label className="text-xs">Destinado a</label>
-          </span>
+          </div>
 
-          <span className="p-float-label">
+          <div>
+            <label className="text-xs font-semibold">Peso (kg)</label>
             <InputNumber
               value={data.peso}
               onValueChange={(e) => handleChange('peso', e.value)}
-              className="w-full rounded-xl text-sm"
+              className="w-full rounded-xl text-sm mt-1"
               inputClassName="h-10 text-sm"
               suffix=" kg"
             />
-            <label className="text-xs">Peso (kg)</label>
-          </span>
-
-          <span className="p-float-label">
-            <Dropdown
-              value={data.activo}
-              options={estados}
-              onChange={(e) => handleChange('activo', e.value)}
-              className="w-full rounded-xl text-sm"
-            />
-            <label className="text-xs">Estado</label>
-          </span>
+            {errores.peso && (<small className="text-red-500">{errores.peso}</small>)}
+          </div>
         </div>
 
         {/* Precio, Stock, Stock mínimo */}
-        <div className="grid grid-cols-3 gap-4">
-          <span className="p-float-label">
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <label className="text-xs font-semibold">Precio</label>
             <InputNumber
               value={data.precio}
               onValueChange={(e) => handleChange('precio', e.value)}
               mode="currency"
               currency="HNL"
               locale="es-HN"
-              className="w-full rounded-xl text-sm"
+              className="w-full rounded-xl text-sm mt-1"
               inputClassName="h-10 text-sm"
             />
-            <label className="text-xs">Precio</label>
-          </span>
+            {errores.precio && (<small className="text-red-500">{errores.precio}</small>)}
+          </div>
 
-          <span className="p-float-label">
+          <div>
+            <label className="text-xs font-semibold">Stock</label>
             <InputNumber
               value={data.cantidad}
               onValueChange={(e) => handleChange('cantidad', e.value)}
-              className="w-full rounded-xl text-sm"
+              className="w-full rounded-xl text-sm mt-1"
               inputClassName="h-10 text-sm"
             />
-            <label className="text-xs">Stock</label>
-          </span>
+            {errores.cantidad && (<small className="text-red-500">{errores.cantidad}</small>)}
+          </div>
 
-          <span className="p-float-label">
+          <div>
+            <label className="text-xs font-semibold">Stock mínimo</label>
             <InputNumber
               value={data.stock_minimo}
               onValueChange={(e) => handleChange('stock_minimo', e.value)}
-              className="w-full rounded-xl text-sm"
+              className="w-full rounded-xl text-sm mt-1"
               inputClassName="h-10 text-sm"
             />
-            <label className="text-xs">Stock mínimo</label>
-          </span>
+            {errores.stock_minimo && (<small className="text-red-500">{errores.stock_minimo}</small>)}
+          </div>
         </div>
       </div>
     </Dialog>
