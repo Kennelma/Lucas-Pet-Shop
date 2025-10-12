@@ -177,7 +177,7 @@ exports.crear = async (req, res) => {
 // ─────────────────────────────────────────────────────────
 
 //ATRIBUTOS COMUNES EN LOS REGISTROS, MEDIANTE LOS SP, SE PUEDE ACTUALIZAR O VARIOS ATRIBUTOS
-function update_atributos_padre (body) {
+function update_atributos_padre (body, imagen_url= null ) {
 
     return[
         body.nombre_producto || null,
