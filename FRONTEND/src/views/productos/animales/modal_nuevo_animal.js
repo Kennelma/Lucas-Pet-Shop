@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
@@ -12,11 +12,10 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
     especie: '',
     sexo: '',
     precio: '',
-    cantidad: '',
-    imagenUrl: '' 
+    cantidad: ''
   });
+
   const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef(null);
 
   const especies = [
     { label: 'PERRO', value: 'PERRO' },
@@ -33,19 +32,8 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
   ];
 
   const handleChange = (field, value) => {
-    const val = ['nombre','especie','sexo'].includes(field) ? value.toUpperCase() : value;
+    const val = ['nombre', 'especie', 'sexo'].includes(field) ? value.toUpperCase() : value;
     setData(prev => ({ ...prev, [field]: val }));
-  };
-
-  // ⚡ Convierte archivo a Base64
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setData(prev => ({ ...prev, imagenUrl: reader.result }));
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async () => {
@@ -60,7 +48,6 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
         nombre_producto: data.nombre,
         precio_producto: data.precio,
         stock: data.cantidad,
-        imagen_base64: data.imagenUrl || null, 
         tipo_producto: 'ANIMALES',
         especie: data.especie,
         sexo: data.sexo
@@ -77,7 +64,6 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
           stock_minimo: 0,
           activo: true,
           tipo_producto: 'ANIMALES',
-          imagenUrl: data.imagenUrl || '',
           especie: data.especie,
           sexo: data.sexo
         };
@@ -97,16 +83,16 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
 
   const footer = (
     <div className="flex justify-end gap-3 mt-2">
-      <Button 
-        label="Cancelar" 
-        icon="pi pi-times" 
+      <Button
+        label="Cancelar"
+        icon="pi pi-times"
         className="p-button-text p-button-rounded"
         onClick={onClose}
         disabled={loading}
       />
-      <Button 
-        label="Guardar" 
-        icon="pi pi-check" 
+      <Button
+        label="Guardar"
+        icon="pi pi-check"
         className="p-button-success p-button-rounded"
         onClick={handleSubmit}
         loading={loading}
@@ -115,7 +101,7 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
   );
 
   return (
-    <Dialog 
+    <Dialog
       header="Agregar Nuevo Animal"
       visible={isOpen}
       style={{ width: '38rem', borderRadius: '1.5rem' }}
@@ -123,14 +109,16 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
       closable={false}
       onHide={onClose}
       footer={footer}
+      draggable={false}        // Evita que el modal se mueva
+      resizable={false}        // Evita que se cambie de tamaño
     >
       <div className="flex flex-col gap-3 mt-1 text-sm">
         {/* Nombre */}
         <span className="p-float-label">
-          <InputText 
-            id="nombre" 
-            value={data.nombre} 
-            onChange={(e) => handleChange('nombre', e.target.value)} 
+          <InputText
+            id="nombre"
+            value={data.nombre}
+            onChange={(e) => handleChange('nombre', e.target.value)}
             className="w-full rounded-xl h-9 text-sm"
           />
           <label htmlFor="nombre" className="text-xs">Nombre</label>
@@ -139,11 +127,11 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
         {/* Especie y Sexo */}
         <div className="grid grid-cols-2 gap-3">
           <span className="p-float-label">
-            <Dropdown 
-              id="especie" 
-              value={data.especie} 
-              options={especies} 
-              onChange={(e) => handleChange('especie', e.value)} 
+            <Dropdown
+              id="especie"
+              value={data.especie}
+              options={especies}
+              onChange={(e) => handleChange('especie', e.value)}
               className="w-full rounded-xl text-sm"
               placeholder="Seleccionar"
             />
@@ -151,11 +139,11 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
           </span>
 
           <span className="p-float-label">
-            <Dropdown 
-              id="sexo" 
-              value={data.sexo} 
-              options={sexos} 
-              onChange={(e) => handleChange('sexo', e.value)} 
+            <Dropdown
+              id="sexo"
+              value={data.sexo}
+              options={sexos}
+              onChange={(e) => handleChange('sexo', e.value)}
               className="w-full rounded-xl text-sm"
               placeholder="Seleccionar"
             />
@@ -166,13 +154,13 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
         {/* Precio y Stock */}
         <div className="grid grid-cols-2 gap-3">
           <span className="p-float-label">
-            <InputNumber 
-              id="precio" 
-              value={data.precio} 
-              onValueChange={(e) => handleChange('precio', e.value)} 
-              mode="currency" 
-              currency="HNL" 
-              locale="es-HN" 
+            <InputNumber
+              id="precio"
+              value={data.precio}
+              onValueChange={(e) => handleChange('precio', e.value)}
+              mode="currency"
+              currency="HNL"
+              locale="es-HN"
               className="w-full rounded-xl text-sm"
               inputClassName="h-9 text-sm"
             />
@@ -180,41 +168,16 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
           </span>
 
           <span className="p-float-label">
-            <InputNumber 
-              id="cantidad" 
-              value={data.cantidad} 
-              onValueChange={(e) => handleChange('cantidad', e.value)} 
+            <InputNumber
+              id="cantidad"
+              value={data.cantidad}
+              onValueChange={(e) => handleChange('cantidad', e.value)}
               className="w-full rounded-xl text-sm"
               inputClassName="h-9 text-sm"
             />
             <label htmlFor="cantidad" className="text-xs">Stock</label>
           </span>
         </div>
-
-        {/* Selector de Imagen */}
-        <div
-          className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl p-4 mt-2 hover:border-blue-400 transition-all cursor-pointer"
-          onClick={() => fileInputRef.current.click()}
-        >
-          {data.imagenUrl ? (
-            <img src={data.imagenUrl} alt="preview" className="h-32 w-32 object-contain rounded-xl" />
-          ) : (
-            <>
-              <i className="pi pi-image text-3xl text-gray-400 mb-2"></i>
-              <p className="text-gray-500 text-sm text-center">
-                Haz clic para subir una imagen
-              </p>
-            </>
-          )}
-        </div>
-
-        <input
-          type="file"
-          ref={fileInputRef}
-          className="hidden"
-          accept="image/*"
-          onChange={handleFileChange}
-        />
       </div>
     </Dialog>
   );
