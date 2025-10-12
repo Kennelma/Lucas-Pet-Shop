@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from 'primereact/button';
 import ModalNuevoAnimal from './modal_nuevo_animal';
 import ModalActualizarAnimal from './modal_actualizar_animal';
+
 import { verProductos, eliminarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
 const Animales = () => {

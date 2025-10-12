@@ -185,7 +185,7 @@ function update_atributos_padre (body) {
         body.stock || null,
         body.stock_minimo || null,
         body.activo !== undefined ? body.activo : null,
-        imagen_url,
+        imagen_url || null,
     ];
     
 }
