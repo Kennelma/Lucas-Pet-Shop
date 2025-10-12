@@ -2,6 +2,7 @@
 
 const express = require('express');
 const mysqlConnection = require('../config/conexion');
+const bcrypt = require('bcrypt');
 
 
 // ─────────────────────────────────────────────────────────
@@ -36,27 +37,62 @@ exports.crear = async (req, res) => {
             case 'SUCURSALES':
 
                 await conn.query (
-                    `INSERT INTO tbl_sucursal (
-                    nombre_sucursal,
-                    direccion_sucursal,
-                    telefono_sucursal,
-                    id_empresa_fk) VALUES (?,?,?,?)`,
+                    `INSERT INTO tbl_sucursales (
+                        nombre_sucursal,
+                        direccion_sucursal,
+                        telefono_sucursal,
+                        id_empresa_fk
+                    ) VALUES (?,?,?,?)`,
                     [
                         req.body.nombre_sucursal,
                         req.body.direccion_sucursal, 
                         req.body.telefono_sucursal, 
-                        req.body.correo_empresa
+                        req.body.id_empresa_fk
                     ]);
+
                 break;
                 
             
             case 'USUARIOS':
-
-                const bcrypt = require('bcrypt');
-                const hashedPassword = await bcrypt.hash(req.body.contrasena_usuario, 10);
                 
-               
+                const contraHasheada = await bcrypt.hash(req.body.contrasena_usuario, 20);
+                
+                await conn.query (
+                    `INSERT INTO tbl_usuarios(
+                        usuario, 
+                        email_usuario, 
+                        contrasena_usuario, 
+                        id_sucursal_fk
+                    ) VALUES (?,?,?,?)`, 
+                    [
+                        req.body.usuario,
+                        req.body.email_usuario,
+                        contraHasheada,
+                        req.body.id_sucursal_fk
+                    ]
+                );
+                
                 break;
+
+            case 'GASTOS':
+
+                //SE TOMA EL ID DEL USUARIO AUTENTICADO (MIDDLEWARE AUTH)
+                const id_usuario = req.user?.id_usuario_pk;
+
+                await conn.query(
+                `INSERT INTO tbl_gastos (
+                    detalle_gasto, 
+                    monto_gasto, 
+                    id_usuario_fk
+                ) VALUES (?,?,?)`,
+                [
+                    req.body.detalle_gasto,
+                    req.body.monto_gasto,
+                    id_usuario
+                ]
+                );
+                
+            break;
         
             default:
                 throw new Error('No es parte del módulo de empresa. Intente de nuevo');
@@ -91,18 +127,21 @@ exports.ver = async (req, res) => {
 
     try {
 
-        await conn.beginTransaction();//INICIO LA TRANSACCIÓN 
+        let registros; 
 
-        switch (req.body.entidad) {
+        switch (req.query.entidad) {
             
-            case 'EMPRESAS':
+            case 'EMPRESA':
+
                 [registros] = await conn.query(
+
                     `SELECT 
+                        id_empresa_pk,
                         nombre_empresa,
                         direccion_empresa,
                         telefono_empresa,
                         correo_empresa
-                    FROM tbl_empresas`);
+                    FROM tbl_empresa`);
                 
                 break;
 
@@ -110,29 +149,37 @@ exports.ver = async (req, res) => {
 
                 [registros] = await conn.query(
                     `SELECT 
-                        nombre_sucursal,
-                        direccion_sucursal,
-                        telefono_sucursal
-                    FROM tbl_sucursales`);
+                        s.id_sucursal_pk,  
+                        s.nombre_sucursal, 
+                        s.direccion_sucursal, 
+                        s.telefono_sucursal,
+                        e.nombre_empresa
+                    FROM tbl_sucursales s
+                    JOIN tbl_empresa e ON e.id_empresa_pk = s.id_empresa_fk`);
                 break;
 
             case 'USUARIOS':
 
                 [registros] = await conn.query(
                     `SELECT 
-                        usuario,
-                        email_usuario,
-                        telefono_sucursal,
-                        id_sucursal_fk,
-                        cat_estado_fk
-                        bloqueado_hasta
-                    FROM tbl_usuarios`);
+                        u.id_usuario_pk, 
+                        u.usuario, 
+                        u.email_usuario, 
+                        u.fecha_creacion,
+                        u.intentos_fallidos, 
+                        u.bloqueado_hasta,
+                        u.id_sucursal_fk, 
+                        s.nombre_sucursal,
+                        u.cat_estado_fk
+                    FROM tbl_usuarios u
+                    JOIN tbl_sucursales s ON s.id_sucursal_pk = u.id_sucursal_fk`);
                 break;
                 
             case 'GASTOS':
                 
                 [registros] = await conn.query(
                     `SELECT 
+                        id_gasto_pk,
                         detalle_gasto,
                         monto_gasto,
                         fecha_registro_gasto
@@ -141,17 +188,17 @@ exports.ver = async (req, res) => {
    
             default:
 
-                throw new Error('INVALIDO PARA ESTE MODULO');
+                throw new Error('Las entidades permitidas son: GASTOS, EMPRESA, SUCURSALES o USUARIOS');
         }
 
         res.json({
             Consulta: true,
-            productos: registros || []
+            entidad: registros || []
         });
         
 
     } catch (err) {
-        await conn.rollback();
+
         res.json({
             Consulta: false,
             error: err.message
