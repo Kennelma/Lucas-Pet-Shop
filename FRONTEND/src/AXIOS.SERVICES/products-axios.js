@@ -40,7 +40,6 @@ export const actualizarProducto = async (datosProducto) => {
   }
 };
 
-
 /*SERVICIO PARA ELIMINAR PRODUCTO*/
 export const eliminarProducto = async (id_producto) => {
   try {
