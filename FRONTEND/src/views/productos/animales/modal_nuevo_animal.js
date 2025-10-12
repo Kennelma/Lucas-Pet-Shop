@@ -11,10 +11,11 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
     nombre: '',
     especie: '',
     sexo: '',
-    precio: '',
-    cantidad: ''
+    precio: 0,
+    cantidad: 0
   });
 
+  const [errores, setErrores] = useState({});
   const [loading, setLoading] = useState(false);
 
   const especies = [
@@ -36,11 +37,20 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
     setData(prev => ({ ...prev, [field]: val }));
   };
 
+  const validarDatos = () => {
+    let temp = {};
+    if (!data.nombre) temp.nombre = 'Campo obligatorio';
+    if (!data.especie) temp.especie = 'Campo obligatorio';
+    if (!data.sexo) temp.sexo = 'Campo obligatorio';
+    if (!data.precio || data.precio <= 0) temp.precio = 'Debe ser mayor a 0';
+    if (!data.cantidad || data.cantidad <= 0) temp.cantidad = 'Debe ser mayor a 0';
+
+    setErrores(temp);
+    return Object.keys(temp).length === 0;
+  };
+
   const handleSubmit = async () => {
-    if (!data.nombre || !data.precio || !data.cantidad) {
-      alert('Por favor completa los campos requeridos.');
-      return;
-    }
+    if (!validarDatos()) return;
 
     setLoading(true);
     try {
@@ -109,74 +119,72 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
       closable={false}
       onHide={onClose}
       footer={footer}
-      draggable={false}        // Evita que el modal se mueva
-      resizable={false}        // Evita que se cambie de tamaño
+      draggable={false}
+      resizable={false}
     >
-      <div className="flex flex-col gap-3 mt-1 text-sm">
+      <div className="flex flex-col gap-2 mt-1 text-sm">
         {/* Nombre */}
-        <span className="p-float-label">
-          <InputText
-            id="nombre"
-            value={data.nombre}
-            onChange={(e) => handleChange('nombre', e.target.value)}
-            className="w-full rounded-xl h-9 text-sm"
-          />
-          <label htmlFor="nombre" className="text-xs">Nombre</label>
-        </span>
+        <label className="text-xs font-semibold">Nombre</label>
+        <InputText
+          value={data.nombre}
+          onChange={(e) => handleChange('nombre', e.target.value)}
+          className="w-full rounded-xl h-9 text-sm"
+        />
+        {errores.nombre && <small className="text-red-500">{errores.nombre}</small>}
 
         {/* Especie y Sexo */}
-        <div className="grid grid-cols-2 gap-3">
-          <span className="p-float-label">
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="text-xs font-semibold">Especie</label>
             <Dropdown
-              id="especie"
               value={data.especie}
               options={especies}
               onChange={(e) => handleChange('especie', e.value)}
-              className="w-full rounded-xl text-sm"
+              className="w-full rounded-xl text-sm mt-1"
               placeholder="Seleccionar"
             />
-            <label htmlFor="especie" className="text-xs">Especie</label>
-          </span>
+            {errores.especie && <small className="text-red-500">{errores.especie}</small>}
+          </div>
 
-          <span className="p-float-label">
+          <div>
+            <label className="text-xs font-semibold">Sexo</label>
             <Dropdown
-              id="sexo"
               value={data.sexo}
               options={sexos}
               onChange={(e) => handleChange('sexo', e.value)}
-              className="w-full rounded-xl text-sm"
+              className="w-full rounded-xl text-sm mt-1"
               placeholder="Seleccionar"
             />
-            <label htmlFor="sexo" className="text-xs">Sexo</label>
-          </span>
+            {errores.sexo && <small className="text-red-500">{errores.sexo}</small>}
+          </div>
         </div>
 
         {/* Precio y Stock */}
-        <div className="grid grid-cols-2 gap-3">
-          <span className="p-float-label">
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="text-xs font-semibold">Precio (L.)</label>
             <InputNumber
-              id="precio"
               value={data.precio}
               onValueChange={(e) => handleChange('precio', e.value)}
               mode="currency"
               currency="HNL"
               locale="es-HN"
-              className="w-full rounded-xl text-sm"
+              className="w-full rounded-xl text-sm mt-1"
               inputClassName="h-9 text-sm"
             />
-            <label htmlFor="precio" className="text-xs">Precio</label>
-          </span>
+            {errores.precio && <small className="text-red-500">{errores.precio}</small>}
+          </div>
 
-          <span className="p-float-label">
+          <div>
+            <label className="text-xs font-semibold">Stock</label>
             <InputNumber
-              id="cantidad"
               value={data.cantidad}
               onValueChange={(e) => handleChange('cantidad', e.value)}
-              className="w-full rounded-xl text-sm"
+              className="w-full rounded-xl text-sm mt-1"
               inputClassName="h-9 text-sm"
             />
-            <label htmlFor="cantidad" className="text-xs">Stock</label>
-          </span>
+            {errores.cantidad && <small className="text-red-500">{errores.cantidad}</small>}
+          </div>
         </div>
       </div>
     </Dialog>
