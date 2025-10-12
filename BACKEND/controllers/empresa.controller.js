@@ -34,7 +34,7 @@ exports.crear = async (req, res) => {
                 break;
 
             case 'SUCURSALES':
-                
+
                 await conn.query (
                     `INSERT INTO tbl_sucursal (
                     nombre_sucursal,
@@ -42,9 +42,9 @@ exports.crear = async (req, res) => {
                     telefono_sucursal,
                     id_empresa_fk) VALUES (?,?,?,?)`,
                     [
-                        req.body.nombre_empresa,
-                        req.body.direccion_empresa, 
-                        req.body.telefono_empresa, 
+                        req.body.nombre_sucursal,
+                        req.body.direccion_sucursal, 
+                        req.body.telefono_sucursal, 
                         req.body.correo_empresa
                     ]);
                 break;
