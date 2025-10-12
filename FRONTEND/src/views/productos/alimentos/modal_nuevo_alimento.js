@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
@@ -6,50 +6,30 @@ import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
 import { insertarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
-const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
-  
-  const especies = [
-    { label: 'PERRO', value: 'PERRO' },
-    { label: 'GATO', value: 'GATO' },
-    { label: 'AVE', value: 'AVE' },
-    { label: 'PEZ', value: 'PEZ' },
-    { label: 'REPTIL', value: 'REPTIL' },
-    { label: 'ANFIBIO', value: 'ANFIBIO' }
-  ];
+const destinosBase = [
+  { label: 'PERROS', value: 'PERROS' },
+  { label: 'GATOS', value: 'GATOS' },
+  { label: 'AVES', value: 'AVES' },
+  { label: 'PECES', value: 'PECES' },
+  { label: 'REPTILES', value: 'REPTILES' },
+  { label: 'ANFIBIOS', value: 'ANFIBIOS' }
+];
 
-  const sexos = [
-    { label: 'HEMBRA', value: 'HEMBRA' },
-    { label: 'MACHO', value: 'MACHO' }
-  ];
-
+const ModalNuevoAlimento = ({ isOpen, onClose, onSave }) => {
   const [data, setData] = useState({
     nombre: '',
     precio: 0,
     cantidad: 0,
     peso: 0,
-    destino: '',
-    imagenUrl: ''
+    destino: ''
   });
 
   const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef(null);
 
   // Manejar cambios de input
   const handleChange = (field, value) => {
     const val = ['nombre', 'destino'].includes(field) ? value.toUpperCase() : value;
     setData(prev => ({ ...prev, [field]: val }));
-  };
-
-  // Manejar imagen seleccionada
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setData(prev => ({ ...prev, imagenUrl: reader.result }));
-    };
-    reader.readAsDataURL(file);
   };
 
   // Guardar nuevo alimento
@@ -71,10 +51,6 @@ const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
         activo: 1
       };
 
-      if (data.imagenUrl && data.imagenUrl.startsWith('data:image')) {
-        body.imagen_base64 = data.imagenUrl;
-      }
-
       const res = await insertarProducto(body);
 
       if (res.Consulta) {
@@ -85,8 +61,7 @@ const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
           precio: 0,
           cantidad: 0,
           peso: 0,
-          destino: '',
-          imagenUrl: ''
+          destino: ''
         });
       } else {
         alert(`Error al guardar: ${res.error}`);
@@ -127,6 +102,8 @@ const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
       closable={false}
       onHide={onClose}
       footer={footer}
+      draggable={false}
+      resizable={false}
     >
       <div className="flex flex-col gap-4 mt-2 text-sm">
         {/* Nombre */}
@@ -188,32 +165,6 @@ const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
             />
             <label className="text-xs">Stock</label>
           </span>
-        </div>
-
-        {/* Imagen */}
-        <div
-          className="w-full h-40 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl mt-2 hover:border-blue-400 transition-all cursor-pointer"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          {data.imagenUrl ? (
-            <img
-              src={data.imagenUrl}
-              alt="alimento"
-              className="w-full h-full object-cover rounded-2xl"
-            />
-          ) : (
-            <div className="flex flex-col items-center justify-center text-gray-400">
-              <i className="pi pi-image text-3xl mb-2"></i>
-              <p className="text-sm text-center">Haz clic para subir una imagen</p>
-            </div>
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            style={{ display: 'none' }}
-            onChange={handleFileChange}
-          />
         </div>
       </div>
     </Dialog>
