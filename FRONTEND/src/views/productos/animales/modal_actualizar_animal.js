@@ -144,7 +144,7 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
 
   return (
     <Dialog
-      header="Actualizar Animal"
+      header={<div className="w-full text-center text-lg font-bold">ACTUALIZAR ANIMAL</div>}
       visible={isOpen}
       style={{ width: '50rem', borderRadius: '1.5rem' }}
       modal
@@ -227,7 +227,7 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
           </div>
 
           <div>
-            <label className="text-xs font-semibold">Stock mínimo</label>
+            <label className="text-xs font-semibold">Stock mínimo (Para alertas)</label>
             <InputNumber
               value={data.stock_minimo}
               onValueChange={(e) => handleChange('stock_minimo', e.value)}
