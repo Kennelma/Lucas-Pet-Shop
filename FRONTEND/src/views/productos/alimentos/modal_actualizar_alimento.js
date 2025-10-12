@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
@@ -29,12 +29,10 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
     destino: '',
     stock_minimo: 0,
     activo: 1,
-    sku: '',
-    imagenUrl: ''
+    sku: ''
   });
 
   const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef(null);
 
   // Generar SKU
   const generarSKU = (nombre, id) => {
@@ -54,8 +52,7 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
         destino: (editData.destino || '').toUpperCase(),
         stock_minimo: Number(editData.stock_minimo) || 0,
         activo: editData.activo ? 1 : 0,
-        sku: generarSKU(editData.nombre || '', editData.id_producto),
-        imagenUrl: editData.imagenUrl || ''
+        sku: generarSKU(editData.nombre || '', editData.id_producto)
       });
     }
   }, [isOpen, editData]);
@@ -68,18 +65,6 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
       if (field === 'nombre') newData.sku = generarSKU(val, editData.id_producto);
       return newData;
     });
-  };
-
-  // Manejar archivo de imagen
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setData(prev => ({ ...prev, imagenUrl: reader.result }));
-    };
-    reader.readAsDataURL(file);
   };
 
   // Enviar actualización
@@ -103,13 +88,6 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
         alimento_destinado: data.destino,
         sku: generarSKU(data.nombre, editData.id_producto)
       };
-
-      // Si la imagen es nueva (base64), la enviamos así:
-      if (data.imagenUrl && data.imagenUrl.startsWith('data:image')) {
-        body.imagen_base64 = data.imagenUrl;
-      } else if (data.imagenUrl) {
-        body.imagen_url = data.imagenUrl;
-      }
 
       const res = await actualizarProducto(body);
 
@@ -160,6 +138,8 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
       closable={false}
       onHide={onClose}
       footer={footer}
+      draggable={false}        // Evita que el modal se mueva
+      resizable={false}        // Evita que se cambie de tamaño
     >
       <div className="flex flex-col gap-4 mt-2 text-sm">
         {/* Nombre */}
@@ -251,32 +231,6 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
             />
             <label className="text-xs">Stock mínimo</label>
           </span>
-        </div>
-
-        {/* Imagen */}
-        <div
-          className="w-full h-40 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl mt-2 hover:border-blue-400 transition-all cursor-pointer"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          {data.imagenUrl ? (
-            <img
-              src={data.imagenUrl}
-              alt="alimento"
-              className="w-full h-full object-cover rounded-2xl"
-            />
-          ) : (
-            <div className="flex flex-col items-center justify-center text-gray-400">
-              <i className="pi pi-image text-3xl mb-2"></i>
-              <p className="text-sm text-center">Haz clic para subir una imagen</p>
-            </div>
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            style={{ display: 'none' }}
-            onChange={handleFileChange}
-          />
         </div>
       </div>
     </Dialog>
