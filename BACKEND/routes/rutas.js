@@ -34,7 +34,7 @@ router.put('/clientes/actualizar', clientes.actualizar);
 
 //========== RUTAS DE MÓDULO DE EMPRESA (EMPRESA, SUCURSALES, USUARIOS) ==========
 router.post('/empresa/insertar', empresa.crear);
-//router.get ('/empresa/ver', empresa.ver);
+router.get ('/empresa/ver', empresa.ver);
 //router.put('/empresa/actualizar', empresa.actualizar);
 //router.delete ('/empresa/eliminar', empresa.eliminar);
 
