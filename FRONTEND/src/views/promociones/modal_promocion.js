@@ -16,7 +16,6 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
   });
 
   const [errores, setErrores] = useState({});
-
   const diasSemana = [
     { id: 'LUNES', label: ' LUNES' },
     { id: 'MARTES', label: 'MARTES' },
@@ -81,16 +80,19 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
 
   const validarFormulario = () => {
     const nuevosErrores = {};
+    
     if (!formData.nombre_promocion.trim()) {
       nuevosErrores.nombre_promocion = 'El nombre es requerido';
     } else if (formData.nombre_promocion.trim().length < 3) {
       nuevosErrores.nombre_promocion = 'El nombre debe tener al menos 3 caracteres';
     }
+    
     if (!formData.descripcion_promocion.trim()) {
       nuevosErrores.descripcion_promocion = 'La descripción es requerida';
     } else if (formData.descripcion_promocion.trim().length < 10) {
       nuevosErrores.descripcion_promocion = 'La descripción debe tener al menos 10 caracteres';
     }
+    
     const precio = parseFloat(formData.precio_promocion);
     if (!formData.precio_promocion || isNaN(precio)) {
       nuevosErrores.precio_promocion = 'El precio es requerido';
@@ -102,6 +104,7 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
     if (!formData.dias_promocion || formData.dias_promocion.length === 0) {
       nuevosErrores.dias_promocion = 'Debe seleccionar al menos un día de la semana';
     }
+    
     return nuevosErrores;
   };
 

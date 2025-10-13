@@ -1,24 +1,25 @@
 //Constante para el paquete Express
 const express = require('express');
-const cors = require('cors');
-const fileUpload = require('express-fileupload');
-const path = require('path');
+const cors = require("cors");
+
+//constante para los metodos de express.
+var  app = express();
+
+//constante para el paquete de bodyparser.
+const bp = require('body-parser');
+
+//IMPORTO LA CONEXION DEL ARCHIVO CORRRESPONDIENTE
 const mysqlConnection = require('./config/conexion'); 
 
-
-const  app = express();
-
-//Enviando los datos JSON y de data-form a NODEJS API
-app.use(cors());
+//Enviando los datos de data-form a NODEJS API
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(fileUpload({
-    createParentPath: true
-}));
+app.use(express.urlencoded({ extended: true }))
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-//IMPORTACION DE LAS RUTAS;
+//Permitir todas las peticiones desde cualquier origen
+app.use(cors());
+
+//IMPORTACION DE LAS RUTAS
 app.use('/api', require('./routes/rutas'));
 
 const PORT = 4000;
