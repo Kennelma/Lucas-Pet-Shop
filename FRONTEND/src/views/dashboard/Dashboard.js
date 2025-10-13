@@ -1,9 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DollarSign, AlertTriangle, ChevronLeft, ChevronRight, Package, FileText, TrendingUp, Users } from 'lucide-react';
 
 const Dashboard = () => {
+
   const navigate = useNavigate();
+
+  const [isLoading, setIsLoading] = useState(true);
+  
+  //CONSTANTES PARA CERRAR SESIONES
+  const token = sessionStorage.getItem('token')  
+  const usuario = JSON.parse(sessionStorage.getItem('usuario'))  
+  
+  //PROTECCI;ON, SI NO HAY TOKEN DE SESIÓN, LO MANDA AL LOGIN Protección
+  useEffect(() => {
+    if (!token) {
+      navigate('/login')
+    }
+  }, [token, navigate])
+  
+  console.log("Token:", token)
+  console.log("Usuario:", usuario?.nombre)
+  
+  const handleLogout = () => {
+    sessionStorage.removeItem('token')  // ⬅️ Cambio
+    sessionStorage.removeItem('usuario')  // ⬅️ Cambio
+    navigate('/login')  // ⬅️ Mejor que window.location.href
+  }
+
+
+
   
   // Obtener fecha actual en hora de Honduras (UTC-6)
   const getHondurasDate = () => {
