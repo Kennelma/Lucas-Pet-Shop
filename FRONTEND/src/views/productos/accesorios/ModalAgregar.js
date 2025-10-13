@@ -102,7 +102,7 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
 
       console.log('🔍 ModalAgregar - Enviando datos:', body);
 
-      const res = await insertarProducto(body, null);
+      const res = await insertarProducto(body);
 
       console.log('🔍 ModalAgregar - Respuesta recibida:', res);
 
