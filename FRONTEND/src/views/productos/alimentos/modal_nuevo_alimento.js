@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
@@ -6,58 +6,47 @@ import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
 import { insertarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
-const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
-  
-  const especies = [
-    { label: 'PERRO', value: 'PERRO' },
-    { label: 'GATO', value: 'GATO' },
-    { label: 'AVE', value: 'AVE' },
-    { label: 'PEZ', value: 'PEZ' },
-    { label: 'REPTIL', value: 'REPTIL' },
-    { label: 'ANFIBIO', value: 'ANFIBIO' }
-  ];
+const destinosBase = [
+  { label: 'PERROS', value: 'PERROS' },
+  { label: 'GATOS', value: 'GATOS' },
+  { label: 'AVES', value: 'AVES' },
+  { label: 'PECES', value: 'PECES' },
+  { label: 'REPTILES', value: 'REPTILES' },
+  { label: 'ANFIBIOS', value: 'ANFIBIOS' }
+];
 
-  const sexos = [
-    { label: 'HEMBRA', value: 'HEMBRA' },
-    { label: 'MACHO', value: 'MACHO' }
-  ];
-
+const ModalNuevoAlimento = ({ isOpen, onClose, onSave }) => {
   const [data, setData] = useState({
     nombre: '',
     precio: 0,
     cantidad: 0,
     peso: 0,
-    destino: '',
-    imagenUrl: ''
+    destino: ''
   });
 
+  const [errores, setErrores] = useState({});
   const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef(null);
 
-  // Manejar cambios de input
   const handleChange = (field, value) => {
     const val = ['nombre', 'destino'].includes(field) ? value.toUpperCase() : value;
     setData(prev => ({ ...prev, [field]: val }));
+    setErrores(prev => ({ ...prev, [field]: '' }));
   };
 
-  // Manejar imagen seleccionada
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const validarDatos = () => {
+    const temp = {};
+    if (!data.nombre.trim()) temp.nombre = 'Campo obligatorio';
+    if (!data.destino) temp.destino = 'Campo obligatorio';
+    if (!data.precio || data.precio <= 0) temp.precio = 'Debe ser mayor a 0';
+    if (!data.cantidad || data.cantidad <= 0) temp.cantidad = 'Debe ser mayor a 0';
+    if (!data.peso || data.peso <= 0) temp.peso = 'Debe ser mayor a 0';
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setData(prev => ({ ...prev, imagenUrl: reader.result }));
-    };
-    reader.readAsDataURL(file);
+    setErrores(temp);
+    return Object.keys(temp).length === 0;
   };
 
-  // Guardar nuevo alimento
   const handleSubmit = async () => {
-    if (!data.nombre || !data.precio) {
-      alert('Por favor completa los campos requeridos.');
-      return;
-    }
+    if (!validarDatos()) return;
 
     setLoading(true);
     try {
@@ -71,23 +60,12 @@ const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
         activo: 1
       };
 
-      if (data.imagenUrl && data.imagenUrl.startsWith('data:image')) {
-        body.imagen_base64 = data.imagenUrl;
-      }
-
       const res = await insertarProducto(body);
 
       if (res.Consulta) {
         onSave();
         onClose();
-        setData({
-          nombre: '',
-          precio: 0,
-          cantidad: 0,
-          peso: 0,
-          destino: '',
-          imagenUrl: ''
-        });
+        setData({ nombre: '', precio: 0, cantidad: 0, peso: 0, destino: '' });
       } else {
         alert(`Error al guardar: ${res.error}`);
       }
@@ -120,100 +98,79 @@ const ModalEditarAnimal = ({ isOpen, onClose, onSave, editData }) => {
 
   return (
     <Dialog
-      header="Nuevo Alimento"
+      header={<div className="w-full text-center text-lg font-bold">AGREGAR ALIMENTO</div>}
       visible={isOpen}
       style={{ width: '45rem', borderRadius: '1.5rem' }}
       modal
       closable={false}
       onHide={onClose}
       footer={footer}
+      draggable={false}
+      resizable={false}
     >
-      <div className="flex flex-col gap-4 mt-2 text-sm">
+      <div className="flex flex-col gap-2 mt-1 text-sm">
         {/* Nombre */}
-        <span className="p-float-label">
-          <InputText
-            value={data.nombre}
-            onChange={(e) => handleChange('nombre', e.target.value)}
-            className="w-full rounded-xl h-10 text-sm"
-          />
-          <label className="text-xs">Nombre</label>
-        </span>
+        <label className="text-xs font-semibold">Nombre</label>
+        <InputText
+          value={data.nombre}
+          onChange={(e) => handleChange('nombre', e.target.value)}
+          className="w-full rounded-xl h-10 text-sm"
+        />
+        {errores.nombre && <small className="text-red-500">{errores.nombre}</small>}
 
         {/* Destino y Peso */}
-        <div className="grid grid-cols-2 gap-4">
-          <span className="p-float-label">
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="text-xs font-semibold">Destinado a</label>
             <Dropdown
               value={data.destino}
               options={destinosBase}
               onChange={(e) => handleChange('destino', e.value)}
-              className="w-full rounded-xl text-sm"
+              className="w-full rounded-xl text-sm mt-1"
               placeholder="Seleccionar"
             />
-            <label className="text-xs">Destinado a</label>
-          </span>
+            {errores.destino && <small className="text-red-500">{errores.destino}</small>}
+          </div>
 
-          <span className="p-float-label">
+          <div>
+            <label className="text-xs font-semibold">Peso (kg)</label>
             <InputNumber
               value={data.peso}
               onValueChange={(e) => handleChange('peso', e.value)}
-              className="w-full rounded-xl text-sm"
+              className="w-full rounded-xl text-sm mt-1"
               inputClassName="h-10 text-sm"
               suffix=" kg"
             />
-            <label className="text-xs">Peso (kg)</label>
-          </span>
+            {errores.peso && <small className="text-red-500">{errores.peso}</small>}
+          </div>
         </div>
 
         {/* Precio y Stock */}
-        <div className="grid grid-cols-2 gap-4">
-          <span className="p-float-label">
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="text-xs font-semibold">Precio (L.)</label>
             <InputNumber
               value={data.precio}
               onValueChange={(e) => handleChange('precio', e.value)}
               mode="currency"
               currency="HNL"
               locale="es-HN"
-              className="w-full rounded-xl text-sm"
+              className="w-full rounded-xl text-sm mt-1"
               inputClassName="h-10 text-sm"
             />
-            <label className="text-xs">Precio</label>
-          </span>
+            {errores.precio && <small className="text-red-500">{errores.precio}</small>}
+          </div>
 
-          <span className="p-float-label">
+          <div>
+            <label className="text-xs font-semibold">Stock</label>
             <InputNumber
               value={data.cantidad}
               onValueChange={(e) => handleChange('cantidad', e.value)}
-              className="w-full rounded-xl text-sm"
+              className="w-full rounded-xl text-sm mt-1"
               inputClassName="h-10 text-sm"
             />
-            <label className="text-xs">Stock</label>
-          </span>
-        </div>
-
-        {/* Imagen */}
-        <div
-          className="w-full h-40 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl mt-2 hover:border-blue-400 transition-all cursor-pointer"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          {data.imagenUrl ? (
-            <img
-              src={data.imagenUrl}
-              alt="alimento"
-              className="w-full h-full object-cover rounded-2xl"
-            />
-          ) : (
-            <div className="flex flex-col items-center justify-center text-gray-400">
-              <i className="pi pi-image text-3xl mb-2"></i>
-              <p className="text-sm text-center">Haz clic para subir una imagen</p>
-            </div>
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            style={{ display: 'none' }}
-            onChange={handleFileChange}
-          />
+            {errores.cantidad && <small className="text-red-500">{errores.cantidad}</small>}
+          </div>
         </div>
       </div>
     </Dialog>

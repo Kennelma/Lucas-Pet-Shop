@@ -12,12 +12,13 @@ const TIPOS_PRODUCTOS = {
 };
 
 //ESTOS ATRIBUTOS SON COMUNES PARA TODOS LOS ENDPOINT
-function insert_atributos_padre (body, imagen_url = null) {
+function insert_atributos_padre (body) {
+
     return[
         body.nombre_producto,
         body.precio_producto,
         body.stock,
-        imagen_url,
+        imagen_url || null,
         TIPOS_PRODUCTOS[body.tipo_producto]
     ];
 }

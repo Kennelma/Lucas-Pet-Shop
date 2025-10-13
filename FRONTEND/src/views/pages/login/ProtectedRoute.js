@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom'
 
 const ProtectedRoute = ({ children }) => {
 
-    //ESTADO PARA GUARDAR EL TOKEN EN EL LOCAL STORAGE
+    //ESTADO PARA GUARDAR EL TOKEN EN ELSESSION STORAGE
     const token = sessionStorage.getItem('token')
 
     //SI NO HAY TOKEN, SE QUEDA EN EL LOGIN
