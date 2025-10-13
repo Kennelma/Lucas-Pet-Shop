@@ -1,22 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
-import { classNames } from 'primereact/utils';
+import Swal from 'sweetalert2';
+import { actualizarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
 const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
   const [data, setData] = useState({ 
     nombre: '', 
     categoria: 'COLLAR', 
     cantidad: 0, 
-    precio: 0, 
-    imagenUrl: '', 
+    precio: 0,
+    stock_minimo: 0,
+    sku: '',
     activo: true 
   });
-  const [errors, setErrors] = useState({});
+  const [errores, setErrores] = useState({});
   const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef(null);
 
   const categorias = [
     { label: 'COLLAR', value: 'COLLAR' },
@@ -29,191 +31,238 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
     { label: 'ROPA', value: 'ROPA' }
   ];
 
+  const generarSKU = (nombre, id) => {
+    if (!nombre) return '';
+    const partes = nombre.trim().split(' ').map(p => p.substring(0, 3).toUpperCase());
+    return partes.join('-') + (id ? `-${id}` : '-XXX');
+  };
+
   useEffect(() => { 
     if (isOpen && editData) {
       setData({
-        nombre: editData.nombre || '',
-        categoria: editData.categoria || 'COLLAR',
-        cantidad: editData.cantidad || 0,
+        nombre: (editData.nombre || '').toUpperCase(),
+        categoria: (editData.categoria || 'COLLAR').toUpperCase(),
+        cantidad: editData.stock || 0,
         precio: editData.precio || 0,
-        imagenUrl: editData.imagenUrl || '',
+        stock_minimo: editData.stock_minimo || 0,
+        sku: generarSKU(editData.nombre || '', editData.id_producto),
         activo: editData.activo !== undefined ? editData.activo : true
       });
+      setErrores({});
     }
   }, [isOpen, editData]);
 
-  // ⚡ Convierte archivo a Base64 - IGUAL QUE EN ANIMALES
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setData(prev => ({ ...prev, imagenUrl: reader.result }));
-    };
-    reader.readAsDataURL(file);
+  const handleChange = (field, value) => {
+    const val = ['nombre', 'categoria'].includes(field)
+      ? value.toUpperCase()
+      : value;
+
+    setData(prev => {
+      const newData = { ...prev, [field]: val };
+      if (field === 'nombre') newData.sku = generarSKU(val, editData.id_producto);
+      return newData;
+    });
+
+    // Validación en tiempo real
+    setErrores(prev => {
+      const newErrores = { ...prev };
+      if (['nombre', 'categoria'].includes(field)) {
+        newErrores[field] = val ? '' : 'Campo obligatorio';
+      } else if (['precio', 'cantidad', 'stock_minimo'].includes(field)) {
+        newErrores[field] = val >= 0 ? '' : 'No puede ser negativo';
+      }
+      return newErrores;
+    });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    const newErrors = {};
-    if (!data.nombre?.trim()) newErrors.nombre = true;
-    if (data.cantidad < 0) newErrors.cantidad = true;
-    if (data.precio <= 0) newErrors.precio = true;
-    
-    setErrors(newErrors);
-    
-    if (Object.keys(newErrors).length === 0) {
-      setLoading(true);
-      const resultado = await onSave(data);
-      setLoading(false);
-      if (resultado !== false) {
+  const validarDatos = () => {
+    let temp = {};
+    if (!data.nombre?.trim()) temp.nombre = 'Campo obligatorio';
+    if (!data.categoria) temp.categoria = 'Campo obligatorio';
+    if (data.precio <= 0) temp.precio = 'Debe ser mayor a 0';
+    if (data.cantidad < 0) temp.cantidad = 'No puede ser negativo';
+    if (data.stock_minimo < 0) temp.stock_minimo = 'No puede ser negativo';
+
+    setErrores(temp);
+    return Object.keys(temp).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validarDatos()) return;
+
+    setLoading(true);
+    try {
+      const body = {
+        id_producto: editData.id_producto,
+        nombre_producto: data.nombre,
+        tipo_accesorio: data.categoria,
+        stock: data.cantidad,
+        stock_minimo: data.stock_minimo,
+        precio_producto: data.precio,
+        tipo_producto: 'ACCESORIOS',
+        sku: data.sku,
+        activo: data.activo ? 1 : 0
+      };
+
+      const res = await actualizarProducto(body);
+
+      if (res.Consulta) {
+        Swal.fire({
+          icon: 'success',
+          title: '¡Actualizado!',
+          text: `${data.nombre} fue actualizado correctamente`,
+          timer: 1500,
+          showConfirmButton: false
+        });
+        onSave();
         onClose();
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: res.error || 'No se pudo actualizar el accesorio'
+        });
       }
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un error al actualizar el accesorio.'
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (!isOpen) return null;
+  const footer = (
+    <div className="flex justify-end gap-3 mt-4">
+      <Button
+        label="Cancelar"
+        icon="pi pi-times"
+        className="p-button-text p-button-rounded"
+        onClick={onClose}
+        disabled={loading}
+      />
+      <Button
+        label="Guardar"
+        icon="pi pi-check"
+        className="p-button-success p-button-rounded"
+        onClick={handleSubmit}
+        loading={loading}
+      />
+    </div>
+  );
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur flex items-center justify-center p-4 z-50" style={{marginLeft: 'var(--cui-sidebar-occupy-start, 0px)', marginRight: 'var(--cui-sidebar-occupy-end, 0px)'}}>
-      <div className="bg-white rounded-lg w-full max-w-2xl">
-        <div className="flex justify-between items-center p-4 border-b border-gray-300">
-          <h2 className="font-bold text-lg">EDITAR ACCESORIO</h2>
-          <button onClick={onClose} className="text-2xl" disabled={loading}>&times;</button>
+    <Dialog
+      header="Actualizar Accesorio"
+      visible={isOpen}
+      style={{ width: '50rem', borderRadius: '1.5rem' }}
+      modal
+      closable={false}
+      onHide={onClose}
+      footer={footer}
+      draggable={false}
+      resizable={false}
+    >
+      <div className="flex flex-col gap-2 text-sm">
+        {/* Nombre */}
+        <label className="text-xs font-semibold">Nombre</label>
+        <InputText
+          value={data.nombre}
+          onChange={(e) => handleChange('nombre', e.target.value)}
+          className="w-full rounded-xl h-8 text-sm"
+        />
+        {errores.nombre && <small className="text-red-500">{errores.nombre}</small>}
+
+        {/* SKU */}
+        <label className="text-xs font-semibold">SKU</label>
+        <InputText
+          value={data.sku}
+          readOnly
+          className="w-full rounded-xl h-8 text-sm bg-gray-100"
+        />
+
+        {/* Categoría */}
+        <div>
+          <label className="text-xs font-semibold">Categoría</label>
+          <Dropdown
+            value={data.categoria}
+            options={categorias}
+            onChange={(e) => handleChange('categoria', e.value)}
+            className="w-full rounded-xl text-sm mt-1"
+            placeholder="Seleccionar"
+          />
+          {errores.categoria && <small className="text-red-500">{errores.categoria}</small>}
         </div>
 
-        <div className="flex">
-          <div className="flex-1 p-4 space-y-4">
-            <div>
-              <h6 className="text-sm font-semibold text-gray-700 mb-1">TIPO DE ACCESORIO</h6>
-              <InputText
-                value={data.categoria}
-                disabled
-                className="w-full opacity-60"
-              />
-            </div>
-
-            <div>
-              <h6 className="text-sm font-semibold text-gray-700 mb-1">NOMBRE Y DESCRIPCIÓN</h6>
-              <InputText
-                name="nombre"
-                value={data.nombre}
-                onChange={(e) => setData(prev => ({ ...prev, nombre: e.target.value.toUpperCase() }))}
-                placeholder="Nombre y descripción"
-                className={classNames('w-full', { 'p-invalid': errors.nombre })}
-                disabled={loading}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <h6 className="text-sm font-semibold text-gray-700 mb-1">STOCK</h6>
-                <InputNumber
-                  name="cantidad"
-                  value={data.cantidad}
-                  onValueChange={(e) => setData(prev => ({ ...prev, cantidad: e.value }))}
-                  min={0}
-                  className={classNames('w-full', { 'p-invalid': errors.cantidad })}
-                  inputClassName="w-full"
-                  disabled={loading}
-                />
-              </div>
-              <div>
-                <h6 className="text-sm font-semibold text-gray-700 mb-1">PRECIO</h6>
-                <InputNumber
-                  name="precio"
-                  value={data.precio}
-                  onValueChange={(e) => setData(prev => ({ ...prev, precio: e.value }))}
-                  minFractionDigits={2}
-                  maxFractionDigits={2}
-                  min={0.01}
-                  className={classNames('w-full', { 'p-invalid': errors.precio })}
-                  inputClassName="w-full"
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            {/* TOGGLE ACTIVO/INACTIVO */}
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded border">
-              <div>
-                <h6 className="text-sm font-semibold text-gray-700 mb-1">Estado del Producto</h6>
-                <span className="text-xs text-gray-600">
-                  {data.activo ? "Producto visible en el inventario" : "Producto oculto del inventario"}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setData(prev => ({ ...prev, activo: !prev.activo }))}
-                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
-                  data.activo ? 'bg-green-500' : 'bg-gray-300'
-                }`}
-                disabled={loading}
-              >
-                <span
-                  className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                    data.activo ? 'translate-x-7' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-
-            <Button 
-              label={loading ? "GUARDANDO..." : "GUARDAR"} 
-              onClick={handleSubmit} 
-              className="w-full p-button-success"
-              loading={loading}
-              disabled={loading}
+        {/* Precio, Stock y Stock mínimo */}
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <label className="text-xs font-semibold">Precio</label>
+            <InputNumber
+              value={data.precio}
+              onValueChange={(e) => handleChange('precio', e.value)}
+              mode="currency"
+              currency="HNL"
+              locale="es-HN"
+              className="w-full rounded-xl text-sm mt-1"
+              inputClassName="h-8 text-sm"
             />
+            {errores.precio && <small className="text-red-500">{errores.precio}</small>}
           </div>
 
-          {/* Panel de imagen - EXACTAMENTE IGUAL QUE EN ANIMALES */}
-          <div className="w-48 border-l border-gray-300 p-4">
-            <div
-              className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition-all cursor-pointer h-32"
-              onClick={() => !loading && fileInputRef.current?.click()}
-            >
-              {data.imagenUrl ? (
-                <img 
-                  src={data.imagenUrl} 
-                  alt="preview" 
-                  className="h-full w-full object-contain rounded-lg" 
-                />
-              ) : (
-                <>
-                  <i className="pi pi-image text-3xl text-gray-400 mb-2"></i>
-                  <p className="text-gray-500 text-xs text-center">
-                    Subir imagen
-                  </p>
-                </>
-              )}
-            </div>
-
-            {data.imagenUrl && (
-              <div className="text-center mt-2">
-                <span 
-                  onClick={() => !loading && setData(prev => ({ ...prev, imagenUrl: '' }))} 
-                  className="cursor-pointer text-lg hover:text-red-500"
-                  title="Eliminar imagen"
-                >
-                  🗑️
-                </span>
-              </div>
-            )}
-
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept="image/*"
-              onChange={handleFileChange}
-              disabled={loading}
+          <div>
+            <label className="text-xs font-semibold">Stock</label>
+            <InputNumber
+              value={data.cantidad}
+              onValueChange={(e) => handleChange('cantidad', e.value)}
+              className="w-full rounded-xl text-sm mt-1"
+              inputClassName="h-8 text-sm"
             />
+            {errores.cantidad && <small className="text-red-500">{errores.cantidad}</small>}
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold">Stock mínimo</label>
+            <InputNumber
+              value={data.stock_minimo}
+              onValueChange={(e) => handleChange('stock_minimo', e.value)}
+              className="w-full rounded-xl text-sm mt-1"
+              inputClassName="h-8 text-sm"
+            />
+            {errores.stock_minimo && <small className="text-red-500">{errores.stock_minimo}</small>}
+          </div>
+        </div>
+
+        {/* Estado Activo/Inactivo */}
+        <div className="mt-4 p-3 bg-gray-50 rounded border">
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-xs font-semibold">Estado del Producto</label>
+              <p className="text-xs text-gray-600 mt-1">
+                {data.activo ? "Producto visible en el inventario" : "Producto oculto del inventario"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setData(prev => ({ ...prev, activo: !prev.activo }))}
+              className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
+                data.activo ? 'bg-green-500' : 'bg-gray-300'
+              }`}
+              disabled={loading}
+            >
+              <span
+                className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                  data.activo ? 'translate-x-7' : 'translate-x-1'
+                }`}
+              />
+            </button>
           </div>
         </div>
       </div>
-    </div>
+    </Dialog>
   );
 };
 
