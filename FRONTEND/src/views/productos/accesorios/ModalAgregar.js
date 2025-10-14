@@ -1,13 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
-import { InputNumber } from 'primereact/inputnumber';
 import { Dropdown } from 'primereact/dropdown';
+import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
-import { classNames } from 'primereact/utils';
+import Swal from 'sweetalert2';
+import { insertarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
 const ModalAgregar = ({ isOpen, onClose, onSave }) => {
-  const [data, setData] = useState({ nombre: '', categoria: '', cantidad: 1, precio: 1, imagenUrl: '' });
-  const [errors, setErrors] = useState({});
+  const [data, setData] = useState({
+    nombre: '',
+    categoria: '',
+    precio: 0,
+    cantidad: 0,
+    stock_minimo: 0,
+    sku: ''
+  });
+
+  const [errores, setErrores] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const categorias = [
     { label: 'COLLAR', value: 'COLLAR' },
@@ -19,132 +30,225 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
     { label: 'HIGIENE', value: 'HIGIENE' },
     { label: 'ROPA', value: 'ROPA' }
   ];
-  
+
+  const generarSKU = (nombre) => {
+    if (!nombre) return '';
+    const partes = nombre.trim().split(' ').map(p => p.substring(0, 3).toUpperCase());
+    return partes.join('-');
+  };
+
   useEffect(() => {
     if (isOpen) {
-      setData({ nombre: '', categoria: '', cantidad: 1, precio: 1, imagenUrl: '' });
-      setErrors({});
+      setData({
+        nombre: '',
+        categoria: '',
+        precio: 0,
+        cantidad: 0,
+        stock_minimo: 0,
+        sku: ''
+      });
+      setErrores({});
     }
   }, [isOpen]);
 
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (files?.[0]) {
-      const reader = new FileReader();
-      reader.onload = () => setData(prev => ({ ...prev, imagenUrl: reader.result }));
-      reader.readAsDataURL(files[0]);
-    } else {
-      const newValue = name === 'nombre' ? value.toUpperCase() : value;
-      setData(prev => ({ ...prev, [name]: newValue }));
+  const handleChange = (field, value) => {
+    const val = ['nombre', 'categoria'].includes(field) ? value.toUpperCase() : value;
+
+    setData(prev => {
+      const newData = { ...prev, [field]: val };
+      if (field === 'nombre') newData.sku = generarSKU(val);
+      return newData;
+    });
+
+    // Validación en tiempo real
+    setErrores(prev => {
+      const newErrores = { ...prev };
+      if (['nombre', 'categoria'].includes(field)) {
+        newErrores[field] = val ? '' : 'Campo obligatorio';
+      } else if (['precio', 'cantidad', 'stock_minimo'].includes(field)) {
+        newErrores[field] = val >= 0 ? '' : 'No puede ser negativo';
+      }
+      return newErrores;
+    });
+  };
+
+  const validarDatos = () => {
+    let temp = {};
+    if (!data.nombre?.trim()) temp.nombre = 'Campo obligatorio';
+    if (!data.categoria) temp.categoria = 'Campo obligatorio';
+    if (data.precio <= 0) temp.precio = 'Debe ser mayor a 0';
+    if (data.cantidad < 0) temp.cantidad = 'No puede ser negativo';
+    if (data.stock_minimo < 0) temp.stock_minimo = 'No puede ser negativo';
+
+    setErrores(temp);
+    return Object.keys(temp).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validarDatos()) return;
+
+    setLoading(true);
+    try {
+      const body = {
+        nombre_producto: data.nombre,
+        precio_producto: data.precio,
+        stock: data.cantidad,
+        stock_minimo: data.stock_minimo,
+        tipo_producto: 'ACCESORIOS',
+        tipo_accesorio: data.categoria,
+        sku: data.sku,
+        activo: 1
+      };
+
+      console.log('🔍 ModalAgregar - Enviando datos:', body);
+
+      const res = await insertarProducto(body);
+
+      console.log('🔍 ModalAgregar - Respuesta recibida:', res);
+
+      if (res && res.Consulta) {
+        Swal.fire({
+          icon: 'success',
+          title: '¡Agregado!',
+          text: `${data.nombre} fue agregado correctamente`,
+          timer: 1500,
+          showConfirmButton: false
+        });
+        
+        setData({
+          nombre: '',
+          categoria: '',
+          precio: 0,
+          cantidad: 0,
+          stock_minimo: 0,
+          sku: ''
+        });
+        
+        onSave();
+        onClose();
+      } else {
+        const errorMsg = res?.error || 'Error desconocido';
+        console.error('❌ Error en respuesta:', res);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: `No se pudo agregar el accesorio: ${errorMsg}`
+        });
+      }
+    } catch (err) {
+      console.error('❌ Error en handleSubmit:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un error al agregar el accesorio. Revisa la consola.'
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    const newErrors = {};
-    if (!data.nombre?.trim()) newErrors.nombre = true;
-    if (!data.categoria) newErrors.categoria = true;
-    if (data.cantidad < 0) newErrors.cantidad = true;
-    if (data.precio <= 0) newErrors.precio = true;
-    
-    setErrors(newErrors);
-    
-    if (Object.keys(newErrors).length === 0) {
-      await onSave(data);
-    }
-  };
-
-  if (!isOpen) return null;
+  const footer = (
+    <div className="flex justify-end gap-3 mt-2">
+      <Button
+        label="Cancelar"
+        icon="pi pi-times"
+        className="p-button-text p-button-rounded"
+        onClick={onClose}
+        disabled={loading}
+      />
+      <Button
+        label="Guardar"
+        icon="pi pi-check"
+        className="p-button-success p-button-rounded"
+        onClick={handleSubmit}
+        loading={loading}
+      />
+    </div>
+  );
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur flex items-center justify-center p-4 z-50" style={{marginLeft: 'var(--cui-sidebar-occupy-start, 0px)', marginRight: 'var(--cui-sidebar-occupy-end, 0px)'}}>
-      <div className="bg-white rounded-lg w-full max-w-2xl">
-        <div className="flex justify-between items-center p-4 border-b border-gray-300">
-          <h2 className="font-bold text-lg">AGREGAR ACCESORIO</h2>
-          <button onClick={onClose} className="text-2xl">&times;</button>
+    <Dialog
+      header="Agregar Nuevo Accesorio"
+      visible={isOpen}
+      style={{ width: '50rem', borderRadius: '1.5rem' }}
+      modal
+      closable={false}
+      onHide={onClose}
+      footer={footer}
+      draggable={false}
+      resizable={false}
+    >
+      <div className="flex flex-col gap-2 mt-1 text-sm">
+        {/* Nombre */}
+        <label className="text-xs font-semibold">Nombre</label>
+        <InputText
+          value={data.nombre}
+          onChange={(e) => handleChange('nombre', e.target.value)}
+          className="w-full rounded-xl h-9 text-sm"
+        />
+        {errores.nombre && <small className="text-red-500">{errores.nombre}</small>}
+
+        {/* SKU */}
+        <label className="text-xs font-semibold">SKU</label>
+        <InputText
+          value={data.sku}
+          readOnly
+          className="w-full rounded-xl h-9 text-sm bg-gray-100"
+        />
+
+        {/* Categoría */}
+        <div>
+          <label className="text-xs font-semibold">Categoría</label>
+          <Dropdown
+            value={data.categoria}
+            options={categorias}
+            onChange={(e) => handleChange('categoria', e.value)}
+            className="w-full rounded-xl text-sm mt-1"
+            placeholder="Seleccionar"
+          />
+          {errores.categoria && <small className="text-red-500">{errores.categoria}</small>}
         </div>
 
-        <div className="flex">
-          <div className="flex-1 p-4 space-y-4">
-            <div>
-              <h6 className="text-sm font-semibold text-gray-700 mb-1">TIPO DE ACCESORIO</h6>
-              <Dropdown
-                name="categoria"
-                value={data.categoria}
-                options={categorias}
-                onChange={(e) => setData(prev => ({ ...prev, categoria: e.value }))}
-                placeholder="Seleccione un tipo"
-                className={classNames('w-full', { 'p-invalid': errors.categoria })}
-              />
-            </div>
-
-            <div>
-              <h6 className="text-sm font-semibold text-gray-700 mb-1">NOMBRE Y DESCRIPCIÓN</h6>
-              <InputText
-                name="nombre"
-                value={data.nombre}
-                onChange={handleChange}
-                placeholder="Nombre y descripción"
-                className={classNames('w-full', { 'p-invalid': errors.nombre })}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <h6 className="text-sm font-semibold text-gray-700 mb-1">STOCK</h6>
-                <InputNumber
-                  name="cantidad"
-                  value={data.cantidad}
-                  onValueChange={(e) => setData(prev => ({ ...prev, cantidad: e.value }))}
-                  min={0}
-                  className={classNames('w-full', { 'p-invalid': errors.cantidad })}
-                  inputClassName="w-full"
-                />
-              </div>
-              <div>
-                <h6 className="text-sm font-semibold text-gray-700 mb-1">PRECIO</h6>
-                <InputNumber
-                  name="precio"
-                  value={data.precio}
-                  onValueChange={(e) => setData(prev => ({ ...prev, precio: e.value }))}
-                  minFractionDigits={2}
-                  maxFractionDigits={2}
-                  min={0.01}
-                  className={classNames('w-full', { 'p-invalid': errors.precio })}
-                  inputClassName="w-full"
-                />
-              </div>
-            </div>
-
-            <Button 
-              label="GUARDAR" 
-              onClick={handleSubmit} 
-              className="w-full p-button-success"
+        {/* Precio, Stock y Stock mínimo */}
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <label className="text-xs font-semibold">Precio (L.)</label>
+            <InputNumber
+              value={data.precio}
+              onValueChange={(e) => handleChange('precio', e.value)}
+              mode="currency"
+              currency="HNL"
+              locale="es-HN"
+              className="w-full rounded-xl text-sm mt-1"
+              inputClassName="h-9 text-sm"
             />
+            {errores.precio && <small className="text-red-500">{errores.precio}</small>}
           </div>
 
-          <div className="w-48 border-l border-gray-300 p-4">
-            {data.imagenUrl ? (
-              <div>
-                <img src={data.imagenUrl} alt="Producto" className="w-full h-32 object-cover border rounded mb-2" />
-                <div className="text-center">
-                  <span onClick={() => setData(prev => ({ ...prev, imagenUrl: '' }))} className="cursor-pointer text-lg hover:text-red-500">🗑️</span>
-                </div>
-              </div>
-            ) : (
-              <label className="w-full h-32 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer rounded bg-gray-50 text-sm text-gray-600 hover:bg-gray-100">
-                <div className="flex flex-col items-center justify-center h-full w-full">
-                  <span className="text-2xl mb-1">📷</span>
-                  <span>AGREGAR IMAGEN</span>
-                </div>
-                <input type="file" accept="image/*" onChange={handleChange} className="hidden" />
-              </label>
-            )}
+          <div>
+            <label className="text-xs font-semibold">Stock</label>
+            <InputNumber
+              value={data.cantidad}
+              onValueChange={(e) => handleChange('cantidad', e.value)}
+              className="w-full rounded-xl text-sm mt-1"
+              inputClassName="h-9 text-sm"
+            />
+            {errores.cantidad && <small className="text-red-500">{errores.cantidad}</small>}
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold">Stock mínimo</label>
+            <InputNumber
+              value={data.stock_minimo}
+              onValueChange={(e) => handleChange('stock_minimo', e.value)}
+              className="w-full rounded-xl text-sm mt-1"
+              inputClassName="h-9 text-sm"
+            />
+            {errores.stock_minimo && <small className="text-red-500">{errores.stock_minimo}</small>}
           </div>
         </div>
       </div>
-    </div>
+    </Dialog>
   );
 };
 
