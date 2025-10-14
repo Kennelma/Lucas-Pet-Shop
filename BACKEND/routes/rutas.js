@@ -3,6 +3,8 @@ const conexion = require('../config/conexion');
 const express = require('express');
 const router = express.Router();
 
+const recordatoriosController = require('../controllers/recordatoriosController');
+const whatsappController = require('../controllers/whatsappController');
 
 const auth = require('../controllers/auth.controller');
 const clientes = require('../controllers/clientes.controller');
@@ -40,6 +42,22 @@ router.post('/empresa/insertar', empresa.crear);
 
 
 //========== RUTAS DE FACTURACIÓN ==========
+
+
+//========== RUTAS DE RECORDATORIOS ==========
+router.get('/recordatorios/ver', recordatoriosController.ver);
+router.post('/recordatorios/crear', recordatoriosController.crear);
+router.post('/recordatorios/actualizar', recordatoriosController.actualizar);
+router.post('/recordatorios/eliminar', recordatoriosController.eliminar);
+router.get('/recordatorios/tipos-item', recordatoriosController.verTiposItem);
+router.get('/recordatorios/frecuencias', recordatoriosController.verFrecuencias);
+
+//========== RUTAS PARA WHATSAPP ==========
+router.post('/whatsapp/enviar', whatsappController.enviarRecordatorios);
+
+
+
+
 
 
 module.exports = router;
