@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import loginPhoto from './login-photo.jpg'
-import { loginUsuario } from '../../../services/apiService.js'
+import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai' 
+
+
+import { login as loginUsuario } from '../../../AXIOS.SERVICES/auth-axios.js'
 
 const Login = () => {
   const navigate = useNavigate()
@@ -10,11 +13,12 @@ const Login = () => {
   const [loginMessage, setLoginMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [alertType, setAlertType] = useState('danger')
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     const token = sessionStorage.getItem('token')
     if (token) {
-      navigate('/Dashboard')
+      navigate('/dashboard')
     }
   }, [])
 
@@ -23,24 +27,37 @@ const Login = () => {
     setLoading(true)
     setLoginMessage('')
 
-    const data = await loginUsuario(login, password)
+    // Normaliza el login
+    const cleanLogin = login.trim().toLowerCase();
+
+    const data = await loginUsuario({ login: cleanLogin, password })
 
     if (!data) {
       setLoginMessage('❌ NO SE RECIBIÓ INFORMACIÓN DEL SERVIDOR')
       setAlertType('danger')
     } else {
       setLoginMessage(data.message)
-      setAlertType(data.success ? 'success' : 'warning')
-
       if (data.success) {
+        setAlertType('success')
         sessionStorage.setItem('token', data.token)
         sessionStorage.setItem('usuario', JSON.stringify(data.usuario))
-        //navigate('/Dashboard')
+        navigate('/dashboard')
+      } else if (data.message && data.message.includes('INEXISTENTE')) {
+        setAlertType('danger')
+      } else if (data.message && data.message.includes('INACTIVO')) {
+        setAlertType('warning')
+      } else {
+        setAlertType('warning')
       }
     }
 
     setLoading(false)
   }
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword)
+  }
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -81,15 +98,35 @@ const Login = () => {
               />
             </div>
 
-            <div>
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+            <div className="relative">
+              <div className="relative"> {/* Contenedor para posicionar el ícono */}
+                    <input
+                        //CAMBIAR EL TIPO DE INPUT BASADO EN EL ESTADO
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        // pr-10 para dejar espacio al icono
+                        className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10" 
+                    />
+                    
+                    {/* 4. BOTÓN/ÍCONO PARA TOGGLE */}
+                    <button
+                        type="button" // Evita que el botón envíe el formulario
+                        onClick={togglePasswordVisibility}
+                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-blue-600 focus:outline-none"
+                        aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                        
+                    >
+                        {/* 5. MOSTRAR EL ÍCONO CORRECTO */}
+                        {showPassword ? (
+                            <AiOutlineEye size={20} />
+                        ) : (
+                            <AiOutlineEyeInvisible size={20} />
+                        )}
+                    </button>
+                </div>
             </div>
 
             <div className="flex items-center justify-between">
@@ -100,7 +137,9 @@ const Login = () => {
               >
                 {loading ? 'Logging in...' : 'Login'}
               </button>
-              <button type="button" className="text-blue-600 hover:underline">
+              <button type="button" className="text-blue-600 hover:underline"
+                      onClick={() => navigate('/olvide-contrasena')}
+              >
                 Olvidaste tu contraseña?
               </button>
             </div>
@@ -120,4 +159,4 @@ const Login = () => {
   )
 }
 
-//export default Login
+export default Login

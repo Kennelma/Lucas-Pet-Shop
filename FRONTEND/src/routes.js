@@ -8,33 +8,24 @@ const Accesorios = React.lazy(() => import('./views/productos/accesorios/Accesor
 const Alimentos = React.lazy(() => import('./views/productos/alimentos/Alimentos'))
 const Medicamentos = React.lazy(() => import('./views/productos/medicamentos/Medicamentos'))
 const Animales = React.lazy(() => import('./views/productos/animales/Animales'))
+const Promociones = React.lazy(() => import('./views/promociones/Promociones'))
+const Servicios = React.lazy(() => import('./views/serviciosPeluqueria/Servicios'))
 const Recordatorios = React.lazy(() => import('./views/recordatorios/Recordatorios'))
-
-
-//AQUI LAS UNIFICAMOS ENTONCES SOLO DEBERIA APARECER COMO UNO
-//const Promociones  = React.lazy(() => import('./views/peluqueria-canina/PeluqueriaCanina'))
-const Servicios  = React.lazy(() => import('./views/peluqueria-canina/PeluqueriaCanina'))
-const Promociones  = React.lazy(() => import('./views/peluqueria-canina/Promociones'))
-const SERVICIOS  = React.lazy(() => import('./views/peluqueria-canina/Servicios'))
-
+const Empresa = React.lazy(() => import('./views/empresa/Gestion-Empresa'))
 
 
 const routes = [
-  { path: '/Dashboard', name: 'Dashboard', element: Dashboard },
+  { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/clientes', name: 'Clientes', element: Clientes },
-
   { path: '/productos/alimentos', name: 'Productos / Alimentos', element: Alimentos },
   { path: '/productos/animales', name: 'Productos / Animales', element: Animales },
   { path: '/productos/accesorios', name: 'Productos / Accesorios', element: Accesorios },
   { path: '/productos/medicamentos', name: 'Productos / Medicamentos', element: Medicamentos },
+  { path: '/peluqueria_canina/promociones', name: 'Peluquería Canina / Promociones', element: Promociones },
+  { path: '/peluqueria_canina/servicios', name: 'Peluquería Canina / Servicios', element: Servicios },
+  { path: '/recordatorios', name: 'Recordatorios', element: Recordatorios },
+  { path: '/empresa', name: 'Empresa y Sucursales', element: Empresa }
 
-  { path: '/peluqueria-canina/Promociones', name: 'Peluqueria Canina / Promociones', element: Promociones },
-  { path: '/peluqueria-canina/PeluqueriaCanina', name: 'Peluqueria Canina', element: Servicios },
-  { path: '/peluqueria-canina/Promociones', name: 'Peluqueria Canina', element: Promociones },
-  { path: '/peluqueria-canina/Servicios', name: 'Peluqueria Canina', element: SERVICIOS },
-
-  //recordatorios
- { path: '/recordatorios/Recordatorios', name: 'Recordatorios', element: Recordatorios },
 ]
 
 
