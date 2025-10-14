@@ -11,6 +11,7 @@ const getHeaders = () => {
     };
 };
 
+
 //SERVICIO PARA VER CLIENTES
 export const verClientes = async () => {
   try {
