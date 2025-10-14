@@ -1,9 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter, CButton, CFormSelect, CSpinner } from '@coreui/react';
+import React, { useEffect, useState } from 'react';
+import {
+  CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter,
+  CButton, CFormSelect, CSpinner
+} from '@coreui/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBell, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
+import { verRecordatorios } from '../../AXIOS.SERVICES/reminder';
+import axios from 'axios';
 
-const ModalEnvio = ({ visible, onClose, refrescarTabla, tiposItems = [], frecuencias = [] }) => {
+const ModalEnvio = ({
+  visible,
+  onClose,
+  refrescarTabla,
+  tiposItems = [],
+  frecuencias = []
+}) => {
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState('');
   const [recordatoriosActivos, setRecordatoriosActivos] = useState(0);
@@ -12,18 +23,15 @@ const ModalEnvio = ({ visible, onClose, refrescarTabla, tiposItems = [], frecuen
 
   const cargarRecordatoriosActivos = async () => {
     try {
-      const res = await fetch('/api/recordatorios/ver');
-      const data = await res.json();
-      if (data.Consulta) {
-        const hoy = new Date().toISOString().split('T')[0];
-        const activosHoy = data.recordatorios.filter(r =>
-          r.activo === 1 &&
-          r.programada_para === hoy &&
-          (tipoSeleccionado ? r.id_tipo_item_fk == tipoSeleccionado : true) &&
-          (frecuenciaSeleccionada ? r.id_frecuencia_fk == frecuenciaSeleccionada : true)
-        ).length;
-        setRecordatoriosActivos(activosHoy);
-      }
+      const recordatorios = await verRecordatorios();
+      const hoy = new Date().toISOString().split('T')[0];
+      const activosHoy = recordatorios.filter(r =>
+        r.activo === 1 &&
+        r.programada_para?.split('T')[0] === hoy &&
+        (tipoSeleccionado ? r.id_tipo_item_fk == tipoSeleccionado : true) &&
+        (frecuenciaSeleccionada ? r.id_frecuencia_fk == frecuenciaSeleccionada : true)
+      ).length;
+      setRecordatoriosActivos(activosHoy);
     } catch (err) {
       console.error(err);
       setRecordatoriosActivos(0);
@@ -35,29 +43,37 @@ const ModalEnvio = ({ visible, onClose, refrescarTabla, tiposItems = [], frecuen
       setMensaje('');
       setTipoSeleccionado('');
       setFrecuenciaSeleccionada('');
+      cargarRecordatoriosActivos();
     }
   }, [visible]);
 
   useEffect(() => {
     if (visible) cargarRecordatoriosActivos();
-  }, [visible, tipoSeleccionado, frecuenciaSeleccionada]);
+  }, [tipoSeleccionado, frecuenciaSeleccionada]);
 
   const enviarRecordatorios = async () => {
     setLoading(true);
     setMensaje('');
     try {
-      const res = await fetch('/api/whatsapp/enviar', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ tipo: tipoSeleccionado || null, frecuencia: frecuenciaSeleccionada || null })
-      });
-      const data = await res.json();
-      if (data.Consulta) {
-        setMensaje('✅ ' + data.mensaje);
-        if (refrescarTabla) refrescarTabla();
-        cargarRecordatoriosActivos();
-      } else setMensaje('❌ Error: ' + data.error);
+      const token = sessionStorage.getItem("token");
+      const res = await axios.post(
+        "http://localhost:4000/api/whatsapp/enviar",
+        {
+          tipo: tipoSeleccionado || null,
+          frecuencia: frecuenciaSeleccionada || null
+        },
+        {
+          headers: { Authorization: token ? `Bearer ${token}` : "" }
+        }
+      );
+      if (res.data.Consulta) {
+        setMensaje('✅ ' + res.data.mensaje);
+        refrescarTabla();
+      } else {
+        setMensaje('❌ Error: ' + (res.data.error || 'Error desconocido'));
+      }
     } catch (err) {
+      console.error(err);
       setMensaje('❌ Error al conectar con el servidor');
     } finally {
       setLoading(false);
@@ -72,14 +88,30 @@ const ModalEnvio = ({ visible, onClose, refrescarTabla, tiposItems = [], frecuen
       <CModalBody>
         <p>Selecciona filtro opcional antes de enviar recordatorios:</p>
 
-        <CFormSelect className="mb-2" value={tipoSeleccionado} onChange={e => setTipoSeleccionado(e.target.value)}>
+        <CFormSelect
+          className="mb-2"
+          value={tipoSeleccionado}
+          onChange={e => setTipoSeleccionado(e.target.value)}
+        >
           <option value="">Todos los tipos de servicio</option>
-          {tiposItems.map(t => <option key={t.id_tipo_item_pk} value={t.id_tipo_item_pk}>{t.nombre_tipo_item}</option>)}
+          {tiposItems.map(t => (
+            <option key={t.id_tipo_item_pk} value={t.id_tipo_item_pk}>
+              {t.nombre_tipo_item}
+            </option>
+          ))}
         </CFormSelect>
 
-        <CFormSelect className="mb-2" value={frecuenciaSeleccionada} onChange={e => setFrecuenciaSeleccionada(e.target.value)}>
+        <CFormSelect
+          className="mb-2"
+          value={frecuenciaSeleccionada}
+          onChange={e => setFrecuenciaSeleccionada(e.target.value)}
+        >
           <option value="">Todas las frecuencias</option>
-          {frecuencias.map(f => <option key={f.id_frecuencia_record_pk} value={f.id_frecuencia_record_pk}>{f.frecuencia_recordatorio}</option>)}
+          {frecuencias.map(f => (
+            <option key={f.id_frecuencia_record_pk} value={f.id_frecuencia_record_pk}>
+              {f.frecuencia_recordatorio}
+            </option>
+          ))}
         </CFormSelect>
 
         <div className="alert alert-info mt-2">
@@ -92,7 +124,11 @@ const ModalEnvio = ({ visible, onClose, refrescarTabla, tiposItems = [], frecuen
       </CModalBody>
       <CModalFooter>
         <CButton color="secondary" onClick={onClose} disabled={loading}>Cancelar</CButton>
-        <CButton color="info" onClick={enviarRecordatorios} disabled={loading || recordatoriosActivos === 0}>
+        <CButton
+          color="info"
+          onClick={enviarRecordatorios}
+          disabled={loading || recordatoriosActivos === 0}
+        >
           <FontAwesomeIcon icon={faPaperPlane} className="me-1" />
           Enviar Recordatorios ({recordatoriosActivos})
         </CButton>
