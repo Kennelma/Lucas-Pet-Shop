@@ -15,7 +15,7 @@ const getHeaders = () => {
 
 
 const handleApiError = (error) => {
-    // Si la respuesta existe y es 401 (Unauthorized) o 403 (Forbidden)
+
     if (error.response?.status === 401 || error.response?.status === 403) {
         console.error('Sesión caducada o inválida. Redirigiendo a login.');
         sessionStorage.clear();
@@ -23,10 +23,10 @@ const handleApiError = (error) => {
         // asegurando la recarga y la limpieza completa de la sesión.
         window.location.href = '/login'; 
         
-        // Lanzamos un error para detener la ejecución de la función de servicio
+        //Lanzamos un error para detener la ejecución de la función de servicio
         throw new Error('Token expirado. Redirigiendo a login.');
     }
-    // Re-lanza cualquier otro error (500, 400, etc.)
+    //Re-lanza cualquier otro error (500, 400, etc.)
     throw error; 
 };
 
