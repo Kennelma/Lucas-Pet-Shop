@@ -34,6 +34,7 @@ const Animales = () => {
     setLoading(true);
     try {
       const productos = await verProductos("ANIMALES");
+      
       const normalizados = (productos || []).map((item) => ({
         id_producto: item.id_producto_pk,
         nombre: item.nombre_producto,

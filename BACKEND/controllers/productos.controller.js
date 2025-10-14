@@ -18,7 +18,6 @@ function insert_atributos_padre (body) {
         body.nombre_producto,
         body.precio_producto,
         body.stock,
-        imagen_url || null,
         TIPOS_PRODUCTOS[body.tipo_producto]
     ];
 }
@@ -41,8 +40,8 @@ exports.crear = async (req, res) => {
 
         //SE LLENA LA TABLA PADRE PRIMERO
         const [result] = await conn.query(
-            `INSERT INTO tbl_productos (nombre_producto, precio_producto, stock, imagen_url, tipo_producto_fk)
-             VALUES (?, ?, ?, ?, ?)`,
+            `INSERT INTO tbl_productos (nombre_producto, precio_producto, stock, tipo_producto_fk)
+             VALUES (?, ?, ?, ?)`,
             insert_atributos_padre(req.body)
         );
 
@@ -186,7 +185,6 @@ function update_atributos_padre (body) {
         body.stock || null,
         body.stock_minimo || null,
         body.activo !== undefined ? body.activo : null,
-        imagen_url || null,
     ];
     
 }
@@ -212,7 +210,6 @@ exports.actualizar = async (req, res) => {
                 stock           = COALESCE(?, stock),
                 stock_minimo    = COALESCE(?, stock_minimo),
                 activo          = COALESCE(?, activo),
-                imagen_url      = COALESCE(?, imagen_url)
             WHERE id_producto_pk = ?`, 
             [...update_atributos_padre(req.body), id_producto]
         );
@@ -347,7 +344,6 @@ exports.ver = async (req, res) => {
                         p.stock,
                         p.stock_minimo,
                         p.activo,
-                        p.imagen_url,
                         ac.tipo_accesorio
                     FROM tbl_productos p 
                     INNER JOIN tbl_accesorios_info ac ON p.id_producto_pk = ac.id_producto_fk`);
@@ -363,7 +359,6 @@ exports.ver = async (req, res) => {
                         p.stock,
                         p.stock_minimo,
                         p.activo,
-                        p.imagen_url,
                         a.especie,
                         a.sexo
                     FROM tbl_productos p
@@ -382,7 +377,6 @@ exports.ver = async (req, res) => {
                         p.stock,
                         p.stock_minimo,
                         p.activo,
-                        p.imagen_url,
                         al.alimento_destinado,
                         al.peso_alimento
                     FROM tbl_productos p
@@ -401,7 +395,6 @@ exports.ver = async (req, res) => {
                         p.stock,
                         p.stock_minimo,
                         p.activo,
-                        p.imagen_url,
                         m.presentacion_medicamento,
                         m.tipo_medicamento,
                         m.cantidad_contenido,

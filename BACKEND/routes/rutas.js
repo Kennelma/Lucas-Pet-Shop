@@ -19,10 +19,6 @@ router.post('/solicitar-reset', auth.solicitarCodigoReset);
 router.post('/resetear-contrasena', auth.resetearConCodigo);
 
 
-
-//========== RUTAS DE AUTENTICACIÓN ==========
-
-
 //========== RUTAS DE SERVICIOS PELUQUERIA Y PROMOCIONES ==========
 router.post('/servicios-peluqueria/insertar', verificarToken, servicios.crear);
 router.put('/servicios-peluqueria/actualizar',verificarToken, servicios.actualizar);
