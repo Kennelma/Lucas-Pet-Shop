@@ -31,7 +31,7 @@ export default function Usuarios() {
         bloqueadoHasta: u.bloqueado_hasta,
         idSucursal: u.id_sucursal_fk,
         nombreSucursal: u.nombre_sucursal || '',
-        estado: u.cat_estado_fk,
+        estado: u.nombre_estado,
       }));
 
       setUsuarios(normalizados);
