@@ -11,11 +11,11 @@ const Animales = React.lazy(() => import('./views/productos/animales/Animales'))
 const Promociones = React.lazy(() => import('./views/promociones/Promociones'))
 const Servicios = React.lazy(() => import('./views/serviciosPeluqueria/Servicios'))
 const Recordatorios = React.lazy(() => import('./views/recordatorios/Recordatorios'))
-const Empresa = React.lazy(() => import('./views/empresa/Empresa'))
+const Empresa = React.lazy(() => import('./views/empresa/Gestion-Empresa'))
 
 
 const routes = [
-  { path: '/Dashboard', name: 'Dashboard', element: Dashboard },
+  { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/clientes', name: 'Clientes', element: Clientes },
   { path: '/productos/alimentos', name: 'Productos / Alimentos', element: Alimentos },
   { path: '/productos/animales', name: 'Productos / Animales', element: Animales },
