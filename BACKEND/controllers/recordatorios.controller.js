@@ -1,6 +1,6 @@
 const mysqlConnection = require('../config/conexion');
 
-// CREAR RECORDATORIO
+//CREAR RECORDATORIO
 exports.crear = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
     await conn.beginTransaction();
@@ -42,7 +42,7 @@ exports.crear = async (req, res) => {
     }
 };
 
-// VER LISTA DE RECORDATORIOS
+//VER LISTA DE RECORDATORIOS
 exports.ver = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
     try {
@@ -61,7 +61,7 @@ exports.ver = async (req, res) => {
     }
 };
 
-// ACTUALIZAR RECORDATORIO
+//ACTUALIZAR RECORDATORIO
 exports.actualizar = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
     await conn.beginTransaction();
@@ -110,7 +110,7 @@ exports.actualizar = async (req, res) => {
 };
 
 
-// ELIMINAR RECORDATORIO
+//ELIMINAR RECORDATORIO
 exports.eliminar = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
     try {
