@@ -18,6 +18,8 @@ exports.verificarToken = (req, res, next) => {
         //VERFIFICA Y DECODIFICA TOKEN 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
+        console.log(' Auth: Token decodificado para ID:', decoded.id_usuario_pk);
+
         //GUARDA INFO DEL USUARIO EN REQ PARA USARLO EN OTRAS RUTAS
         req.usuario = decoded;
         
