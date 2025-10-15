@@ -62,7 +62,7 @@ router.get ('/recordatorios/ver', verificarToken, recordatorios.ver);
 router.put('/recordatorios/actualizar', verificarToken, recordatorios.actualizar);
 router.delete ('/recordatorios/eliminar', verificarToken, recordatorios.eliminar);
 
-router.get ('/recordatorios/verCatalogo', verificarToken, recordatorios.verCatalogo);
+router.get ('/recordatorios/verCatalogos', verificarToken, recordatorios.verCatalogo);
 
 
 module.exports = router;
