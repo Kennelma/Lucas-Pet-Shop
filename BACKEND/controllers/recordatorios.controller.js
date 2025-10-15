@@ -132,3 +132,59 @@ exports.eliminar = async (req, res) => {
         conn.release();
     }
 };
+
+
+exports.verCatalogo = async (req, res) => {
+
+    const conn = await mysqlConnection.getConnection();
+
+    try {
+
+        let filas; //VARIABLE DE APOYO 
+        
+        switch (req.query.tipo_catalogo) {
+
+            case 'FRECUENCIA':
+                [filas] = await conn.query(`
+                    SELECT * FROM cat_frecuencia_recordatorio ORDER BY id_frecuencia_record_pk DESC`);
+                break;
+
+
+            case 'TELEFONO':
+                [filas] = await conn.query(`
+                    SELECT telefono_cliente FROM tbl_clientes`);
+                break;
+
+                
+            case 'ESTADO':
+                [filas] = await conn.query(`
+                    SELECT id_estado_pk , nombre_estado FROM cat_estados WHERE dominio = 'RECORDATORIO'`);
+                break;
+
+
+            case 'TIPO_SERVICIO':
+
+                [filas] = await conn.query(
+                    `SELECT * FROM cat_tipo_item `);
+                break;
+
+            default:
+               throw new Error('Tipo de catalogo no válido');
+        }
+
+        res.json({
+            Consulta: true,
+            servicios: filas || []
+        });
+
+    } catch (error) {
+        res.json({
+            Consulta: false,
+            error: error.message
+        });
+
+    } finally {
+    
+        conn.release();
+    }  
+};
