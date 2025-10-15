@@ -330,6 +330,7 @@ exports.ver = async (req, res) => {
     try {
 
         let registros; //VARIABLE DE APOYO
+        
 
         switch (req.query.tipo_producto) {
 

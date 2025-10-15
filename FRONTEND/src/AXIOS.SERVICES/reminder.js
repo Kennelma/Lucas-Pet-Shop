@@ -70,3 +70,17 @@ export const eliminarRecordatorio = async (id) => {
     return { Consulta: false, error: err.message };
   }
 };
+
+
+/*SERVICIO PARA VER CATALOGOS POR TIPO*/
+export const verCatalogo = async (tipo_catalogo) => {
+  try {
+    const res = await axios.get(`${API_URL}/verCatalogos`, {
+      params: { tipo_catalogo },
+    });
+    return res.data.recordatorios || [];
+  } catch (err) {
+    console.error("Error al traer catálogo:", err);
+    return [];
+  }
+};

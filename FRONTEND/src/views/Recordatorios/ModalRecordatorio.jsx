@@ -1,135 +1,72 @@
-import React from 'react';
-import {
-  CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter,
-  CForm, CFormLabel, CFormInput, CFormSelect, CFormTextarea,
-  CButton, CRow, CCol
-} from '@coreui/react';
+import React, { useEffect, useState } from 'react';
+import { CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter, CButton, CSpinner } from '@coreui/react';
+import { verCatalogo } from '../../AXIOS.SERVICES/reminder';
 
-const ModalRecordatorio = ({
-  visible,
-  onClose,
-  formData,
-  setFormData,
-  tiposItems,
-  frecuencias,
-  estadosProgramacion,
-  guardarRecordatorio,
-  editando
-}) => {
+const ModalVerCatalogos = ({ visible, onClose }) => {
+  const [tiposItems, setTiposItems] = useState([]);
+  const [frecuencias, setFrecuencias] = useState([]);
+  const [estados, setEstados] = useState([]);
+  const [telefonos, setTelefonos] = useState([]);
+  const [cargando, setCargando] = useState(false);
 
-  const manejarCambio = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  useEffect(() => {
+    if (visible) {
+      cargarCatalogos();
+    }
+  }, [visible]);
+
+  const cargarCatalogos = async () => {
+    setCargando(true);
+    try {
+      const tipos = await verCatalogo('TIPO_SERVICIO');
+      const freq = await verCatalogo('FRECUENCIA');
+      const est = await verCatalogo('ESTADO');
+      const tel = await verCatalogo('TELEFONO');
+
+      setTiposItems(tipos);
+      setFrecuencias(freq);
+      setEstados(est);
+      setTelefonos(tel);
+
+      console.log({ tipos, freq, est, tel });
+    } catch (err) {
+      console.error('Error cargando catálogos:', err);
+    } finally {
+      setCargando(false);
+    }
   };
 
   return (
     <CModal visible={visible} onClose={onClose} size="lg">
       <CModalHeader onClose={onClose}>
-        <CModalTitle>{editando ? 'Editar Recordatorio' : 'Nuevo Recordatorio'}</CModalTitle>
+        <CModalTitle>Datos de Catálogos</CModalTitle>
       </CModalHeader>
       <CModalBody>
-        <CForm onSubmit={guardarRecordatorio}>
-          <CRow className="mb-3">
-            <CCol md={6}>
-              <CFormLabel>Tipo de Servicio *</CFormLabel>
-              <CFormSelect
-                name="id_tipo_item_fk"
-                value={formData.id_tipo_item_fk}
-                onChange={manejarCambio}
-                required
-              >
-                <option value="">Seleccionar servicio...</option>
-                {tiposItems.map(tipo => (
-                  <option key={tipo.id_tipo_item_pk} value={tipo.id_tipo_item_pk}>
-                    {tipo.nombre_tipo}
-                  </option>
-                ))}
-              </CFormSelect>
-            </CCol>
-            <CCol md={6}>
-              <CFormLabel>Frecuencia *</CFormLabel>
-              <CFormSelect
-                name="id_frecuencia_fk"
-                value={formData.id_frecuencia_fk}
-                onChange={manejarCambio}
-                required
-              >
-                <option value="">Seleccionar frecuencia...</option>
-                {frecuencias.map(f => (
-                  <option key={f.id_frecuencia_pk} value={f.id_frecuencia_pk}>
-                    {f.nombre_frecuencia} ({f.dias} días)
-                  </option>
-                ))}
-              </CFormSelect>
-            </CCol>
-          </CRow>
+        {cargando ? (
+          <div className="d-flex justify-content-center align-items-center py-5">
+            <CSpinner color="primary" /> <span className="ms-2">Cargando datos...</span>
+          </div>
+        ) : (
+          <div>
+            <h5>Tipos de Servicio:</h5>
+            <pre>{JSON.stringify(tiposItems, null, 2)}</pre>
 
-          <CRow className="mb-3">
-            <CCol md={4}>
-              <CFormLabel>Programada Para *</CFormLabel>
-              <CFormInput
-                type="date"
-                name="programada_para"
-                value={formData.programada_para}
-                onChange={manejarCambio}
-                required
-              />
-            </CCol>
-            <CCol md={4}>
-              <CFormLabel>Estado *</CFormLabel>
-              <CFormSelect
-                name="id_estado_programacion_fk"
-                value={formData.id_estado_programacion_fk}
-                onChange={manejarCambio}
-                required
-              >
-                {estadosProgramacion.map(e => (
-                  <option key={e.id_estado_pk} value={e.id_estado_pk}>{e.nombre_estado}</option>
-                ))}
-              </CFormSelect>
-            </CCol>
-          </CRow>
+            <h5>Frecuencias:</h5>
+            <pre>{JSON.stringify(frecuencias, null, 2)}</pre>
 
-          <CRow className="mb-3">
-            <CCol>
-              <CFormLabel>Mensaje *</CFormLabel>
-              <CFormTextarea
-                rows="4"
-                name="mensaje_recordatorio"
-                value={formData.mensaje_recordatorio}
-                onChange={manejarCambio}
-                placeholder="Escribe el mensaje..."
-                required
-              />
-            </CCol>
-          </CRow>
+            <h5>Estados:</h5>
+            <pre>{JSON.stringify(estados, null, 2)}</pre>
 
-          {editando && (
-            <CRow className="mb-3">
-              <CCol md={4}>
-                <CFormLabel>Último Envío</CFormLabel>
-                <CFormInput type="text" value={formData.ultimo_envio || 'Sin envíos'} readOnly disabled />
-              </CCol>
-              <CCol md={4}>
-                <CFormLabel>Intentos</CFormLabel>
-                <CFormInput type="text" value={formData.intentos} readOnly disabled />
-              </CCol>
-              <CCol md={4}>
-                <CFormLabel>Último Error</CFormLabel>
-                <CFormInput type="text" value={formData.ultimo_error || 'Sin errores'} readOnly disabled />
-              </CCol>
-            </CRow>
-          )}
-        </CForm>
+            <h5>Telefonos:</h5>
+            <pre>{JSON.stringify(telefonos, null, 2)}</pre>
+          </div>
+        )}
       </CModalBody>
       <CModalFooter>
-        <CButton color="secondary" onClick={onClose}>Cancelar</CButton>
-        <CButton color="primary" onClick={guardarRecordatorio}>
-          {editando ? 'Actualizar' : 'Guardar'}
-        </CButton>
+        <CButton color="secondary" onClick={onClose}>Cerrar</CButton>
       </CModalFooter>
     </CModal>
   );
 };
 
-export default ModalRecordatorio;
+export default ModalVerCatalogos;

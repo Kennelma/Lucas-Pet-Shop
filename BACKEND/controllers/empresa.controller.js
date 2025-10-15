@@ -58,13 +58,6 @@ exports.crear = async (req, res) => {
                 
             
             case 'USUARIOS':
-
-                const options = {
-                    type: argon2.argon2id, 
-                    memoryCost: 65536,    // 64 MB (Buena seguridad por defecto)
-                    timeCost: 3,          // Iteraciones de CPU (¡Puedes probar con 2 si necesitas más velocidad!)
-                    parallelism: 4        // Aprovecha 4 núcleos de CPU (Ajusta a tus núcleos si es posible)
-                };
                                 
                 const contraHasheada = await argon2.hash(req.body.contrasena_usuario, options); 
                 
@@ -89,7 +82,8 @@ exports.crear = async (req, res) => {
 
                 //SE TOMA EL ID DEL USUARIO AUTENTICADO (MIDDLEWARE AUTH)
                 const id_usuario = req.usuario?.id_usuario_pk;
-
+                console.log(` INFO: ID de usuario obtenido del token: ${id_usuario}`);
+                
                 await conn.query(
                 `INSERT INTO tbl_gastos (
                     detalle_gasto, 
@@ -332,7 +326,7 @@ exports.ver = async (req, res) => {
                         id_gasto_pk,
                         detalle_gasto,
                         monto_gasto,
-                        fecha_registro_gasto
+                        fecha_registro_gasto,
                     FROM tbl_gastos`);
                 break;
    
