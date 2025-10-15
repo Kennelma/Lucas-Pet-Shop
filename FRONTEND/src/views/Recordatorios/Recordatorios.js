@@ -9,6 +9,8 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBell, faPlus } from '@fortawesome/free-solid-svg-icons';
 
+
+// A JAMES NO LE CARGA LA RAMA AJJAJAJAJJAJAJJAJA
 // Importación de servicios
 import { 
   verRecordatorios, 
