@@ -57,10 +57,12 @@ router.put('/empresa/actualizar', verificarToken, empresa.actualizar);
 
 
 //========== RUTAS DE RECORDATORIOS ==========
-router.post('/recordatorios/insertar', verificarToken, recordatorios.crear);
+router.post('/recordatorios/insertar', recordatorios.crear);
 router.get ('/recordatorios/ver', verificarToken, recordatorios.ver);
 router.put('/recordatorios/actualizar', verificarToken, recordatorios.actualizar);
 router.delete ('/recordatorios/eliminar', verificarToken, recordatorios.eliminar);
+
+router.get ('/recordatorios/verCatalogos', verificarToken, recordatorios.verCatalogo);
 
 
 module.exports = router;

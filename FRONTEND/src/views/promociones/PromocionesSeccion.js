@@ -1,12 +1,5 @@
 
-import { 
-  SparklesIcon, 
-  PlusIcon, 
-  PencilIcon, 
-  TrashIcon, 
-  CurrencyDollarIcon, 
-  CalendarDaysIcon
-} from '@heroicons/react/24/outline';
+import * as outline from '@heroicons/react/24/outline';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -104,6 +97,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
 
         <button
           className="bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-600 transition-colors flex items-center gap-2"
+          style={{ borderRadius: '12px' }}
           onClick={() => abrirModalPromocion(null)}
         >
           <FontAwesomeIcon icon={faPlus} />
@@ -113,11 +107,12 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
 
       {promociones.length === 0 ? (
         <div className="text-center py-12">
-          <SparklesIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+          <outline.SparklesIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
           <h3 className="text-lg font-semibold text-gray-700 mb-2">No hay promociones</h3>
           <p className="text-gray-500 mb-6">Crea tu primera promoción para atraer clientes.</p>
           <button 
             className="bg-green-500 text-white px-6 py-3 rounded-full hover:bg-green-600 transition-colors inline-flex items-center gap-2"
+            style={{ borderRadius: '12px' }}
             onClick={() => abrirModalPromocion(null)}
           >
             <FontAwesomeIcon icon={faPlus} />
