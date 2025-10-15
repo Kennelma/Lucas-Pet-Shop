@@ -71,22 +71,24 @@ export const eliminarRecordatorio = async (id) => {
   }
 };
 
-// función genérica para obtener cualquier catálogo
-export const verCatalogo = async (tipo) => {
-  try {
-    const res = await axios.get(`${API_URL}/verCatalogo`, {
-      headers: getHeaders(),
-      params: { tipo_catalogo: tipo } // 🔹 importante pasar el tipo
-    });
 
-    if (res.data.Consulta) {
-      return res.data.recordatorios || [];
-    } else {
-      console.error("Error del backend:", res.data.error);
-      return [];
-    }
+/*SERVICIO PARA VER CATALOGOS POR TIPO*/
+export const verCatalogo = async (tipo_catalogo) => {
+  try {
+
+    const res = await axios.get(`${API_URL}/verCatalogos`, {
+      params: { tipo_catalogo },
+      headers: getHeaders(),
+    });
+    
+    console.log(`Respuesta ${tipo_catalogo}:`, res.data);
+    return {
+      Consulta: res.data.Consulta,
+      servicios: res.data.Catalogo || []
+    };
+
   } catch (err) {
-    console.error("Error al traer catálogo:", err);
-    return [];
+    console.error(`Error al traer catálogo ${tipo_catalogo}:`, err);
+    return { Consulta: false, error: err.message, servicios: [] }; 
   }
 };
