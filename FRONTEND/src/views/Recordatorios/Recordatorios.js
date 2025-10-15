@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   CCard, CCardBody, CCardHeader, CCol, CRow,
   CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow,
@@ -8,6 +8,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBell, faHistory, faPlus } from '@fortawesome/free-solid-svg-icons';
 import ModalRecordatorio from './ModalRecordatorio';
 import ModalEnvio from './ModalEnvio';
+
+// ✅ Importa tu servicio
+import { verRecordatorios } from '../../AXIOS.SERVICES/reminder';
 
 const Recordatorios = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -26,15 +29,43 @@ const Recordatorios = () => {
   const [filtroEstado, setFiltroEstado] = useState('todos');
   const [loading, setLoading] = useState(false);
 
+  // ✅ Estado para los datos del backend
+  const [recordatorios, setRecordatorios] = useState([]);
+  const [historialEnvios, setHistorialEnvios] = useState([]);
+
   const abrirModal = () => setModalVisible(true);
   const cerrarModal = () => setModalVisible(false);
 
-  // Datos de ejemplo
   const tiposItems = [{ id_tipo_item_pk: 1, nombre_tipo: 'Promocion' }];
   const frecuencias = [{ id_frecuencia_pk: 1, nombre_frecuencia: 'Mensual', dias: 30 }];
-  const estadosProgramacion = [{ id_estado_pk: 1, nombre_estado: 'Activo' }, { id_estado_pk: 2, nombre_estado: 'Inactivo' }];
-  const recordatoriosFiltrados = [];
-  const historialEnvios = [];
+  const estadosProgramacion = [
+    { id_estado_pk: 1, nombre_estado: 'Activo' },
+    { id_estado_pk: 2, nombre_estado: 'Inactivo' }
+  ];
+
+  // ✅ Lógica para filtrar según estado seleccionado
+  const recordatoriosFiltrados = recordatorios.filter((r) => {
+    if (filtroEstado === 'activos') return r.id_estado_programacion_fk === 1;
+    if (filtroEstado === 'inactivos') return r.id_estado_programacion_fk === 2;
+    return true;
+  });
+
+  // ✅ Cargar recordatorios desde la API
+  useEffect(() => {
+    const fetchRecordatorios = async () => {
+      setLoading(true);
+      try {
+        const data = await verRecordatorios();
+        setRecordatorios(data);
+      } catch (error) {
+        console.error('Error cargando recordatorios:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecordatorios();
+  }, []);
 
   const guardarRecordatorio = () => {
     console.log('Guardando recordatorio:', formData);
@@ -47,34 +78,74 @@ const Recordatorios = () => {
         <CCol xs={12}>
           <CCard className="mb-4">
             <CCardHeader className="d-flex justify-content-between align-items-center">
-              <div><FontAwesomeIcon icon={faBell} className="me-2"/> <strong>Gestión de Recordatorios Automáticos</strong></div>
-              <CButton color="primary" onClick={() => { abrirModal(); setEditando(false); }}>
-                <FontAwesomeIcon icon={faPlus} className="me-1"/> Nuevo Recordatorio
+              <div>
+                <FontAwesomeIcon icon={faBell} className="me-2" />
+                <strong>Gestión de Recordatorios Automáticos</strong>
+              </div>
+              <CButton
+                color="primary"
+                onClick={() => {
+                  abrirModal();
+                  setEditando(false);
+                }}
+              >
+                <FontAwesomeIcon icon={faPlus} className="me-1" /> Nuevo Recordatorio
               </CButton>
             </CCardHeader>
+
             <CCardBody>
               <CNav variant="tabs" className="mb-3">
                 <CNavItem>
-                  <CNavLink href="#" active={activeTab==='recordatorios'} onClick={()=>setActiveTab('recordatorios')}>
-                    <FontAwesomeIcon icon={faBell} className="me-1"/> Recordatorios
+                  <CNavLink
+                    href="#"
+                    active={activeTab === 'recordatorios'}
+                    onClick={() => setActiveTab('recordatorios')}
+                  >
+                    <FontAwesomeIcon icon={faBell} className="me-1" /> Recordatorios
                   </CNavLink>
                 </CNavItem>
                 <CNavItem>
-                  <CNavLink href="#" active={activeTab==='historial'} onClick={()=>setActiveTab('historial')}>
-                    <FontAwesomeIcon icon={faHistory} className="me-1"/> Historial
+                  <CNavLink
+                    href="#"
+                    active={activeTab === 'historial'}
+                    onClick={() => setActiveTab('historial')}
+                  >
+                    <FontAwesomeIcon icon={faHistory} className="me-1" /> Historial
                   </CNavLink>
                 </CNavItem>
               </CNav>
 
               <CButtonGroup className="mb-3">
-                <CButton color={filtroEstado==='todos'?'primary':'outline-primary'} size="sm" onClick={()=>setFiltroEstado('todos')}>Todos</CButton>
-                <CButton color={filtroEstado==='activos'?'success':'outline-success'} size="sm" onClick={()=>setFiltroEstado('activos')}>Activos</CButton>
-                <CButton color={filtroEstado==='inactivos'?'secondary':'outline-secondary'} size="sm" onClick={()=>setFiltroEstado('inactivos')}>Inactivos</CButton>
+                <CButton
+                  color={filtroEstado === 'todos' ? 'primary' : 'outline-primary'}
+                  size="sm"
+                  onClick={() => setFiltroEstado('todos')}
+                >
+                  Todos
+                </CButton>
+                <CButton
+                  color={filtroEstado === 'activos' ? 'success' : 'outline-success'}
+                  size="sm"
+                  onClick={() => setFiltroEstado('activos')}
+                >
+                  Activos
+                </CButton>
+                <CButton
+                  color={filtroEstado === 'inactivos' ? 'secondary' : 'outline-secondary'}
+                  size="sm"
+                  onClick={() => setFiltroEstado('inactivos')}
+                >
+                  Inactivos
+                </CButton>
               </CButtonGroup>
 
-              {loading ? <div className="text-center"><CSpinner color="primary"/></div> :
+              {loading ? (
+                <div className="text-center">
+                  <CSpinner color="primary" />
+                </div>
+              ) : (
                 <CTabContent>
-                  <CTabPane visible={activeTab==='recordatorios'}>
+                  <CTabPane visible={activeTab === 'recordatorios'}>
                     <CTable hover responsive>
                       <CTableHead>
                         <CTableRow>
@@ -88,24 +159,36 @@ const Recordatorios = () => {
                         </CTableRow>
                       </CTableHead>
                       <CTableBody>
-                        {recordatoriosFiltrados.length===0 ? (
-                          <CTableRow><CTableDataCell colSpan="7" className="text-center text-muted">No hay recordatorios</CTableDataCell></CTableRow>
-                        ) : recordatoriosFiltrados.map(r=>(
-                          <CTableRow key={r.id_recordatorio_pk}>
-                            <CTableDataCell>{r.estado}</CTableDataCell>
-                            <CTableDataCell>{r.mensaje_recordatorio}</CTableDataCell>
-                            <CTableDataCell>{r.frecuencia_nombre} ({r.frecuencia_dias}d)</CTableDataCell>
-                            <CTableDataCell>{r.programada_para}</CTableDataCell>
-                            <CTableDataCell>{r.ultimo_envio || 'Sin envíos'}</CTableDataCell>
-                            <CTableDataCell>{r.intentos} {r.ultimo_error && ` / ${r.ultimo_error}`}</CTableDataCell>
-                            <CTableDataCell>{/* Botones editar/eliminar */}</CTableDataCell>
+                        {recordatoriosFiltrados.length === 0 ? (
+                          <CTableRow>
+                            <CTableDataCell colSpan="7" className="text-center text-muted">
+                              No hay recordatorios
+                            </CTableDataCell>
                           </CTableRow>
-                        ))}
+                        ) : (
+                          recordatoriosFiltrados.map((r) => (
+                            <CTableRow key={r.id_recordatorio_pk}>
+                              <CTableDataCell>
+                                {r.id_estado_programacion_fk === 1 ? 'Activo' : 'Inactivo'}
+                              </CTableDataCell>
+                              <CTableDataCell>{r.mensaje_recordatorio}</CTableDataCell>
+                              <CTableDataCell>{r.id_frecuencia_fk}</CTableDataCell>
+                              <CTableDataCell>{r.programada_para}</CTableDataCell>
+                              <CTableDataCell>{r.ultimo_envio || 'Sin envíos'}</CTableDataCell>
+                              <CTableDataCell>
+                                {r.intentos} {r.ultimo_error && ` / ${r.ultimo_error}`}
+                              </CTableDataCell>
+                              <CTableDataCell>
+                                {/* Botones editar/eliminar */}
+                              </CTableDataCell>
+                            </CTableRow>
+                          ))
+                        )}
                       </CTableBody>
                     </CTable>
                   </CTabPane>
 
-                  <CTabPane visible={activeTab==='historial'}>
+                  <CTabPane visible={activeTab === 'historial'}>
                     <CTable hover responsive>
                       <CTableHead>
                         <CTableRow>
@@ -119,24 +202,32 @@ const Recordatorios = () => {
                         </CTableRow>
                       </CTableHead>
                       <CTableBody>
-                        {historialEnvios.length===0 ? (
-                          <CTableRow><CTableDataCell colSpan="7" className="text-center text-muted">No hay envíos registrados</CTableDataCell></CTableRow>
-                        ) : historialEnvios.map(e=>(
-                          <CTableRow key={e.id_envio}>
-                            <CTableDataCell>{e.exitoso?'Exitoso':'Fallido'}</CTableDataCell>
-                            <CTableDataCell>{e.fecha_envio}</CTableDataCell>
-                            <CTableDataCell>{e.nombre_cliente}</CTableDataCell>
-                            <CTableDataCell>{e.telefono_cliente}</CTableDataCell>
-                            <CTableDataCell>{e.mensaje_recordatorio}</CTableDataCell>
-                            <CTableDataCell>{e.intentos}</CTableDataCell>
-                            <CTableDataCell>{e.error||'-'}</CTableDataCell>
+                        {historialEnvios.length === 0 ? (
+                          <CTableRow>
+                            <CTableDataCell colSpan="7" className="text-center text-muted">
+                              No hay envíos registrados
+                            </CTableDataCell>
                           </CTableRow>
-                        ))}
+                        ) : (
+                          historialEnvios.map((e) => (
+                            <CTableRow key={e.id_envio}>
+                              <CTableDataCell>
+                                {e.exitoso ? 'Exitoso' : 'Fallido'}
+                              </CTableDataCell>
+                              <CTableDataCell>{e.fecha_envio}</CTableDataCell>
+                              <CTableDataCell>{e.nombre_cliente}</CTableDataCell>
+                              <CTableDataCell>{e.telefono_cliente}</CTableDataCell>
+                              <CTableDataCell>{e.mensaje_recordatorio}</CTableDataCell>
+                              <CTableDataCell>{e.intentos}</CTableDataCell>
+                              <CTableDataCell>{e.error || '-'}</CTableDataCell>
+                            </CTableRow>
+                          ))
+                        )}
                       </CTableBody>
                     </CTable>
                   </CTabPane>
                 </CTabContent>
-              }
+              )}
             </CCardBody>
           </CCard>
         </CCol>
@@ -154,7 +245,7 @@ const Recordatorios = () => {
         guardarRecordatorio={guardarRecordatorio}
         editando={editando}
       />
-      <ModalEnvio visible={false} setVisible={()=>{}} recordatorios={[]} />
+      <ModalEnvio visible={false} setVisible={() => {}} recordatorios={[]} />
     </>
   );
 };
