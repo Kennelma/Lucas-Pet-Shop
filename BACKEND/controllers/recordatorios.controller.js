@@ -173,7 +173,7 @@ exports.verCatalogo = async (req, res) => {
 
         res.json({
             Consulta: true,
-            servicios: filas || []
+            Catalogo: filas || []
         });
 
     } catch (error) {
