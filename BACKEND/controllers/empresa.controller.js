@@ -83,6 +83,7 @@ exports.crear = async (req, res) => {
                 //SE TOMA EL ID DEL USUARIO AUTENTICADO (MIDDLEWARE AUTH)
                 const id_usuario = req.usuario?.id_usuario_pk;
                 console.log(` INFO: ID de usuario obtenido del token: ${id_usuario}`);
+                
                 await conn.query(
                 `INSERT INTO tbl_gastos (
                     detalle_gasto, 
@@ -325,7 +326,7 @@ exports.ver = async (req, res) => {
                         id_gasto_pk,
                         detalle_gasto,
                         monto_gasto,
-                        fecha_registro_gasto
+                        fecha_registro_gasto,
                     FROM tbl_gastos`);
                 break;
    
