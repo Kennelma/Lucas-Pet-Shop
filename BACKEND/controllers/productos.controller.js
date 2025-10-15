@@ -14,7 +14,7 @@ const TIPOS_PRODUCTOS = {
 //ESTOS ATRIBUTOS SON COMUNES PARA TODOS LOS ENDPOINT
 function insert_atributos_padre (body) {
 
-    return[
+    return [
         body.nombre_producto,
         body.precio_producto,
         body.stock,
@@ -178,7 +178,7 @@ exports.crear = async (req, res) => {
 //ATRIBUTOS COMUNES EN LOS REGISTROS, MEDIANTE LOS SP, SE PUEDE ACTUALIZAR O VARIOS ATRIBUTOS
 function update_atributos_padre (body) {
 
-    return[
+    return [
         body.nombre_producto || null,
         body.precio_producto || null ,
         body.sku || null,
@@ -209,7 +209,7 @@ exports.actualizar = async (req, res) => {
                 sku             = COALESCE(?, sku),
                 stock           = COALESCE(?, stock),
                 stock_minimo    = COALESCE(?, stock_minimo),
-                activo          = COALESCE(?, activo),
+                activo          = COALESCE(?, activo)
             WHERE id_producto_pk = ?`, 
             [...update_atributos_padre(req.body), id_producto]
         );
