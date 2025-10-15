@@ -88,7 +88,7 @@ exports.crear = async (req, res) => {
             case 'GASTOS':
 
                 //SE TOMA EL ID DEL USUARIO AUTENTICADO (MIDDLEWARE AUTH)
-                const id_usuario = req.user?.id_usuario_pk;
+                const id_usuario = req.usuario?.id_usuario_pk;
 
                 await conn.query(
                 `INSERT INTO tbl_gastos (
