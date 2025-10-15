@@ -209,7 +209,7 @@ exports.actualizar = async (req, res) => {
                 sku             = COALESCE(?, sku),
                 stock           = COALESCE(?, stock),
                 stock_minimo    = COALESCE(?, stock_minimo),
-                activo          = COALESCE(?, activo),
+                activo          = COALESCE(?, activo)
             WHERE id_producto_pk = ?`, 
             [...update_atributos_padre(req.body), id_producto]
         );
