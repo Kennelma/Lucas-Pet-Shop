@@ -40,7 +40,7 @@ router.put('/clientes/actualizar', verificarToken, clientes.actualizar);
 
 
 //========== RUTAS DE MÓDULO DE EMPRESA (EMPRESA, SUCURSALES, USUARIOS) ==========
-router.post('/empresa/insertar', verificarToken, empresa.crear);
+router.post('/empresa/insertar', auth.verificarToken, empresa.crear);
 router.get ('/empresa/ver', verificarToken, empresa.ver);
 router.delete ('/empresa/eliminar', verificarToken, empresa.eliminar);
 router.put('/empresa/actualizar', verificarToken, empresa.actualizar);
