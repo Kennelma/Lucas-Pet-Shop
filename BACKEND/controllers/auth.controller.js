@@ -170,8 +170,10 @@ exports.login = async (req, res) => {
         if (estado === 200) {
             console.log('Antes de JWT:', Date.now() - start, 'ms');
             token = jwt.sign(
-                { id_usuario: user.id_usuario_pk }, 
-                process.env.JWT_SECRET, 
+                { 
+                    id_usuario_pk: user.id_usuario_pk }, 
+                    process.env.JWT_SECRET, 
+                    
                 { expiresIn: '1h' }
                 //{ expiresIn: '1m' }
             );
