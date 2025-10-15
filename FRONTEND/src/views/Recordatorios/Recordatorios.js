@@ -19,7 +19,7 @@ const Recordatorios = () => {
   const [formData, setFormData] = useState({
     mensaje_recordatorio: '',
     programada_para: '',
-    ultimo_envio: '',
+    ultimo_envio: new Date().toISOString().slice(0, 19).replace('T', ' '), // fecha actual,
     intentos: 0,
     ultimo_error: null,
     id_estado_programacion_fk: '',
@@ -116,7 +116,7 @@ const Recordatorios = () => {
       setFormData({
         mensaje_recordatorio: '',
         programada_para: '',
-        ultimo_envio: null,
+        ultimo_envio: new Date().toISOString().slice(0, 19).replace('T', ' '), // fecha actual,
         intentos: 0,
         ultimo_error: null,
         id_estado_programacion_fk: '',
@@ -134,7 +134,7 @@ const Recordatorios = () => {
     setFormData({
       mensaje_recordatorio: '',
       programada_para: '',
-      ultimo_envio: null,
+      ultimo_envio: new Date().toISOString().slice(0, 19).replace('T', ' '), // fecha actual,
       intentos: 0,
       ultimo_error: null,
       id_estado_programacion_fk: '',
@@ -169,7 +169,7 @@ const Recordatorios = () => {
       const datosEnviar = {
         mensaje_recordatorio: formData.mensaje_recordatorio,
         programada_para: formData.programada_para,
-        ultimo_envio: formData.ultimo_envio || null,
+        ultimo_envio: formData.ultimo_envio ||  new Date().toISOString().slice(0, 19).replace('T', ' '), // fecha actual,
         intentos: parseInt(formData.intentos) || 0,
         ultimo_error: formData.ultimo_error || null,
         id_estado_programacion_fk: parseInt(formData.id_estado_programacion_fk),
@@ -475,7 +475,7 @@ const Recordatorios = () => {
         </CModalHeader>
         <CModalBody>
           <div className="mb-3">
-            <CFormLabel>Tipo de Servicio *</CFormLabel>
+            <CFormLabel>Destinado a clientes que compraron: *</CFormLabel>
             <CFormSelect
               name="id_tipo_item_fk"
               value={formData.id_tipo_item_fk}
@@ -508,23 +508,8 @@ const Recordatorios = () => {
             </CFormSelect>
           </div>
 
-          <div className="mb-3">
-            <CFormLabel>Estado *</CFormLabel>
-            <CFormSelect
-              name="id_estado_programacion_fk"
-              value={formData.id_estado_programacion_fk}
-              onChange={manejarCambio}
-              required
-            >
-              <option value="">Seleccionar estado...</option>
-              {estadosProgramacion.map(e => (
-                <option key={e.id_estado_pk} value={e.id_estado_pk}>
-                  {e.nombre_estado}
-                </option>
-              ))}
-            </CFormSelect>
-          </div>
-
+          
+          
           <div className="mb-3">
             <CFormLabel>Mensaje del Recordatorio *</CFormLabel>
             <CFormTextarea
@@ -537,16 +522,6 @@ const Recordatorios = () => {
             />
           </div>
 
-          <div className="mb-3">
-            <CFormLabel>Programar Para *</CFormLabel>
-            <CFormInput
-              type="date"
-              name="programada_para"
-              value={formData.programada_para}
-              onChange={manejarCambio}
-              required
-            />
-          </div>
         </CModalBody>
         <CModalFooter>
           <CButton color="secondary" onClick={cerrarModal} disabled={loading}>
@@ -570,7 +545,7 @@ const Recordatorios = () => {
           <p>Selecciona filtros opcionales antes de enviar recordatorios a todos los clientes:</p>
 
           <div className="mb-3">
-            <CFormLabel>Tipo de Servicio</CFormLabel>
+            <CFormLabel>Destinado</CFormLabel>
             <CFormSelect
               value={tipoSeleccionado}
               onChange={e => setTipoSeleccionado(e.target.value)}
