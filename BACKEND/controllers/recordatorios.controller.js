@@ -4,26 +4,18 @@ const mysqlConnection = require('../config/conexion');
 exports.crear = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
     await conn.beginTransaction();
+    
+
 
     try {
         await conn.query(
             `INSERT INTO tbl_recordatorios (
-                mensaje_recordatorio, 
-                programada_para, ultimo_envio, 
-                intentos, ultimo_error, 
-                id_estado_programacion_fk, 
-                id_cliente_fk, 
+                mensaje_recordatorio,    
                 id_tipo_item_fk, 
                 id_frecuencia_fk)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             VALUES (?, ?, ?)`,
             [
                 req.body.mensaje_recordatorio,
-                req.body.programada_para,
-                req.body.ultimo_envio,
-                req.body.intentos || 0,
-                req.body.ultimo_error || null,
-                req.body.id_estado_programacion_fk,
-                req.body.id_cliente_fk,
                 req.body.id_tipo_item_fk,
                 req.body.id_frecuencia_fk
             ]
@@ -83,7 +75,6 @@ exports.actualizar = async (req, res) => {
              WHERE id_recordatorio_pk = ?`,
             [
                 req.body.mensaje_recordatorio || null,
-                req.body.programada_para || null,
                 req.body.ultimo_envio || null,
                 req.body.intentos || null,
                 req.body.ultimo_error || null,
@@ -168,7 +159,7 @@ exports.verCatalogo = async (req, res) => {
             case 'TIPO_SERVICIO':
 
                 [filas] = await conn.query(
-                    `SELECT * FROM cat_tipo_item `);
+                    `SELECT id_tipo_item_pk, nombre_tipo_item FROM cat_tipo_item where nombre_tipo_item != 'PRODUCTOS'`);
                 break;
 
             default:
