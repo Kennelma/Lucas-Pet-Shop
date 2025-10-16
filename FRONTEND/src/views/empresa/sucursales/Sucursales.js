@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import * as freeSolidSvgIcons from '@fortawesome/free-solid-svg-icons';
-import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
-import { Dropdown } from 'primereact/dropdown';
-import { Button } from 'primereact/button';
 import Swal from 'sweetalert2';
-import { insertar, ver, eliminarRegistro, actualizarRegistro } from '../../../AXIOS.SERVICES/empresa-axios';
+import { insertar, ver, actualizarRegistro } from '../../../AXIOS.SERVICES/empresa-axios';
+import ModalAgregarSucursal, { BotonAgregarSucursal } from './modal-agregar-sucursal';
+import { BotonEditarSucursal } from './modal-editar-sucursal';
+import { BotonEliminarSucursal } from './modal-eliminar-sucursal';
 
 export default function Sucursales() {
   const [loading, setLoading] = useState(false);
@@ -113,50 +112,7 @@ export default function Sucursales() {
     setMostrarFormulario(true);
   };
 
-  const handleEliminarSucursal = async (sucursal) => {
-    const result = await Swal.fire({
-      title: '¿Eliminar sucursal?',
-      html: `
-        <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
-          <p class="mb-1 text-sm"><span class="font-bold">Nombre:</span> ${sucursal.nombre_sucursal}</p>
-          <p class="mb-1 text-sm"><span class="font-bold">Dirección:</span> ${sucursal.direccion_sucursal}</p>
-          <p class="mb-1 text-sm"><span class="font-bold">Teléfono:</span> ${sucursal.telefono_sucursal}</p>
-        </div>
-      `,
-      showCancelButton: true,
-      confirmButtonText: 'Eliminar',
-      cancelButtonText: 'Cancelar',
-      reverseButtons: true,
-      width: 380,
-      padding: '16px'
-    });
 
-    if (result.isConfirmed) {
-      try {
-        const resultado = await eliminarRegistro(sucursal.id_sucursal_pk, 'SUCURSALES');
-        
-        if (resultado.Consulta) {
-          Swal.fire({
-            icon: 'success',
-            title: 'Eliminado',
-            text: 'La sucursal ha sido eliminada exitosamente',
-            timer: 2000,
-            showConfirmButton: false
-          });
-          cargarDatos(); // Recargar datos
-        } else {
-          throw new Error(resultado.error || 'Error al eliminar');
-        }
-      } catch (error) {
-        console.error('Error al eliminar sucursal:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudo eliminar la sucursal'
-        });
-      }
-    }
-  };
 
   const handleSubmit = async () => {
     if (!validarFormulario()) {
@@ -225,13 +181,10 @@ export default function Sucursales() {
             )}
           </div>
           
-          <button
+          <BotonAgregarSucursal 
             onClick={handleNuevaSucursal}
-            className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors flex items-center gap-2"
-          >
-            <FontAwesomeIcon icon={freeSolidSvgIcons.faPlus} />
-            Nueva Sucursal
-          </button>
+            loading={loading}
+          />
         </div>
 
         {/* Lista de sucursales existentes */}
@@ -264,20 +217,14 @@ export default function Sucursales() {
                 </div>
               </div>
               <div className="flex gap-2 ml-4">
-                <button
-                  onClick={() => handleactualizarSucursal(sucursal)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-sm flex items-center gap-1.5 transition-colors"
-                >
-                  <FontAwesomeIcon icon={freeSolidSvgIcons.faEdit} className="w-3 h-3" />
-                  Editar
-                </button>
-                <button
-                  onClick={() => handleEliminarSucursal(sucursal)}
-                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm flex items-center gap-1.5 transition-colors"
-                >
-                  <FontAwesomeIcon icon={freeSolidSvgIcons.faTrash} className="w-3 h-3" />
-                  Eliminar
-                </button>
+                <BotonEditarSucursal 
+                  sucursal={sucursal}
+                  onEdit={handleactualizarSucursal}
+                />
+                <BotonEliminarSucursal 
+                  sucursal={sucursal}
+                  onReload={cargarDatos}
+                />
               </div>
             </div>
           </div>
@@ -301,117 +248,27 @@ export default function Sucursales() {
               <FontAwesomeIcon icon={freeSolidSvgIcons.faStore} className="w-16 h-16 mx-auto mb-4 text-gray-400" />
               <h3 className="text-lg font-semibold text-gray-700 mb-2">No hay sucursales registradas</h3>
               <p className="text-gray-500 mb-6">Crea tu primera sucursal para comenzar.</p>
-              <button 
-                className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors inline-flex items-center gap-2"
+              <BotonAgregarSucursal 
                 onClick={handleNuevaSucursal}
-              >
-                <FontAwesomeIcon icon={freeSolidSvgIcons.faPlus} />
-                Nueva Sucursal
-              </button>
+                loading={loading}
+              />
             </div>
           )}
         </div>
       </div>
 
-      {/* Modal PrimeReact */}
-      <Dialog
-        header={
-          <div className="w-full text-center text-lg font-bold">
-            {modoEdicion ? 'EDITAR SUCURSAL' : 'NUEVA SUCURSAL'}
-          </div>
-        }
+      {/* Modal Modular */}
+      <ModalAgregarSucursal 
         visible={mostrarFormulario}
-        style={{ width: '28rem', borderRadius: '1.5rem' }}
-        modal
-        closable={false}
         onHide={handleClose}
-        footer={
-          <div className="flex gap-2 justify-end">
-            <Button
-              label="Cancelar"
-              icon="pi pi-times"
-              onClick={handleClose}
-              className="p-button-text p-button-secondary"
-              disabled={loading}
-            />
-            <Button
-              label={loading ? (modoEdicion ? 'Actualizando...' : 'Guardando...') : (modoEdicion ? 'Actualizar' : 'Guardar')}
-              icon={loading ? "pi pi-spin pi-spinner" : "pi pi-check"}
-              onClick={handleSubmit}
-              className="p-button-success"
-              loading={loading}
-              disabled={loading}
-            />
-          </div>
-        }
-        position="center"
-        dismissableMask={false}
-        draggable={false}
-        resizable={false}
-      >
-        <div className="mt-2">
-          <div className="flex flex-col gap-3">
-            <span>
-              <label htmlFor="id_empresa_fk" className="text-xs font-semibold text-gray-700 mb-1">Empresa</label>
-              <Dropdown
-                id="id_empresa_fk"
-                name="id_empresa_fk"
-                value={formSucursal.id_empresa_fk}
-                options={empresas}
-                onChange={(e) => handleChangeSucursal({ target: { name: 'id_empresa_fk', value: e.value } })}
-                optionLabel="nombre_empresa"
-                optionValue="id_empresa_pk"
-                placeholder="Seleccionar empresa..."
-                className="w-full rounded-xl h-9"
-                panelClassName="rounded-xl"
-              />
-              {errores.id_empresa_fk && <p className="text-xs text-red-600 mt-1">{errores.id_empresa_fk}</p>}
-            </span>
-
-            {/* Nombre de la Sucursal */}
-            <span>
-              <label htmlFor="nombre_sucursal" className="text-xs font-semibold text-gray-700 mb-1">Nombre de la sucursal</label>
-              <InputText
-                id="nombre_sucursal"
-                name="nombre_sucursal"
-                value={formSucursal.nombre_sucursal}
-                onChange={handleChangeSucursal}
-                className="w-full rounded-xl h-9 text-sm uppercase"
-                placeholder="Ej: Sucursal Norte"
-              />
-              {errores.nombre_sucursal && <p className="text-xs text-red-600 mt-1">{errores.nombre_sucursal}</p>}
-            </span>
-
-            {/* Dirección */}
-            <span>
-              <label htmlFor="direccion_sucursal" className="text-xs font-semibold text-gray-700 mb-1">Dirección</label>
-              <InputText
-                id="direccion_sucursal"
-                name="direccion_sucursal"
-                value={formSucursal.direccion_sucursal}
-                onChange={handleChangeSucursal}
-                className="w-full rounded-xl h-9 text-sm uppercase"
-                placeholder="Ej: Barrio El Carmen"
-              />
-              {errores.direccion_sucursal && <p className="text-xs text-red-600 mt-1">{errores.direccion_sucursal}</p>}
-            </span>
-
-            {/* Teléfono */}
-            <span>
-              <label htmlFor="telefono_sucursal" className="text-xs font-semibold text-gray-700 mb-1">TELÉFONO</label>
-              <InputText
-                id="telefono_sucursal"
-                name="telefono_sucursal"
-                value={formSucursal.telefono_sucursal}
-                onChange={handleChangeSucursal}
-                className="w-full rounded-xl h-9 text-sm uppercase"
-                placeholder="Ej: 9999-8888"
-              />
-              {errores.telefono_sucursal && <p className="text-xs text-red-600 mt-1">{errores.telefono_sucursal}</p>}
-            </span>
-          </div>
-        </div>
-      </Dialog>
+        formData={formSucursal}
+        onChange={handleChangeSucursal}
+        onSave={handleSubmit}
+        loading={loading}
+        editando={modoEdicion}
+        errores={errores}
+        empresas={empresas}
+      />
     </div>
   );
 }

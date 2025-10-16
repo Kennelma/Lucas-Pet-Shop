@@ -184,7 +184,7 @@ const Alimentos = () => {
     <div className="p-6 text-sm">
       {/* Contenedor título separado */}
       <div className="mb-6">
-        <h1 className="text-center text-xl font-bold uppercase">INVENTARIO DE ALIMENTOS</h1>
+        <h2 className="text-center text-lg font-bold uppercase text-gray-800">INVENTARIO DE ALIMENTOS</h2>
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
