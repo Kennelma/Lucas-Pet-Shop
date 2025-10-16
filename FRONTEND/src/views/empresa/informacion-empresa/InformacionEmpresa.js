@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import * as freeSolidSvgIcons from '@fortawesome/free-solid-svg-icons';
-import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
-import { Button } from 'primereact/button';
 import Swal from 'sweetalert2';
-import { insertar, ver, eliminarRegistro, actualizarRegistro } from '../../../AXIOS.SERVICES/empresa-axios';
+import { insertar, ver, actualizarRegistro } from '../../../AXIOS.SERVICES/empresa-axios';
+import ModalAgregarEmpresa, { BotonAgregarEmpresa } from './modal-agregar-empresa';
+import { BotonEditarEmpresa } from './modal-editar-empresa';
+import { BotonEliminarEmpresa } from './modal-eliminar-empresa';
 
 export default function InformacionEmpresa() {
   const [loading, setLoading] = useState(false);
@@ -108,51 +108,7 @@ export default function InformacionEmpresa() {
     setMostrarFormulario(true);
   };
 
-  const handleEliminarEmpresa = async (empresa) => {
-    const result = await Swal.fire({
-      title: '¿Eliminar empresa?',
-      html: `
-        <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
-          <p class="mb-1 text-sm"><span class="font-bold">Nombre:</span> ${empresa.nombre_empresa}</p>
-          <p class="mb-1 text-sm"><span class="font-bold">Dirección:</span> ${empresa.direccion_empresa}</p>
-          <p class="mb-1 text-sm"><span class="font-bold">Teléfono:</span> ${empresa.telefono_empresa}</p>
-          <p class="mb-1 text-sm"><span class="font-bold">Email:</span> ${empresa.correo_empresa}</p>
-        </div>
-      `,
-      showCancelButton: true,
-      confirmButtonText: 'Eliminar',
-      cancelButtonText: 'Cancelar',
-      reverseButtons: true,
-      width: 380,
-      padding: '16px'
-    });
 
-    if (result.isConfirmed) {
-      try {
-        const response = await eliminarRegistro(empresa.id_empresa_pk, 'EMPRESA');
-        
-        if (response.Consulta) {
-          Swal.fire({
-            icon: 'success',
-            title: 'Eliminado',
-            text: 'La empresa ha sido eliminada exitosamente',
-            timer: 2000,
-            showConfirmButton: false
-          });
-          traerListaEmpresas(); // Recargar datos
-        } else {
-          throw new Error(response.error || 'Error al eliminar');
-        }
-      } catch (error) {
-        console.error('Error al eliminar empresa:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudo eliminar la empresa'
-        });
-      }
-    }
-  };
 
   const guardarEmpresa = async () => {
     if (!validarFormulario()) {
@@ -278,13 +234,10 @@ export default function InformacionEmpresa() {
             )}
           </div>
 
-          <button
+          <BotonAgregarEmpresa 
             onClick={handleNuevaEmpresa}
-            className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors flex items-center gap-2"
-          >
-            <FontAwesomeIcon icon={freeSolidSvgIcons.faPlus} />
-            Nueva Empresa
-          </button>
+            loading={loading}
+          />
         </div>
 
         {/* Lista de empresas existentes */}
@@ -315,20 +268,14 @@ export default function InformacionEmpresa() {
                 </div>
               </div>
               <div className="flex gap-2 ml-4">
-                <button
-                  onClick={() => handleEditarEmpresa(empresa)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-sm flex items-center gap-1.5 transition-colors"
-                >
-                  <FontAwesomeIcon icon={freeSolidSvgIcons.faEdit} className="w-3 h-3" />
-                  Editar
-                </button>
-                <button
-                  onClick={() => handleEliminarEmpresa(empresa)}
-                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm flex items-center gap-1.5 transition-colors"
-                >
-                  <FontAwesomeIcon icon={freeSolidSvgIcons.faTrash} className="w-3 h-3" />
-                  Eliminar
-                </button>
+                <BotonEditarEmpresa 
+                  empresa={empresa}
+                  onEdit={handleEditarEmpresa}
+                />
+                <BotonEliminarEmpresa 
+                  empresa={empresa}
+                  onReload={traerListaEmpresas}
+                />
               </div>
             </div>
           </div>
@@ -352,116 +299,26 @@ export default function InformacionEmpresa() {
               <FontAwesomeIcon icon={freeSolidSvgIcons.faBuilding} className="w-16 h-16 mx-auto mb-4 text-gray-400" />
               <h3 className="text-lg font-semibold text-gray-700 mb-2">No hay empresas registradas</h3>
               <p className="text-gray-500 mb-6">Crea tu primera empresa para comenzar.</p>
-              <button 
-                className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors inline-flex items-center gap-2"
+              <BotonAgregarEmpresa 
                 onClick={handleNuevaEmpresa}
-              >
-                <FontAwesomeIcon icon={freeSolidSvgIcons.faPlus} />
-                Nueva Empresa
-              </button>
+                loading={loading}
+              />
             </div>
           )}
         </div>
       </div>
 
-      {/* Modal PrimeReact */}
-      <Dialog
-        header={
-          <div className="w-full text-center text-lg font-bold">
-            {modoEdicion ? 'EDITAR EMPRESA' : 'NUEVA EMPRESA'}
-          </div>
-        }
+      {/* Modal Modular */}
+      <ModalAgregarEmpresa 
         visible={mostrarFormulario}
-        style={{ width: '28rem', borderRadius: '1.5rem' }}
-        modal
-        closable={false}
         onHide={handleClose}
-        footer={
-          <div className="flex gap-2 justify-end">
-            <Button
-              label="Cancelar"
-              icon="pi pi-times"
-              onClick={handleClose}
-              className="p-button-text p-button-secondary"
-              disabled={loading}
-            />
-            <Button
-              label={loading ? (modoEdicion ? 'Actualizando...' : 'Guardando...') : (modoEdicion ? 'Actualizar' : 'Guardar')}
-              icon={loading ? "pi pi-spin pi-spinner" : "pi pi-check"}
-              onClick={guardarEmpresa}
-              className="p-button-success"
-              loading={loading}
-              disabled={loading}
-            />
-          </div>
-        }
-        position="center"
-        dismissableMask={false}
-        draggable={false}
-        resizable={false}
-      >
-        <div className="mt-2">
-          {/* Formulario */}
-          <div className="flex flex-col gap-3">
-            {/* Nombre de la Empresa */}
-            <span>
-              <label htmlFor="nombre_empresa" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE DE LA EMPRESA</label>
-              <InputText
-                id="nombre_empresa"
-                name="nombre_empresa"
-                value={formEmpresa.nombre_empresa}
-                onChange={handleChangeEmpresa}
-                className="w-full rounded-xl h-9 text-sm uppercase"
-                placeholder="Ej: Tech Solutions SA"
-              />
-              {errores.nombre_empresa && <p className="text-xs text-red-600 mt-1">{errores.nombre_empresa}</p>}
-            </span>
-
-            {/* Dirección */}
-            <span>
-              <label htmlFor="direccion_empresa" className="text-xs font-semibold text-gray-700 mb-1">DIRECCIÓN</label>
-              <InputText
-                id="direccion_empresa"
-                name="direccion_empresa"
-                value={formEmpresa.direccion_empresa}
-                onChange={handleChangeEmpresa}
-                className="w-full rounded-xl h-9 text-sm uppercase"
-                placeholder="Ej: Av. Principal 123"
-              />
-              {errores.direccion_empresa && <p className="text-xs text-red-600 mt-1">{errores.direccion_empresa}</p>}
-            </span>
-
-            {/* Teléfono */}
-            <span>
-              <label htmlFor="telefono_empresa" className="text-xs font-semibold text-gray-700 mb-1">TELÉFONO</label>
-              <InputText
-                id="telefono_empresa"
-                name="telefono_empresa"
-                value={formEmpresa.telefono_empresa}
-                onChange={handleChangeEmpresa}
-                className="w-full rounded-xl h-9 text-sm uppercase"
-                placeholder="Ej: 2222-3333"
-              />
-              {errores.telefono_empresa && <p className="text-xs text-red-600 mt-1">{errores.telefono_empresa}</p>}
-            </span>
-
-            {/* Correo Electrónico */}
-            <span>
-              <label htmlFor="correo_empresa" className="text-xs font-semibold text-gray-700 mb-1">CORREO ELECTRÓNICO</label>
-              <InputText
-                id="correo_empresa"
-                name="correo_empresa"
-                value={formEmpresa.correo_empresa}
-                onChange={handleChangeEmpresa}
-                className="w-full rounded-xl h-9 text-sm lowercase"
-                placeholder="Ej: contacto@empresa.com"
-                type="email"
-              />
-              {errores.correo_empresa && <p className="text-xs text-red-600 mt-1">{errores.correo_empresa}</p>}
-            </span>
-          </div>
-        </div>
-      </Dialog>
+        formData={formEmpresa}
+        onChange={handleChangeEmpresa}
+        onSave={guardarEmpresa}
+        loading={loading}
+        editando={modoEdicion}
+        errores={errores}
+      />
     </div>
   );
 }
