@@ -111,22 +111,6 @@ const Dashboard = () => {
 
   return (
     <div className="p-5 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
-      {/* --- Aquí va todo tu Dashboard igual --- */}
-      {/* Alerta Inventario */}
-      <div className="mb-4">
-        <div className="bg-white shadow-md rounded-xl border-l-4 border-red-500 p-3 flex items-center">
-          <div className="flex-1">
-            <p className="text-xs text-gray-600 font-semibold flex items-center gap-2">
-              <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
-              Alerta Inventario
-            </p>
-            <p className="text-sm text-gray-800 mt-0.5">Medicamento Simparica LOTE1 está por vencerse.</p>
-          </div>
-          <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
-            INVENTARIO
-          </span>
-        </div>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <div className="lg:col-span-3 space-y-4">
