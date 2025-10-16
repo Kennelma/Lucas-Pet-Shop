@@ -327,7 +327,7 @@ exports.ver = async (req, res) => {
                         id_gasto_pk,
                         detalle_gasto,
                         monto_gasto,
-                        fecha_registro_gasto,
+                        fecha_registro_gasto
                     FROM tbl_gastos`);
                 break;
    
