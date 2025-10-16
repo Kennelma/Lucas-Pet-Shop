@@ -82,7 +82,8 @@ exports.crear = async (req, res) => {
 
                 //SE TOMA EL ID DEL USUARIO AUTENTICADO (MIDDLEWARE AUTH)
                 const id_usuario = req.usuario?.id_usuario_pk;
-                console.log(` INFO: ID de usuario obtenido del token: ${id_usuario}`);
+
+                //console.log(` INFO: ID de usuario obtenido del token: ${id_usuario}`);
                 
                 await conn.query(
                 `INSERT INTO tbl_gastos (
@@ -97,7 +98,7 @@ exports.crear = async (req, res) => {
                 ]
                 );
                 
-            break;
+                break;
         
             default:
                 throw new Error('No es parte del módulo de empresa. Intente de nuevo');

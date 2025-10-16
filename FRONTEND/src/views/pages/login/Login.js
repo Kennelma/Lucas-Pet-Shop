@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import loginPhoto from './login-photo.jpg'
+import loginPhoto from './login-photo.png'
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai' 
 
 
@@ -113,7 +113,7 @@ const Login = () => {
                     
                     {/* 4. BOTÓN/ÍCONO PARA TOGGLE */}
                     <button
-                        type="button" // Evita que el botón envíe el formulario
+                        type="button" 
                         onClick={togglePasswordVisibility}
                         className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-blue-600 focus:outline-none"
                         aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
@@ -147,11 +147,11 @@ const Login = () => {
         </div>
 
         {/* IMAGE RIGHT SIDE */}
-        <div className="w-1/2">
+        <div className="w-1/2 flex items-center justify-center">
           <img
             src={loginPhoto}
             alt="Login Visual"
-            className="w-full h-full object-cover"
+            className="object-cover h-full w-full"
           />
         </div>
       </div>
