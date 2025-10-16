@@ -874,7 +874,7 @@ const Medicamentos = () => {
     <div className="min-h-screen p-5 bg-gray-50">
       {/* HEADER */}
       <div className="flex justify-between items-center mb-5">
-        <h1 className="text-2xl font-bold">GESTIÓN DE MEDICAMENTOS</h1>
+        <h2 className="text-lg font-bold text-gray-800">GESTIÓN DE MEDICAMENTOS</h2>
         <button
           onClick={() => setModalVisible(true)}
           className="px-4 py-2 bg-purple-600 text-white rounded font-semibold hover:bg-purple-700"
