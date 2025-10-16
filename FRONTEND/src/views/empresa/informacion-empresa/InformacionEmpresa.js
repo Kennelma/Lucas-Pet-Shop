@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import * as freeSolidSvgIcons from '@fortawesome/free-solid-svg-icons';
+import Swal from 'sweetalert2';
+import { insertar, ver, actualizarRegistro } from '../../../AXIOS.SERVICES/empresa-axios';
+import ModalAgregarEmpresa, { BotonAgregarEmpresa } from './modal-agregar-empresa';
+import { BotonEditarEmpresa } from './modal-editar-empresa';
+import { BotonEliminarEmpresa } from './modal-eliminar-empresa';
 
 export default function InformacionEmpresa() {
   const [loading, setLoading] = useState(false);
@@ -9,6 +14,8 @@ export default function InformacionEmpresa() {
   const [modoEdicion, setModoEdicion] = useState(false);
   const [empresaEditando, setEmpresaEditando] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [errores, setErrores] = useState({});
+  const [globalFilter, setGlobalFilter] = useState('');
 
   const [formEmpresa, setFormEmpresa] = useState({
     nombre_empresa: '',
@@ -18,28 +25,23 @@ export default function InformacionEmpresa() {
   });
 
   useEffect(() => {
-    cargarEmpresas();
+    traerListaEmpresas();
   }, []);
 
-  const cargarEmpresas = () => {
-    // Datos de ejemplo
-    const empresasEjemplo = [
-      { 
-        id_empresa_pk: 1, 
-        nombre_empresa: 'Lucas Pet Shop',
-        direccion_empresa: 'Av. Principal 123, Ciudad Teg',
-        telefono_empresa: '2222-3333',
-        correo_empresa: 'lucaspetshop@gmail.com'
-      },
-      
-    ];
-    setEmpresas(empresasEjemplo);
-
-    //aquí se haría una llamada a la API para obtener las empresas
+  const traerListaEmpresas = async () => {
+    try {
+      const datos = await ver('EMPRESA');
+      setEmpresas(datos || []);
+    } catch (error) {
+      console.error('Error al cargar empresas:', error);
+      mostrarMensaje('error', 'Error al cargar las empresas');
+    }
   };
 
   const handleChangeEmpresa = (e) => {
-    setFormEmpresa({ ...formEmpresa, [e.target.name]: e.target.value });
+    const copia = { ...formEmpresa };
+    copia[e.target.name] = e.target.value;
+    setFormEmpresa(copia);
   };
 
   const mostrarMensaje = (tipo, texto) => {
@@ -47,19 +49,50 @@ export default function InformacionEmpresa() {
     setTimeout(() => setMensaje({ tipo: '', texto: '' }), 5000);
   };
 
-  const limpiarFormulario = () => {
+  const validarFormulario = () => {
+    const nuevosErrores = {};
+
+    if (!formEmpresa.nombre_empresa.trim()) {
+      nuevosErrores.nombre_empresa = 'El nombre de la empresa es obligatorio';
+    }
+
+    if (!formEmpresa.direccion_empresa.trim()) {
+      nuevosErrores.direccion_empresa = 'La dirección es obligatoria';
+    }
+
+    if (!formEmpresa.telefono_empresa.trim()) {
+      nuevosErrores.telefono_empresa = 'El teléfono es obligatorio';
+    }
+
+    if (!formEmpresa.correo_empresa.trim()) {
+      nuevosErrores.correo_empresa = 'El correo electrónico es obligatorio';
+    } else if (!/\S+@\S+\.\S+/.test(formEmpresa.correo_empresa)) {
+      nuevosErrores.correo_empresa = 'El formato del correo electrónico no es válido';
+    }
+
+    setErrores(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
+  };
+
+  const resetearForm = () => {
     setFormEmpresa({
       nombre_empresa: '',
       direccion_empresa: '',
       telefono_empresa: '',
       correo_empresa: ''
     });
+    setErrores({});
     setModoEdicion(false);
     setEmpresaEditando(null);
   };
 
+  const handleClose = () => {
+    resetearForm();
+    setMostrarFormulario(false);
+  };
+
   const handleNuevaEmpresa = () => {
-    limpiarFormulario();
+    resetearForm();
     setMostrarFormulario(true);
   };
 
@@ -75,22 +108,13 @@ export default function InformacionEmpresa() {
     setMostrarFormulario(true);
   };
 
-  const handleEliminarEmpresa = async (id) => {
-    if (!window.confirm('¿Está seguro de eliminar esta empresa?')) return;
 
-    try {
-      console.log('Eliminando empresa ID:', id);
-        // Aquí se haría una llamada a la API para eliminar la empresa
 
-      setEmpresas(empresas.filter(emp => emp.id_empresa_pk !== id));
-      mostrarMensaje('success', 'Empresa eliminada exitosamente');
-    } catch (error) {
-      mostrarMensaje('error', 'Error al eliminar la empresa');
+  const guardarEmpresa = async () => {
+    if (!validarFormulario()) {
+      return;
     }
-  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
     setLoading(true);
 
     try {
@@ -100,33 +124,35 @@ export default function InformacionEmpresa() {
         ...(modoEdicion && { id_empresa_pk: empresaEditando.id_empresa_pk })
       };
 
-      console.log(`📤 ${modoEdicion ? 'Editando' : 'Creando'} EMPRESA:`, datosEnviar);
-
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
       if (modoEdicion) {
         // Actualizar empresa existente
-        setEmpresas(empresas.map(emp => 
-          emp.id_empresa_pk === empresaEditando.id_empresa_pk 
-            ? { ...emp, ...formEmpresa }
-            : emp
-        ));
-        mostrarMensaje('success', 'Empresa actualizada exitosamente');
+        const resultado = await actualizarRegistro(empresaEditando.id_empresa_pk, 'EMPRESA', formEmpresa);
+        
+        if (resultado?.Consulta) {
+          setEmpresas(empresas.map(emp => 
+            emp.id_empresa_pk === empresaEditando.id_empresa_pk 
+              ? { ...emp, ...formEmpresa }
+              : emp
+          ));
+          mostrarMensaje('success', 'Empresa actualizada exitosamente');
+        } else {
+          mostrarMensaje('error', resultado?.error || 'Error al actualizar la empresa');
+          return;
+        }
       } else {
         // Crear nueva empresa
-        const nuevaEmpresa = {
-          id_empresa_pk: Date.now(), // ID temporal
-          ...formEmpresa
-        };
-        setEmpresas([...empresas, nuevaEmpresa]);
-        mostrarMensaje('success', 'Empresa creada exitosamente');
+        const resultado = await insertar('EMPRESA', formEmpresa);
+        
+        if (resultado?.Consulta) {
+          await traerListaEmpresas(); // Recargar la lista desde el servidor
+          mostrarMensaje('success', 'Empresa creada exitosamente');
+        } else {
+          mostrarMensaje('error', resultado?.error || 'Error al crear la empresa');
+          return;
+        }
       }
 
-      // Aquí se haría una llamada a la API para crear/editar la empresa
-
-      limpiarFormulario();
-      setMostrarFormulario(false);
+      handleClose();
 
     } catch (error) {
       mostrarMensaje('error', error.message || 'Error al guardar los datos');
@@ -139,41 +165,89 @@ export default function InformacionEmpresa() {
     <div>
       {mensaje.texto && (
         <div className={`mb-6 p-4 rounded-lg flex items-start gap-3 ${
-          mensaje.tipo === 'success' 
-            ? 'bg-green-50 border border-green-200' 
-            : 'bg-red-50 border border-red-200'
+          (() => {
+            if (mensaje.tipo === 'success') {
+              return 'bg-green-50 border border-green-200';
+            } else {
+              return 'bg-red-50 border border-red-200';
+            }
+          })()
         }`}>
-          {mensaje.tipo === 'success' ? (
-            <FontAwesomeIcon icon={freeSolidSvgIcons.faCheckCircle} className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-          ) : (
-            <FontAwesomeIcon icon={freeSolidSvgIcons.faExclamationCircle} className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-          )}
+          {(() => {
+            if (mensaje.tipo === 'success') {
+              return <FontAwesomeIcon icon={freeSolidSvgIcons.faCheckCircle} className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />;
+            } else {
+              return <FontAwesomeIcon icon={freeSolidSvgIcons.faExclamationCircle} className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />;
+            }
+          })()}
           <div>
-            <p className={`text-sm font-medium ${mensaje.tipo === 'success' ? 'text-green-800' : 'text-red-800'}`}>
-              {mensaje.tipo === 'success' ? 'Éxito' : 'Error'}
+            <p className={`text-sm font-medium ${
+              (() => {
+                if (mensaje.tipo === 'success') {
+                  return 'text-green-800';
+                } else {
+                  return 'text-red-800';
+                }
+              })()
+            }`}>
+              {(() => {
+                if (mensaje.tipo === 'success') {
+                  return 'Éxito';
+                } else {
+                  return 'Error';
+                }
+              })()}
             </p>
-            <p className={`text-sm mt-1 ${mensaje.tipo === 'success' ? 'text-green-700' : 'text-red-700'}`}>
+            <p className={`text-sm mt-1 ${
+              (() => {
+                if (mensaje.tipo === 'success') {
+                  return 'text-green-700';
+                } else {
+                  return 'text-red-700';
+                }
+              })()
+            }`}>
               {mensaje.texto}
             </p>
           </div>
         </div>
       )}
 
-      {/* Botón para agregar nueva empresa */}
-      <div className="mb-6 flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-gray-900">Gestión de Empresas</h3>
-        <button
-          onClick={handleNuevaEmpresa}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-        >
-          <FontAwesomeIcon icon={freeSolidSvgIcons.faPlus} className="w-4 h-4" />
-          Nueva Empresa
-        </button>
-      </div>
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
 
-      {/* Lista de empresas existentes */}
-      <div className="space-y-4 mb-6">
-        {empresas.map((empresa) => (
+        {/* Barra de búsqueda + botón Nuevo */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="relative w-80">
+            <input
+              value={globalFilter}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              placeholder="Buscar empresas..."
+              className="w-full px-4 py-2 border rounded-full"
+            />
+            {globalFilter && (
+              <button
+                onClick={() => setGlobalFilter('')}
+                className="absolute right-3 top-2 text-gray-500"
+              >
+                ×
+              </button>
+            )}
+          </div>
+
+          <BotonAgregarEmpresa 
+            onClick={handleNuevaEmpresa}
+            loading={loading}
+          />
+        </div>
+
+        {/* Lista de empresas existentes */}
+        <div className="space-y-4 mb-6">
+          {empresas.filter(empresa => 
+            empresa.nombre_empresa.toLowerCase().includes(globalFilter.toLowerCase()) ||
+            empresa.direccion_empresa.toLowerCase().includes(globalFilter.toLowerCase()) ||
+            empresa.telefono_empresa.toLowerCase().includes(globalFilter.toLowerCase()) ||
+            empresa.correo_empresa.toLowerCase().includes(globalFilter.toLowerCase())
+          ).map((empresa) => (
           <div key={empresa.id_empresa_pk} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start">
               <div className="flex-1">
@@ -194,146 +268,57 @@ export default function InformacionEmpresa() {
                 </div>
               </div>
               <div className="flex gap-2 ml-4">
-                <button
-                  onClick={() => handleEditarEmpresa(empresa)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-sm flex items-center gap-1.5 transition-colors"
-                >
-                  <FontAwesomeIcon icon={freeSolidSvgIcons.faEdit} className="w-3 h-3" />
-                  Editar
-                </button>
-                <button
-                  onClick={() => handleEliminarEmpresa(empresa.id_empresa_pk)}
-                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm flex items-center gap-1.5 transition-colors"
-                >
-                  <FontAwesomeIcon icon={freeSolidSvgIcons.faTrash} className="w-3 h-3" />
-                  Eliminar
-                </button>
+                <BotonEditarEmpresa 
+                  empresa={empresa}
+                  onEdit={handleEditarEmpresa}
+                />
+                <BotonEliminarEmpresa 
+                  empresa={empresa}
+                  onReload={traerListaEmpresas}
+                />
               </div>
             </div>
           </div>
-        ))}
+          ))}
         
-        {empresas.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            <FontAwesomeIcon icon={freeSolidSvgIcons.faBuilding} className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>No hay empresas registradas</p>
-            <p className="text-sm">Haz clic en "Nueva Empresa" para agregar una</p>
-          </div>
-        )}
+          {empresas.filter(empresa => 
+            empresa.nombre_empresa.toLowerCase().includes(globalFilter.toLowerCase()) ||
+            empresa.direccion_empresa.toLowerCase().includes(globalFilter.toLowerCase()) ||
+            empresa.telefono_empresa.toLowerCase().includes(globalFilter.toLowerCase()) ||
+            empresa.correo_empresa.toLowerCase().includes(globalFilter.toLowerCase())
+          ).length === 0 && empresas.length > 0 && (
+            <div className="text-center py-8 text-gray-500">
+              <FontAwesomeIcon icon={freeSolidSvgIcons.faSearch} className="w-12 h-12 mx-auto mb-2 opacity-50" />
+              <p>No se encontraron empresas</p>
+              <p className="text-sm">Intenta con otros términos de búsqueda</p>
+            </div>
+          )}
+        
+          {empresas.length === 0 && (
+            <div className="text-center py-12">
+              <FontAwesomeIcon icon={freeSolidSvgIcons.faBuilding} className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">No hay empresas registradas</h3>
+              <p className="text-gray-500 mb-6">Crea tu primera empresa para comenzar.</p>
+              <BotonAgregarEmpresa 
+                onClick={handleNuevaEmpresa}
+                loading={loading}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Formulario modal/overlay */}
-      {mostrarFormulario && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">
-                {modoEdicion ? 'Editar Empresa' : 'Nueva Empresa'}
-              </h3>
-              <button
-                onClick={() => setMostrarFormulario(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <FontAwesomeIcon icon={freeSolidSvgIcons.faTimes} className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <FontAwesomeIcon icon={freeSolidSvgIcons.faBuilding} className="w-4 h-4" />
-                  Nombre de la Empresa
-                </label>
-                <input
-                  type="text"
-                  name="nombre_empresa"
-                  value={formEmpresa.nombre_empresa}
-                  onChange={handleChangeEmpresa}
-                  placeholder="Ej: Tech Solutions SA"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <FontAwesomeIcon icon={freeSolidSvgIcons.faMapMarkerAlt} className="w-4 h-4" />
-                  Dirección
-                </label>
-                <input
-                  type="text"
-                  name="direccion_empresa"
-                  value={formEmpresa.direccion_empresa}
-                  onChange={handleChangeEmpresa}
-                  placeholder="Ej: Av. Principal 123"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <FontAwesomeIcon icon={freeSolidSvgIcons.faPhone} className="w-4 h-4" />
-                  Teléfono
-                </label>
-                <input
-                  type="tel"
-                  name="telefono_empresa"
-                  value={formEmpresa.telefono_empresa}
-                  onChange={handleChangeEmpresa}
-                  placeholder="Ej: 2222-3333"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                  <FontAwesomeIcon icon={freeSolidSvgIcons.faEnvelope} className="w-4 h-4" />
-                  Correo Electrónico
-                </label>
-                <input
-                  type="email"
-                  name="correo_empresa"
-                  value={formEmpresa.correo_empresa}
-                  onChange={handleChangeEmpresa}
-                  placeholder="Ej: contacto@empresa.com"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                  required
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      {modoEdicion ? 'Actualizando...' : 'Guardando...'}
-                    </>
-                  ) : (
-                    <>
-                      <FontAwesomeIcon icon={freeSolidSvgIcons.faSave} className="w-5 h-5" />
-                      {modoEdicion ? 'Actualizar' : 'Guardar'}
-                    </>
-                  )}
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={() => setMostrarFormulario(false)}
-                  className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Modal Modular */}
+      <ModalAgregarEmpresa 
+        visible={mostrarFormulario}
+        onHide={handleClose}
+        formData={formEmpresa}
+        onChange={handleChangeEmpresa}
+        onSave={guardarEmpresa}
+        loading={loading}
+        editando={modoEdicion}
+        errores={errores}
+      />
     </div>
   );
 }

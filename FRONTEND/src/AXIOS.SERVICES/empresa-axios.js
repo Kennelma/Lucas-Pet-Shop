@@ -83,7 +83,7 @@ export const ver = async (entidad) => {
 // ─────────────────────────────────────────────
 export const eliminarRegistro = async (id, entidad) => {
   try {
-    const response = await axios.delete(API_URL, {
+    const response = await axios.delete(`${API_URL}/eliminar`, {
       data: { id, entidad },
       headers: getHeaders(),
     });
@@ -101,10 +101,9 @@ export const eliminarRegistro = async (id, entidad) => {
 // ─────────────────────────────────────────────
 export const actualizarRegistro = async (id, entidad, data = {}) => {
   try {
-    // Se incluye el ID y la entidad en el body, igual que en tu backend
     const body = { id, entidad, ...data };
 
-    const response = await axios.put(API_URL, body, {
+    const response = await axios.put(`${API_URL}/actualizar`, body, {
       headers: getHeaders(),
     });
 
