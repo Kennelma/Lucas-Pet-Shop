@@ -44,7 +44,7 @@ const _nav = [
   {
     component: CNavItem,
     name: 'Facturación',
-    to: '/theme/colors',
+    to: '/facturacion',
     icon: <FontAwesomeIcon icon={faDollarSign} className="nav-icon" />,    
    
   },
