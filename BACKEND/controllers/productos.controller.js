@@ -87,9 +87,12 @@ exports.crear = async (req, res) => {
             case 'MEDICAMENTOS':
 
                 const [medicamentos] = await conn.query (
-                    `INSERT INTO tbl_medicamentos_info (presentacion_medicamento, tipo_medicamento, cantidad_contenido, 
-                                                        unidad_medida, id_producto_fk) 
-                                                        VALUES (?,?,?,?,?)`,
+                    `INSERT INTO tbl_medicamentos_info (
+                    presentacion_medicamento, 
+                    tipo_medicamento, 
+                    cantidad_contenido, 
+                    unidad_medida, id_producto_fk) 
+                     VALUES (?,?,?,?,?)`,
                     [
                         req.body.presentacion_medicamento,
                         req.body.tipo_medicamento,
@@ -102,7 +105,11 @@ exports.crear = async (req, res) => {
                     const id_medicamento = medicamentos.insertId;
 
                     const [lote] = await conn.query(
-                        `INSERT INTO tbl_lotes_medicamentos (codigo_lote, fecha_vencimiento, stock_lote, id_medicamento_fk)
+                        `INSERT INTO tbl_lotes_medicamentos (
+                        codigo_lote, 
+                        fecha_vencimiento, 
+                        stock_lote, 
+                        id_medicamento_fk)
                         VALUES (?, ?, ?, ?)`,
                         [
                             req.body.codigo_lote,
