@@ -14,7 +14,7 @@ const TIPOS_PRODUCTOS = {
 //ESTOS ATRIBUTOS SON COMUNES PARA TODOS LOS ENDPOINT
 function insert_atributos_padre (body) {
 
-    return[
+    return [
         body.nombre_producto,
         body.precio_producto,
         body.stock,
@@ -87,9 +87,12 @@ exports.crear = async (req, res) => {
             case 'MEDICAMENTOS':
 
                 const [medicamentos] = await conn.query (
-                    `INSERT INTO tbl_medicamentos_info (presentacion_medicamento, tipo_medicamento, cantidad_contenido, 
-                                                        unidad_medida, id_producto_fk) 
-                                                        VALUES (?,?,?,?,?)`,
+                    `INSERT INTO tbl_medicamentos_info (
+                    presentacion_medicamento, 
+                    tipo_medicamento, 
+                    cantidad_contenido, 
+                    unidad_medida, id_producto_fk) 
+                     VALUES (?,?,?,?,?)`,
                     [
                         req.body.presentacion_medicamento,
                         req.body.tipo_medicamento,
@@ -102,7 +105,11 @@ exports.crear = async (req, res) => {
                     const id_medicamento = medicamentos.insertId;
 
                     const [lote] = await conn.query(
-                        `INSERT INTO tbl_lotes_medicamentos (codigo_lote, fecha_vencimiento, stock_lote, id_medicamento_fk)
+                        `INSERT INTO tbl_lotes_medicamentos (
+                        codigo_lote, 
+                        fecha_vencimiento, 
+                        stock_lote, 
+                        id_medicamento_fk)
                         VALUES (?, ?, ?, ?)`,
                         [
                             req.body.codigo_lote,
@@ -178,7 +185,7 @@ exports.crear = async (req, res) => {
 //ATRIBUTOS COMUNES EN LOS REGISTROS, MEDIANTE LOS SP, SE PUEDE ACTUALIZAR O VARIOS ATRIBUTOS
 function update_atributos_padre (body) {
 
-    return[
+    return [
         body.nombre_producto || null,
         body.precio_producto || null ,
         body.sku || null,
