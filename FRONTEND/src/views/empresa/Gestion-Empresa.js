@@ -7,24 +7,24 @@ import Sucursales from './sucursales/Sucursales';
 import Usuarios from './usuarios/Usuarios';
 
 export default function Empresa() {
-  const [tabActiva, setTabActiva] = useState('EMPRESA');
+  const [tabActiva, setTabActiva] = useState('');
 
   const tabs = [
-    { id: 'EMPRESA', nombre: 'Empresa', icono: faBuilding },
-    { id: 'SUCURSALES', nombre: 'Sucursales', icono: faMapMarkerAlt },
-    { id: 'USUARIOS', nombre: 'Usuarios', icono: faUser }
+    { id: 'EMPRESA', nombre: 'EMPRESA', icono: faBuilding },
+    { id: 'SUCURSALES', nombre: 'SUCURSALES', icono: faMapMarkerAlt },
+    { id: 'USUARIOS', nombre: 'USUARIOS', icono: faUser }
   ];
 
   return (
     <div className="min-h-screen bg-white p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="w-full px-6">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Sistema de Gestión</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">GESTIÓN EMPRESARIAL</h1>
           <p className="text-gray-600">Administra empresas, sucursales y usuarios</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          <div className="flex border-b border-gray-200">
+          <div className="flex border-b-2 border-blue-600/20">
             {tabs.map((tab) => (
               <button
                 key={tab.id}

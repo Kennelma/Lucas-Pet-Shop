@@ -2,11 +2,23 @@ import axios from "axios";
 
 const API_URL = "http://localhost:4000/api/productos";
 
+
+
+const getHeaders = () => {
+    const token = sessionStorage.getItem('token');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : '' 
+    };
+};
+
+
 /*SERVICIO PARA VER PRODUCTOS POR TIPO*/
 export const verProductos = async (tipo_producto) => {
   try {
     const res = await axios.get(`${API_URL}/ver`, {
-      params: { tipo_producto } 
+      params: { tipo_producto },
+      headers: getHeaders()
     });
     return res.data.productos || [];
   } catch (err) {
@@ -19,7 +31,9 @@ export const verProductos = async (tipo_producto) => {
 //SERVICIO PARA INSERTAR PRODUCTO
 export const insertarProducto = async (datosProducto) => {
   try {
-    const res = await axios.post(`${API_URL}/insertar`, datosProducto);
+    const res = await axios.post(`${API_URL}/insertar`, datosProducto,
+      { headers: getHeaders() }
+    );
     return res.data;
   } catch (err) {
     console.error(`Error al insertar producto:`, err);
@@ -32,7 +46,9 @@ export const insertarProducto = async (datosProducto) => {
 /*SERVICIO PARA ACTUALIZAR PRODUCTO*/
 export const actualizarProducto = async (datosProducto) => {
   try {
-    const res = await axios.put(`${API_URL}/actualizar`, datosProducto);
+    const res = await axios.put(`${API_URL}/actualizar`, datosProducto,
+      { headers: getHeaders() }
+    );
     return res.data;
   } catch (err) {
     console.error(`Error al actualizar producto:`, err);
@@ -44,7 +60,7 @@ export const actualizarProducto = async (datosProducto) => {
 export const eliminarProducto = async (id_producto) => {
   try {
     const res = await axios.delete(`${API_URL}/eliminar`, {
-      data: { id_producto }
+      data: { id_producto } , headers: getHeaders()
     });
     return res.data;
   } catch (err) {
