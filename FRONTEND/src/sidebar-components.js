@@ -141,7 +141,7 @@ const _nav = [
   {
     component: CNavItem,
     name: 'Estilistas',
-    to: '/theme/colors',
+    to: '/estilistas/Estilistas',
     icon: <FontAwesomeIcon icon={faCoins} className="nav-icon" />,
   },
 
