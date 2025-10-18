@@ -204,7 +204,7 @@ const Accesorios = () => {
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
-      {/* Título con imagen decorativa */}
+      {/* Título */}
       <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-200 mb-3">
         <div className="flex justify-center items-center mt-6 mb-1 relative">
           

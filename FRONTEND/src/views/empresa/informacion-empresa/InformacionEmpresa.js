@@ -248,7 +248,7 @@ export default function InformacionEmpresa() {
             empresa.telefono_empresa.toLowerCase().includes(globalFilter.toLowerCase()) ||
             empresa.correo_empresa.toLowerCase().includes(globalFilter.toLowerCase())
           ).map((empresa) => (
-          <div key={empresa.id_empresa_pk} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+          <div key={empresa.id_empresa_pk} className="bg-gradient-to-r from-blue-50 to-blue-100 border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <h4 className="font-semibold text-gray-900 mb-2">{empresa.nombre_empresa}</h4>

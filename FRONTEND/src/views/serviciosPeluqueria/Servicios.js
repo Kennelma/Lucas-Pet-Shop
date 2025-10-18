@@ -202,21 +202,15 @@ const Servicios = () => {
         </div>
       ) : (
         <>
-          {/* Título con imagen decorativa */}
-          <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-200 mb-3">
-            <div className="flex justify-center items-center mt-6 mb-1 relative">
-              <div className="absolute left-0 opacity-20">
-                <img 
-                  src="/cat.png" 
-                  alt="Mascota" 
-                  className="w-12 h-12 object-contain"
-                />
-              </div>
-              <h2 className="text-2xl font-black text-center uppercase text-gray-800">
-                Servicios de Peluquería
-              </h2>
-            </div>
-          </div>
+          {/* Título */}
+      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-3 shadow-sm border border-gray-200 mb-3">
+        <div className="flex justify-center items-center mt-6 mb-1 relative">
+          
+          <h2 className="text-2xl font-black text-center uppercase text-gray-800">
+            SERVICIOS DE PELUQUERÍA
+          </h2>
+        </div>
+      </div>
 
           {/* Dashboard de Servicios Favoritos */}
           <ServiciosFavoritos servicios={servicios} />

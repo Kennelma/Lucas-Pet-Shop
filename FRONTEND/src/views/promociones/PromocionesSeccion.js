@@ -62,20 +62,15 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
-      {/* Título con imagen decorativa */}
-      <div className="flex justify-center items-center mb-5 relative">
-        <div className="absolute left-0 opacity-20">
-          <img 
-            src="/cat.png" 
-            alt="Mascota" 
-            className="w-12 h-12 object-contain"
-          />
+      {/* Título */}
+      <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-200 mb-3">
+        <div className="flex justify-center items-center mt-6 mb-1 relative">
+          
+          <h2 className="text-2xl font-black text-center uppercase text-gray-800">
+            Inventario de Alimentos
+          </h2>
         </div>
-        <h2 className="text-2xl font-bold uppercase text-center text-gray-800">
-          Promociones
-        </h2>
       </div>
-
       {/* Barra de búsqueda + botón Nuevo */}
       <div className="flex justify-between items-center mb-6">
         <div className="relative w-80">

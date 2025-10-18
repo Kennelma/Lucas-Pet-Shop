@@ -182,9 +182,14 @@ const Alimentos = () => {
 
   return (
     <div className="p-6 text-sm">
-      {/* Contenedor título separado */}
-      <div className="mb-6">
-        <h2 className="text-center text-lg font-bold uppercase text-gray-800">INVENTARIO DE ALIMENTOS</h2>
+      {/* Título */}
+      <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-3 shadow-sm border border-gray-200 mb-3">
+        <div className="flex justify-center items-center mt-6 mb-1 relative">
+          
+          <h2 className="text-2xl font-black text-center uppercase text-gray-800">
+            Inventario de Alimentos
+          </h2>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
