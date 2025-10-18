@@ -13,7 +13,6 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
     categoria: 'COLLAR', 
     cantidad: 0, 
     precio: 0,
-    stock_minimo: 0,
     sku: '',
     activo: true 
   });
@@ -44,7 +43,6 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
         categoria: (editData.categoria || 'COLLAR').toUpperCase(),
         cantidad: editData.stock || 0,
         precio: editData.precio || 0,
-        stock_minimo: editData.stock_minimo || 0,
         sku: generarSKU(editData.nombre || '', editData.id_producto),
         activo: editData.activo !== undefined ? editData.activo : true
       });
@@ -68,7 +66,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
       const newErrores = { ...prev };
       if (['nombre', 'categoria'].includes(field)) {
         newErrores[field] = val ? '' : 'Campo obligatorio';
-      } else if (['precio', 'cantidad', 'stock_minimo'].includes(field)) {
+      } else if (['precio', 'cantidad'].includes(field)) {
         newErrores[field] = val >= 0 ? '' : 'No puede ser negativo';
       }
       return newErrores;
@@ -81,7 +79,6 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
     if (!data.categoria) temp.categoria = 'Campo obligatorio';
     if (data.precio <= 0) temp.precio = 'Debe ser mayor a 0';
     if (data.cantidad < 0) temp.cantidad = 'No puede ser negativo';
-    if (data.stock_minimo < 0) temp.stock_minimo = 'No puede ser negativo';
 
     setErrores(temp);
     return Object.keys(temp).length === 0;
@@ -97,7 +94,6 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
         nombre_producto: data.nombre,
         tipo_accesorio: data.categoria,
         stock: data.cantidad,
-        stock_minimo: data.stock_minimo,
         precio_producto: data.precio,
         tipo_producto: 'ACCESORIOS',
         sku: data.sku,
@@ -197,8 +193,8 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
           {errores.categoria && <small className="text-red-500">{errores.categoria}</small>}
         </div>
 
-        {/* Precio, Stock y Stock mínimo */}
-        <div className="grid grid-cols-3 gap-2">
+        {/* Precio y Stock */}
+        <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="text-xs font-semibold">Precio</label>
             <InputNumber
@@ -222,17 +218,6 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
               inputClassName="h-8 text-sm"
             />
             {errores.cantidad && <small className="text-red-500">{errores.cantidad}</small>}
-          </div>
-
-          <div>
-            <label className="text-xs font-semibold">Stock mínimo</label>
-            <InputNumber
-              value={data.stock_minimo}
-              onValueChange={(e) => handleChange('stock_minimo', e.value)}
-              className="w-full rounded-xl text-sm mt-1"
-              inputClassName="h-8 text-sm"
-            />
-            {errores.stock_minimo && <small className="text-red-500">{errores.stock_minimo}</small>}
           </div>
         </div>
 
