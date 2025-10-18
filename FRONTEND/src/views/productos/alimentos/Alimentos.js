@@ -1,160 +1,321 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
+import { Button } from 'primereact/button';
+import { InputText } from 'primereact/inputtext';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPenToSquare, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
+
 import ModalNuevoAlimento from './modal_nuevo_alimento';
 import ModalActualizarAlimento from './modal_actualizar_alimento';
-import { verRegistro, insertarRegistro, actualizarRegistro, borrarRegistro } from '../../../services/apiService';
+
+import { verProductos, eliminarProducto, actualizarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
 const Alimentos = () => {
   const [alimentos, setAlimentos] = useState([]);
-  const [editIndex, setEditIndex] = useState(-1);
-  const [busqueda, setBusqueda] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
-  const [mensaje, setMensaje] = useState('');
+  const [filtroGlobal, setFiltroGlobal] = useState('');
   const [loading, setLoading] = useState(true);
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [alimentoEditando, setAlimentoEditando] = useState(null);
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(5);
 
-  const imagenStorage = {
-    guardar: (id, url) => {
-      const imgs = JSON.parse(localStorage.getItem('imagenesAlimentos') || '{}');
-      imgs[id] = url;
-      localStorage.setItem('imagenesAlimentos', JSON.stringify(imgs));
-    },
-    obtener: (id) => JSON.parse(localStorage.getItem('imagenesAlimentos') || '{}')[id] || '',
-    eliminar: (id) => {
-      const imgs = JSON.parse(localStorage.getItem('imagenesAlimentos') || '{}');
-      delete imgs[id];
-      localStorage.setItem('imagenesAlimentos', JSON.stringify(imgs));
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  // Switch para el estado activo
+  const estadoTemplate = (rowData) => {
+    return (
+      <div className="flex items-center justify-center">
+        <label className="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            checked={rowData.activo}
+            onChange={() => actualizarEstadoAlimento(rowData, !rowData.activo)}
+            className="sr-only peer"
+          />
+          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+        </label>
+        <span className={`ml-2 text-xs font-medium ${rowData.activo ? 'text-green-600' : 'text-gray-500'}`}>
+          {rowData.activo ? 'Activo' : 'Inactivo'}
+        </span>
+      </div>
+    );
+  };
+
+  const cargarDatos = async () => {
+    setLoading(true);
+    try {
+      const productos = await verProductos('ALIMENTOS');
+      const normalizados = (productos || []).map((item) => ({
+        id_producto: item.id_producto_pk,
+        nombre: item.nombre_producto,
+        precio: parseFloat(item.precio_producto || 0),
+        stock: parseInt(item.stock || 0),
+        stock_minimo: parseInt(item.stock_minimo || 0),
+        activo: item.activo === 1 || item.activo === '1' ? 1 : 0,
+        destino: item.alimento_destinado || 'No especificado',
+        peso: parseFloat(item.peso_alimento || 0),
+        sku: item.sku || '',
+      }));
+      setAlimentos(normalizados);
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudieron cargar los alimentos',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const mostrarMensaje = (txt) => { setMensaje(txt); setTimeout(() => setMensaje(''), 3000); };
-
-  const cargarAlimentos = async () => {
-    setLoading(true);
-    try {
-      const datos = await verRegistro('tbl_alimentos');
-      setAlimentos(Array.isArray(datos) ? datos.map(item => ({
-        id: item.id_alimento_pk,
-        nombre: item.nombre_alimento,
-        precio: parseFloat(item.precio_alimento),
-        cantidad: item.stock_alimento,
-        destino: item.alimento_destinado,
-        peso: item.peso_alimento,
-        imagenUrl: imagenStorage.obtener(item.id_alimento_pk)
-      })) : []);
-    } catch { mostrarMensaje('Error al cargar alimentos'); setAlimentos([]); }
-    setLoading(false);
+  const abrirModal = (alimento = null) => {
+    setAlimentoEditando(alimento);
+    setModalAbierto(true);
   };
 
-  const guardarAlimento = async ({ nombre, precio, cantidad, destino, peso, imagenUrl }) => {
-    const datosDB = {
-      nombre_alimento: nombre,
-      precio_alimento: parseFloat(precio),
-      stock_alimento: parseInt(cantidad),
-      alimento_destinado: destino,
-      peso_alimento: parseFloat(peso)
-    };
-    try {
-      let resultado;
-      if (editIndex >= 0) {
-        const alimento = alimentos[editIndex];
-        resultado = await actualizarRegistro('tbl_alimentos', alimento.id, datosDB);
-        if (resultado) imagenUrl ? imagenStorage.guardar(alimento.id, imagenUrl) : imagenStorage.eliminar(alimento.id);
-      } else {
-        resultado = await insertarRegistro('tbl_alimentos', datosDB);
-        if (resultado && imagenUrl) {
-          setTimeout(async () => {
-            const datosAct = await verRegistro('tbl_alimentos');
-            const nuevo = datosAct
-              .filter(a => 
-                a.nombre_alimento===nombre &&
-                parseFloat(a.precio_alimento)===parseFloat(precio) &&
-                a.stock_alimento===parseInt(cantidad) &&
-                a.alimento_destinado===destino &&
-                parseFloat(a.peso_alimento)===parseFloat(peso)
-              )
-              .sort((a,b)=>b.id_alimento_pk-a.id_alimento_pk)[0];
-            if (nuevo) imagenStorage.guardar(nuevo.id_alimento_pk, imagenUrl);
-            cargarAlimentos();
-          },1500);
-        }
+  const cerrarModal = () => {
+    setModalAbierto(false);
+    setAlimentoEditando(null);
+  };
+
+  const handleGuardar = async () => {
+    await cargarDatos();
+    cerrarModal();
+  };
+
+  const handleEliminar = async (alimento) => {
+    const result = await Swal.fire({
+      title: '¿Eliminar alimento?',
+      html: `
+        <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
+          <p class="mb-1 text-sm"><span class="font-bold">Nombre:</span> ${alimento.nombre}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Destino:</span> ${alimento.destino}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Precio:</span> L. ${alimento.precio.toFixed(2)}</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Eliminar',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true,
+      width: 380,
+      padding: '16px',
+      customClass: {
+        confirmButton: 'bg-green-800 hover:bg-green-900 text-white p-button p-component',
+        cancelButton: 'p-button-text p-button p-component',
+      },
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const resp = await eliminarProducto(alimento.id_producto);
+        if (resp.Consulta) {
+          Swal.fire({
+            icon: 'success',
+            title: '¡Eliminado!',
+            text: 'El alimento fue eliminado correctamente',
+            timer: 1800,
+            showConfirmButton: false,
+          });
+          await cargarDatos();
+        } else throw new Error(resp.error || 'Error al eliminar');
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.message || 'No se pudo eliminar el alimento',
+        });
       }
-      if (resultado) { mostrarMensaje(`${nombre} ${editIndex>=0?'actualizado':'agregado'} correctamente`); await cargarAlimentos(); setModalVisible(false); setEditIndex(-1); return true; }
-    } catch { mostrarMensaje('Error al guardar'); }
-    return false;
+    }
   };
 
-  const borrarAlimento = async (index) => {
-    const alimento = alimentos[index];
-    if (!window.confirm(`¿Eliminar "${alimento.nombre}"?`)) return;
+  const actualizarEstadoAlimento = async (alimento, nuevoEstado) => {
     try {
-      if (await borrarRegistro('tbl_alimentos', alimento.id)) {
-        imagenStorage.eliminar(alimento.id);
-        mostrarMensaje('Eliminado correctamente');
-        cargarAlimentos();
-      }
-    } catch { mostrarMensaje('Error al eliminar'); }
+      const payload = {
+        id_producto: alimento.id_producto,
+        tipo_producto: 'ALIMENTOS',
+        activo: nuevoEstado ? 1 : 0,
+      };
+
+      const resultado = await actualizarProducto(payload);
+
+      if (resultado.Consulta) {
+        setAlimentos((prev) =>
+          prev.map((a) =>
+            a.id_producto === alimento.id_producto
+              ? { ...a, activo: nuevoEstado ? 1 : 0 }
+              : a
+          )
+        );
+
+        Swal.fire({
+          icon: 'success',
+          title: nuevoEstado ? '¡Alimento Activado!' : '¡Alimento Desactivado!',
+          text: 'Estado actualizado correctamente',
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } else throw new Error(resultado.error || 'Error al actualizar estado');
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'No se pudo actualizar el estado del alimento',
+      });
+    }
   };
 
-  const alimentosFiltrados = alimentos.filter(a => a.nombre.toLowerCase().includes(busqueda.toLowerCase()));
-
-  useEffect(()=>cargarAlimentos(), []);
-
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-12 h-12 border-2 border-gray-300 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
-        <p>Cargando...</p>
-      </div>
-    </div>
+  const filtroAlimentos = alimentos.filter(
+    (a) =>
+      a.nombre.toLowerCase().includes(filtroGlobal.toLowerCase()) ||
+      a.sku.toLowerCase().includes(filtroGlobal.toLowerCase()) ||
+      a.destino.toLowerCase().includes(filtroGlobal.toLowerCase())
   );
 
+  const onPageChange = (e) => {
+    setFirst(e.first);
+    setRows(e.rows);
+  };
+
   return (
-    <div className="min-h-screen p-5 bg-white">
-      <div className="flex justify-between items-center mb-5">
-        <h1 className="text-2xl font-bold">INVENTARIO DE ALIMENTOS</h1>
-        <button onClick={()=>setModalVisible(true)} className="px-4 py-2 bg-purple-600 text-white rounded">+ NUEVO</button>
+    <div className="p-6 text-sm">
+      {/* Contenedor título separado */}
+      <div className="mb-6">
+        <h2 className="text-center text-lg font-bold uppercase text-gray-800">INVENTARIO DE ALIMENTOS</h2>
       </div>
 
-      <div className="mb-6 relative w-80">
-        <input value={busqueda} onChange={e=>setBusqueda(e.target.value)} placeholder="Buscar..." className="w-full px-4 py-2 border rounded-full"/>
-        {busqueda && <button onClick={()=>setBusqueda('')} className="absolute right-3 top-2">×</button>}
-      </div>
-
-      {alimentosFiltrados.length===0 ? (
-        <div className="text-center mt-20 text-gray-500">
-          <div className="text-6xl mb-4">🍲</div>
-          <h3 className="text-xl font-bold mb-2">Sin alimentos</h3>
-          <p>{busqueda ? 'Sin resultados' : 'Agrega el primero'}</p>
+      <div className="bg-white rounded-lg shadow p-6">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-4">
+          <InputText
+            value={filtroGlobal}
+            onChange={(e) => setFiltroGlobal(e.target.value)}
+            placeholder="Buscar alimentos..."
+            className="w-80 text-sm"
+          />
+          <button
+            className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors flex items-center gap-2"
+            onClick={() => abrirModal()}
+          >
+            <FontAwesomeIcon icon={faPlus} />
+            Nuevo Alimento
+          </button>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {alimentosFiltrados.map(a => {
-            const index = alimentos.findIndex(i=>i.id===a.id);
-            return (
-              <div key={a.id} className="bg-gray-100 rounded-lg p-4 relative">
-                <div className="bg-white rounded-lg p-2 mb-4 h-32 flex items-center justify-center overflow-hidden">
-                  {a.imagenUrl ? <img src={a.imagenUrl} alt={a.nombre} className="w-full h-full object-contain"/> : <div className="w-full h-full bg-gray-50"></div>}
-                </div>
-                <div className="text-center mb-8">
-                  <div className="font-bold text-sm mb-1">{a.nombre}</div>
-                  <div className="text-sm text-gray-600 mb-1">{a.destino}</div>
-                  <div className="text-sm text-gray-600 mb-1">Peso: {a.peso} kg</div>
-                  <div className="text-lg font-bold">L.{a.precio.toFixed(0)}</div>
-                  <div className={a.cantidad<5?'text-red-600':'text-gray-600'}>Stock: {a.cantidad}</div>
-                </div>
-                <button onClick={()=>borrarAlimento(index)} className="absolute bottom-2 left-2 p-1">🗑️</button>
-                <button onClick={()=>{setEditIndex(index); setModalVisible(true)}} className="absolute bottom-2 right-2 p-1">⚙️</button>
+
+        {/* Tabla */}
+        <DataTable
+          value={filtroAlimentos}
+          loading={loading}
+          loadingIcon={() => (
+            <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
+              <span>Cargando datos...</span>
+            </div>
+          )}
+          globalFilter={filtroGlobal}
+          globalFilterFields={['nombre', 'sku', 'destino']}
+          showGridlines
+          paginator
+          rows={5}
+          rowsPerPageOptions={[5,10, 15, 20]}
+          paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+          tableStyle={{ minWidth: '50rem' }}
+          className="mt-4"
+          size="small"
+          selectionMode="single"
+          rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
+        >
+          <Column 
+            field="id_producto" 
+            header="ID" 
+            body={(rowData) => filtroAlimentos.indexOf(rowData) + 1} 
+            sortable 
+            className="text-sm"
+          />
+          <Column field="nombre" header="Nombre" sortable className="text-sm" />
+          <Column field="sku" header="SKU" sortable className="text-sm" />
+          <Column field="destino" header="Destino" sortable className="text-sm" />
+          <Column
+            field="peso"
+            header="Peso (kg)"
+            body={(rowData) => `${rowData.peso} kg`}
+            sortable
+            className="text-sm"
+          />
+          <Column
+            field="precio"
+            header="Precio"
+            body={(rowData) => `L. ${rowData.precio.toFixed(2)}`}
+            sortable
+            className="text-sm"
+          />
+          <Column
+            field="stock"
+            header="Stock"
+            body={(rowData) => (
+              <span className={rowData.stock <= rowData.stock_minimo ? 'text-red-500 font-semibold' : ''}>
+                {rowData.stock}
+              </span>
+            )}
+            sortable
+            className="text-sm"
+          />
+          <Column
+            field="activo"
+            header="Estado"
+            body={estadoTemplate}
+            sortable
+            sortField="activo"
+            className="text-sm"
+          />
+          <Column
+            header="Acciones"
+            body={(rowData) => (
+              <div className="flex items-center space-x-2 w-full">
+                <button
+                  className="text-blue-500 hover:text-blue-700 p-2 rounded transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    abrirModal(rowData);
+                  }}
+                >
+                  <FontAwesomeIcon icon={faPenToSquare} size="lg" />
+                </button>
+                <button
+                  className="text-red-500 hover:text-red-700 p-2 rounded transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEliminar(rowData);
+                  }}
+                >
+                  <FontAwesomeIcon icon={faTrash} size="lg" />
+                </button>
               </div>
-            );
-          })}
-        </div>
-      )}
+            )}
+            className="py-2 pr-9 pl-1 border-b text-sm"
+          />
+        </DataTable>
+      </div>
 
-      {modalVisible && (editIndex>=0 ? 
-        <ModalActualizarAlimento isOpen={modalVisible} onClose={()=>{setModalVisible(false); setEditIndex(-1)}} onSave={guardarAlimento} editData={alimentos[editIndex]}/> :
-        <ModalNuevoAlimento isOpen={modalVisible} onClose={()=>{setModalVisible(false); setEditIndex(-1)}} onSave={guardarAlimento}/>
-      )}
-
-      {mensaje && <div className="fixed bottom-5 right-5 px-4 py-2 bg-purple-600 text-white rounded font-bold">{mensaje}</div>}
+      {/* Modal */}
+      {modalAbierto &&
+        (alimentoEditando ? (
+          <ModalActualizarAlimento
+            isOpen={modalAbierto}
+            onClose={cerrarModal}
+            onSave={handleGuardar}
+            editData={alimentoEditando}
+          />
+        ) : (
+          <ModalNuevoAlimento
+            isOpen={modalAbierto}
+            onClose={cerrarModal}
+            onSave={handleGuardar}
+          />
+        ))}
     </div>
   );
 };

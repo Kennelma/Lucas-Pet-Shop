@@ -17,6 +17,7 @@ import {
   faBone,
   faCoins,
   faShower, 
+  faStore,
 } from '@fortawesome/free-solid-svg-icons'
 
 
@@ -43,7 +44,7 @@ const _nav = [
   {
     component: CNavItem,
     name: 'Facturación',
-    to: '/theme/colors',
+    to: '/facturacion',
     icon: <FontAwesomeIcon icon={faDollarSign} className="nav-icon" />,    
    
   },
@@ -56,14 +57,6 @@ const _nav = [
     icon: <FontAwesomeIcon icon={faUsers} className="nav-icon" />,
   },
 
-  
-  //REPORTES
-  {
-    component: CNavItem,
-    name: 'Recordatorios',
-    to: '/recordatorios/Recordatorios',
-    icon: <FontAwesomeIcon icon={faUsers} className="nav-icon" />,
-  },
 
   //GRUPO DE PRODUCTOS EN EL SIDEBAR
   {
@@ -107,42 +100,48 @@ const _nav = [
   {
     component: CNavGroup,
     name: 'Peluqueria Canina',
-    to: '/configuracion',
     icon: <FontAwesomeIcon icon={faCut} className="nav-icon" />,
     items: [
-    
-      {
-        component: CNavItem,
-        name: 'Promociones',
-        style: { paddingLeft: '65px' },
-        icon: <FontAwesomeIcon icon={faShower} className="nav-icon" />,
-         to: '/peluqueria-canina/Promociones',
-        
-      },
       {
         component: CNavItem,
         name: 'Servicios',
         style: { paddingLeft: '65px' },
         icon: <FontAwesomeIcon icon={faShower} className="nav-icon" />,
-         to: '/peluqueria-canina/Servicios',
+         to: '/peluqueria_canina/servicios',
         
       },
+      {
+        component: CNavItem,
+        name: 'Promociones',
+        to: '/peluqueria_canina/promociones',
+        style: { paddingLeft: '65px' },
+        icon: <FontAwesomeIcon icon={faTags} className="nav-icon" />,
+        
+      }, 
     ],
+  },
+
+  //EMPRESA
+  {
+    component: CNavItem,
+    name: 'Empresa y sucursales',
+    icon: <FontAwesomeIcon icon={faStore} className="nav-icon" />,
+    to: '/empresa',    
   },
 
   //RECORDATORIOS
   {
     component: CNavItem,
-    name: 'Reportes',
-    to: '/theme/colors',
+    name: 'Recordatorios',
+    to: '/recordatorios',
     icon: <FontAwesomeIcon icon={faBell} className="nav-icon" />,
   },
 
   //ESTILISTAS Y BONIFICACIONES
   {
     component: CNavItem,
-    name: 'Bonificaciones',
-    to: '/theme/colors',
+    name: 'Estilistas',
+    to: '/estilistas',
     icon: <FontAwesomeIcon icon={faCoins} className="nav-icon" />,
   },
 
@@ -151,21 +150,15 @@ const _nav = [
   {
     component: CNavItem,
     name: 'Reportes',
-    to: '/theme/colors',
+    to: '/reportes',
     icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
    
   },
 
-  //USUARIOS
-  {
-    component: CNavItem,
-    name: 'Usuarios',
-    to: '/',
-    icon: <FontAwesomeIcon icon={faUser} className="nav-icon" />,
-
-  },
+  
  
 
 ]
 
 export default _nav
+
