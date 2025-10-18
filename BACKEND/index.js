@@ -1,20 +1,28 @@
 //Constante para el paquete Express
 const express = require('express');
+const cors = require("cors");
 
 //constante para los metodos de express.
 var  app = express();
 
-//constante para el paquete de bodyparser.
-const bp = require('body-parser');
 
 //IMPORTO LA CONEXION DEL ARCHIVO CORRRESPONDIENTE
 const mysqlConnection = require('./config/conexion'); 
 
-//Enviando los datos de data-form a NODEJS API
+
+//PARA CARGAR LA JWT SECRET DESDE EL ARCHIVO .ENV
+const path = require('path'); 
+require('dotenv').config({ 
+    
+    path: path.resolve(process.cwd(), '..', '.env') 
+}); 
+
+console.log('JWT_SECRET cargado:', process.env.JWT_SECRET);
+
+//PARA QUE EL SERVIDOR PUEDA RECIBIR JSON Y XXWW-FORM-URLENCODED
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
 
-const cors = require("cors");
 
 //Permitir todas las peticiones desde cualquier origen
 app.use(cors());
