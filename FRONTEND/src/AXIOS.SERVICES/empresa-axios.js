@@ -51,7 +51,7 @@ export const insertar = async (entidad, datos) => {
 };
 
 
-// AXIOS.SERVICES/products-axios.js
+//SERVICIO PARA VER DATOS DEL MODULO DE EMPRESA
 export const ver = async (entidad) => {
   try {
     const res = await axios.get(`${API_URL}/ver`,
@@ -74,5 +74,42 @@ export const ver = async (entidad) => {
 
     console.error(`Error al traer ${entidad}:`, err);
     return [];
+  }
+};
+
+
+// ─────────────────────────────────────────────
+// ❌ ELIMINAR REGISTRO (EMPRESA, SUCURSAL, GASTO o USUARIO)
+// ─────────────────────────────────────────────
+export const eliminarRegistro = async (id, entidad) => {
+  try {
+    const response = await axios.delete(`${API_URL}/eliminar`, {
+      data: { id, entidad },
+      headers: getHeaders(),
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error(`Error al eliminar ${entidad}:`, error);
+    throw error;
+  }
+};
+
+
+// ─────────────────────────────────────────────
+// ✏️ ACTUALIZAR REGISTRO (EMPRESA, SUCURSAL, USUARIO o GASTO)
+// ─────────────────────────────────────────────
+export const actualizarRegistro = async (id, entidad, data = {}) => {
+  try {
+    const body = { id, entidad, ...data };
+
+    const response = await axios.put(`${API_URL}/actualizar`, body, {
+      headers: getHeaders(),
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error(`Error al actualizar ${entidad}:`, error);
+    throw error;
   }
 };

@@ -1,48 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DollarSign, AlertTriangle, ChevronLeft, ChevronRight, Package, FileText, TrendingUp, Users } from 'lucide-react';
+import ModalAgregarGasto from './modal_nuevo_gasto';
+import { ver } from '../../AXIOS.SERVICES/empresa-axios'; // servicio para obtener datos
 
 const Dashboard = () => {
-
   const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState(true);
-  
-  //CONSTANTES PARA CERRAR SESIONES
-  const token = sessionStorage.getItem('token')  
-  const usuario = JSON.parse(sessionStorage.getItem('usuario'))  
-  
-  //PROTECCI;ON, SI NO HAY TOKEN DE SESIÓN, LO MANDA AL LOGIN Protección
+  const [expenses, setExpenses] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const token = sessionStorage.getItem('token');  
+  const usuario = JSON.parse(sessionStorage.getItem('usuario'));  
+
   useEffect(() => {
-    if (!token) {
-      navigate('/login')
-    }
-  }, [token, navigate])
-  
-  console.log("Token:", token)
-  console.log("Usuario:", usuario?.nombre)
-  
+    if (!token) navigate('/login');
+  }, [token, navigate]);
+
   const handleLogout = () => {
-    sessionStorage.removeItem('token')  // ⬅️ Cambio
-    sessionStorage.removeItem('usuario')  // ⬅️ Cambio
-    navigate('/login')  // ⬅️ Mejor que window.location.href
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('usuario');
+    navigate('/login');
   }
 
-
-
-  
   // Obtener fecha actual en hora de Honduras (UTC-6)
   const getHondurasDate = () => {
     const now = new Date();
     const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const hondurasTime = new Date(utc + (3600000 * -6));
-    return hondurasTime;
+    return new Date(utc + (3600000 * -6));
   };
 
   const today = getHondurasDate();
   const [currentDate, setCurrentDate] = useState(today);
   const [selectedDate, setSelectedDate] = useState(today.getDate());
-
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
 
@@ -55,20 +46,8 @@ const Dashboard = () => {
     { name: 'Comida - 60Kg', stock: 2, min: 10, price: 'L. 25.00' }
   ];
 
-  const expenses = [
-    { description: 'Compra alimento', amount: 1500 },
-    { description: 'Pago servicios', amount: 800 },
-    { description: 'Mantenimiento', amount: 1200 },
-    { description: 'Vacunas', amount: 2300 }
-  ];
-
-  const prevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
-  };
-
-  const nextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
-  };
+  const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
+  const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
 
   const renderCalendar = () => {
     const days = [];
@@ -78,10 +57,10 @@ const Dashboard = () => {
       const dayNumber = i - firstDayOfMonth + 1;
       const isValidDay = dayNumber > 0 && dayNumber <= daysInMonth;
       const isSelected = isValidDay && dayNumber === selectedDate;
-      const isToday = isValidDay && 
-                      dayNumber === today.getDate() && 
-                      currentDate.getMonth() === today.getMonth() && 
-                      currentDate.getFullYear() === today.getFullYear();
+      const isToday = isValidDay &&
+        dayNumber === today.getDate() &&
+        currentDate.getMonth() === today.getMonth() &&
+        currentDate.getFullYear() === today.getFullYear();
 
       days.push(
         <button
@@ -102,8 +81,37 @@ const Dashboard = () => {
     return days;
   };
 
+  // 🔹 Función para cargar gastos desde la API
+  const cargarGastos = async () => {
+    setIsLoading(true);
+    try {
+      const data = await ver('GASTOS');
+      if (Array.isArray(data)) {
+        const formatted = data.map(item => ({
+          description: item.detalle_gasto,
+          amount: Number(item.monto_gasto),
+        }));
+        setExpenses(formatted);
+      }
+    } catch (err) {
+      console.error("Error al cargar gastos:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    cargarGastos();
+  }, []);
+
+  // 🔹 Recarga gastos desde el modal
+  const recargarGastos = (nuevoGasto) => {
+    cargarGastos();
+  }
+
   return (
     <div className="p-5 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+      {/* --- Aquí va todo tu Dashboard igual --- */}
       {/* Alerta Inventario */}
       <div className="mb-4">
         <div className="bg-white shadow-md rounded-xl border-l-4 border-red-500 p-3 flex items-center">
@@ -121,7 +129,6 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {/* Columna Izquierda Principal */}
         <div className="lg:col-span-3 space-y-4">
           {/* Accesos Directos */}
           <div className="bg-white shadow-md rounded-xl p-4">
@@ -151,28 +158,46 @@ const Dashboard = () => {
           <div className="grid grid-cols-2 gap-4">
             {/* Gastos del Mes */}
             <div className="bg-gradient-to-br from-yellow-50 to-orange-50 shadow-md rounded-xl p-4 border border-orange-200">
-              <h2 className="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
-                <div className="p-1.5 bg-orange-500 rounded-lg">
-                  <DollarSign className="w-4 h-4 text-white" />
-                </div>
-                Gastos del Mes
-              </h2>
-              <div className="space-y-2 mb-3">
-                {expenses.map((expense, idx) => (
-                  <div key={idx} className="flex justify-between items-center py-1.5 px-2 bg-white bg-opacity-60 rounded-lg hover:bg-opacity-100 transition-all">
-                    <span className="text-sm text-gray-700 font-medium">{expense.description}</span>
-                    <span className="text-sm font-bold text-orange-700">L. {expense.amount.toLocaleString()}</span>
+              <div className="flex justify-between items-center mb-2">
+                <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
+                  <div className="p-1.5 bg-orange-500 rounded-lg">
+                    <DollarSign className="w-4 h-4 text-white" />
                   </div>
-                ))}
+                  Gastos del Mes
+                </h2>
+                <button
+                  className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm font-semibold hover:bg-green-600 transition-colors"
+                  onClick={() => setModalVisible(true)}
+                >
+                  Agregar gasto
+                </button>
               </div>
-              <div className="pt-3 border-t-2 border-orange-300 bg-white rounded-lg p-2.5">
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-gray-800 text-sm">Total</span>
-                  <span className="font-bold text-xl text-orange-600">
-                    L. {expenses.reduce((a, b) => a + b.amount, 0).toLocaleString()}
-                  </span>
-                </div>
-              </div>
+
+              {isLoading ? (
+                <p className="text-center text-gray-500 text-sm">Cargando...</p>
+              ) : expenses.length === 0 ? (
+                <p className="text-center text-gray-500 text-sm">No hay gastos registrados.</p>
+              ) : (
+                <>
+                  <div className="space-y-2 mb-3">
+                    {expenses.map((expense, idx) => (
+                      <div key={idx} className="flex justify-between items-center py-1.5 px-2 bg-white bg-opacity-60 rounded-lg hover:bg-opacity-100 transition-all">
+                        <span className="text-sm text-gray-700 font-medium">{expense.description}</span>
+                        <span className="text-sm font-bold text-orange-700">L. {expense.amount.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-3 border-t-2 border-orange-300 bg-white rounded-lg p-2.5">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-gray-800 text-sm">Total</span>
+                      <span className="font-bold text-xl text-orange-600">
+                        L. {expenses.reduce((a, b) => a + b.amount, 0).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Productos de Bajo Stock */}
@@ -203,7 +228,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Columna Derecha - Calendario */}
+        {/* Calendario */}
         <div className="lg:col-span-1">
           <div className="bg-white shadow-md rounded-xl p-4 sticky top-5">
             <div className="flex items-center justify-between mb-3">
@@ -226,12 +251,17 @@ const Dashboard = () => {
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-7 gap-0.5">
-              {renderCalendar()}
-            </div>
+            <div className="grid grid-cols-7 gap-0.5">{renderCalendar()}</div>
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      <ModalAgregarGasto
+        visible={modalVisible}
+        onHide={() => setModalVisible(false)}
+        onRefresh={recargarGastos}
+      />
     </div>
   );
 };
