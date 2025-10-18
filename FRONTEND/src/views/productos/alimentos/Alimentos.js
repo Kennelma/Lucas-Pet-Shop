@@ -4,9 +4,8 @@ import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { InputSwitch } from 'primereact/inputswitch';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faPenToSquare, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
 
 import ModalNuevoAlimento from './modal_nuevo_alimento';
 import ModalActualizarAlimento from './modal_actualizar_alimento';
@@ -25,6 +24,26 @@ const Alimentos = () => {
   useEffect(() => {
     cargarDatos();
   }, []);
+
+  // Switch para el estado activo
+  const estadoTemplate = (rowData) => {
+    return (
+      <div className="flex items-center justify-center">
+        <label className="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            checked={rowData.activo}
+            onChange={() => actualizarEstadoAlimento(rowData, !rowData.activo)}
+            className="sr-only peer"
+          />
+          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+        </label>
+        <span className={`ml-2 text-xs font-medium ${rowData.activo ? 'text-green-600' : 'text-gray-500'}`}>
+          {rowData.activo ? 'Activo' : 'Inactivo'}
+        </span>
+      </div>
+    );
+  };
 
   const cargarDatos = async () => {
     setLoading(true);
@@ -165,7 +184,7 @@ const Alimentos = () => {
     <div className="p-6 text-sm">
       {/* Contenedor título separado */}
       <div className="mb-6">
-        <h1 className="text-center text-xl font-bold uppercase">INVENTARIO DE ALIMENTOS</h1>
+        <h2 className="text-center text-lg font-bold uppercase text-gray-800">INVENTARIO DE ALIMENTOS</h2>
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
@@ -177,43 +196,61 @@ const Alimentos = () => {
             placeholder="Buscar alimentos..."
             className="w-80 text-sm"
           />
-          <Button
-            label="+ Nuevo Alimento"
-            className="bg-green-500 hover:bg-green-600 text-white border-none px-4 py-2"
+          <button
+            className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors flex items-center gap-2"
             onClick={() => abrirModal()}
-          />
+          >
+            <FontAwesomeIcon icon={faPlus} />
+            Nuevo Alimento
+          </button>
         </div>
 
         {/* Tabla */}
         <DataTable
           value={filtroAlimentos}
           loading={loading}
+          loadingIcon={() => (
+            <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
+              <span>Cargando datos...</span>
+            </div>
+          )}
+          globalFilter={filtroGlobal}
+          globalFilterFields={['nombre', 'sku', 'destino']}
+          showGridlines
           paginator
-          rows={rows}
-          first={first}
-          onPage={onPageChange}
-          rowsPerPageOptions={[5, 10, 20]}
-          totalRecords={filtroAlimentos.length}
-          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-          currentPageReportTemplate="({currentPage} of {totalPages})"
-          className="text-sm"
+          rows={10}
+          rowsPerPageOptions={[10, 20, 25]}
+          paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+          tableStyle={{ minWidth: '50rem' }}
+          className="mt-4"
+          size="small"
+          selectionMode="single"
+          rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
         >
-          <Column field="nombre" header="Nombre" sortable />
-          <Column field="sku" header="SKU" sortable />
-          <Column field="destino" header="Destino" sortable />
+          <Column 
+            field="id_producto" 
+            header="ID" 
+            body={(rowData) => filtroAlimentos.indexOf(rowData) + 1} 
+            sortable 
+            className="text-sm"
+          />
+          <Column field="nombre" header="Nombre" sortable className="text-sm" />
+          <Column field="sku" header="SKU" sortable className="text-sm" />
+          <Column field="destino" header="Destino" sortable className="text-sm" />
           <Column
             field="peso"
             header="Peso (kg)"
             body={(rowData) => `${rowData.peso} kg`}
             sortable
-            style={{ width: '100px' }}
+            className="text-sm"
           />
           <Column
             field="precio"
             header="Precio"
             body={(rowData) => `L. ${rowData.precio.toFixed(2)}`}
             sortable
-            style={{ width: '100px' }}
+            className="text-sm"
           />
           <Column
             field="stock"
@@ -224,42 +261,41 @@ const Alimentos = () => {
               </span>
             )}
             sortable
-            style={{ width: '80px' }}
+            className="text-sm"
           />
           <Column
             field="activo"
             header="Estado"
-            body={(rowData) => (
-              <div className="flex items-center gap-2">
-                <InputSwitch
-                  checked={rowData.activo === 1}
-                  onChange={(e) => actualizarEstadoAlimento(rowData, e.value)}
-                  className="p-inputswitch-checked:bg-green-500"
-                />
-                <span>{rowData.activo === 1 ? 'Activo' : 'Inactivo'}</span>
-              </div>
-            )}
-            style={{ width: '120px' }}
+            body={estadoTemplate}
+            sortable
+            sortField="activo"
+            className="text-sm"
           />
           <Column
             header="Acciones"
             body={(rowData) => (
-              <div className="flex gap-1">
+              <div className="flex items-center space-x-2 w-full">
                 <button
-                  className="text-blue-500 hover:text-blue-700 p-2 rounded"
-                  onClick={() => abrirModal(rowData)}
+                  className="text-blue-500 hover:text-blue-700 p-2 rounded transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    abrirModal(rowData);
+                  }}
                 >
                   <FontAwesomeIcon icon={faPenToSquare} size="lg" />
                 </button>
                 <button
-                  className="text-red-500 hover:text-red-700 p-2 rounded"
-                  onClick={() => handleEliminar(rowData)}
+                  className="text-red-500 hover:text-red-700 p-2 rounded transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEliminar(rowData);
+                  }}
                 >
                   <FontAwesomeIcon icon={faTrash} size="lg" />
                 </button>
               </div>
             )}
-            style={{ width: '120px' }}
+            className="py-2 pr-9 pl-1 border-b text-sm"
           />
         </DataTable>
       </div>
