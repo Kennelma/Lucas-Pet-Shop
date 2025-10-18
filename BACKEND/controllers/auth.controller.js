@@ -1,3 +1,4 @@
+require('dotenv').config()
 
 const mysqlConnection = require('../config/conexion');
 
@@ -15,8 +16,8 @@ exports.login = async (req, res) => {
 
     const conn = await mysqlConnection.getConnection();
     
-    const LIMITE_INTENTOS = parseInt(process.env.LIMITE_INTENTOS_LOGIN) || 5; //SE BLOQUEA EL USUARIO SI LO EXCEDE
-    const TIEMPO_BLOQUEO = parseInt(process.env.TIEMPO_BLOQUEO_MINUTOS) || 10; //EL TIEMPO QUE DEBE ESPERAR PARA VOLVER INTENTAR INICIAR SESION
+    const LIMITE_INTENTOS = parseInt(process.env.LIMITE_INTENTOS_LOGIN); //SE BLOQUEA EL USUARIO SI LO EXCEDE
+    const TIEMPO_BLOQUEO = parseInt(process.env.TIEMPO_BLOQUEO_MINUTOS); //EL TIEMPO QUE DEBE ESPERAR PARA VOLVER INTENTAR INICIAR SESION
 
     const { login, password } = req.body;
     

@@ -1,6 +1,11 @@
 //Constante para el maquete MySQL
+const path = require('path');
+require('dotenv').config({
+    path: path.resolve(process.cwd(), '..', '.env') 
+});
+
 const mysql = require('mysql2/promise');
-require('dotenv').config()
+//// console.log("Host de DB cargado:", process.env.DB_HOST);
 
 //CONFIGURACIÓN DE LA CONEXIÓN AL SERVIDOR CON LA BASE DE DATOS
 const mysqlConnection = mysql.createPool({
