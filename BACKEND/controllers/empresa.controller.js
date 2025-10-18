@@ -295,6 +295,7 @@ exports.ver = async (req, res) => {
                         s.nombre_sucursal, 
                         s.direccion_sucursal, 
                         s.telefono_sucursal,
+                        s.id_empresa_fk,
                         e.nombre_empresa
                     FROM tbl_sucursales s
                     JOIN tbl_empresa e ON e.id_empresa_pk = s.id_empresa_fk
@@ -326,7 +327,7 @@ exports.ver = async (req, res) => {
                         id_gasto_pk,
                         detalle_gasto,
                         monto_gasto,
-                        fecha_registro_gasto,
+                        fecha_registro_gasto
                     FROM tbl_gastos`);
                 break;
    
