@@ -121,7 +121,9 @@ const Dashboard = () => {
               Accesos Directos
             </h2>
             <div className="grid grid-cols-3 gap-3">
-              <button className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-sm p-4 rounded-xl flex flex-col items-center justify-center hover:shadow-md hover:scale-105 transition-all group">
+              <button
+              onClick={() => navigate('/facturacion')}
+              className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-sm p-4 rounded-xl flex flex-col items-center justify-center hover:shadow-md hover:scale-105 transition-all group">
                 <FileText className="w-8 h-8 text-blue-600 group-hover:text-blue-700" />
                 <p className="mt-2 text-gray-700 font-semibold text-xs">Facturación</p>
               </button>
