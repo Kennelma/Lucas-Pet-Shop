@@ -453,7 +453,7 @@ exports.ver = async (req, res) => {
                     INNER JOIN tbl_productos p ON m.id_producto_fk = p.id_producto_pk
                     ORDER BY l.id_lote_medicamentos_pk DESC`
                 );
-                break;
+                break;   
 
             default:
                 throw new Error('TIPO DE PRODUCTO NO VALIDO');
