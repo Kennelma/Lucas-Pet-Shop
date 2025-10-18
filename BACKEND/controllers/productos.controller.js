@@ -13,8 +13,12 @@ const TIPOS_PRODUCTOS = {
 
 //ESTOS ATRIBUTOS SON COMUNES PARA TODOS LOS ENDPOINT
 function insert_atributos_padre (body) {
+<<<<<<< HEAD
+    return[
+=======
 
     return [
+>>>>>>> 458c1e1eeec30f8d97d53a932b30fadf676e3eda
         body.nombre_producto,
         body.precio_producto,
         body.stock,
@@ -37,6 +41,73 @@ exports.crear = async (req, res) => {
         
         await conn.beginTransaction(); //INICIO LA TRANSACCIÓN
 
+        // ╔═══════════════════════════════════════════════════════╗
+        // ║  CASO ESPECIAL: AGREGAR LOTE A MEDICAMENTO EXISTENTE  ║
+        // ╚═══════════════════════════════════════════════════════╝
+        if (req.body.tipo_producto === 'LOTES') {
+            
+            console.log('🔍 Insertando lote adicional...');
+            console.log('📦 id_producto recibido:', req.body.id_producto);
+            
+            // OBTENGO EL MEDICAMENTO FK DESDE PRODUCTOS
+            const [medicamento] = await conn.query(
+                `SELECT id_medicamento_pk 
+                FROM tbl_medicamentos_info 
+                WHERE id_producto_fk = ?`,
+                [req.body.id_producto]
+            );
+            
+            if (!medicamento || medicamento.length === 0) {
+                throw new Error('No se encontró el medicamento asociado al producto');
+            }
+            
+            // GUARDA EN UNA VARIABLE ESA FK DE MEDICAMENTOS
+            const id_med_fk = medicamento[0].id_medicamento_pk;
+            console.log('✅ id_medicamento_fk encontrado:', id_med_fk);
+            
+            // INSERTO EL LOTE CORRESPONDIENTE A ESE MEDICAMENTO
+            await conn.query(
+                `INSERT INTO tbl_lotes_medicamentos(
+                    codigo_lote, 
+                    fecha_ingreso,
+                    fecha_vencimiento, 
+                    stock_lote, 
+                    id_medicamento_fk
+                ) VALUES (?, ?, ?, ?, ?)`,
+                [
+                    req.body.codigo_lote,
+                    req.body.fecha_ingreso || new Date().toISOString().split('T')[0],
+                    req.body.fecha_vencimiento,
+                    req.body.stock_lote,
+                    id_med_fk
+                ]
+            );
+            
+            console.log('✅ Lote insertado correctamente');
+            
+            // ⭐ SUMAR EL STOCK DEL NUEVO LOTE AL STOCK TOTAL DEL PRODUCTO
+            await conn.query(
+                `UPDATE tbl_productos 
+                SET stock = stock + ? 
+                WHERE id_producto_pk = ?`,
+                [
+                    parseInt(req.body.stock_lote),
+                    req.body.id_producto
+                ]
+            );
+            
+            console.log('✅ Stock del producto actualizado');
+            
+            await conn.commit();
+            return res.json({
+                Consulta: true,
+                mensaje: 'Lote agregado y stock actualizado con éxito'
+            });
+        }
+
+        // ╔═══════════════════════════════════════════════════════╗
+        // ║       RESTO DE CASOS: CREAR PRODUCTO NUEVO            ║
+        // ╚═══════════════════════════════════════════════════════╝
 
         //SE LLENA LA TABLA PADRE PRIMERO
         const [result] = await conn.query(
@@ -48,12 +119,11 @@ exports.crear = async (req, res) => {
         //OBTENGO EL ID DEL PRODUCTO INSERTADO
         const id_producto = result.insertId;
 
-
         switch (req.body.tipo_producto) {
 
             case 'ACCESORIOS':
                 
-                const [accesorio] = await conn.query (
+                const [accesorio] = await conn.query(
                     `INSERT INTO tbl_accesorios_info (tipo_accesorio, id_producto_fk) VALUES (?, ?)`,
                     [
                         req.body.tipo_accesorio, 
@@ -63,7 +133,7 @@ exports.crear = async (req, res) => {
             
             case 'ANIMALES':
                 
-                const [animal] = await conn.query (
+                const [animal] = await conn.query(
                     `INSERT INTO tbl_animales_info (especie, sexo, id_producto_fk) VALUES (?, ?, ?)`,
                     [
                         req.body.especie,
@@ -74,7 +144,7 @@ exports.crear = async (req, res) => {
 
             case 'ALIMENTOS':
 
-                const [alimento] = await conn.query (
+                const [alimento] = await conn.query(
                     `INSERT INTO tbl_alimentos_info (alimento_destinado, peso_alimento, id_producto_fk)
                      VALUES (?,?,?)`,
                     [
@@ -86,10 +156,20 @@ exports.crear = async (req, res) => {
 
             case 'MEDICAMENTOS':
 
-                const [medicamentos] = await conn.query (
+<<<<<<< HEAD
+                const [medicamentos] = await conn.query(
                     `INSERT INTO tbl_medicamentos_info (presentacion_medicamento, tipo_medicamento, cantidad_contenido, 
                                                         unidad_medida, id_producto_fk) 
                                                         VALUES (?,?,?,?,?)`,
+=======
+                const [medicamentos] = await conn.query (
+                    `INSERT INTO tbl_medicamentos_info (
+                    presentacion_medicamento, 
+                    tipo_medicamento, 
+                    cantidad_contenido, 
+                    unidad_medida, id_producto_fk) 
+                     VALUES (?,?,?,?,?)`,
+>>>>>>> 458c1e1eeec30f8d97d53a932b30fadf676e3eda
                     [
                         req.body.presentacion_medicamento,
                         req.body.tipo_medicamento,
@@ -98,11 +178,20 @@ exports.crear = async (req, res) => {
                         id_producto
                     ]);
 
-                    //OBTENGO EL ID DEL MEDICAMENTO PARA PODER INGRESAR EL PRIMER LOTE
-                    const id_medicamento = medicamentos.insertId;
+                // OBTENGO EL ID DEL MEDICAMENTO PARA PODER INGRESAR EL PRIMER LOTE
+                const id_medicamento = medicamentos.insertId;
 
+<<<<<<< HEAD
+                const [lote] = await conn.query(
+                    `INSERT INTO tbl_lotes_medicamentos (codigo_lote, fecha_ingreso, fecha_vencimiento, stock_lote, id_medicamento_fk)
+                    VALUES (?, ?, ?, ?, ?)`,
+=======
                     const [lote] = await conn.query(
-                        `INSERT INTO tbl_lotes_medicamentos (codigo_lote, fecha_vencimiento, stock_lote, id_medicamento_fk)
+                        `INSERT INTO tbl_lotes_medicamentos (
+                        codigo_lote, 
+                        fecha_vencimiento, 
+                        stock_lote, 
+                        id_medicamento_fk)
                         VALUES (?, ?, ?, ?)`,
                         [
                             req.body.codigo_lote,
@@ -135,30 +224,31 @@ exports.crear = async (req, res) => {
                         stock_lote, 
                         id_medicamento_fk
                     ) VALUES (?, ?, ?, ?)`,
+>>>>>>> 458c1e1eeec30f8d97d53a932b30fadf676e3eda
                     [
                         req.body.codigo_lote,
+                        req.body.fecha_ingreso || new Date().toISOString().split('T')[0],
                         req.body.fecha_vencimiento,
                         req.body.stock_lote,
-                        id_med_fk
+                        id_medicamento
                     ]
                 );
-                
-            break;
+                break;
 
             default:
                throw new Error('Tipo de producto no válido');
         }
 
         await conn.commit(); //CONFIRMO LA TRANSACCIÓN
-        res.json ({
+        res.json({
             Consulta: true,
             mensaje: 'Registro realizado con éxito',
         });
 
-
     } catch (err) {
         await conn.rollback(); //REVIERTO LA CONSULTA SI HAY ERROR
-        res.json ({
+        console.error('❌ Error en crear:', err);
+        res.json({
             Consulta: false,
             error: err.message
         });
@@ -177,8 +267,12 @@ exports.crear = async (req, res) => {
 
 //ATRIBUTOS COMUNES EN LOS REGISTROS, MEDIANTE LOS SP, SE PUEDE ACTUALIZAR O VARIOS ATRIBUTOS
 function update_atributos_padre (body) {
+<<<<<<< HEAD
+    return[
+=======
 
     return [
+>>>>>>> 458c1e1eeec30f8d97d53a932b30fadf676e3eda
         body.nombre_producto || null,
         body.precio_producto || null ,
         body.sku || null,
@@ -186,7 +280,6 @@ function update_atributos_padre (body) {
         body.stock_minimo || null,
         body.activo !== undefined ? body.activo : null,
     ];
-    
 }
 
 exports.actualizar = async (req, res) => {
@@ -196,7 +289,6 @@ exports.actualizar = async (req, res) => {
     try {
 
         await conn.beginTransaction();
-
 
         const { id_producto, tipo_producto } = req.body;
 
@@ -213,8 +305,6 @@ exports.actualizar = async (req, res) => {
             WHERE id_producto_pk = ?`, 
             [...update_atributos_padre(req.body), id_producto]
         );
-        
-        
 
         switch (tipo_producto) {
             
@@ -285,22 +375,25 @@ exports.actualizar = async (req, res) => {
                 `UPDATE tbl_lotes_medicamentos
                 SET 
                     codigo_lote       = COALESCE(?, codigo_lote),
+                    fecha_ingreso     = COALESCE(?, fecha_ingreso),
                     fecha_vencimiento = COALESCE(?, fecha_vencimiento),
                     stock_lote        = COALESCE(?, stock_lote)
                 WHERE id_lote_medicamentos_pk = ?`,
                 [
                     req.body.codigo_lote || null,
+                    req.body.fecha_ingreso || null,
                     req.body.fecha_vencimiento || null,
                     req.body.stock_lote || null,
                     req.body.id_lote_medicamentos_pk
                 ]);
+                break;
 
             default:
                 throw new Error('Tipo de producto no válido');
         }
 
         await conn.commit(); //CONFIRMO LA TRANSACCIÓN
-        res.json ({
+        res.json({
             Consulta: true,
             mensaje: 'Registro actualizado con éxito',
             id_producto
@@ -308,7 +401,7 @@ exports.actualizar = async (req, res) => {
 
     } catch (err) {
         await conn.rollback(); //REVIERTO LA CONSULTA SI HAY ERROR
-        res.json ({
+        res.json({
             Consulta: false,
             error: err.message
         });
@@ -333,7 +426,6 @@ exports.ver = async (req, res) => {
         
 
         switch (req.query.tipo_producto) {
-
 
             case 'ACCESORIOS':
                 [registros] = await conn.query(
@@ -403,7 +495,7 @@ exports.ver = async (req, res) => {
                     FROM tbl_productos p
                     INNER JOIN tbl_medicamentos_info m 
                         ON p.id_producto_pk = m.id_producto_fk
-                        ORDER BY p.id_producto_pk DESC`);
+                    ORDER BY p.id_producto_pk DESC`);
                 break;
 
             case 'LOTES':
@@ -415,13 +507,15 @@ exports.ver = async (req, res) => {
                         l.fecha_vencimiento,
                         l.stock_lote,
                         l.estado_lote_fk,
-                        m.id_medicamento_pk
+                        m.id_medicamento_pk,
+                        m.id_producto_fk,        
+                        p.nombre_producto       
                     FROM tbl_lotes_medicamentos l
                     INNER JOIN tbl_medicamentos_info m ON l.id_medicamento_fk = m.id_medicamento_pk
-                    INNER JOIN tbl_productos p ON m.id_producto_fk = p.id_producto_pk`
+                    INNER JOIN tbl_productos p ON m.id_producto_fk = p.id_producto_pk
+                    ORDER BY l.id_lote_medicamentos_pk DESC`
                 );
-                break;
-    
+                break;   
 
             default:
                 throw new Error('TIPO DE PRODUCTO NO VALIDO');
