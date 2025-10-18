@@ -87,8 +87,8 @@ export default function Usuarios() {
         loading={loading}
         showGridlines
         paginator
-        rows={5}
-        rowsPerPageOptions={[5, 10, 20, 25]}
+        rows={10}
+        rowsPerPageOptions={[10, 20, 25]}
         paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
         tableStyle={{ minWidth: '50rem' }}
         className="mt-4"

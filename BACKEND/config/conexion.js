@@ -1,13 +1,19 @@
 //Constante para el maquete MySQL
+const path = require('path');
+require('dotenv').config({
+    path: path.resolve(process.cwd(), '..', '.env') 
+});
+
 const mysql = require('mysql2/promise');
+console.log("Host de DB cargado:", process.env.DB_HOST);
 
 //CONFIGURACIÓN DE LA CONEXIÓN AL SERVIDOR CON LA BASE DE DATOS
 const mysqlConnection = mysql.createPool({
-    host: 'mysql-implementacion.mysql.database.azure.com',
-    user: 'administrador',
-    password: 'Lucaspetshop.',
-    port: 3306,
-    database: 'db_lucas_pet_shop',
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     multipleStatements: true,
     ssl: {
         rejectUnauthorized: false 

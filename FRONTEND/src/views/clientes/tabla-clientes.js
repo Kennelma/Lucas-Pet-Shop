@@ -20,7 +20,6 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
     const [openModal, setOpenModal] = useState(false);
     const [openModalActualizar, setOpenModalActualizar] = useState(false); 
     const [clienteAEditar, setClienteAEditar] = useState(null);
-    const [globalFilter, setGlobalFilter] = useState('');
 
     //CONSTANTES PARA LA ELIMINACION DE CLIENTES
     const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
@@ -121,55 +120,31 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
         <>
             <Toast ref={toast} position="top-center" />
 
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
-                {/* Barra de búsqueda + botón Nuevo */}
-                <div className="flex justify-between items-center mb-6">
-                    <div className="relative w-80">
-                        <input
-                            value={globalFilter}
-                            onChange={(e) => setGlobalFilter(e.target.value)}
-                            placeholder="Buscar clientes..."
-                            className="w-full px-4 py-2 border rounded-full"
-                        />
-                        {globalFilter && (
-                            <button
-                                onClick={() => setGlobalFilter('')}
-                                className="absolute right-3 top-2 text-gray-500"
-                            >
-                                ×
-                            </button>
-                        )}
+            <div className="bg-white border border-gray-300 rounded-xl p-6 max-w-5xl mx-auto font-poppins">
+                <div className="flex justify-between items-center mb-4">
+                    <div className="w-full text-center text-lg font-bold">
+                        REGISTRO DE CLIENTES
                     </div>
-                    <button className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors flex items-center gap-2"
+                    <button className="bg-green-800 text-white px-3 py-1 text-sm rounded hover:bg-green-800"
                         onClick={handleAgregarCliente}>
                         <FontAwesomeIcon icon={faUserPlus} />
-                        Nuevo Cliente
                     </button>
                 </div>
 
                 <DataTable
                     value={clientes}
                     loading={loading}
-                    loadingIcon={() => (
-                        <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
-                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
-                            <span>Cargando clientes...</span>
-                        </div>
-                    )}
-                    globalFilter={globalFilter}
-                    globalFilterFields={['nombre_cliente', 'apellido_cliente', 'identidad_cliente', 'telefono_cliente']}
                     showGridlines
                     paginator
                     rows={5}
-                    rowsPerPageOptions={[5, 10, 20, 25]}
+                    rowsPerPageOptions={[5, 10, 15]}
                     paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
                     tableStyle={{ minWidth: '50rem' }}
-                    className="mt-4"
+                    className="font-poppins datatable-gridlines"
                     size="small"
                     selectionMode="single"
                     onRowClick={(e) => setClienteSeleccionado(e.data)}
-                    rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
-                    emptyMessage="No se encontraron clientes"
+                    rowClassName={() => 'hover:bg-gray-100 cursor-pointer'}
                 >
                     <Column field="id_cliente_pk" header="ID" body={(rowData) => clientes.indexOf(rowData) + 1} sortable className="text-sm"/>
                     <Column field="nombre_cliente" header="Nombre" sortable className="text-sm" />
