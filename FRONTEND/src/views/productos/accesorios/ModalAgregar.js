@@ -13,7 +13,6 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
     categoria: '',
     precio: 0,
     cantidad: 0,
-    stock_minimo: 0,
     sku: ''
   });
 
@@ -44,7 +43,6 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
         categoria: '',
         precio: 0,
         cantidad: 0,
-        stock_minimo: 0,
         sku: ''
       });
       setErrores({});
@@ -63,10 +61,14 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
     // Validación en tiempo real
     setErrores(prev => {
       const newErrores = { ...prev };
-      if (['nombre', 'categoria'].includes(field)) {
-        newErrores[field] = val ? '' : 'Campo obligatorio';
-      } else if (['precio', 'cantidad', 'stock_minimo'].includes(field)) {
-        newErrores[field] = val >= 0 ? '' : 'No puede ser negativo';
+      if (field === 'nombre') {
+        newErrores[field] = val.trim() ? '' : 'El nombre es obligatorio';
+      } else if (field === 'categoria') {
+        newErrores[field] = val ? '' : 'Selecciona una categoría';
+      } else if (field === 'precio') {
+        newErrores[field] = val > 0 ? '' : 'El precio debe ser mayor a 0';
+      } else if (field === 'cantidad') {
+        newErrores[field] = val > 0 ? '' : 'El stock debe ser mayor a 0';
       }
       return newErrores;
     });
@@ -74,18 +76,37 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
 
   const validarDatos = () => {
     let temp = {};
-    if (!data.nombre?.trim()) temp.nombre = 'Campo obligatorio';
-    if (!data.categoria) temp.categoria = 'Campo obligatorio';
-    if (data.precio <= 0) temp.precio = 'Debe ser mayor a 0';
-    if (data.cantidad < 0) temp.cantidad = 'No puede ser negativo';
-    if (data.stock_minimo < 0) temp.stock_minimo = 'No puede ser negativo';
+    
+    if (!data.nombre?.trim()) {
+      temp.nombre = 'El nombre es obligatorio';
+    }
+    
+    if (!data.categoria) {
+      temp.categoria = 'Selecciona una categoría';
+    }
+    
+    if (data.precio <= 0) {
+      temp.precio = 'El precio debe ser mayor a 0';
+    }
+    
+    if (data.cantidad <= 0) {
+      temp.cantidad = 'El stock debe ser mayor a 0';
+    }
 
     setErrores(temp);
     return Object.keys(temp).length === 0;
   };
 
   const handleSubmit = async () => {
-    if (!validarDatos()) return;
+    if (!validarDatos()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos incompletos',
+        text: 'Por favor completa todos los campos requeridos',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
 
     setLoading(true);
     try {
@@ -93,7 +114,6 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
         nombre_producto: data.nombre,
         precio_producto: data.precio,
         stock: data.cantidad,
-        stock_minimo: data.stock_minimo,
         tipo_producto: 'ACCESORIOS',
         tipo_accesorio: data.categoria,
         sku: data.sku,
@@ -120,7 +140,6 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
           categoria: '',
           precio: 0,
           cantidad: 0,
-          stock_minimo: 0,
           sku: ''
         });
         
@@ -147,6 +166,17 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
     }
   };
 
+  // Verificar si todos los campos están completos
+  const isFormValid = () => {
+    return (
+      data.nombre.trim() !== '' &&
+      data.categoria !== '' &&
+      data.precio > 0 &&
+      data.cantidad > 0 &&
+      Object.keys(errores).every(key => !errores[key])
+    );
+  };
+
   const footer = (
     <div className="flex justify-end gap-3 mt-2">
       <Button
@@ -162,6 +192,7 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
         className="p-button-success p-button-rounded"
         onClick={handleSubmit}
         loading={loading}
+        disabled={!isFormValid()}
       />
     </div>
   );
@@ -180,72 +211,81 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
     >
       <div className="flex flex-col gap-2 mt-1 text-sm">
         {/* Nombre */}
-        <label className="text-xs font-semibold">Nombre</label>
+        <label className="text-xs font-semibold">
+          Nombre <span className="text-red-500">*</span>
+        </label>
         <InputText
           value={data.nombre}
           onChange={(e) => handleChange('nombre', e.target.value)}
-          className="w-full rounded-xl h-9 text-sm"
+          className={`w-full rounded-xl h-9 text-sm ${errores.nombre ? 'p-invalid' : ''}`}
+          placeholder="Ingresa el nombre del producto"
         />
         {errores.nombre && <small className="text-red-500">{errores.nombre}</small>}
 
         {/* SKU */}
-        <label className="text-xs font-semibold">SKU</label>
+        <label className="text-xs font-semibold">SKU (Auto-generado)</label>
         <InputText
           value={data.sku}
           readOnly
           className="w-full rounded-xl h-9 text-sm bg-gray-100"
+          placeholder="Se generará automáticamente"
         />
 
         {/* Categoría */}
         <div>
-          <label className="text-xs font-semibold">Categoría</label>
+          <label className="text-xs font-semibold">
+            Categoría <span className="text-red-500">*</span>
+          </label>
           <Dropdown
             value={data.categoria}
             options={categorias}
             onChange={(e) => handleChange('categoria', e.value)}
-            className="w-full rounded-xl text-sm mt-1"
-            placeholder="Seleccionar"
+            className={`w-full rounded-xl text-sm mt-1 ${errores.categoria ? 'p-invalid' : ''}`}
+            placeholder="Seleccionar categoría"
           />
           {errores.categoria && <small className="text-red-500">{errores.categoria}</small>}
         </div>
 
-        {/* Precio, Stock y Stock mínimo */}
-        <div className="grid grid-cols-3 gap-2">
+        {/* Precio y Stock */}
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs font-semibold">Precio (L.)</label>
+            <label className="text-xs font-semibold">
+              Precio (L.) <span className="text-red-500">*</span>
+            </label>
             <InputNumber
               value={data.precio}
               onValueChange={(e) => handleChange('precio', e.value)}
               mode="currency"
               currency="HNL"
               locale="es-HN"
-              className="w-full rounded-xl text-sm mt-1"
+              className={`w-full rounded-xl text-sm mt-1 ${errores.precio ? 'p-invalid' : ''}`}
               inputClassName="h-9 text-sm"
+              placeholder="0.00"
+              min={0}
             />
             {errores.precio && <small className="text-red-500">{errores.precio}</small>}
           </div>
 
           <div>
-            <label className="text-xs font-semibold">Stock</label>
+            <label className="text-xs font-semibold">
+              Stock <span className="text-red-500">*</span>
+            </label>
             <InputNumber
               value={data.cantidad}
               onValueChange={(e) => handleChange('cantidad', e.value)}
-              className="w-full rounded-xl text-sm mt-1"
+              className={`w-full rounded-xl text-sm mt-1 ${errores.cantidad ? 'p-invalid' : ''}`}
               inputClassName="h-9 text-sm"
+              placeholder="0"
+              min={0}
             />
             {errores.cantidad && <small className="text-red-500">{errores.cantidad}</small>}
           </div>
+        </div>
 
-          <div>
-            <label className="text-xs font-semibold">Stock mínimo</label>
-            <InputNumber
-              value={data.stock_minimo}
-              onValueChange={(e) => handleChange('stock_minimo', e.value)}
-              className="w-full rounded-xl text-sm mt-1"
-              inputClassName="h-9 text-sm"
-            />
-            {errores.stock_minimo && <small className="text-red-500">{errores.stock_minimo}</small>}
-          </div>
+        {/* Nota informativa */}
+        <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+          <i className="pi pi-info-circle mr-1"></i>
+          Los campos marcados con <span className="text-red-500">*</span> son obligatorios
         </div>
       </div>
     </Dialog>
