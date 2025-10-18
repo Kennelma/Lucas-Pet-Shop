@@ -14,7 +14,6 @@ import {
   verProductos,
   eliminarProducto,
   actualizarProducto,
-  insertarProducto,
 } from "../../../AXIOS.SERVICES/products-axios";
 
 const Accesorios = () => {
@@ -88,25 +87,8 @@ const Accesorios = () => {
   };
 
   const handleGuardar = async () => {
-    console.log("handleGuardar ejecutándose...");
-    try {
-      await cargarDatos();
-      cerrarModal();
-      Swal.fire({
-        icon: "success",
-        title: "¡Guardado!",
-        text: "Los cambios se guardaron correctamente",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-    } catch (error) {
-      console.error("Error en handleGuardar:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Hubo un problema al guardar los cambios",
-      });
-    }
+    await cargarDatos();
+    cerrarModal();
   };
 
   const handleEliminar = async (accesorio) => {
@@ -246,8 +228,8 @@ const Accesorios = () => {
           globalFilterFields={['nombre', 'sku', 'categoria']}
           showGridlines
           paginator
-          rows={10}
-          rowsPerPageOptions={[10, 20, 25]}
+          rows={5}
+          rowsPerPageOptions={[5,10, 15, 20]}
           paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
           tableStyle={{ minWidth: '50rem' }}
           className="mt-4"
