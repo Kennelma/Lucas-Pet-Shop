@@ -107,7 +107,11 @@ exports.crear = async (req, res) => {
 
         //SE LLENA LA TABLA PADRE PRIMERO
         const [result] = await conn.query(
-            `INSERT INTO tbl_productos (nombre_producto, precio_producto, stock, tipo_producto_fk)
+            `INSERT INTO tbl_productos (
+            nombre_producto, 
+            precio_producto, 
+            stock,
+             tipo_producto_fk)
              VALUES (?, ?, ?, ?)`,
             insert_atributos_padre(req.body)
         );
@@ -167,7 +171,7 @@ exports.crear = async (req, res) => {
                         id_producto
                     ]);
 
-                // OBTENGO EL ID DEL MEDICAMENTO PARA PODER INGRESAR EL PRIMER LOTE
+                //OBTENGO EL ID DEL MEDICAMENTO PARA PODER INGRESAR EL PRIMER LOTE
                 const id_medicamento = medicamentos.insertId;
 
                     const [lote] = await conn.query(
@@ -210,10 +214,9 @@ exports.crear = async (req, res) => {
                     ) VALUES (?, ?, ?, ?)`,
                     [
                         req.body.codigo_lote,
-                        req.body.fecha_ingreso || new Date().toISOString().split('T')[0],
                         req.body.fecha_vencimiento,
                         req.body.stock_lote,
-                        id_medicamento
+                        id_med_fk
                     ]
                 );
                 break;
@@ -230,7 +233,7 @@ exports.crear = async (req, res) => {
 
     } catch (err) {
         await conn.rollback(); //REVIERTO LA CONSULTA SI HAY ERROR
-        console.error('❌ Error en crear:', err);
+        console.error('ERROR AL CREAR EL ', err);
         res.json({
             Consulta: false,
             error: err.message
