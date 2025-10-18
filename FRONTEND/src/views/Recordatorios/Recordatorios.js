@@ -168,11 +168,10 @@ const Recordatorios = () => {
 
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen p-6 bg-gray-50">
        {/* Título */}
-      <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-3 shadow-sm border border-gray-200 mb-3">
-        <div className="flex justify-center items-center mt-6 mb-1 relative">
-          
+      <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
+        <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
             RECORDATORIOS
           </h2>
@@ -180,42 +179,44 @@ const Recordatorios = () => {
       </div>
 
       {/* Barra de búsqueda + botón Nuevo */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="relative w-80">
-          <input
-            value={globalFilter}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            placeholder="Buscar recordatorios..."
-            className="w-full px-4 py-2 border rounded-full"
-            style={{ borderRadius: '9999px' }}
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
+        <div className="flex justify-between items-center mb-6">
+          <div className="relative w-80">
+            <input
+              value={globalFilter}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              placeholder="Buscar recordatorios..."
+              className="w-full px-4 py-2 border rounded-full"
+              style={{ borderRadius: '9999px' }}
+            />
+            {globalFilter && (
+              <button
+                onClick={() => setGlobalFilter('')}
+                className="absolute right-3 top-2 text-gray-500"
+              >
+                ×
+              </button>
+            )}
+          </div>
+
+          <BotonAgregar 
+            onClick={() => abrirModal()}
+            loading={loading}
           />
-          {globalFilter && (
-            <button
-              onClick={() => setGlobalFilter('')}
-              className="absolute right-3 top-2 text-gray-500"
-            >
-              ×
-            </button>
-          )}
         </div>
 
-        <BotonAgregar 
-          onClick={() => abrirModal()}
+        {/* Componente de tabla modular */}
+        <TablaRecordatorios 
+          recordatorios={recordatorios}
           loading={loading}
+          globalFilter={globalFilter}
+          tiposItems={tiposItems}
+          frecuencias={frecuencias}
+          estadosProgramacion={estadosProgramacion}
+          onEdit={abrirModal}
+          onDelete={cargarTodo}
         />
       </div>
-
-      {/* Componente de tabla modular */}
-      <TablaRecordatorios 
-        recordatorios={recordatorios}
-        loading={loading}
-        globalFilter={globalFilter}
-        tiposItems={tiposItems}
-        frecuencias={frecuencias}
-        estadosProgramacion={estadosProgramacion}
-        onEdit={abrirModal}
-        onDelete={cargarTodo}
-      />
 
       {/* Componente de modal modular */}
       <ModalAgregar 

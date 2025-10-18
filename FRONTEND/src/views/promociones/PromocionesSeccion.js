@@ -61,16 +61,17 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
   };
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
+    <>
       {/* Título */}
-      <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-200 mb-3">
-        <div className="flex justify-center items-center mt-6 mb-1 relative">
-          
+      <div className="bg-gradient-to-r from-pink-50 to-rose-100 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
+        <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
-            Inventario de Alimentos
+            GESTIÓN DE PROMOCIONES
           </h2>
         </div>
       </div>
+
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
       {/* Barra de búsqueda + botón Nuevo */}
       <div className="flex justify-between items-center mb-6">
         <div className="relative w-80">
@@ -130,8 +131,8 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
           globalFilterFields={['id_promocion_pk', 'nombre_promocion', 'descripcion_promocion', 'precio_promocion', 'dias_promocion']}
           showGridlines
           paginator
-          rows={10}
-          rowsPerPageOptions={[10, 20, 25]}
+          rows={5}
+          rowsPerPageOptions={[5, 10, 20, 25]}
           paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
           tableStyle={{ minWidth: '50rem' }}
           className="mt-4"
@@ -183,7 +184,8 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
         </DataTable>
         </>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 

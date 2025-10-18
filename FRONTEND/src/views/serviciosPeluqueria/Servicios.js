@@ -203,9 +203,8 @@ const Servicios = () => {
       ) : (
         <>
           {/* Título */}
-      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-3 shadow-sm border border-gray-200 mb-3">
-        <div className="flex justify-center items-center mt-6 mb-1 relative">
-          
+      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
+        <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
             SERVICIOS DE PELUQUERÍA
           </h2>
