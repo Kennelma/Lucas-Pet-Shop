@@ -228,8 +228,8 @@ const Accesorios = () => {
           globalFilterFields={['nombre', 'sku', 'categoria']}
           showGridlines
           paginator
-          rows={10}
-          rowsPerPageOptions={[10, 20, 25]}
+          rows={5}
+          rowsPerPageOptions={[5,10, 15, 20]}
           paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
           tableStyle={{ minWidth: '50rem' }}
           className="mt-4"
