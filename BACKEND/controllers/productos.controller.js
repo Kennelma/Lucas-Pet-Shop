@@ -13,12 +13,8 @@ const TIPOS_PRODUCTOS = {
 
 //ESTOS ATRIBUTOS SON COMUNES PARA TODOS LOS ENDPOINT
 function insert_atributos_padre (body) {
-<<<<<<< HEAD
-    return[
-=======
 
     return [
->>>>>>> 458c1e1eeec30f8d97d53a932b30fadf676e3eda
         body.nombre_producto,
         body.precio_producto,
         body.stock,
@@ -156,12 +152,6 @@ exports.crear = async (req, res) => {
 
             case 'MEDICAMENTOS':
 
-<<<<<<< HEAD
-                const [medicamentos] = await conn.query(
-                    `INSERT INTO tbl_medicamentos_info (presentacion_medicamento, tipo_medicamento, cantidad_contenido, 
-                                                        unidad_medida, id_producto_fk) 
-                                                        VALUES (?,?,?,?,?)`,
-=======
                 const [medicamentos] = await conn.query (
                     `INSERT INTO tbl_medicamentos_info (
                     presentacion_medicamento, 
@@ -169,7 +159,6 @@ exports.crear = async (req, res) => {
                     cantidad_contenido, 
                     unidad_medida, id_producto_fk) 
                      VALUES (?,?,?,?,?)`,
->>>>>>> 458c1e1eeec30f8d97d53a932b30fadf676e3eda
                     [
                         req.body.presentacion_medicamento,
                         req.body.tipo_medicamento,
@@ -181,11 +170,6 @@ exports.crear = async (req, res) => {
                 // OBTENGO EL ID DEL MEDICAMENTO PARA PODER INGRESAR EL PRIMER LOTE
                 const id_medicamento = medicamentos.insertId;
 
-<<<<<<< HEAD
-                const [lote] = await conn.query(
-                    `INSERT INTO tbl_lotes_medicamentos (codigo_lote, fecha_ingreso, fecha_vencimiento, stock_lote, id_medicamento_fk)
-                    VALUES (?, ?, ?, ?, ?)`,
-=======
                     const [lote] = await conn.query(
                         `INSERT INTO tbl_lotes_medicamentos (
                         codigo_lote, 
@@ -224,7 +208,6 @@ exports.crear = async (req, res) => {
                         stock_lote, 
                         id_medicamento_fk
                     ) VALUES (?, ?, ?, ?)`,
->>>>>>> 458c1e1eeec30f8d97d53a932b30fadf676e3eda
                     [
                         req.body.codigo_lote,
                         req.body.fecha_ingreso || new Date().toISOString().split('T')[0],
@@ -267,12 +250,8 @@ exports.crear = async (req, res) => {
 
 //ATRIBUTOS COMUNES EN LOS REGISTROS, MEDIANTE LOS SP, SE PUEDE ACTUALIZAR O VARIOS ATRIBUTOS
 function update_atributos_padre (body) {
-<<<<<<< HEAD
-    return[
-=======
 
     return [
->>>>>>> 458c1e1eeec30f8d97d53a932b30fadf676e3eda
         body.nombre_producto || null,
         body.precio_producto || null ,
         body.sku || null,
