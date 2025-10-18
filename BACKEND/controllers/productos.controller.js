@@ -28,82 +28,14 @@ function insert_atributos_padre (body) {
 // ─────────────────────────────────────────────────────────
 exports.crear = async (req, res) => {
 
-    console.log('req.body:', req.body);
-    console.log('req.files:', req.files);
+    // console.log('req.body:', req.body);
+    // console.log('req.files:', req.files);
 
     const conn = await mysqlConnection.getConnection();    
 
     try {
         
         await conn.beginTransaction(); //INICIO LA TRANSACCIÓN
-
-        // ╔═══════════════════════════════════════════════════════╗
-        // ║  CASO ESPECIAL: AGREGAR LOTE A MEDICAMENTO EXISTENTE  ║
-        // ╚═══════════════════════════════════════════════════════╝
-        if (req.body.tipo_producto === 'LOTES') {
-            
-            console.log('🔍 Insertando lote adicional...');
-            console.log('📦 id_producto recibido:', req.body.id_producto);
-            
-            // OBTENGO EL MEDICAMENTO FK DESDE PRODUCTOS
-            const [medicamento] = await conn.query(
-                `SELECT id_medicamento_pk 
-                FROM tbl_medicamentos_info 
-                WHERE id_producto_fk = ?`,
-                [req.body.id_producto]
-            );
-            
-            if (!medicamento || medicamento.length === 0) {
-                throw new Error('No se encontró el medicamento asociado al producto');
-            }
-            
-            // GUARDA EN UNA VARIABLE ESA FK DE MEDICAMENTOS
-            const id_med_fk = medicamento[0].id_medicamento_pk;
-            console.log('✅ id_medicamento_fk encontrado:', id_med_fk);
-            
-            // INSERTO EL LOTE CORRESPONDIENTE A ESE MEDICAMENTO
-            await conn.query(
-                `INSERT INTO tbl_lotes_medicamentos(
-                    codigo_lote, 
-                    fecha_ingreso,
-                    fecha_vencimiento, 
-                    stock_lote, 
-                    id_medicamento_fk
-                ) VALUES (?, ?, ?, ?, ?)`,
-                [
-                    req.body.codigo_lote,
-                    req.body.fecha_ingreso || new Date().toISOString().split('T')[0],
-                    req.body.fecha_vencimiento,
-                    req.body.stock_lote,
-                    id_med_fk
-                ]
-            );
-            
-            console.log('✅ Lote insertado correctamente');
-            
-            // ⭐ SUMAR EL STOCK DEL NUEVO LOTE AL STOCK TOTAL DEL PRODUCTO
-            await conn.query(
-                `UPDATE tbl_productos 
-                SET stock = stock + ? 
-                WHERE id_producto_pk = ?`,
-                [
-                    parseInt(req.body.stock_lote),
-                    req.body.id_producto
-                ]
-            );
-            
-            console.log('✅ Stock del producto actualizado');
-            
-            await conn.commit();
-            return res.json({
-                Consulta: true,
-                mensaje: 'Lote agregado y stock actualizado con éxito'
-            });
-        }
-
-        // ╔═══════════════════════════════════════════════════════╗
-        // ║       RESTO DE CASOS: CREAR PRODUCTO NUEVO            ║
-        // ╚═══════════════════════════════════════════════════════╝
 
         //SE LLENA LA TABLA PADRE PRIMERO
         const [result] = await conn.query(

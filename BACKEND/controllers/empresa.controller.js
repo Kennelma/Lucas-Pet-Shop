@@ -2,9 +2,7 @@
 
 const express = require('express');
 const mysqlConnection = require('../config/conexion');
-//const bcrypt = require('bcrypt');
 const argon2 = require('argon2');
-
 
 
 // ─────────────────────────────────────────────────────────
