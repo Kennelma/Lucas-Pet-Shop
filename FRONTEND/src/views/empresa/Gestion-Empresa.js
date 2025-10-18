@@ -7,7 +7,7 @@ import Sucursales from './sucursales/Sucursales';
 import Usuarios from './usuarios/Usuarios';
 
 export default function Empresa() {
-  const [tabActiva, setTabActiva] = useState('');
+  const [tabActiva, setTabActiva] = useState('EMPRESA');
 
   const tabs = [
     { id: 'EMPRESA', nombre: 'EMPRESA', icono: faBuilding },
@@ -32,8 +32,9 @@ export default function Empresa() {
                 className={`flex-1 px-6 py-4 text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
                   tabActiva === tab.id
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-50'
+                    : 'text-gray-600'
                 }`}
+                style={tabActiva !== tab.id ? {backgroundColor: '#f0f4f8'} : {}}
               >
                 <FontAwesomeIcon icon={tab.icono} className="w-5 h-5" />
                 {tab.nombre}
@@ -41,7 +42,7 @@ export default function Empresa() {
             ))}
           </div>
 
-          <div className="p-6">
+          <div className="p-6" style={{backgroundColor: '#f0f4f8'}}>
             {tabActiva === 'EMPRESA' && <InformacionEmpresa />}
             {tabActiva === 'SUCURSALES' && <Sucursales />}
             {tabActiva === 'USUARIOS' && <Usuarios />}

@@ -1193,6 +1193,7 @@ const Medicamentos = () => {
   return (
     <div className="min-h-screen p-5 bg-gray-50">
       <div className="flex justify-between items-center mb-5">
+<<<<<<< HEAD
         <h1 className="text-2xl font-bold">INVENTARIO DE MEDICAMENTOS</h1>
         <div className="flex gap-2">
           <button
@@ -1212,6 +1213,15 @@ const Medicamentos = () => {
 
       <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm">
         <span className="font-bold">📊 Estado:</span> {medicamentos.length} medicamentos, {lotes.length} lotes cargados
+=======
+        <h2 className="text-lg font-bold text-gray-800">GESTIÓN DE MEDICAMENTOS</h2>
+        <button
+          onClick={() => setModalVisible(true)}
+          className="px-4 py-2 bg-purple-600 text-white rounded font-semibold hover:bg-purple-700"
+        >
+          + NUEVO MEDICAMENTO
+        </button>
+>>>>>>> 458c1e1eeec30f8d97d53a932b30fadf676e3eda
       </div>
 
       <div className="flex gap-2 mb-6">

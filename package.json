@@ -23,6 +23,7 @@
     "vite": "^7.1.4"
   },
   "dependencies": {
+    "@adiwajshing/baileys": "^5.0.0",
     "@coreui/chartjs": "^4.0.0",
     "@coreui/icons": "^3.0.1",
     "@coreui/icons-react": "^2.3.0",
