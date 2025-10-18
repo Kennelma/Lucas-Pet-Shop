@@ -12,8 +12,8 @@ const Promociones = React.lazy(() => import('./views/promociones/Promociones'))
 const Servicios = React.lazy(() => import('./views/serviciosPeluqueria/Servicios'))
 const Recordatorios = React.lazy(() => import('./views/recordatorios/Recordatorios'))
 const Empresa = React.lazy(() => import('./views/empresa/Gestion-Empresa'))
-
-
+const Estilistas = React.lazy(() => import('./views/estilistas/Estilistas'))
+const Reportes = React.lazy(() => import('./views/reportes/Reportes'))
 const routes = [
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/clientes', name: 'Clientes', element: Clientes },
@@ -24,8 +24,9 @@ const routes = [
   { path: '/peluqueria_canina/promociones', name: 'Peluquería Canina / Promociones', element: Promociones },
   { path: '/peluqueria_canina/servicios', name: 'Peluquería Canina / Servicios', element: Servicios },
   { path: '/recordatorios', name: 'Recordatorios', element: Recordatorios },
-  { path: '/empresa', name: 'Empresa y Sucursales', element: Empresa }
-
+  { path: '/empresa', name: 'Empresa y Sucursales', element: Empresa },
+  {path: '/estilistas/Estilistas', name: 'Estilistas / Estilistas', element: Estilistas },
+  {path: '/reportes', name: 'Reportes', element: Reportes },
 ]
 
 export default routes
