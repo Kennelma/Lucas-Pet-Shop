@@ -111,22 +111,6 @@ const Dashboard = () => {
 
   return (
     <div className="p-5 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
-      {/* --- Aquí va todo tu Dashboard igual --- */}
-      {/* Alerta Inventario */}
-      <div className="mb-4">
-        <div className="bg-white shadow-md rounded-xl border-l-4 border-red-500 p-3 flex items-center">
-          <div className="flex-1">
-            <p className="text-xs text-gray-600 font-semibold flex items-center gap-2">
-              <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
-              Alerta Inventario
-            </p>
-            <p className="text-sm text-gray-800 mt-0.5">Medicamento Simparica LOTE1 está por vencerse.</p>
-          </div>
-          <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
-            INVENTARIO
-          </span>
-        </div>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <div className="lg:col-span-3 space-y-4">
@@ -137,11 +121,15 @@ const Dashboard = () => {
               Accesos Directos
             </h2>
             <div className="grid grid-cols-3 gap-3">
-              <button className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-sm p-4 rounded-xl flex flex-col items-center justify-center hover:shadow-md hover:scale-105 transition-all group">
+              <button
+              onClick={() => navigate('/facturacion')}
+              className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-sm p-4 rounded-xl flex flex-col items-center justify-center hover:shadow-md hover:scale-105 transition-all group">
                 <FileText className="w-8 h-8 text-blue-600 group-hover:text-blue-700" />
                 <p className="mt-2 text-gray-700 font-semibold text-xs">Facturación</p>
               </button>
-              <button className="bg-gradient-to-br from-purple-50 to-purple-100 shadow-sm p-4 rounded-xl flex flex-col items-center justify-center hover:shadow-md hover:scale-105 transition-all group">
+              <button 
+               onClick={() => navigate('/reportes')}
+              className="bg-gradient-to-br from-purple-50 to-purple-100 shadow-sm p-4 rounded-xl flex flex-col items-center justify-center hover:shadow-md hover:scale-105 transition-all group">
                 <TrendingUp className="w-8 h-8 text-purple-600 group-hover:text-purple-700" />
                 <p className="mt-2 text-gray-700 font-semibold text-xs">Reportes</p>
               </button>
