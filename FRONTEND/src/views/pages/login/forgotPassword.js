@@ -1,22 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai'; 
-// Asegúrate de que esta ruta de importación sea correcta
 import { solicitarCodigoReseteo, resetearContrasena } from '../../../AXIOS.SERVICES/auth-axios.js'; 
 
 const ForgotPassword = () => {
     const navigate = useNavigate();
     
-    // Estados principales
+    //ESTADOS
     const [message, setMessage] = useState('');
     const [alertType, setAlertType] = useState('info');
     const [loading, setLoading] = useState(false);
     
-    // Lógica multi-paso
+    //LOGICA DE PASOS
     const [step, setStep] = useState(1); // 1: Solicitar Email, 2: Resetear con Código
     const [idUsuario, setIdUsuario] = useState(null); // Para guardar el ID devuelto por el servidor
     
-    // Inputs del formulario
+    //INPUTS
     const [email, setEmail] = useState('');
     const [codigoOTP, setCodigoOTP] = useState('');
     const [nuevaContrasena, setNuevaContrasena] = useState('');
@@ -38,13 +37,12 @@ const ForgotPassword = () => {
             setMessage(data.message);
             setAlertType('success');
             
-            // Éxito: Guardamos el ID de usuario para el siguiente paso y avanzamos
+            //SE GUARDA EL ID USUARIO PARA EL SIGUIENTE PASO
             setIdUsuario(data.idUsuario);
             setStep(2);
         } else {
-            // Nota: El backend envía una respuesta genérica (casi siempre 'success' true) por seguridad, 
-            // pero si falla la conexión, este es el manejo
-            setMessage(data?.message || '⚠️ Se envió una solicitud. Revise su correo.');
+            
+            setMessage(data?.message || '⚠️ SE ENVIO UNA SOLICITUD. REVISE SU CORREO.');
             setAlertType('warning');
         }
         
@@ -72,13 +70,15 @@ const ForgotPassword = () => {
             setMessage(data.message + ' Redirigiendo al login...');
             setAlertType('success');
             
-            // Reset exitoso, redirigimos al login
+            //SI SE RESETEA, REDIRIGE AL LOGIN AUTOMATICAMENTE 
             setTimeout(() => {
                 navigate('/');
             }, 3000);
+
+
         } else {
             // Error: código incorrecto, expirado, etc.
-            setMessage(data?.message || '❌ Error al restablecer. Solicite un nuevo código.');
+            setMessage(data?.message || 'ERROR AL RESTABLECER LA CONTRASEÑA SOLICITE UN NUEVO CÓDIGO.');
             setAlertType('danger');
         }
 
@@ -113,7 +113,7 @@ const ForgotPassword = () => {
                 {/* --- PASO 1: SOLICITAR CÓDIGO --- */}
                 {step === 1 && (
                     <form onSubmit={handleSolicitarCodigo} className="space-y-4">
-                        <p className="text-gray-600 text-sm">Ingresa el correo asociado a tu cuenta.</p>
+                        <p className="text-gray-600 text-center text-sm">Ingresa el correo asociado a tu cuenta.</p>
                         <input
                             type="email"
                             placeholder="Correo Electrónico"
@@ -135,7 +135,7 @@ const ForgotPassword = () => {
                 {/* --- PASO 2: RESETEAR CONTRASEÑA --- */}
                 {step === 2 && (
                     <form onSubmit={handleResetearContrasena} className="space-y-4">
-                        <p className="text-gray-600 text-sm">Ingresa el código que te enviamos y tu nueva contraseña.</p>
+                        <p className="text-gray-600 text-center text-sm">Ingresa el código que te enviamos y tu nueva contraseña.</p>
 
                         <input
                             type="text"
@@ -169,7 +169,7 @@ const ForgotPassword = () => {
                             disabled={loading}
                             className="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
                         >
-                            {loading ? 'Restableciendo...' : 'Restablecer Contraseña'}
+                            {loading ? 'Restableciendo...' : 'Restablecer contraseña'}
                         </button>
                         
                         <button

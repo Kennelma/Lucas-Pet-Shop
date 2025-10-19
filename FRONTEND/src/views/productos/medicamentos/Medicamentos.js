@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { verProductos, insertarProducto, actualizarProducto, eliminarProducto } from "../../../AXIOS.SERVICES/products-axios";
+import MedicamentosBajoStock from "./MedicamentosBajoStock";
 
 const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando }) => {
   const [paso, setPaso] = useState(1);
@@ -1014,7 +1015,7 @@ const Medicamentos = () => {
           return (
             <div 
               key={med.id_producto_pk} 
-              className={`rounded-lg shadow-md p-6 pb-14 relative min-h-[280px] ${
+              className={`rounded-lg shadow-md p-4 pb-12 relative min-h-[150px] ${
                 med.activo 
                   ? 'bg-white border-2 border-purple-200' 
                   : 'bg-gray-100 opacity-70 border-2 border-gray-300'
@@ -1191,85 +1192,115 @@ const Medicamentos = () => {
   };
 
   return (
-    <div className="min-h-screen p-5 bg-gray-50">
-      <div className="flex justify-between items-center mb-5">
-        <h2 className="text-lg font-bold text-gray-800">GESTIÓN DE MEDICAMENTOS</h2>
+    <div className="min-h-screen p-6 bg-gray-50">
+      {/* Título */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
+        <div className="flex justify-center items-center">
+          <h2 className="text-2xl font-black text-center uppercase text-gray-800">
+            GESTIÓN DE MEDICAMENTOS
+          </h2>
+        </div>
+      </div>
+
+      {/* Componente de Medicamentos Bajo Stock */}
+      <MedicamentosBajoStock medicamentos={medicamentos} />
+
+      {/* Barra superior con buscador y botón nuevo */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+        <div className="relative w-full md:w-96">
+          <input
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="🔍 Buscar medicamentos, lotes..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          />
+          {busqueda && (
+            <button
+              onClick={() => setBusqueda("")}
+              className="absolute right-3 top-2 text-xl hover:text-red-600 transition-colors"
+            >
+              ×
+            </button>
+          )}
+        </div>
+        
         <button
           onClick={() => setModalVisible(true)}
-          className="px-4 py-2 bg-purple-600 text-white rounded font-semibold hover:bg-purple-700"
+          className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors shadow-sm whitespace-nowrap"
         >
           + NUEVO MEDICAMENTO
         </button>
       </div>
 
+      {/* Botones de navegación */}
       <div className="flex gap-2 mb-6">
         <button
           onClick={() => setVistaActual("medicamentos")}
-          className={`px-4 py-2 rounded font-semibold ${
+          className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
             vistaActual === "medicamentos" 
-              ? "bg-purple-600 text-white" 
-              : "bg-white text-gray-700 border"
+              ? "bg-purple-600 text-white shadow-sm" 
+              : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
           }`}
         >
           💊 Medicamentos
         </button>
         <button
           onClick={() => setVistaActual("lotes")}
-          className={`px-4 py-2 rounded font-semibold ${
+          className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
             vistaActual === "lotes" 
-              ? "bg-purple-600 text-white" 
-              : "bg-white text-gray-700 border"
+              ? "bg-purple-600 text-white shadow-sm" 
+              : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
           }`}
         >
           📦 Lotes
         </button>
       </div>
 
+      {/* Filtros para lotes */}
       {vistaActual === "lotes" && (
-        <div className="mb-4 flex gap-2">
+        <div className="mb-6 flex flex-wrap gap-2">
           <button
             onClick={() => setFiltroEstado("todos")}
-            className={`px-3 py-1 rounded ${filtroEstado === "todos" ? 'bg-purple-600 text-white' : 'bg-gray-200'}`}
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              filtroEstado === "todos" 
+                ? 'bg-purple-600 text-white shadow-sm' 
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
           >
             Todos
           </button>
           <button
             onClick={() => setFiltroEstado("activos")}
-            className={`px-3 py-1 rounded ${filtroEstado === "activos" ? 'bg-green-600 text-white' : 'bg-gray-200'}`}
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              filtroEstado === "activos" 
+                ? 'bg-green-600 text-white shadow-sm' 
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
           >
             Vigentes
           </button>
           <button
             onClick={() => setFiltroEstado("por-vencer")}
-            className={`px-3 py-1 rounded ${filtroEstado === "por-vencer" ? 'bg-orange-600 text-white' : 'bg-gray-200'}`}
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              filtroEstado === "por-vencer" 
+                ? 'bg-orange-600 text-white shadow-sm' 
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
           >
             Por Vencer
           </button>
           <button
             onClick={() => setFiltroEstado("vencidos")}
-            className={`px-3 py-1 rounded ${filtroEstado === "vencidos" ? 'bg-red-600 text-white' : 'bg-gray-200'}`}
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              filtroEstado === "vencidos" 
+                ? 'bg-red-600 text-white shadow-sm' 
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
           >
             Vencidos
           </button>
         </div>
       )}
-
-      <div className="mb-6 relative w-96">
-        <input
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          placeholder="🔍 Buscar medicamentos, lotes..."
-          className="w-full px-4 py-2 border rounded-full"
-        />
-        {busqueda && (
-          <button
-            onClick={() => setBusqueda("")}
-            className="absolute right-3 top-2 text-xl hover:text-red-600"
-          >
-            ×
-          </button>
-        )}
-      </div>
 
       {vistaActual === "medicamentos" && renderMedicamentos()}
       {vistaActual === "lotes" && renderLotes()}

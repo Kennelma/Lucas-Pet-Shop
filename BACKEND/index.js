@@ -13,11 +13,10 @@ const mysqlConnection = require('./config/conexion');
 //PARA CARGAR LA JWT SECRET DESDE EL ARCHIVO .ENV
 const path = require('path'); 
 require('dotenv').config({ 
-    
-    path: path.resolve(process.cwd(), '..', '.env') 
+    path: path.resolve(process.cwd(), '..', '.env'),
+    debug: false,
+    silent: true
 }); 
-
-console.log('JWT_SECRET cargado:', process.env.JWT_SECRET);
 
 //PARA QUE EL SERVIDOR PUEDA RECIBIR JSON Y XXWW-FORM-URLENCODED
 app.use(express.json());
