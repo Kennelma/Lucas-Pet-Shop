@@ -1,3 +1,4 @@
+require('dotenv').config()
 
 const mysqlConnection = require('../config/conexion');
 
@@ -15,8 +16,8 @@ exports.login = async (req, res) => {
 
     const conn = await mysqlConnection.getConnection();
     
-    const LIMITE_INTENTOS = parseInt(process.env.LIMITE_INTENTOS_LOGIN) || 5; //SE BLOQUEA EL USUARIO SI LO EXCEDE
-    const TIEMPO_BLOQUEO = parseInt(process.env.TIEMPO_BLOQUEO_MINUTOS) || 10; //EL TIEMPO QUE DEBE ESPERAR PARA VOLVER INTENTAR INICIAR SESION
+    const LIMITE_INTENTOS = parseInt(process.env.LIMITE_INTENTOS_LOGIN); //SE BLOQUEA EL USUARIO SI LO EXCEDE
+    const TIEMPO_BLOQUEO = parseInt(process.env.TIEMPO_BLOQUEO_MINUTOS); //EL TIEMPO QUE DEBE ESPERAR PARA VOLVER INTENTAR INICIAR SESION
 
     const { login, password } = req.body;
     
@@ -89,14 +90,7 @@ exports.login = async (req, res) => {
         let estado; 
 
         switch (true) {
-
-            case !user:
-                //SI EL USUARIO NO ESTÁ DENTRO DEL SISTEMA
-                estado = 401;
-                mensaje = '❌USUARIO INEXISTENTE EN EL SISTEMA';
-                break;
-
-                //SI EL USUARIO ESTÁ DENTRO DEL SISTEMA, PERO INACTIVO 
+            //SI EL USUARIO ESTÁ DENTRO DEL SISTEMA, PERO INACTIVO 
             case user.nombre_estado !== 'ACTIVO':
                 estado = 403;
                 mensaje = '⚠️USUARIO INACTIVO, CONSULTE CON EL ADMINISTRADOR'
@@ -141,7 +135,7 @@ exports.login = async (req, res) => {
                         );
                         
                         estado = 401;
-                        mensaje = `⚠️ CREDENCIALES INVÁLIDAS (Intento ${nuevosIntentos} de ${LIMITE_INTENTOS})`;
+                        mensaje = `⚠️CREDENCIALES INCORRECTAS\n(Intento ${nuevosIntentos}/${LIMITE_INTENTOS})`;
                         break;
 
                     }
