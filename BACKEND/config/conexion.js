@@ -2,7 +2,7 @@
 const path = require('path');
 
 require('dotenv').config({
-    path: path.resolve(process.cwd(), '..', '.env.example') 
+    path: path.resolve(process.cwd(), '..', '.env') 
 });
 
 const mysql = require('mysql2/promise');
