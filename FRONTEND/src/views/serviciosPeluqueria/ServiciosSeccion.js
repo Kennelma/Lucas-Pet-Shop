@@ -127,8 +127,8 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
             globalFilterFields={['id_servicio_peluqueria_pk', 'nombre_servicio_peluqueria', 'descripcion_servicio', 'precio_servicio', 'duracion_estimada', 'requisitos']}
             showGridlines
             paginator
-            rows={10}
-            rowsPerPageOptions={[10, 20, 25]}
+            rows={5}
+            rowsPerPageOptions={[5, 10, 20, 25]}
             paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
             tableStyle={{ minWidth: '50rem' }}
             className="mt-4"
