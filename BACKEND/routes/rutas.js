@@ -12,12 +12,19 @@ const productos = require('../controllers/productos.controller');
 const servicios = require('../controllers/peluqueria.controller');
 const empresa = require('../controllers/empresa.controller');
 const recordatorios = require('../controllers/recordatorios.controller');
-
+const estilistas = require('../controllers/empleados.controller');
 
 //========== RUTAS DE AUTENTICACIÓN Y SEGURIDAD ==========
 router.post('/login', auth.login);
 router.post('/solicitar-reset', auth.solicitarCodigoReset);
 router.post('/resetear-contrasena', auth.resetearConCodigo);
+
+//========== RUTAS DE MÓDULO DE PRODUCTOS ==========
+router.post('/productos/insertar', verificarToken, productos.crear);
+router.put('/productos/actualizar', verificarToken, productos.actualizar);
+router.delete('/productos/eliminar', verificarToken, productos.eliminar);
+router.get('/productos/ver', verificarToken, productos.ver);
+router.get('/productos/verCatalogo', verificarToken, productos.verCatalogo);
 
 
 //========== RUTAS DE SERVICIOS PELUQUERIA Y PROMOCIONES ==========
@@ -26,11 +33,6 @@ router.put('/servicios-peluqueria/actualizar',verificarToken, servicios.actualiz
 router.get('/servicios-peluqueria/ver', verificarToken, servicios.visualizar);
 router.delete('/servicios-peluqueria/eliminar', verificarToken, servicios.eliminar);
 
-//========== RUTAS DE MÓDULO DE PRODUCTOS ==========
-router.post('/productos/insertar', verificarToken, productos.crear);
-router.put('/productos/actualizar', verificarToken, productos.actualizar);
-router.delete ('/productos/eliminar', verificarToken, productos.eliminar);
-router.get ('/productos/ver',  productos.ver)
 
 //========== RUTAS DE MÓDULO DE CLIENTES ==========
 router.get ('/clientes/ver', verificarToken, clientes.ver)
@@ -54,6 +56,16 @@ router.put('/empresa/actualizar', verificarToken, empresa.actualizar);
 //========== RUTAS DE REPORTES ==========
 
 
+
+//========== RUTAS DE NOTIFICACIONES ==========
+
+
+
+//========== RUTAS DE ESTILISTAS ==========
+router.post('/estilistas/insertar', verificarToken, estilistas.crear);
+router.get ('/estilistas/ver', verificarToken, estilistas.ver);
+router.put('/estilistas/actualizar', verificarToken, estilistas.actualizar);
+router.delete ('/estilistas/eliminar', verificarToken, estilistas.eliminar);
 
 
 //========== RUTAS DE RECORDATORIOS ==========
