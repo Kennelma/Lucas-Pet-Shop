@@ -70,7 +70,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
 
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
+    <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
       {/* Barra de búsqueda + botón Nuevo */}
       <div className="flex justify-between items-center mb-6">
         <div className="relative w-80">
