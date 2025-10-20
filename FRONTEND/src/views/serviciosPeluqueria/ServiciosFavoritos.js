@@ -90,7 +90,7 @@ const ServiciosFavoritos = ({ servicios = [] }) => {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-6 border border-gray-200 mb-6">
+    <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
       <div className="flex justify-between items-center mb-4">
         <div className="flex flex-col items-center justify-center flex-1 text-center">
           <h className="text-xl font-bold text-gray-800 mb-1">FAVORITOS</h>

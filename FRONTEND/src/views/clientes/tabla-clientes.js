@@ -30,10 +30,12 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                console.log('Obteniendo clientes...');
                 const data = await verClientes();
+                console.log('Datos obtenidos:', data);
                 setClientes(data);
             } catch (error) {
-                console.error(error);
+                console.error('Error al obtener clientes:', error);
             } finally {
                 setLoading(false);
             }
@@ -120,39 +122,43 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
         <>
             <Toast ref={toast} position="top-center" />
 
-            <div className="bg-white border border-gray-300 rounded-xl p-6 max-w-5xl mx-auto font-poppins">
-                <div className="flex justify-between items-center mb-4">
-                    <div className="w-full text-center text-lg font-bold">
-                        REGISTRO DE CLIENTES
-                    </div>
-                    <button className="bg-green-800 text-white px-3 py-1 text-sm rounded hover:bg-green-800"
+            <div className="bg-white rounded-xl p-6 max-w-5xl mx-auto font-poppins" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+                <div className="flex justify-end items-center mb-4">
+                    <button className="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-800"
                         onClick={handleAgregarCliente}>
                         <FontAwesomeIcon icon={faUserPlus} />
                     </button>
                 </div>
 
-                <DataTable
-                    value={clientes}
-                    loading={loading}
-                    showGridlines
-                    paginator
-                    rows={5}
-                    rowsPerPageOptions={[5, 10, 15]}
-                    paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-                    tableStyle={{ minWidth: '50rem' }}
-                    className="font-poppins datatable-gridlines"
-                    size="small"
-                    selectionMode="single"
-                    onRowClick={(e) => setClienteSeleccionado(e.data)}
-                    rowClassName={() => 'hover:bg-gray-100 cursor-pointer'}
-                >
-                    <Column field="id_cliente_pk" header="ID" body={(rowData) => clientes.indexOf(rowData) + 1} sortable className="text-sm"/>
-                    <Column field="nombre_cliente" header="Nombre" sortable className="text-sm" />
-                    <Column field="apellido_cliente" header="Apellido" sortable className="text-sm" />
-                    <Column field="identidad_cliente" header="Identidad" className="text-sm" />
-                    <Column field="telefono_cliente" header="Teléfono" className="text-sm" />
-                    <Column header="Acciones" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm" />
-                </DataTable>
+                {clientes.length === 0 && !loading ? (
+                    <div className="text-center py-8">
+                        <p className="text-gray-500 text-lg">No hay clientes registrados</p>
+                        <p className="text-gray-400 text-sm mt-2">Haz clic en el botón + para agregar tu primer cliente</p>
+                    </div>
+                ) : (
+                    <DataTable
+                        value={clientes}
+                        loading={loading}
+                        showGridlines
+                        paginator
+                        rows={5}
+                        rowsPerPageOptions={[5, 10, 15]}
+                        paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+                        tableStyle={{ minWidth: '50rem' }}
+                        className="font-poppins datatable-gridlines"
+                        size="small"
+                        selectionMode="single"
+                        onRowClick={(e) => setClienteSeleccionado(e.data)}
+                        rowClassName={() => 'hover:bg-gray-100 cursor-pointer'}
+                    >
+                        <Column field="id_cliente_pk" header="ID" body={(rowData) => clientes.indexOf(rowData) + 1} sortable className="text-sm"/>
+                        <Column field="nombre_cliente" header="Nombre" sortable className="text-sm" />
+                        <Column field="apellido_cliente" header="Apellido" sortable className="text-sm" />
+                        <Column field="identidad_cliente" header="Identidad" className="text-sm" />
+                        <Column field="telefono_cliente" header="Teléfono" className="text-sm" />
+                        <Column header="Acciones" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm" />
+                    </DataTable>
+                )}
             </div>
 
             {/*MODAL PARA AGREGAR CLIENTES*/}
