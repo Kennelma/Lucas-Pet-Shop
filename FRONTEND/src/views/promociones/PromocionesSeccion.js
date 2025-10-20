@@ -63,7 +63,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
   return (
     <>
       {/* Título */}
-      <div className="bg-gradient-to-r from-pink-50 to-rose-100 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
+      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
             GESTIÓN DE PROMOCIONES
@@ -71,7 +71,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
         </div>
       </div>
 
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
+      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
       {/* Barra de búsqueda + botón Nuevo */}
       <div className="flex justify-between items-center mb-6">
         <div className="relative w-80">
