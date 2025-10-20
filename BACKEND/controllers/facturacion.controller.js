@@ -27,15 +27,15 @@ exports.crearFactura = async (req, res) => {
 
         const { RTN, subtotal, impuesto, descuento, total, saldo, id_cliente } = req.body
 
-        //s
+        
         await conn.query(
             `INSERT INTO tbl_facturas (
                 fecha_emision,
                 RTN,
                 subtotal, 
-                impuesto
+                impuesto,
                 descuento,
-                total
+                total,
                 saldo,
                 id_sucursal_fk,
                 id_usuario_fk,
@@ -56,16 +56,16 @@ exports.crearFactura = async (req, res) => {
                 id_cliente || null
             ]
         )
-
-
-
         
-    } catch (error) {
-        
+    } catch (err) {
+        await conn.rollback();
+        res.status(500).json({
+            Consulta: false,
+            error: err.message
+        });
+    } finally {
+        conn.release();
     }
 
-
-
-
-
 }
+
