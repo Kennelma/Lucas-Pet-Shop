@@ -61,21 +61,17 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
   };
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
-      {/* Título con imagen decorativa */}
-      <div className="flex justify-center items-center mb-5 relative">
-        <div className="absolute left-0 opacity-20">
-          <img 
-            src="/cat.png" 
-            alt="Mascota" 
-            className="w-12 h-12 object-contain"
-          />
+    <>
+      {/* Título */}
+      <div className="bg-gradient-to-r from-pink-50 to-rose-100 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
+        <div className="flex justify-center items-center">
+          <h2 className="text-2xl font-black text-center uppercase text-gray-800">
+            GESTIÓN DE PROMOCIONES
+          </h2>
         </div>
-        <h2 className="text-2xl font-bold uppercase text-center text-gray-800">
-          Promociones
-        </h2>
       </div>
 
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
       {/* Barra de búsqueda + botón Nuevo */}
       <div className="flex justify-between items-center mb-6">
         <div className="relative w-80">
@@ -135,8 +131,8 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
           globalFilterFields={['id_promocion_pk', 'nombre_promocion', 'descripcion_promocion', 'precio_promocion', 'dias_promocion']}
           showGridlines
           paginator
-          rows={10}
-          rowsPerPageOptions={[10, 20, 25]}
+          rows={5}
+          rowsPerPageOptions={[5, 10, 20, 25]}
           paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
           tableStyle={{ minWidth: '50rem' }}
           className="mt-4"
@@ -188,7 +184,8 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
         </DataTable>
         </>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 
