@@ -9,7 +9,6 @@ import { BotonEliminarEmpresa } from './modal-eliminar-empresa';
 
 export default function InformacionEmpresa() {
   const [loading, setLoading] = useState(false);
-  const [mensaje, setMensaje] = useState({ tipo: '', texto: '' });
   const [empresas, setEmpresas] = useState([]);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [empresaEditando, setEmpresaEditando] = useState(null);
@@ -34,7 +33,11 @@ export default function InformacionEmpresa() {
       setEmpresas(datos || []);
     } catch (error) {
       console.error('Error al cargar empresas:', error);
-      mostrarMensaje('error', 'Error al cargar las empresas');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudieron cargar los datos de empresas'
+      });
     }
   };
 
@@ -42,11 +45,6 @@ export default function InformacionEmpresa() {
     const copia = { ...formEmpresa };
     copia[e.target.name] = e.target.value;
     setFormEmpresa(copia);
-  };
-
-  const mostrarMensaje = (tipo, texto) => {
-    setMensaje({ tipo, texto });
-    setTimeout(() => setMensaje({ tipo: '', texto: '' }), 5000);
   };
 
   const validarFormulario = () => {
@@ -134,9 +132,19 @@ export default function InformacionEmpresa() {
               ? { ...emp, ...formEmpresa }
               : emp
           ));
-          mostrarMensaje('success', 'Empresa actualizada exitosamente');
+          Swal.fire({
+            icon: 'success',
+            title: 'Actualizada',
+            text: 'La empresa ha sido actualizada exitosamente',
+            timer: 2000,
+            showConfirmButton: false
+          });
         } else {
-          mostrarMensaje('error', resultado?.error || 'Error al actualizar la empresa');
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: resultado?.error || 'Error al actualizar la empresa'
+          });
           return;
         }
       } else {
@@ -145,9 +153,19 @@ export default function InformacionEmpresa() {
         
         if (resultado?.Consulta) {
           await traerListaEmpresas(); // Recargar la lista desde el servidor
-          mostrarMensaje('success', 'Empresa creada exitosamente');
+          Swal.fire({
+            icon: 'success',
+            title: 'Creada',
+            text: 'La empresa ha sido creada exitosamente',
+            timer: 2000,
+            showConfirmButton: false
+          });
         } else {
-          mostrarMensaje('error', resultado?.error || 'Error al crear la empresa');
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: resultado?.error || 'Error al crear la empresa'
+          });
           return;
         }
       }
@@ -155,7 +173,11 @@ export default function InformacionEmpresa() {
       handleClose();
 
     } catch (error) {
-      mostrarMensaje('error', error.message || 'Error al guardar los datos');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Error al guardar los datos'
+      });
     } finally {
       setLoading(false);
     }
@@ -163,56 +185,6 @@ export default function InformacionEmpresa() {
 
   return (
     <div>
-      {mensaje.texto && (
-        <div className={`mb-6 p-4 rounded-lg flex items-start gap-3 ${
-          (() => {
-            if (mensaje.tipo === 'success') {
-              return 'bg-green-50 border border-green-200';
-            } else {
-              return 'bg-red-50 border border-red-200';
-            }
-          })()
-        }`}>
-          {(() => {
-            if (mensaje.tipo === 'success') {
-              return <FontAwesomeIcon icon={freeSolidSvgIcons.faCheckCircle} className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />;
-            } else {
-              return <FontAwesomeIcon icon={freeSolidSvgIcons.faExclamationCircle} className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />;
-            }
-          })()}
-          <div>
-            <p className={`text-sm font-medium ${
-              (() => {
-                if (mensaje.tipo === 'success') {
-                  return 'text-green-800';
-                } else {
-                  return 'text-red-800';
-                }
-              })()
-            }`}>
-              {(() => {
-                if (mensaje.tipo === 'success') {
-                  return 'Éxito';
-                } else {
-                  return 'Error';
-                }
-              })()}
-            </p>
-            <p className={`text-sm mt-1 ${
-              (() => {
-                if (mensaje.tipo === 'success') {
-                  return 'text-green-700';
-                } else {
-                  return 'text-red-700';
-                }
-              })()
-            }`}>
-              {mensaje.texto}
-            </p>
-          </div>
-        </div>
-      )}
-
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
 
         {/* Barra de búsqueda + botón Nuevo */}
@@ -248,7 +220,7 @@ export default function InformacionEmpresa() {
             empresa.telefono_empresa.toLowerCase().includes(globalFilter.toLowerCase()) ||
             empresa.correo_empresa.toLowerCase().includes(globalFilter.toLowerCase())
           ).map((empresa) => (
-          <div key={empresa.id_empresa_pk} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+          <div key={empresa.id_empresa_pk} className="bg-blue-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <h4 className="font-semibold text-gray-900 mb-2">{empresa.nombre_empresa}</h4>
