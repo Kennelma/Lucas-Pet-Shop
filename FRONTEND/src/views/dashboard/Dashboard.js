@@ -109,7 +109,7 @@ const Dashboard = () => {
   // 🔹 Cargar productos con bajo stock
   const cargarStockBajo = async () => {
     try {
-      const data = await ver('PRODUCTOS_BAJO_STOCK'); // tu endpoint o entidad para stock bajo
+      const data = await ver('PRODUCTOS_BAJO_STOCK');
       if (Array.isArray(data)) {
         setLowStock(data);
       }
@@ -187,101 +187,120 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Sección de gastos */}
-          <div className="bg-gradient-to-br from-yellow-50 to-orange-50 shadow-md rounded-xl p-4 border border-orange-200">
-            <div className="flex justify-between items-center mb-2">
-              <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
-                <div className="p-1.5 bg-orange-500 rounded-lg">
-                  <DollarSign className="w-4 h-4 text-white" />
-                </div>
-                Gastos del Mes
-              </h2>
-              <button
-                className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm font-semibold hover:bg-green-600 transition-colors"
-                onClick={() => setModalVisible(true)}
-              >
-                Agregar gasto
-              </button>
+          {/* Gastos y Bajo Stock en fila */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Sección de gastos */}
+            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 shadow-md rounded-xl p-3 border border-orange-200">
+              <div className="flex justify-between items-center mb-2">
+                <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                  <div className="p-1 bg-orange-500 rounded-lg">
+                    <DollarSign className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  Gastos del Mes
+                </h2>
+                <button
+                  className="bg-green-500 text-white px-2 py-1 rounded-lg text-xs font-semibold hover:bg-green-600 transition-colors"
+                  onClick={() => setModalVisible(true)}
+                >
+                  Agregar
+                </button>
+              </div>
+
+              {isLoading ? (
+                <p className="text-center text-gray-500 text-xs py-4">Cargando...</p>
+              ) : expenses.length === 0 ? (
+                <p className="text-center text-gray-500 text-xs py-4">No hay gastos registrados.</p>
+              ) : (
+                <>
+                  <div className="space-y-1.5 mb-2 max-h-48 overflow-y-auto">
+                    {expenses.map((expense) => (
+                      <div
+                        key={expense.id}
+                        className="flex justify-between items-center py-1 px-2 bg-white bg-opacity-70 rounded-lg hover:bg-opacity-100 transition-all"
+                      >
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-700 font-medium">{expense.description}</span>
+                          <span className="text-xs text-gray-500">L. {expense.amount.toLocaleString()}</span>
+                        </div>
+
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => {
+                              setGastoSeleccionado(expense);
+                              setModalEditarVisible(true);
+                            }}
+                            className="p-1 bg-blue-100 hover:bg-blue-200 rounded transition"
+                          >
+                            <Edit3 className="w-3 h-3 text-blue-600" />
+                          </button>
+                          <button
+                            onClick={() => eliminarGasto(expense.id)}
+                            className="p-1 bg-red-100 hover:bg-red-200 rounded transition"
+                          >
+                            <Trash2 className="w-3 h-3 text-red-600" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-2 border-t-2 border-orange-300 bg-white rounded-lg p-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-gray-800 text-xs">Total</span>
+                      <span className="font-bold text-lg text-orange-600">
+                        L. {expenses.reduce((a, b) => a + b.amount, 0).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
-            {isLoading ? (
-              <p className="text-center text-gray-500 text-sm">Cargando...</p>
-            ) : expenses.length === 0 ? (
-              <p className="text-center text-gray-500 text-sm">No hay gastos registrados.</p>
-            ) : (
-              <>
-                <div className="space-y-2 mb-3">
-                  {expenses.map((expense) => (
-                    <div
-                      key={expense.id}
-                      className="flex justify-between items-center py-1.5 px-2 bg-white bg-opacity-70 rounded-lg hover:bg-opacity-100 transition-all"
-                    >
-                      <div className="flex flex-col">
-                        <span className="text-sm text-gray-700 font-medium">{expense.description}</span>
-                        <span className="text-xs text-gray-500">L. {expense.amount.toLocaleString()}</span>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => {
-                            setGastoSeleccionado(expense);
-                            setModalEditarVisible(true);
-                          }}
-                          className="p-1.5 bg-blue-100 hover:bg-blue-200 rounded-lg transition"
-                        >
-                          <Edit3 className="w-4 h-4 text-blue-600" />
-                        </button>
-                        <button
-                          onClick={() => eliminarGasto(expense.id)}
-                          className="p-1.5 bg-red-100 hover:bg-red-200 rounded-lg transition"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="pt-3 border-t-2 border-orange-300 bg-white rounded-lg p-2.5">
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-gray-800 text-sm">Total</span>
-                    <span className="font-bold text-xl text-orange-600">
-                      L. {expenses.reduce((a, b) => a + b.amount, 0).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Tabla de Bajo Stock */}
-          <div className="bg-white shadow-md rounded-xl p-4 border border-gray-200">
-            <h2 className="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
-              <Package className="w-4 h-4 text-red-500" />
-              Productos con Bajo Stock
-            </h2>
-            {lowStock.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center">No hay productos con bajo stock.</p>
-            ) : (
-              <table className="w-full text-sm text-left border-collapse">
-                <thead>
-                  <tr className="border-b bg-gray-100">
-                    <th className="p-2">Producto</th>
-                    <th className="p-2">Stock</th>
-                    <th className="p-2">Mínimo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lowStock.map((prod) => (
-                    <tr key={prod.id_producto_pk} className="border-b hover:bg-gray-50">
-                      <td className="p-2">{prod.nombre_producto}</td>
-                      <td className="p-2 text-center">{prod.stock_actual}</td>
-                      <td className="p-2 text-center text-red-600 font-semibold">{prod.stock_minimo}</td>
+            {/* Tabla de Bajo Stock */}
+            <div className="bg-white shadow-md rounded-xl p-3 border border-gray-200">
+              <h2 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
+                <Package className="w-3.5 h-3.5 text-red-500" />
+                Productos con Bajo Stock
+              </h2>
+              <div className="max-h-64 overflow-y-auto">
+                <table className="w-full text-xs text-left border-collapse">
+                  <thead className="sticky top-0 bg-white">
+                    <tr className="border-b bg-gray-100">
+                      <th className="p-1.5">Producto</th>
+                      <th className="p-1.5 text-center">Stock</th>
+                      <th className="p-1.5 text-center">Mínimo</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                  </thead>
+                  <tbody>
+                    <tr className="border-b hover:bg-gray-50">
+                      <td className="p-1.5">Coca Cola 500ml</td>
+                      <td className="p-1.5 text-center">5</td>
+                      <td className="p-1.5 text-center text-red-600 font-semibold">20</td>
+                    </tr>
+                    <tr className="border-b hover:bg-gray-50">
+                      <td className="p-1.5">Papel Higiénico</td>
+                      <td className="p-1.5 text-center">3</td>
+                      <td className="p-1.5 text-center text-red-600 font-semibold">15</td>
+                    </tr>
+                    <tr className="border-b hover:bg-gray-50">
+                      <td className="p-1.5">Aceite Vegetal</td>
+                      <td className="p-1.5 text-center">8</td>
+                      <td className="p-1.5 text-center text-red-600 font-semibold">25</td>
+                    </tr>
+                    <tr className="border-b hover:bg-gray-50">
+                      <td className="p-1.5">Leche Entera 1L</td>
+                      <td className="p-1.5 text-center">12</td>
+                      <td className="p-1.5 text-center text-red-600 font-semibold">30</td>
+                    </tr>
+                    <tr className="border-b hover:bg-gray-50">
+                      <td className="p-1.5">Pan Blanco</td>
+                      <td className="p-1.5 text-center">4</td>
+                      <td className="p-1.5 text-center text-red-600 font-semibold">10</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 
