@@ -1,8 +1,6 @@
 require('dotenv').config()
 
 const mysqlConnection = require('../config/conexion');
-
-
 const argon2 = require('argon2'); 
 const jwt = require('jsonwebtoken');
 
@@ -240,7 +238,10 @@ exports.solicitarCodigoReset = async (req, res) => {
         //GUARDO EL CÓDIGO EN LA BASE DE DATOS, EN LA TABLA DE 2FA
         //LA COLUMNA fecha_expiracion SE LLENA CON LA FECHA ACTUAL + 5 MINUTOS
         await conn.query(
-            `INSERT INTO tbl_codigos_2fa (id_usuario_fk, codigo, fecha_expiracion)
+            `INSERT INTO tbl_codigos_2fa (
+                id_usuario_fk, 
+                codigo, 
+                fecha_expiracion)
              VALUES (?, ?, DATE_ADD(NOW(), INTERVAL ? MINUTE))`,
             [user.id_usuario_pk, codigoOTP, expirationMinutes]
         );
