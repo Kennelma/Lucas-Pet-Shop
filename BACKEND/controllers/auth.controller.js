@@ -151,7 +151,7 @@ exports.login = async (req, res) => {
                     );
 
                     estado = 200;
-                    mensaje = '✅LOGIN EXITOSO'
+                    mensaje = '✅ LOGIN EXITOSO'
                     break;
                                
                 }

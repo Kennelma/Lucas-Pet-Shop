@@ -586,13 +586,14 @@ exports.ver = async (req, res) => {
                         l.fecha_ingreso,
                         l.fecha_vencimiento,
                         l.stock_lote,
-                        l.estado_lote_fk,
+                        e.nombre_estado AS estado_lote_nombre, 
                         m.id_medicamento_pk,
                         m.id_producto_fk,        
                         p.nombre_producto       
                     FROM tbl_lotes_medicamentos l
                     INNER JOIN tbl_medicamentos_info m ON l.id_medicamento_fk = m.id_medicamento_pk
                     INNER JOIN tbl_productos p ON m.id_producto_fk = p.id_producto_pk
+                    INNER JOIN cat_estados e ON l.estado_lote_fk = e.id_estado_pk AND e.dominio = 'LOTE_MEDICAMENTO' -- <-- join
                     ORDER BY l.id_lote_medicamentos_pk DESC`
                 );
                 break;
