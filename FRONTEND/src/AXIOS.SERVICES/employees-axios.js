@@ -38,7 +38,6 @@ export const insertarEstilista = async (datosEstilista) => {
   }
 };
 
-
 //SERVICIO PARA ACTUALIZAR ESTILISTAS
 export const actualizarEstilista = async (datosEstilista) => {
   try {
