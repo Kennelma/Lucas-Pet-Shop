@@ -46,10 +46,7 @@ const Estilistas = () => {
               Módulo de Bonificaciones (Estilistas)
             </h5>
             <div>
-              <CButton color="light" size="sm" className="me-2" onClick={cargarEstilistas}>
-                <FontAwesomeIcon icon={faSyncAlt} className="me-1" />
-                Recargar
-              </CButton>
+             
               <CButton color="success" size="sm" onClick={abrirModalNuevo}>
                 <FontAwesomeIcon icon={faUserPlus} className="me-1" />
                 Nuevo Estilista
