@@ -195,7 +195,7 @@ export default function Sucursales() {
             sucursal.telefono_sucursal.toLowerCase().includes(globalFilter.toLowerCase()) ||
             (sucursal.nombre_empresa && sucursal.nombre_empresa.toLowerCase().includes(globalFilter.toLowerCase()))
           ).map((sucursal) => (
-          <div key={sucursal.id_sucursal_pk} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+          <div key={sucursal.id_sucursal_pk} className="bg-blue-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <div className="mb-2">
