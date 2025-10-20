@@ -21,6 +21,9 @@ export const useEstilistas = () => {
     identidad_estilista: ''
   })
 
+
+
+  
   // Cargar datos
   useEffect(() => {
     cargarEstilistas()

@@ -4,7 +4,7 @@ import {
   CTable, CTableHead, CTableRow, CTableHeaderCell,
   CTableBody, CTableDataCell, CPagination, CPaginationItem
 } from '@coreui/react'
-import ActionButtons from '../ActionButtons'
+import ActionButtons from './ActionButtons'
 
 const EstilistasTable = ({ estilistas, onEdit, onDelete }) => {
   const [pagina, setPagina] = useState(1)
