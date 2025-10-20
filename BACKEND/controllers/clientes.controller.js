@@ -97,7 +97,7 @@ exports.actualizar = async (req, res) => {
         await conn.commit();
         res.status(200).json({
             Consulta: true,
-            mensaje: 'Servicio actualizado con éxito',
+            mensaje: 'Cliente actualizado con éxito',
             id_cliente
             
         });

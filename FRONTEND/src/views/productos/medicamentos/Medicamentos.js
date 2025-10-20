@@ -1194,7 +1194,7 @@ const Medicamentos = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       {/* Título */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
+      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
             GESTIÓN DE MEDICAMENTOS
@@ -1302,7 +1302,11 @@ const Medicamentos = () => {
         </div>
       )}
 
-      {vistaActual === "medicamentos" && renderMedicamentos()}
+      {vistaActual === "medicamentos" && (
+        <div className="bg-white rounded-xl p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+          {renderMedicamentos()}
+        </div>
+      )}
       {vistaActual === "lotes" && renderLotes()}
 
       <ModalMedicamento 

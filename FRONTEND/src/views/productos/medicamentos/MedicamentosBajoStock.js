@@ -33,7 +33,7 @@ const MedicamentosBajoStock = ({ medicamentos = [] }) => {
         let nivelCriticidad = 'normal';
         let urgencia = 0;
         
-        if (stockTotal <= stockMinimo * 0.5) {
+        if (stockTotal === 0 || stockTotal <= stockMinimo * 0.5) {
           nivelCriticidad = 'critico';
           urgencia = 3;
         } else if (stockTotal <= stockMinimo * 0.75) {
@@ -106,7 +106,7 @@ const MedicamentosBajoStock = ({ medicamentos = [] }) => {
   // Si no hay medicamentos con bajo stock
   if (medicamentosBajoStock.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-6 border border-gray-200 mb-6">
+      <div className="bg-white rounded-2xl p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         <div className="flex justify-between items-center mb-4">
           <div className="flex flex-col items-center justify-center flex-1 text-center">
             <h className="text-lg font-semibold text-green-600 mb-2">
@@ -136,7 +136,7 @@ const MedicamentosBajoStock = ({ medicamentos = [] }) => {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-6 border border-gray-200 mb-6">
+    <div className="bg-white rounded-2xl p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
       <div className="flex justify-between items-center mb-4">
         <div className="flex flex-col items-center justify-center flex-1 text-center">
           <h className="text-xl font-bold text-red-600 mb-1">⚠️ MEDICAMENTOS CON BAJO STOCK</h>
