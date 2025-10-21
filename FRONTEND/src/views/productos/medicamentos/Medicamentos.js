@@ -1194,12 +1194,13 @@ const Medicamentos = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       {/* Título */}
-      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
+      <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
             GESTIÓN DE MEDICAMENTOS
           </h2>
         </div>
+        <p className="text-center text-gray-600 italic">Administra medicamentos veterinarios, lotes y control de inventario</p>
       </div>
 
       {/* Componente de Medicamentos Bajo Stock */}
