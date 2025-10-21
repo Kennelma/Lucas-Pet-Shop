@@ -61,16 +61,6 @@ exports.crearFactura = async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
         //EN EL CASO DE DETALLES ES UN ARRAY DE OBJETOS
         const { RTN, subtotal, impuesto, descuento, total, saldo, id_cliente, detalles } = req.body
 
