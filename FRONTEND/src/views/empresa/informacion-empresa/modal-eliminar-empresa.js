@@ -61,11 +61,10 @@ export const BotonEliminarEmpresa = ({ empresa, onReload }) => {
   return (
     <button
       onClick={handleEliminar}
-      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm flex items-center gap-1.5 transition-colors"
+      className="bg-red-500 hover:bg-red-600 text-white p-2 rounded text-sm flex items-center justify-center transition-colors"
       title="Eliminar empresa"
     >
-      <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
-      <span>Eliminar</span>
+      <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
     </button>
   );
 };

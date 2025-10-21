@@ -68,7 +68,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando }) => {
   const validarPaso2 = () => {
     if (!formData.codigo_lote.trim()) return "⚠️ Ingrese el código de lote";
     if (!formData.fecha_vencimiento) return "⚠️ Ingrese la fecha de vencimiento";
-    if (!formData.stock_lote || parseInt(formData.stock_lote) <= 0) return "⚠️ Ingrese una cantidad válida";
+    if (!formData.stock_lote || parseInt(formData.stock_lote) < 5) return "⚠️ El stock del lote debe ser mínimo 5 unidades";
     return null;
   };
 
@@ -125,7 +125,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando }) => {
         {paso === 1 && (
           <div className="space-y-3">
             <div className="bg-purple-50 p-3 rounded text-sm mb-3 border border-purple-200">
-              <div className="font-bold text-purple-700 mb-1">📋 Paso 1: Información del Medicamento</div>
+              <div className="font-bold text-purple-700 mb-1">📋 Paso 1: </div>
               <div className="text-xs text-purple-600">Complete los datos básicos del producto</div>
             </div>
 
@@ -134,47 +134,28 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando }) => {
               <input
                 value={formData.nombre_producto}
                 onChange={(e) => setFormData({...formData, nombre_producto: e.target.value})}
-                placeholder="Ej: ANTIPULGAS CANINO"
                 className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-sm font-semibold mb-1">Precio (L.) *</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.precio_producto}
-                  onChange={(e) => setFormData({...formData, precio_producto: e.target.value})}
-                  placeholder="250.50"
-                  className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1">Stock Mínimo *</label>
-                <input
-                  type="number"
-                  min="5"
-                  value={formData.stock_minimo}
-                  onChange={(e) => {
-                    const valor = e.target.value;
-                    setFormData({...formData, stock_minimo: valor});
-                  }}
-                  placeholder="5"
-                  className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1">Precio (L.) *</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.precio_producto}
+                onChange={(e) => setFormData({...formData, precio_producto: e.target.value})}
+                placeholder="250.50"
+                className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
+              />
             </div>
-            <span className="text-xs text-gray-500">* Stock mínimo: 5 unidades</span>
 
             <div>
               <label className="block text-sm font-semibold mb-1">Presentación *</label>
               <input
                 value={formData.presentacion}
                 onChange={(e) => setFormData({...formData, presentacion: e.target.value})}
-                placeholder="Ej: TABLETAS, JARABE, INYECTABLE"
                 className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
               />
             </div>
@@ -184,7 +165,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando }) => {
               <input
                 value={formData.tipo}
                 onChange={(e) => setFormData({...formData, tipo: e.target.value})}
-                placeholder="Ej: ANTIPARASITARIO, ANTIBIÓTICO"
+                placeholder="ANTIPARASITARIO, ANTIBIÓTICO"
                 className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
               />
             </div>
@@ -196,7 +177,6 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando }) => {
                   type="number"
                   value={formData.cantidad_contenido}
                   onChange={(e) => setFormData({...formData, cantidad_contenido: e.target.value})}
-                  placeholder="10"
                   className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
                 />
               </div>
@@ -205,7 +185,6 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando }) => {
                 <input
                   value={formData.unidad_medida}
                   onChange={(e) => setFormData({...formData, unidad_medida: e.target.value})}
-                  placeholder="mg, ml, g"
                   className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
                 />
               </div>
@@ -261,13 +240,13 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando }) => {
               <label className="block text-sm font-semibold mb-1">Cantidad Inicial del Lote *</label>
               <input
                 type="number"
-                min="1"
+                min="5"
                 value={formData.stock_lote}
                 onChange={(e) => setFormData({...formData, stock_lote: e.target.value})}
-                placeholder="100"
+                placeholder="Mínimo 5 unidades"
                 className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
               />
-              <span className="text-xs text-gray-500">Cantidad de unidades en este lote</span>
+              <span className="text-xs text-gray-500">Cantidad de unidades (mínimo 5)</span>
             </div>
           </div>
         )}
@@ -348,8 +327,8 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado }) => {
       alert("⚠️ Ingrese la fecha de vencimiento");
       return;
     }
-    if (!formData.stock_lote || parseInt(formData.stock_lote) <= 0) {
-      alert("⚠️ Ingrese una cantidad válida");
+    if (!formData.stock_lote || parseInt(formData.stock_lote) < 5) {
+      alert("⚠️ El stock del lote debe ser mínimo 5 unidades");
       return;
     }
     
@@ -408,12 +387,13 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado }) => {
             <label className="block text-sm font-semibold mb-1">Cantidad Inicial *</label>
             <input
               type="number"
-              min="1"
+              min="5"
               value={formData.stock_lote}
               onChange={(e) => setFormData({...formData, stock_lote: e.target.value})}
-              placeholder="100"
+              placeholder="Mínimo 5 unidades"
               className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
             />
+            <span className="text-xs text-gray-500">Mínimo 5 unidades por lote</span>
           </div>
         </div>
 
@@ -533,6 +513,13 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
   const lotesDelMedicamento = lotes.filter(l => l.id_producto_fk === medicamentoSeleccionado.id_producto_pk);
 
   const calcularEstadoLote = (lote) => {
+    const hoy = new Date();
+    const vencimiento = new Date(lote.fecha_vencimiento);
+    
+    if (vencimiento < hoy) {
+      return { bgBadge: "bg-gray-600", texto: "CADUCADO" };
+    }
+    
     if (lote.estado_lote_nombre && lote.estado_lote_nombre !== "SIN ESTADO") {
       const estadoUpper = lote.estado_lote_nombre.toUpperCase().trim();
       
@@ -546,15 +533,9 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
     }
     
     const stock = parseInt(lote.stock_lote || 0);
-    const hoy = new Date();
-    const vencimiento = new Date(lote.fecha_vencimiento);
     
     if (stock === 0) {
       return { bgBadge: "bg-red-500", texto: "AGOTADO" };
-    }
-    
-    if (vencimiento < hoy) {
-      return { bgBadge: "bg-gray-600", texto: "CADUCADO" };
     }
     
     return { bgBadge: "bg-green-500", texto: "DISPONIBLE" };
@@ -584,24 +565,46 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-[90vw] max-w-5xl max-h-[90vh] overflow-y-auto">
+    <div 
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        padding: '1rem'
+      }}
+    >
+      <div 
+        className="bg-white rounded-lg p-6 max-h-[90vh] overflow-y-auto"
+        style={{
+          width: '90%',
+          maxWidth: '1000px'
+        }}
+      >
         <div className="flex justify-between items-center mb-4">
-          <div>
-            <h2 className="text-2xl font-bold text-purple-700">
-              📦 LOTES DE {medicamentoSeleccionado.nombre_producto}
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-purple-700 text-center">
+               LOTES DE {medicamentoSeleccionado.nombre_producto}
             </h2>
-            <p className="text-sm text-gray-600 mt-1">{medicamentoSeleccionado.presentacion_medicamento}</p>
+            <p className="text-sm text-gray-600 mt-1 text-center">{medicamentoSeleccionado.presentacion_medicamento}</p>
           </div>
           <button 
             onClick={onClose} 
-            className="text-3xl hover:text-red-600 transition-colors font-bold"
+            className="text-3xl hover:text-red-600 transition-colors font-bold ml-4"
           >
             ×
           </button>
         </div>
 
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 mb-4 justify-center flex-wrap">
           <button
             onClick={() => setFiltroEstado("TODOS")}
             className={`px-4 py-2 rounded-lg font-semibold transition-all ${
@@ -610,7 +613,7 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
-            📋 TODOS ({lotesDelMedicamento.length})
+             TODOS ({lotesDelMedicamento.length})
           </button>
           <button
             onClick={() => setFiltroEstado("VIGENTES")}
@@ -620,7 +623,7 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
-            ✅ DISPONIBLES ({contarEstados("DISPONIBLES")})
+             DISPONIBLES ({contarEstados("DISPONIBLES")})
           </button>
           <button
             onClick={() => setFiltroEstado("VENCIDOS")}
@@ -630,7 +633,7 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
-            ⚠️ AGOTADOS/CADUCADOS ({contarEstados("VENCIDOS")})
+             AGOTADOS/CADUCADOS ({contarEstados("VENCIDOS")})
           </button>
         </div>
 
@@ -638,10 +641,10 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
           <table className="w-full text-sm">
             <thead className="bg-purple-600 text-white">
               <tr>
-                <th className="p-3 text-left">Código Lote</th>
-                <th className="p-3 text-left">Fecha Ingreso</th>
-                <th className="p-3 text-left">Fecha Vencimiento</th>
-                <th className="p-3 text-right">Stock</th>
+                <th className="p-3 text-center">Código Lote</th>
+                <th className="p-3 text-center">Fecha Ingreso</th>
+                <th className="p-3 text-center">Fecha Vencimiento</th>
+                <th className="p-3 text-center">Stock</th>
                 <th className="p-3 text-center">Estado</th>
               </tr>
             </thead>
@@ -660,14 +663,14 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
                   const estilo = calcularEstadoLote(lote);
                   return (
                     <tr key={lote.id_lote_medicamentos_pk} className={`border-b hover:bg-purple-50 transition-colors ${idx % 2 === 0 ? 'bg-gray-50' : ''}`}>
-                      <td className="p-3">
+                      <td className="p-3 text-center">
                         <div className="font-mono font-bold text-purple-700">
                           {lote.codigo_lote}
                         </div>
                       </td>
-                      <td className="p-3">{new Date(lote.fecha_ingreso).toLocaleDateString('es-HN')}</td>
-                      <td className="p-3 font-semibold">{new Date(lote.fecha_vencimiento).toLocaleDateString('es-HN')}</td>
-                      <td className="p-3 text-right">
+                      <td className="p-3 text-center">{new Date(lote.fecha_ingreso).toLocaleDateString('es-HN')}</td>
+                      <td className="p-3 font-semibold text-center">{new Date(lote.fecha_vencimiento).toLocaleDateString('es-HN')}</td>
+                      <td className="p-3 text-center">
                         <span className="font-bold text-lg text-purple-700">{lote.stock_lote}</span>
                       </td>
                       <td className="p-3">
@@ -688,7 +691,7 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
                   <td colSpan="3" className="p-3 text-right text-purple-700">
                     TOTAL STOCK {filtroEstado !== "TODOS" ? `(${filtroEstado})` : ""}:
                   </td>
-                  <td className="p-3 text-right bg-purple-200">
+                  <td className="p-3 text-center bg-purple-200">
                     <span className="text-xl text-purple-800">
                       {lotesFiltrados.reduce((sum, l) => sum + parseInt(l.stock_lote || 0), 0)}
                     </span>
@@ -700,7 +703,7 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
           </table>
         </div>
 
-        <div className="mt-6 flex justify-end">
+        <div className="mt-6 flex justify-center">
           <button 
             onClick={onClose} 
             className="px-6 py-2 bg-gray-400 text-white rounded-lg font-semibold hover:bg-gray-500 transition-colors"
@@ -966,8 +969,8 @@ const Medicamentos = () => {
 
     try {
       const stockLote = parseInt(formData.stock_lote);
-      if (stockLote <= 0) {
-        mostrarMensaje("⚠️ El stock debe ser mayor a 0");
+      if (stockLote < 5) {
+        mostrarMensaje("⚠️ El stock del lote debe ser mínimo 5 unidades");
         return;
       }
 
@@ -1075,70 +1078,68 @@ const Medicamentos = () => {
   };
 
   const renderKardex = () => {
-    if (loading) {
-      return (
-        <div className="text-center p-8">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-          <p className="mt-4 text-gray-600">Cargando kardex...</p>
-        </div>
-      );
-    }
-
-    if (kardexFiltrado.length === 0) {
-      return (
-        <div className="text-center p-8 bg-gray-100 rounded-lg">
-          <p className="text-gray-600">📊 No se encontraron movimientos en el kardex</p>
-        </div>
-      );
-    }
-
+  if (loading) {
     return (
-      <div className="overflow-x-auto">
-        <table className="w-full bg-white rounded-lg shadow">
-          <thead className="bg-purple-600 text-white">
-            <tr>
-              <th className="p-3 text-left">ID Movimiento</th>
-              <th className="p-3 text-left">Medicamento</th>
-              <th className="p-3 text-left">Código Lote</th>
-              <th className="p-3 text-right">Cantidad</th>
-              <th className="p-3 text-right">Costo Unitario</th>
-              <th className="p-3 text-left">Fecha</th>
-              <th className="p-3 text-left">Tipo</th>
-              <th className="p-3 text-left">Origen</th>
-              <th className="p-3 text-left">Usuario</th>
-            </tr>
-          </thead>
-          <tbody>
-            {kardexFiltrado.map((mov, idx) => (
-              <tr key={mov.id_movimiento_pk} className="border-b hover:bg-gray-50">
-                <td className="p-3 font-mono text-xs">{mov.id_movimiento_pk}</td>
-                <td className="p-3">
-                  <div className="font-semibold text-sm">{mov.nombre_producto}</div>
-                </td>
-                <td className="p-3 font-mono text-xs">{mov.codigo_lote || "N/A"}</td>
-                <td className="p-3 text-right font-bold">{mov.cantidad}</td>
-                <td className="p-3 text-right">L. {parseFloat(mov.costo_unitario || 0).toFixed(2)}</td>
-                <td className="p-3">{new Date(mov.fecha_movimiento).toLocaleString()}</td>
-                <td className="p-3">
-                  <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                    mov.tipo_movimiento === 'ENTRADA' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                  }`}>
-                    {mov.tipo_movimiento}
-                  </span>
-                </td>
-                <td className="p-3">
-                  <span className="px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-700">
-                    {mov.origen_movimiento}
-                  </span>
-                </td>
-                <td className="p-3 text-xs">{mov.usuario}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="text-center p-8">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+        <p className="mt-4 text-gray-600">Cargando kardex...</p>
       </div>
     );
-  };
+  }
+
+  if (kardexFiltrado.length === 0) {
+    return (
+      <div className="text-center p-8 bg-gray-100 rounded-lg">
+        <p className="text-gray-600">📊 No se encontraron movimientos en el kardex</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full bg-white rounded-lg shadow">
+        <thead className="bg-purple-600 text-white">
+          <tr>
+            <th className="p-3 text-left">Medicamento</th>
+            <th className="p-3 text-left">Código Lote</th>
+            <th className="p-3 text-right">Cantidad</th>
+            <th className="p-3 text-right">Costo Unitario</th>
+            <th className="p-3 text-left">Fecha</th>
+            <th className="p-3 text-left">Tipo</th>
+            <th className="p-3 text-left">Origen</th>
+            <th className="p-3 text-left">Usuario</th>
+          </tr>
+        </thead>
+        <tbody>
+          {kardexFiltrado.map((mov, idx) => (
+            <tr key={mov.id_movimiento_pk} className="border-b hover:bg-gray-50">
+              <td className="p-3">
+                <div className="font-semibold text-sm">{mov.nombre_producto}</div>
+              </td>
+              <td className="p-3 font-mono text-xs">{mov.codigo_lote || "N/A"}</td>
+              <td className="p-3 text-right font-bold">{mov.cantidad_movimiento}</td>
+              <td className="p-3 text-right">L. {parseFloat(mov.costo_unitario || 0).toFixed(2)}</td>
+              <td className="p-3">{new Date(mov.fecha_movimiento).toLocaleString()}</td>
+              <td className="p-3">
+                <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                  mov.tipo_movimiento === 'ENTRADA' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                }`}>
+                  {mov.tipo_movimiento}
+                </span>
+              </td>
+              <td className="p-3">
+                <span className="px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-700">
+                  {mov.origen_movimiento}
+                </span>
+              </td>
+              <td className="p-3 text-xs">{mov.nombre_usuario_movimiento}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
 
   const renderMedicamentos = () => {
     if (loading) {
@@ -1175,12 +1176,15 @@ const Medicamentos = () => {
               }`}
             >
               <div className="absolute top-2 right-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                <span className={`flex items-center gap-1 text-xs ${
                   med.activo 
-                    ? 'bg-green-100 text-green-700' 
-                    : 'bg-gray-300 text-gray-600'
+                    ? 'text-emerald-600' 
+                    : 'text-gray-500'
                 }`}>
-                  {med.activo ? '✓ ACTIVO' : '✗ INACTIVO'}
+                  <span className={`w-2 h-2 rounded-full ${
+                    med.activo ? 'bg-emerald-500' : 'bg-gray-400'
+                  }`}></span>
+                  {med.activo ? 'Activo' : 'Inactivo'}
                 </span>
               </div>
 
@@ -1194,14 +1198,14 @@ const Medicamentos = () => {
                 </div>
 
                 <div className="text-xs text-gray-600 mb-1">
-                  📋 {med.presentacion_medicamento}
+                   {med.presentacion_medicamento}
                 </div>
                 <div className="text-xs text-gray-500 mb-2">
-                  🏷️ {med.tipo_medicamento}
+                   {med.tipo_medicamento}
                 </div>
 
                 <div className="text-xs text-gray-500 mb-3">
-                  📦 {med.cantidad_contenido} {med.unidad_medida}
+                   {med.cantidad_contenido} {med.unidad_medida}
                 </div>
 
                 <div className="text-lg font-bold text-purple-700 mb-2">
@@ -1216,10 +1220,6 @@ const Medicamentos = () => {
                       : 'text-green-600'
                 }`}>
                   Stock: {stockTotal}
-                </div>
-                
-                <div className="text-xs text-gray-500">
-                  Mínimo: {med.stock_minimo}
                 </div>
 
                 <div className="text-xs text-blue-600 mt-2 bg-blue-50 py-1 px-2 rounded inline-block">
@@ -1274,7 +1274,8 @@ const Medicamentos = () => {
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
+      {/* Título */}
+      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
             GESTIÓN DE MEDICAMENTOS
@@ -1334,16 +1335,19 @@ const Medicamentos = () => {
       </div>
 
       {vistaActual === "kardex" && (
-        <div className="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <p className="text-sm text-blue-700 font-semibold">
-            📊 Vista de Kardex - Historial completo de movimientos de inventario
-          </p>
-        </div>
+        <>
+          <div className="bg-white rounded-xl p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+            {renderKardex()}
+          </div>
+        </>
       )}
 
-      {vistaActual === "medicamentos" && renderMedicamentos()}
-      {vistaActual === "kardex" && renderKardex()}
-
+      {vistaActual === "medicamentos" && (
+        <div className="bg-white rounded-xl p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+          {renderMedicamentos()}
+        </div>
+      )}
+      
       <ModalMedicamento 
         isOpen={modalVisible} 
         onClose={() => {

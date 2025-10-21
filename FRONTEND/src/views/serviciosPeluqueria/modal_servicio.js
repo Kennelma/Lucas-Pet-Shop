@@ -122,7 +122,7 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
       draggable={false}
       resizable={false}
     >
-      <div className="mt-2">
+      <div className="rounded-lg shadow-md p-4 pb-12 relative min-h-[150px] bg-gray-100 opacity-70 border-2 border-gray-300">
         {/* Formulario */}
         <div className="flex flex-col gap-3">
           {/* Nombre del Servicio */}
