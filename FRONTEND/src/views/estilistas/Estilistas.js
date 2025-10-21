@@ -68,9 +68,9 @@ const Estilistas = () => {
 
     if (result.isConfirmed) {
       try {
-        console.log('Eliminando estilista con ID:', id); // Debug
+      
         const response = await eliminarEstilista(id);
-        console.log('Respuesta del servidor:', response); // Debug
+
         
         if (response && response.Consulta) {
           Swal.fire({
