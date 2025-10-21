@@ -109,9 +109,9 @@ const MedicamentosBajoStock = ({ medicamentos = [] }) => {
       <div className="bg-white rounded-2xl p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         <div className="flex justify-between items-center mb-4">
           <div className="flex flex-col items-center justify-center flex-1 text-center">
-            <h className="text-lg font-semibold text-green-600 mb-2">
+            <h3 className="text-lg font-semibold text-green-600 mb-2">
               ✅ Todos los medicamentos tienen stock suficiente
-            </h>
+            </h3>
             <p className="text-gray-500 text-sm">
               No hay medicamentos con bajo stock en este momento
             </p>
@@ -139,7 +139,7 @@ const MedicamentosBajoStock = ({ medicamentos = [] }) => {
     <div className="bg-white rounded-2xl p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
       <div className="flex justify-between items-center mb-4">
         <div className="flex flex-col items-center justify-center flex-1 text-center">
-          <h className="text-xl font-bold text-red-600 mb-1">⚠️ MEDICAMENTOS CON BAJO STOCK</h>
+          <h3 className="text-xl font-bold text-red-600 mb-1">⚠️ MEDICAMENTOS CON BAJO STOCK</h3>
           <p className="text-gray-600 text-sm">REQUIEREN ATENCIÓN INMEDIATA PARA REABASTECIMIENTO</p>
         </div>
         <button
@@ -157,9 +157,9 @@ const MedicamentosBajoStock = ({ medicamentos = [] }) => {
             {medicamentosBajoStock.map((medicamento, index) => (
               <div key={medicamento.id} className="bg-white/80 backdrop-blur-sm rounded-md p-2 border border-white/50 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 flex flex-col h-52">
                 <div className="flex-grow flex items-center justify-center">
-                  <h className="font-semibold text-gray-800 text-[18px] leading-tight text-center mb-2">
+                  <h4 className="font-semibold text-gray-800 text-[18px] leading-tight text-center mb-2">
                     {medicamento.nombre}
-                  </h>
+                  </h4>
                 </div>
                 <div className="mt-auto space-y-0.5">
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
