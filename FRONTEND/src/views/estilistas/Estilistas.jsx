@@ -1,66 +1,41 @@
-import React, { useState, useEffect } from 'react'
+// src/modules/estilistas/Estilistas.jsx
+import React from 'react'
 import {
   CCard, CCardBody, CCardHeader,
-  CTable, CTableHead, CTableRow, CTableHeaderCell,
-  CTableBody, CTableDataCell, CButton, CRow, CCol,
+  CButton, CCol, CRow, CSpinner
 } from '@coreui/react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGift, faUser, faSyncAlt } from '@fortawesome/free-solid-svg-icons'
+import { faGift, faUserPlus, faSyncAlt } from '@fortawesome/free-solid-svg-icons'
+import { useEstilistas } from './hooks/useEstilistas'
+import EstilistasTable from './components/EstilistasTable'
+import EstilistaModal from './components/EstilistaModal'
 
 const Estilistas = () => {
+  const {
+    estilistas, loading, error,
+    modalVisible, setModalVisible,
+    modoEdicion, setModoEdicion,
+    formData, setFormData,
+    cargarEstilistas, guardarEstilista, eliminarRegistro
+  } = useEstilistas()
 
-  // ------------------------------------------------------------------
-  // 🔹 1. ESTADOS
-  // ------------------------------------------------------------------
-  const [estilistas, setEstilistas] = useState([]) // Datos de la tabla
-  const [loading, setLoading] = useState(true)     // Estado de carga
-  const [error, setError] = useState(null)         // Manejo de errores
-
-  // ------------------------------------------------------------------
-  // 🔹 2. EFECTO INICIAL (simulación)
-  // ------------------------------------------------------------------
-  useEffect(() => {
-    // Aquí luego se reemplazará por llamada axios al endpoint real
-    const fakeData = [
-      {
-        id_estilista_pk: 1,
-        nombre_estilista: 'Laura',
-        apellido_estilista: 'Hernández',
-        identidad_estilista: '0801-1999-00123',
-        fecha_ingreso: '2024-04-12 09:23:00'
-      },
-      {
-        id_estilista_pk: 2,
-        nombre_estilista: 'Carlos',
-        apellido_estilista: 'Mejía',
-        identidad_estilista: '0801-1998-00087',
-        fecha_ingreso: '2023-09-08 14:15:00'
-      }
-    ]
-
-    // Simula carga
-    setTimeout(() => {
-      setEstilistas(fakeData)
-      setLoading(false)
-    }, 1000)
-  }, [])
-
-  // ------------------------------------------------------------------
-  // 🔹 3. FUNCIONES AUXILIARES (futuras)
-  // ------------------------------------------------------------------
-  const handleRefresh = () => {
-    // Aquí luego se agregará lógica para recargar datos con axios
-    console.log('Recargando datos de estilistas...')
+  const abrirModalNuevo = () => {
+    setModoEdicion(false)
+    setFormData({
+      id_estilista_pk: null,
+      nombre_estilista: '',
+      apellido_estilista: '',
+      identidad_estilista: ''
+    })
+    setModalVisible(true)
   }
 
-  const calcularBonificacion = (id) => {
-    // Aquí luego se agregará el cálculo de bonificaciones mensuales
-    console.log(`Calcular bonificación para estilista ID ${id}`)
+  const abrirModalEditar = (estilista) => {
+    setModoEdicion(true)
+    setFormData(estilista)
+    setModalVisible(true)
   }
 
-  // ------------------------------------------------------------------
-  // 🔹 4. RENDERIZADO PRINCIPAL
-  // ------------------------------------------------------------------
   return (
     <CRow className="mt-4">
       <CCol xs={12}>
@@ -70,55 +45,45 @@ const Estilistas = () => {
               <FontAwesomeIcon icon={faGift} className="me-2" />
               Módulo de Bonificaciones (Estilistas)
             </h5>
-            <CButton color="light" size="sm" onClick={handleRefresh}>
-              <FontAwesomeIcon icon={faSyncAlt} className="me-1" />
-              Recargar
-            </CButton>
+            <div>
+              <CButton color="light" size="sm" className="me-2" onClick={cargarEstilistas}>
+                <FontAwesomeIcon icon={faSyncAlt} className="me-1" />
+                Recargar
+              </CButton>
+              <CButton color="success" size="sm" onClick={abrirModalNuevo}>
+                <FontAwesomeIcon icon={faUserPlus} className="me-1" />
+                Nuevo Estilista
+              </CButton>
+            </div>
           </CCardHeader>
 
           <CCardBody>
             {loading ? (
-              <p className="text-center text-muted">Cargando estilistas...</p>
+              <div className="text-center p-4">
+                <CSpinner color="primary" />
+                <p className="text-muted mt-2 mb-0">Cargando estilistas...</p>
+              </div>
             ) : error ? (
               <p className="text-danger text-center">{error}</p>
             ) : (
-              <CTable striped hover responsive>
-                <CTableHead color="dark">
-                  <CTableRow>
-                    <CTableHeaderCell>ID</CTableHeaderCell>
-                    <CTableHeaderCell>Nombre</CTableHeaderCell>
-                    <CTableHeaderCell>Apellido</CTableHeaderCell>
-                    <CTableHeaderCell>Identidad</CTableHeaderCell>
-                    <CTableHeaderCell>Fecha de Ingreso</CTableHeaderCell>
-                    <CTableHeaderCell>Acciones</CTableHeaderCell>
-                  </CTableRow>
-                </CTableHead>
-                <CTableBody>
-                  {estilistas.map((estilista) => (
-                    <CTableRow key={estilista.id_estilista_pk}>
-                      <CTableDataCell>{estilista.id_estilista_pk}</CTableDataCell>
-                      <CTableDataCell>{estilista.nombre_estilista}</CTableDataCell>
-                      <CTableDataCell>{estilista.apellido_estilista}</CTableDataCell>
-                      <CTableDataCell>{estilista.identidad_estilista}</CTableDataCell>
-                      <CTableDataCell>{estilista.fecha_ingreso}</CTableDataCell>
-                      <CTableDataCell>
-                        <CButton
-                          color="success"
-                          size="sm"
-                          onClick={() => calcularBonificacion(estilista.id_estilista_pk)}
-                        >
-                          <FontAwesomeIcon icon={faUser} className="me-1" />
-                          Calcular Bonificación
-                        </CButton>
-                      </CTableDataCell>
-                    </CTableRow>
-                  ))}
-                </CTableBody>
-              </CTable>
+              <EstilistasTable
+                estilistas={estilistas}
+                onEdit={abrirModalEditar}
+                onDelete={eliminarRegistro}
+              />
             )}
           </CCardBody>
         </CCard>
       </CCol>
+
+      <EstilistaModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        modoEdicion={modoEdicion}
+        formData={formData}
+        setFormData={setFormData}
+        onSave={guardarEstilista}
+      />
     </CRow>
   )
 }

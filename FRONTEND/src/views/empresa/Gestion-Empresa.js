@@ -16,15 +16,20 @@ export default function Empresa() {
   ];
 
   return (
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen bg-gray-50 p-6">
       <div className="w-full px-6">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">GESTIÓN EMPRESARIAL</h1>
-          <p className="text-gray-600">Administra empresas, sucursales y usuarios</p>
+        {/* Título */}
+        <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+          <div className="flex justify-center items-center">
+            <h2 className="text-2xl font-black text-center uppercase text-gray-800">
+              GESTIÓN EMPRESARIAL
+            </h2>
+          </div>
+          <p className="text-center text-gray-600 italic">Administra la información de tu empresa, sucursales y usuarios</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          <div className="flex border-b-2 border-blue-600/20">
+        <div className="bg-white rounded-2xl overflow-hidden" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+          <div className="flex border-b-2 border-purple-600/20">
             {tabs.map((tab) => (
               <button
                 key={tab.id}

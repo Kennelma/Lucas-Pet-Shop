@@ -27,6 +27,8 @@ async function insertarMovimientoKardex (conn, datosMovimiento) {
         origen_movimiento
     } = datosMovimiento;
 
+
+    
     //OBTENER ID DEL TIPO DE MOVIMIENTO
     const [tipo] = await conn.query(
         `SELECT id_estado_pk AS id
@@ -81,28 +83,31 @@ exports.crear = async (req, res) => {
         
         await conn.beginTransaction(); //INICIO LA TRANSACCIÓN
 
-        //OBTENGO EL ID DEL TIPO DE PRODUCTO (CATALOGO)
-        const [tipoProducto] = await conn.query(
-            `SELECT id_tipo_producto_pk 
-             FROM cat_tipo_productos 
-             WHERE nombre_tipo_producto = ?`,
-            [req.body.tipo_producto]
-        );
+        let id_producto;
 
-        //SE LLENA LA TABLA PADRE PRIMERO
-        const [productos] = await conn.query(
-            `INSERT INTO tbl_productos (
-                nombre_producto, 
-                precio_producto, 
-                stock,
-                tipo_producto_fk
-            ) VALUES (?, ?, ?, ?)`,
-             [...insert_atributos_padre(req.body), tipoProducto[0].id_tipo_producto_pk]
-        );
+        if (req.body.tipo_producto !== 'LOTES') { 
+            //OBTENGO EL ID DEL TIPO DE PRODUCTO (CATALOGO)
+            const [tipoProducto] = await conn.query(
+                `SELECT id_tipo_producto_pk AS id_tipo
+                FROM cat_tipo_productos 
+                WHERE nombre_tipo_producto = ?`,
+                [req.body.tipo_producto]
+            );
 
-        //OBTENGO EL ID DEL PRODUCTO INSERTADO
-        const id_producto = productos.insertId;
+            //SE LLENA LA TABLA PADRE PRIMERO
+            const [productos] = await conn.query(
+                `INSERT INTO tbl_productos (
+                    nombre_producto, 
+                    precio_producto, 
+                    stock,
+                    tipo_producto_fk
+                ) VALUES (?, ?, ?, ?)`,
+                [...insert_atributos_padre(req.body), tipoProducto[0].id_tipo]
+            );
 
+            //OBTENGO EL ID DEL PRODUCTO INSERTADO
+            id_producto = productos.insertId;
+        }
 
         switch (req.body.tipo_producto) {
 
@@ -581,20 +586,20 @@ exports.ver = async (req, res) => {
             case 'LOTES':
                 [registros] = await conn.query(
                     `SELECT 
-            l.id_lote_medicamentos_pk,
-            l.codigo_lote,
-            l.fecha_ingreso,
-            l.fecha_vencimiento,
-            l.stock_lote,
-            e.nombre_estado AS estado_lote_nombre, 
-            m.id_medicamento_pk,
-            m.id_producto_fk,        
-            p.nombre_producto       
-        FROM tbl_lotes_medicamentos l
-        INNER JOIN tbl_medicamentos_info m ON l.id_medicamento_fk = m.id_medicamento_pk
-        INNER JOIN tbl_productos p ON m.id_producto_fk = p.id_producto_pk
-        INNER JOIN cat_estados e ON l.estado_lote_fk = e.id_estado_pk AND e.dominio = 'LOTE_MEDICAMENTO'
-        ORDER BY l.id_lote_medicamentos_pk DESC`
+                        l.id_lote_medicamentos_pk,
+                        l.codigo_lote,
+                        l.fecha_ingreso,
+                        l.fecha_vencimiento,
+                        l.stock_lote,
+                        e.nombre_estado AS estado_lote_nombre, 
+                        m.id_medicamento_pk,
+                        m.id_producto_fk,        
+                        p.nombre_producto       
+                    FROM tbl_lotes_medicamentos l
+                    INNER JOIN tbl_medicamentos_info m ON l.id_medicamento_fk = m.id_medicamento_pk
+                    INNER JOIN tbl_productos p ON m.id_producto_fk = p.id_producto_pk
+                    INNER JOIN cat_estados e ON l.estado_lote_fk = e.id_estado_pk AND e.dominio = 'LOTE_MEDICAMENTO' -- <-- join
+                    ORDER BY l.id_lote_medicamentos_pk DESC`
                 );
                 break;
 
@@ -605,12 +610,12 @@ exports.ver = async (req, res) => {
                         k.id_movimiento_pk,
                         p.nombre_producto,
                         l.codigo_lote,
-                        k.cantidad,
+                        k.cantidad_movimiento,
                         k.costo_unitario,
                         k.fecha_movimiento, 
                         tm.nombre_estado AS tipo_movimiento, 
                         om.nombre_estado AS origen_movimiento, 
-                        k.usuario
+                        u.usuario AS nombre_usuario_movimiento 
                     FROM
                         tbl_movimientos_kardex k 
                     INNER JOIN
@@ -623,6 +628,8 @@ exports.ver = async (req, res) => {
                         cat_estados tm ON k.id_tipo_fk = tm.id_estado_pk AND tm.dominio = 'TIPO' 
                     INNER JOIN
                         cat_estados om ON k.id_origen_fk = om.id_estado_pk AND om.dominio = 'ORIGEN' 
+                    INNER JOIN
+                        tbl_usuarios u ON k.id_usuario_fk = u.id_usuario_pk
                     ORDER BY
                         k.fecha_movimiento DESC, k.id_movimiento_pk DESC`
                 );
