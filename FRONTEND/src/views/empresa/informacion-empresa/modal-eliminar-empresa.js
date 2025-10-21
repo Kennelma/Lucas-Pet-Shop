@@ -43,11 +43,28 @@ export const eliminarEmpresa = async (empresa, onReload) => {
     }
   } catch (error) {
     console.error('Error al eliminar empresa:', error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudo eliminar la empresa'
-    });
+    
+    // Verificar si es un error de foreign key constraint
+    if (error.message && error.message.includes('foreign key constraint fails')) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'No se puede eliminar',
+        html: `
+          <div class="text-center">
+            <p class="mb-2">Esta empresa no puede ser eliminada porque tiene <strong>sucursales asociadas</strong>.</p>
+            <p class="text-sm text-gray-600">Para eliminar esta empresa, primero debes eliminar todas sus sucursales.</p>
+          </div>
+        `,
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#3b82f6'
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'No se pudo eliminar la empresa'
+      });
+    }
   }
 };
 
