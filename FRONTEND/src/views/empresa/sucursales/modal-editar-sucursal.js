@@ -16,11 +16,10 @@ export const BotonEditarSucursal = ({ sucursal, onEdit }) => {
   return (
     <button
       onClick={handleEditar}
-      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-sm flex items-center gap-1.5 transition-colors"
+      className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded text-sm flex items-center justify-center transition-colors"
       title="Editar sucursal"
     >
-      <FontAwesomeIcon icon={faEdit} className="w-3 h-3" />
-      <span>Editar</span>
+      <FontAwesomeIcon icon={faEdit} className="w-4 h-4" />
     </button>
   );
 };
