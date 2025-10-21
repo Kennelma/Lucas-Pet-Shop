@@ -25,10 +25,57 @@ exports.crearFactura = async (req, res) => {
         const id_usuario = req.usuario?.id_usuario_pk;
         const id_sucursal = req.usuario?.id_sucursal_fk;
 
-        const { RTN, subtotal, impuesto, descuento, total, saldo, id_cliente } = req.body
+        //VALIDAR QUE EXISTAN OBJETOS PARA PODER CREAR LA FACTURA
+        if (!detalles || detalles.length === 0) {
+            return res.status(400).json({
+                Consulta: false,
+                mensaje: 'Se debe incluir al menos un detalle para generar la factura.'
+            });
+        }
+
+        console.log('Detalles recibidos:', detalles);
+        console.log('Cantidad de detalles:', detalles.length);
+
+
+        //VARIABLES DE APOYO
+        //let subtotal = 0;
+    
+        //SE RECORRE CADA UNO DE LOS DETALLES 
+        for (let detalle of detalles) {
+           
+            //TOTAL DE LINEA = CANTIDAD * PRECIO + AJUSTE
+            const total_linea = (detalle.cantidad_item * detalle.precio_item) + (detalle.ajuste_precio || 0);
+            
+            console.log(`Detalle: ${detalle.nombre_item} -> total_linea: ${total_linea}`);
+
+            subtotal += total_linea;
+        }
+
+        //console.log('Subtotal calculado:', subtotal);
+
+        //const total = subtotal + (impuesto || 0) - (descuento || 0);
+
+        console.log('Total calculado:', total);
+
+        //const saldo = total;
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //EN EL CASO DE DETALLES ES UN ARRAY DE OBJETOS
+        const { RTN, subtotal, impuesto, descuento, total, saldo, id_cliente, detalles } = req.body
 
         
-        await conn.query(
+        const [factura] = await conn.query(
             `INSERT INTO tbl_facturas (
                 fecha_emision,
                 RTN,
@@ -56,6 +103,12 @@ exports.crearFactura = async (req, res) => {
                 id_cliente || null
             ]
         )
+
+        //CAPTURAR EL ID DE LA FACTURA CREADA
+        const id_factura = factura.insertId;
+        console.log('Factura creada con ID:', id_factura);
+
+
         
     } catch (err) {
         await conn.rollback();

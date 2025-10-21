@@ -86,6 +86,7 @@ exports.crear = async (req, res) => {
         let id_producto;
 
         if (req.body.tipo_producto !== 'LOTES') { 
+
             //OBTENGO EL ID DEL TIPO DE PRODUCTO (CATALOGO)
             const [tipoProducto] = await conn.query(
                 `SELECT id_tipo_producto_pk AS id_tipo
@@ -610,12 +611,12 @@ exports.ver = async (req, res) => {
                         k.id_movimiento_pk,
                         p.nombre_producto,
                         l.codigo_lote,
-                        k.cantidad,
+                        k.cantidad_movimiento,
                         k.costo_unitario,
                         k.fecha_movimiento, 
                         tm.nombre_estado AS tipo_movimiento, 
                         om.nombre_estado AS origen_movimiento, 
-                        k.usuario
+                        u.usuario AS nombre_usuario_movimiento 
                     FROM
                         tbl_movimientos_kardex k 
                     INNER JOIN
@@ -628,6 +629,8 @@ exports.ver = async (req, res) => {
                         cat_estados tm ON k.id_tipo_fk = tm.id_estado_pk AND tm.dominio = 'TIPO' 
                     INNER JOIN
                         cat_estados om ON k.id_origen_fk = om.id_estado_pk AND om.dominio = 'ORIGEN' 
+                    INNER JOIN
+                        tbl_usuarios u ON k.id_usuario_fk = u.id_usuario_pk
                     ORDER BY
                         k.fecha_movimiento DESC, k.id_movimiento_pk DESC`
                 );
