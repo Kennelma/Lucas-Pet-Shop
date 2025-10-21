@@ -98,7 +98,7 @@ exports.actualizar = async (req, res) => {
 
         await conn.commit();
         res.status(200).json({
-            Consulta: trServicioue,
+            Consulta: true,
             mensaje: 'Estilista actualizado con éxito',
             id_estilista
             
