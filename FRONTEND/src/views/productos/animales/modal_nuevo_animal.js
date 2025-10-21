@@ -35,15 +35,20 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
   const handleChange = (field, value) => {
     const val = ['nombre', 'especie', 'sexo'].includes(field) ? value.toUpperCase() : value;
     setData(prev => ({ ...prev, [field]: val }));
+    
+    // Limpiar error cuando el usuario empiece a escribir
+    if (errores[field]) {
+      setErrores(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
   const validarDatos = () => {
     let temp = {};
-    if (!data.nombre) temp.nombre = 'Campo obligatorio';
-    if (!data.especie) temp.especie = 'Campo obligatorio';
-    if (!data.sexo) temp.sexo = 'Campo obligatorio';
-    if (!data.precio || data.precio <= 0) temp.precio = 'Debe ser mayor a 0';
-    if (!data.cantidad || data.cantidad <= 0) temp.cantidad = 'Debe ser mayor a 0';
+    if (!data.nombre?.trim()) temp.nombre = 'El nombre del animal es obligatorio';
+    if (!data.especie) temp.especie = 'Debe seleccionar una especie';
+    if (!data.sexo) temp.sexo = 'Debe seleccionar el sexo del animal';
+    if (!data.precio || data.precio <= 0) temp.precio = 'El precio debe ser mayor a 0';
+    if (!data.cantidad || data.cantidad <= 0) temp.cantidad = 'El stock debe ser mayor a 0';
 
     setErrores(temp);
     return Object.keys(temp).length === 0;
@@ -112,80 +117,96 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
 
   return (
     <Dialog
-      header={<div className="w-full text-center text-lg font-bold">AGREGAR ALIMENTO</div>}
+      header={<div className="w-full text-center text-lg font-bold">NUEVO ANIMAL</div>}
       visible={isOpen}
-      style={{ width: '38rem', borderRadius: '1.5rem' }}
+      style={{ width: '28rem', borderRadius: '1.5rem' }}
       modal
       closable={false}
       onHide={onClose}
       footer={footer}
+      position="center"
+      dismissableMask={false}
       draggable={false}
       resizable={false}
     >
-      <div className="flex flex-col gap-2 mt-1 text-sm">
-        {/* Nombre */}
-        <label className="text-xs font-semibold">Nombre</label>
-        <InputText
-          value={data.nombre}
-          onChange={(e) => handleChange('nombre', e.target.value)}
-          className="w-full rounded-xl h-9 text-sm"
-        />
-        {errores.nombre && <small className="text-red-500">{errores.nombre}</small>}
+      {/* Formulario */}
+      <div className="flex flex-col gap-3">
+        {/* Nombre del Animal */}
+        <span>
+          <label htmlFor="nombre" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE DEL ANIMAL</label>
+          <InputText
+            id="nombre"
+            name="nombre"
+            value={data.nombre}
+            onChange={(e) => handleChange('nombre', e.target.value)}
+            className="w-full rounded-xl h-9 text-sm"
+            placeholder="Ej: Firulais"
+          />
+          {errores.nombre && <p className="text-xs text-red-600 mt-1">{errores.nombre}</p>}
+        </span>
 
-        {/* Especie y Sexo */}
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="text-xs font-semibold">Especie</label>
-            <Dropdown
-              value={data.especie}
-              options={especies}
-              onChange={(e) => handleChange('especie', e.value)}
-              className="w-full rounded-xl text-sm mt-1"
-              placeholder="Seleccionar"
-            />
-            {errores.especie && <small className="text-red-500">{errores.especie}</small>}
-          </div>
+        {/* Especie */}
+        <span>
+          <label htmlFor="especie" className="text-xs font-semibold text-gray-700 mb-1">ESPECIE</label>
+          <Dropdown
+            id="especie"
+            name="especie"
+            value={data.especie}
+            options={especies}
+            onChange={(e) => handleChange('especie', e.value)}
+            className="w-full rounded-xl h-9 text-sm"
+            placeholder="Seleccionar especie"
+          />
+          {errores.especie && <p className="text-xs text-red-600 mt-1">{errores.especie}</p>}
+        </span>
 
-          <div>
-            <label className="text-xs font-semibold">Sexo</label>
-            <Dropdown
-              value={data.sexo}
-              options={sexos}
-              onChange={(e) => handleChange('sexo', e.value)}
-              className="w-full rounded-xl text-sm mt-1"
-              placeholder="Seleccionar"
-            />
-            {errores.sexo && <small className="text-red-500">{errores.sexo}</small>}
-          </div>
-        </div>
+        {/* Sexo */}
+        <span>
+          <label htmlFor="sexo" className="text-xs font-semibold text-gray-700 mb-1">SEXO</label>
+          <Dropdown
+            id="sexo"
+            name="sexo"
+            value={data.sexo}
+            options={sexos}
+            onChange={(e) => handleChange('sexo', e.value)}
+            className="w-full rounded-xl h-9 text-sm"
+            placeholder="Seleccionar sexo"
+          />
+          {errores.sexo && <p className="text-xs text-red-600 mt-1">{errores.sexo}</p>}
+        </span>
 
-        {/* Precio y Stock */}
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="text-xs font-semibold">Precio (L.)</label>
-            <InputNumber
-              value={data.precio}
-              onValueChange={(e) => handleChange('precio', e.value)}
-              mode="currency"
-              currency="HNL"
-              locale="es-HN"
-              className="w-full rounded-xl text-sm mt-1"
-              inputClassName="h-9 text-sm"
-            />
-            {errores.precio && <small className="text-red-500">{errores.precio}</small>}
-          </div>
+        {/* Precio */}
+        <span>
+          <label htmlFor="precio" className="text-xs font-semibold text-gray-700 mb-1">PRECIO (L)</label>
+          <InputNumber
+            id="precio"
+            name="precio"
+            value={data.precio}
+            onValueChange={(e) => handleChange('precio', e.value)}
+            mode="currency"
+            currency="HNL"
+            locale="es-HN"
+            className="w-full rounded-xl h-9 text-sm"
+            inputClassName="h-9 text-sm"
+            placeholder="0.00"
+          />
+          {errores.precio && <p className="text-xs text-red-600 mt-1">{errores.precio}</p>}
+        </span>
 
-          <div>
-            <label className="text-xs font-semibold">Stock</label>
-            <InputNumber
-              value={data.cantidad}
-              onValueChange={(e) => handleChange('cantidad', e.value)}
-              className="w-full rounded-xl text-sm mt-1"
-              inputClassName="h-9 text-sm"
-            />
-            {errores.cantidad && <small className="text-red-500">{errores.cantidad}</small>}
-          </div>
-        </div>
+        {/* Stock */}
+        <span>
+          <label htmlFor="stock" className="text-xs font-semibold text-gray-700 mb-1">STOCK DISPONIBLE</label>
+          <InputNumber
+            id="stock"
+            name="stock"
+            value={data.cantidad}
+            onValueChange={(e) => handleChange('cantidad', e.value)}
+            className="w-full rounded-xl h-9 text-sm"
+            inputClassName="h-9 text-sm"
+            placeholder="Cantidad disponible"
+          />
+          {errores.cantidad && <p className="text-xs text-red-600 mt-1">{errores.cantidad}</p>}
+        </span>
       </div>
     </Dialog>
   );
