@@ -293,63 +293,7 @@ exports.crear = async (req, res) => {
 
 };
 
-// ─────────────────────────────────────────────────────────
-//        ENDPOINT PARA VER CATÁLOGOS DE PRODUCTOS
-// ─────────────────────────────────────────────────────────
-exports.verCatalogo = async (req, res) => {
-    
-    const conn = await mysqlConnection.getConnection();
-    
-    try {
-        
-        let registros;
-        
-        switch (req.query.tipo_catalogo) {
-            
-            case 'TIPOS_PRODUCTOS':
-                [registros] = await conn.query(
-                    `SELECT id_tipo_producto_pk, nombre_tipo_producto 
-                     FROM cat_tipo_productos 
-                     ORDER BY id_tipo_producto_pk`
-                );
-                break;
-                
-            case 'ESTADOS_TIPO':
-                [registros] = await conn.query(
-                    `SELECT id_estado_pk, nombre_estado 
-                     FROM cat_estados 
-                     WHERE dominio = 'TIPO' 
-                     ORDER BY id_estado_pk`
-                );
-                break;
-                
-            case 'ESTADOS_ORIGEN':
-                [registros] = await conn.query(
-                    `SELECT id_estado_pk, nombre_estado 
-                     FROM cat_estados 
-                     WHERE dominio = 'ORIGEN' 
-                     ORDER BY id_estado_pk`
-                );
-                break;
-                
-            default:
-                throw new Error('Tipo de catálogo no válido');
-        }
-        
-        res.json({
-            Consulta: true,
-            catalogo: registros || []
-        });
-        
-    } catch (err) {
-        res.json({
-            Consulta: false,
-            error: err.message
-        });
-    } finally {
-        conn.release();
-    }
-};
+
 
 // ─────────────────────────────────────────────────────────
 //          ENDPOINT DE ACTUALIZAR PRODUCTOS
@@ -460,8 +404,6 @@ exports.actualizar = async (req, res) => {
                 await conn.query(
                 `UPDATE tbl_lotes_medicamentos
                 SET 
-                    codigo_lote       = COALESCE(?, codigo_lote),
-                    fecha_ingreso     = COALESCE(?, fecha_ingreso),
                     fecha_vencimiento = COALESCE(?, fecha_vencimiento),
                     stock_lote        = COALESCE(?, stock_lote)
                 WHERE id_lote_medicamentos_pk = ?`,
@@ -497,6 +439,63 @@ exports.actualizar = async (req, res) => {
     }
 };
 
+// ─────────────────────────────────────────────────────────
+//        ENDPOINT PARA VER CATÁLOGOS DE
+// ─────────────────────────────────────────────────────────
+exports.verCatalogo = async (req, res) => {
+    
+    const conn = await mysqlConnection.getConnection();
+    
+    try {
+        
+        let registros;
+        
+        switch (req.query.tipo_catalogo) {
+            
+            case 'TIPOS_PRODUCTOS':
+                [registros] = await conn.query(
+                    `SELECT id_tipo_producto_pk, nombre_tipo_producto 
+                     FROM cat_tipo_productos 
+                     ORDER BY id_tipo_producto_pk`
+                );
+                break;
+                
+            case 'ESTADOS_TIPO':
+                [registros] = await conn.query(
+                    `SELECT id_estado_pk, nombre_estado 
+                     FROM cat_estados 
+                     WHERE dominio = 'TIPO' 
+                     ORDER BY id_estado_pk`
+                );
+                break;
+                
+            case 'ESTADOS_ORIGEN':
+                [registros] = await conn.query(
+                    `SELECT id_estado_pk, nombre_estado 
+                     FROM cat_estados 
+                     WHERE dominio = 'ORIGEN' 
+                     ORDER BY id_estado_pk`
+                );
+                break;
+                
+            default:
+                throw new Error('Tipo de catálogo no válido');
+        }
+        
+        res.json({
+            Consulta: true,
+            catalogo: registros || []
+        });
+        
+    } catch (err) {
+        res.json({
+            Consulta: false,
+            error: err.message
+        });
+    } finally {
+        conn.release();
+    }
+};
 
 // ─────────────────────────────────────────────────────────
 //              ENDPOINT PARA VER LOS PRODUCTOS
@@ -525,7 +524,8 @@ exports.ver = async (req, res) => {
                         p.activo,
                         ac.tipo_accesorio
                     FROM tbl_productos p 
-                    INNER JOIN tbl_accesorios_info ac ON p.id_producto_pk = ac.id_producto_fk`);
+                    INNER JOIN tbl_accesorios_info ac ON p.id_producto_pk = ac.id_producto_fk
+                    ORDER BY p.id_producto_pk DESC`);
                 break;
             
             case 'ANIMALES':
