@@ -151,12 +151,29 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                         onRowClick={(e) => setClienteSeleccionado(e.data)}
                         rowClassName={() => 'hover:bg-gray-100 cursor-pointer'}
                     >
-                        <Column field="id_cliente_pk" header="ID" body={(rowData) => clientes.indexOf(rowData) + 1} sortable className="text-sm"/>
-                        <Column field="nombre_cliente" header="Nombre" sortable className="text-sm" />
-                        <Column field="apellido_cliente" header="Apellido" sortable className="text-sm" />
-                        <Column field="identidad_cliente" header="Identidad" className="text-sm" />
-                        <Column field="telefono_cliente" header="Teléfono" className="text-sm" />
-                        <Column header="Acciones" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm" />
+                        <Column field="id_cliente_pk" header="ID" body={(rowData) => clientes.length - clientes.indexOf(rowData)} sortable className="text-sm"/>
+                        <Column field="nombre_cliente" header="NOMBRE" sortable className="text-sm" />
+                        <Column field="apellido_cliente" header="APELLIDO" sortable className="text-sm" />
+                        <Column field="identidad_cliente" header="IDENTIDAD" className="text-sm" />
+                        <Column field="telefono_cliente" header="TELÉFONO" className="text-sm" />
+                        <Column
+                            field="fecha_registro"
+                            header="FECHA DE REGISTRO"
+                            className="text-sm"
+                            body={(rowData) => {
+                                const fecha = new Date(rowData.fecha_registro);
+                                return fecha.toLocaleString('es-HN', {
+                                timeZone: 'America/Tegucigalpa',
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                                });
+                            }}
+                            />
+                        <Column header="ACCIONES" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm" />
                     </DataTable>
                 )}
             </div>

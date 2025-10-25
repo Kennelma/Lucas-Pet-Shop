@@ -255,24 +255,24 @@ const Animales = () => {
           <Column 
             field="id_producto" 
             header="ID" 
-            body={(rowData) => filtroAnimales.indexOf(rowData) + 1} 
+            body={(rowData) => filtroAnimales.length - filtroAnimales.indexOf(rowData)}
             sortable 
             className="text-sm"
           />
-          <Column field="nombre" header="Nombre" sortable className="text-sm" />
+          <Column field="nombre" header="NOMBRE" sortable className="text-sm" />
           <Column field="sku" header="SKU" sortable className="text-sm" />
-          <Column field="especie" header="Especie" sortable className="text-sm" />
-          <Column field="sexo" header="Sexo" sortable className="text-sm" />
+          <Column field="especie" header="ESPECIE" sortable className="text-sm" />
+          <Column field="sexo" header="SEXO" sortable className="text-sm" />
           <Column
             field="precio"
-            header="Precio"
+            header="PRECIO"
             body={(rowData) => `L. ${rowData.precio.toFixed(2)}`}
             sortable
             className="text-sm"
           />
           <Column
             field="stock"
-            header="Stock"
+            header="STOCK"
             body={(rowData) => (
               <span className={rowData.stock <= rowData.stock_minimo ? 'text-red-500 font-semibold' : ''}>
                 {rowData.stock}
@@ -284,14 +284,14 @@ const Animales = () => {
           />
           <Column
             field="activo"
-            header="Estado"
+            header="ESTADO"
             body={estadoTemplate}
             sortable
             sortField="activo"
             className="text-sm"
           />
           <Column
-            header="Acciones"
+            header="ACCIONES"
             body={(rowData) => (
               <div className="flex items-center space-x-2 w-full">
                 <button

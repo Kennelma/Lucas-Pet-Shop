@@ -57,6 +57,7 @@ exports.login = async (req, res) => {
 
         //VALIDO QUE ESTE USUARIO NO ESTÉ BLOQUEADO
         if (user.bloqueado_hasta) {
+            
             const ahora = new Date();
             const bloqueadoHasta = new Date(user.bloqueado_hasta);
 
