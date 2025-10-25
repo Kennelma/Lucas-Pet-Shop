@@ -34,4 +34,8 @@ const mysqlConnection = mysql.createPool({
 
 
 //SE EXPORTA LA CONEXIÓN A LOS DIFERENTES ARCHIVOS
+<<<<<<< HEAD
 module.exports = mysqlConnection;
+=======
+module.exports = mysqlConnection;
+>>>>>>> 7779019b8dc2a81f877029bfbc67def173147b76
