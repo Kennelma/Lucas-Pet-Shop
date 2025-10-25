@@ -57,10 +57,10 @@ export const actualizarProducto = async (datosProducto) => {
 };
 
 /*SERVICIO PARA ELIMINAR PRODUCTO*/
-export const eliminarProducto = async (id_producto) => {
+export const eliminarProducto = async (datos) => {
   try {
     const res = await axios.delete(`${API_URL}/eliminar`, {
-      data: { id_producto } , headers: getHeaders()
+      data: datos, headers: getHeaders()
     });
     return res.data;
   } catch (err) {

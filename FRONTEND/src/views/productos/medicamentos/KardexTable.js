@@ -140,41 +140,41 @@ const KardexTable = ({ kardexData }) => {
         </table>
       </div>
 
-      {/* Pagination */}
-      <div className="flex justify-between items-center mt-4">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button>
-          <button
-            onClick={() => setPage(p => Math.min(pages, p + 1))}
-            disabled={page === pages}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          {[...Array(pages)].map((_, i) => (
-            <button
-              key={i + 1}
-              onClick={() => setPage(i + 1)}
-              className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                page === i + 1
-                  ? "bg-blue-500 text-white"
-                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Paginación */}
+                <div className="flex justify-center items-center gap-4 mt-6 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  
+                  <div className="flex items-center gap-2">
+                    {[...Array(pages)].map((_, i) => (
+                      <button
+                        key={i + 1}
+                        onClick={() => setPage(i + 1)}
+                        className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                          page === i + 1
+                            ? "bg-blue-600 text-white"
+                            : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => setPage(p => Math.min(pages, p + 1))}
+                    disabled={page === pages}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+
     </div>
   );
 };

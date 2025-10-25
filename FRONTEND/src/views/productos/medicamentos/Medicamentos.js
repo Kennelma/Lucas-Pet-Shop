@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Swal from "sweetalert2";
 import { useMedicamentos } from "./useMedicamentos";
 import MedicamentosBajoStock from "./MedicamentosBajoStock";
 import MedicamentoCard from "./MedicamentoCard";
@@ -9,16 +10,8 @@ import ModalMovimiento from "./ModalMovimiento";
 import ModalLotesMedicamento from "./ModalLotesMedicamento";
 
 const Medicamentos = () => {
-  const {
-    medicamentos,
-    lotes,
-    kardexData,
-    loading,
-    mensaje,
-    calcularStockTotal,
-    guardarMedicamento,
-    guardarLote,
-    guardarMovimiento
+  const { medicamentos, lotes, kardexData, loading, mensaje, calcularStockTotal, guardarMedicamento, guardarLote, guardarMovimiento,
+    eliminarMedicamento, eliminarLote, cargarDatos
   } = useMedicamentos();
 
   const [vistaActual, setVistaActual] = useState("medicamentos");
@@ -53,6 +46,23 @@ const Medicamentos = () => {
            mov.origen_movimiento.toLowerCase().includes(searchLower);
   });
 
+  // Función para calcular estado del lote
+  const calcularEstadoLote = (lote) => {
+    const hoy = new Date();
+    const vencimiento = new Date(lote.fecha_vencimiento);
+    
+    if (vencimiento < hoy) {
+      return { bgBadge: "bg-gray-600", texto: "CADUCADO" };
+    }
+    
+    const stock = parseInt(lote.stock_lote || 0);
+    if (stock === 0) {
+      return { bgBadge: "bg-red-500", texto: "AGOTADO" };
+    }
+    
+    return { bgBadge: "bg-green-500", texto: "DISPONIBLE" };
+  };
+
   const handleGuardarMedicamento = async (formData) => {
     const success = await guardarMedicamento(formData, medicamentoEditando);
     if (success) {
@@ -74,6 +84,82 @@ const Medicamentos = () => {
     if (success) {
       setModalMovVisible(false);
       setLoteSeleccionado(null);
+    }
+  };
+
+  const handleEliminarMedicamento = async (medicamento) => {
+    const lotesAsociados = lotes.filter(l => l.id_producto_fk === medicamento.id_producto_pk).length;
+    
+    const result = await Swal.fire({
+      title: "¿Eliminar medicamento?",
+      html: `
+        <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
+          <p class="mb-1 text-sm"><span class="font-bold">Nombre:</span> ${medicamento.nombre_producto}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Presentación:</span> ${medicamento.presentacion_medicamento}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Tipo:</span> ${medicamento.tipo_medicamento}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Precio:</span> L. ${medicamento.precio_producto.toFixed(2)}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Lotes asociados:</span> ${lotesAsociados}</p>
+        </div>
+        <div class="mt-3 p-2 bg-red-50 rounded-md border border-red-200">
+          <p class="text-xs text-red-600 font-semibold">⚠️ Esta acción eliminará también todos los lotes asociados y no se puede deshacer.</p>
+        </div>
+      `,
+      showCancelButton: true, confirmButtonText: "Eliminar", cancelButtonText: "Cancelar", reverseButtons: true, width: 450, padding: "16px",
+      customClass: {
+        confirmButton: "bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium",
+        cancelButton: "bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium mr-2",
+      },
+      buttonsStyling: false
+    });
+
+    if (result.isConfirmed) {
+      const success = await eliminarMedicamento(medicamento.id_producto_pk);
+      if (success) {
+        Swal.fire({ icon: "success", title: "¡Eliminado!", text: "El medicamento fue eliminado correctamente", timer: 1800, showConfirmButton: false, });
+      }
+    }
+  };
+
+  const handleEliminarLote = async (lote) => {
+    const estilo = calcularEstadoLote(lote);
+    
+    const result = await Swal.fire({
+      title: "¿Eliminar lote?",
+      html: `
+        <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
+          <p class="mb-1 text-sm"><span class="font-bold">Código Lote:</span> ${lote.codigo_lote}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Stock:</span> ${lote.stock_lote} unidades</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Estado:</span> ${estilo.texto}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Vencimiento:</span> ${new Date(lote.fecha_vencimiento).toLocaleDateString('es-HN')}</p>
+        </div>
+        <p class="text-red-600 text-sm mt-2">⚠️ Esta acción no se puede deshacer</p>
+      `,
+      showCancelButton: true, confirmButtonText: "Eliminar", cancelButtonText: "Cancelar", reverseButtons: true, width: 400, padding: "16px",
+      didOpen: () => {
+        const swalContainer = document.querySelector('.swal2-container');
+        const swalPopup = document.querySelector('.swal2-popup');
+        if (swalContainer) {
+          swalContainer.style.setProperty('z-index', '999999', 'important');
+        }
+        if (swalPopup) {
+          swalPopup.style.setProperty('z-index', '999999', 'important');
+        }
+      },
+      customClass: { confirmButton: "bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium",
+        cancelButton: "bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium mr-2",
+      },
+      buttonsStyling: false
+    });
+
+    if (result.isConfirmed) {
+      // ✅ CORRECCIÓN: Enviar el campo correcto que espera el backend
+      const success = await eliminarLote(lote.id_lote_medicamentos_pk);
+      if (success) {
+        // Recargar datos después de eliminar
+        await cargarDatos();
+        
+        Swal.fire({ icon: "success", title: "¡Eliminado!", text: "El lote fue eliminado correctamente", timer: 1800, showConfirmButton: false,});
+      }
     }
   };
 
@@ -107,40 +193,26 @@ const Medicamentos = () => {
       {/* Tabs de navegación*/}
       <div className="flex flex-wrap rounded-lg bg-gray-200 p-1 w-80 text-sm shadow-sm mb-6">
         <label className="flex-1 text-center">
-          <input
-            type="radio"
-            name="vista"
-            checked={vistaActual === "medicamentos"}
-            onChange={() => setVistaActual("medicamentos")}
-            className="hidden"
-          />
-          <span
-            className={`flex items-center justify-center rounded-lg py-2 px-4 cursor-pointer transition-all duration-150 ${
+          <input type="radio" name="vista" checked={vistaActual === "medicamentos"} onChange={() => setVistaActual("medicamentos")} className="hidden" />
+          <span className={`flex items-center justify-center rounded-lg py-2 px-4 cursor-pointer transition-all duration-150 ${
               vistaActual === "medicamentos"
                 ? "bg-white font-semibold text-gray-800 shadow-sm"
                 : "text-gray-600 hover:text-gray-800"
             }`}
           >
-             Medicamentos
+             MEDICAMENTOS
           </span>
         </label>
         
         <label className="flex-1 text-center">
-          <input
-            type="radio"
-            name="vista"
-            checked={vistaActual === "kardex"}
-            onChange={() => setVistaActual("kardex")}
-            className="hidden"
-          />
-          <span
-            className={`flex items-center justify-center rounded-lg py-2 px-4 cursor-pointer transition-all duration-150 ${
+          <input type="radio" name="vista" checked={vistaActual === "kardex"} onChange={() => setVistaActual("kardex")} className="hidden" />
+          <span className={`flex items-center justify-center rounded-lg py-2 px-4 cursor-pointer transition-all duration-150 ${
               vistaActual === "kardex"
                 ? "bg-white font-semibold text-gray-800 shadow-sm"
                 : "text-gray-600 hover:text-gray-800"
             }`}
           >
-             Kardex
+             KARDEX
           </span>
         </label>
       </div>
@@ -158,11 +230,7 @@ const Medicamentos = () => {
                 <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <input
-                  type="text"
-                  placeholder="Buscar medicamento..."
-                  value={busqueda}
-                  onChange={(e) => {
+                <input type="text" value={busqueda} onChange={(e) => {
                     setBusqueda(e.target.value);
                     setPage(1);
                   }}
@@ -223,15 +291,14 @@ const Medicamentos = () => {
                         setMedicamentoSeleccionado(med);
                         setModalLotesVisible(true);
                       }}
+                      onEliminar={() => handleEliminarMedicamento(med)}
                     />
                   ))}
                 </div>
 
                 {/* Paginación */}
                 <div className="flex justify-center items-center gap-4 mt-6 pt-4 border-t border-gray-200">
-                  <button
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page === 1}
+                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Previous
@@ -244,7 +311,7 @@ const Medicamentos = () => {
                         onClick={() => setPage(i + 1)}
                         className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                           page === i + 1
-                            ? "bg-purple-600 text-white"
+                            ? "bg-blue-600 text-white"
                             : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
                         }`}
                       >
@@ -253,9 +320,7 @@ const Medicamentos = () => {
                     ))}
                   </div>
 
-                  <button
-                    onClick={() => setPage(p => Math.min(pages, p + 1))}
-                    disabled={page === pages}
+                  <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages}
                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
@@ -268,46 +333,35 @@ const Medicamentos = () => {
       </div>
 
       {/* Modales */}
-<ModalMedicamento 
-  isOpen={modalVisible} 
-  onClose={() => {
-    setModalVisible(false);
-    setMedicamentoEditando(null);
-  }}
-  onSave={handleGuardarMedicamento}
-  medicamentoEditando={medicamentoEditando}
-  medicamentosExistentes={medicamentos}  // ← AGREGA ESTA LÍNEA
-/>
+      <ModalMedicamento 
+        isOpen={modalVisible} onClose={() => {
+          setModalVisible(false);
+          setMedicamentoEditando(null);
+        }}
+        onSave={handleGuardarMedicamento} medicamentoEditando={medicamentoEditando} medicamentosExistentes={medicamentos}
+      />
       
       <ModalLote 
-  isOpen={modalLoteVisible}
-  onClose={() => {
-    setModalLoteVisible(false);
-    setMedicamentoSeleccionado(null);
-  }}
-  onSave={handleGuardarLote}
-  medicamentoSeleccionado={medicamentoSeleccionado}
-  lotesExistentes={lotes} // ← AGREGA ESTA LÍNEA
-/>
+        isOpen={modalLoteVisible} onClose={() => {
+          setModalLoteVisible(false);
+          setMedicamentoSeleccionado(null);
+        }}
+        onSave={handleGuardarLote} medicamentoSeleccionado={medicamentoSeleccionado} lotesExistentes={lotes}
+      />
       
       <ModalMovimiento 
-        isOpen={modalMovVisible}
-        onClose={() => {
+        isOpen={modalMovVisible} onClose={() => {
           setModalMovVisible(false);
           setLoteSeleccionado(null);
         }}
-        onSave={handleGuardarMovimiento}
-        loteSeleccionado={loteSeleccionado}
+        onSave={handleGuardarMovimiento} loteSeleccionado={loteSeleccionado}
       />
       
-      <ModalLotesMedicamento
-        isOpen={modalLotesVisible}
-        onClose={() => {
+      <ModalLotesMedicamento isOpen={modalLotesVisible} onClose={() => {
           setModalLotesVisible(false);
           setMedicamentoSeleccionado(null);
         }}
-        medicamentoSeleccionado={medicamentoSeleccionado}
-        lotes={lotes}
+        medicamentoSeleccionado={medicamentoSeleccionado} lotes={lotes} onEliminarLote={handleEliminarLote}
       />
 
       {/* Notificación de mensajes */}

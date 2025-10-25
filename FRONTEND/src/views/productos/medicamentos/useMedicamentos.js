@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { verProductos, insertarProducto, actualizarProducto } from "../../../AXIOS.SERVICES/products-axios";
+import { verProductos, insertarProducto, actualizarProducto, eliminarProducto } from "../../../AXIOS.SERVICES/products-axios";
 
 export const useMedicamentos = () => {
   const [medicamentos, setMedicamentos] = useState([]);
@@ -22,37 +22,29 @@ export const useMedicamentos = () => {
     setLoading(true);
     try {
       
-      // ====== PASO 1: Obtener datos del backend ======
-      const productos = await verProductos('MEDICAMENTOS');
+      // ✅ CARGAR TODO EN PARALELO
+      const [productos, lotesData, kardexResponse] = await Promise.all([
+        verProductos('MEDICAMENTOS'),
+        verProductos('LOTES'),
+        verProductos('KARDEX')
+      ]);
       
-      // ====== VERIFICACIÓN DE CADA PRODUCTO ======
-      if (Array.isArray(productos)) {
-        productos.forEach((item, index) => {
-        });
-      }
+      // Normalizar medicamentos rápido
+      const medicamentosNormalizados = (productos || []).map((item) => ({
+        id_producto_pk: item.id_producto_pk,
+        nombre_producto: item.nombre_producto,
+        precio_producto: parseFloat(item.precio_producto || 0),
+        sku: item.sku || `MED-${(item.presentacion_medicamento || 'XXX').substring(0, 3).toUpperCase()}-${String(item.id_producto_pk).padStart(3, '0')}`,
+        stock: parseInt(item.stock || 0),
+        stock_minimo: parseInt(item.stock_minimo || 5),
+        activo: item.activo === 1 || item.activo === "1" || item.activo === true,
+        presentacion_medicamento: item.presentacion_medicamento || "Sin presentación",
+        tipo_medicamento: item.tipo_medicamento || "Sin tipo",
+        cantidad_contenido: parseInt(item.cantidad_contenido || 0),
+        unidad_medida: item.unidad_medida || ""
+      }));
       
-      // ====== PASO 2: Normalizar datos SIN FILTROS ======
-      const medicamentosNormalizados = (productos || []).map((item, index) => {
-        const normalizado = {
-          id_producto_pk: item.id_producto_pk,
-          nombre_producto: item.nombre_producto,
-          precio_producto: parseFloat(item.precio_producto || 0),
-          sku: item.sku || `MED-${(item.presentacion_medicamento || 'XXX').substring(0, 3).toUpperCase()}-${String(item.id_producto_pk).padStart(3, '0')}`,
-          stock: parseInt(item.stock || 0),
-          stock_minimo: parseInt(item.stock_minimo || 5),
-          activo: item.activo === 1 || item.activo === "1" || item.activo === true,
-          presentacion_medicamento: item.presentacion_medicamento || "Sin presentación",
-          tipo_medicamento: item.tipo_medicamento || "Sin tipo",
-          cantidad_contenido: parseInt(item.cantidad_contenido || 0),
-          unidad_medida: item.unidad_medida || ""
-        };
-        
-        return normalizado;
-      });
-
-      // ====== PASO 3: Cargar lotes ======
-      const lotesData = await verProductos('LOTES');
-      
+      // ✅ Guardar lotes SIN renumerar primero (más rápido)
       const lotesNormalizados = (lotesData || []).map((item) => ({
         id_lote_medicamentos_pk: item.id_lote_medicamentos_pk,
         codigo_lote: item.codigo_lote || "",
@@ -66,17 +58,50 @@ export const useMedicamentos = () => {
         nombre_medicamento: item.nombre_producto
       }));
 
-      // ====== PASO 4: Cargar Kardex ======
-      const kardexResponse = await verProductos('KARDEX');
-
-      // ====== PASO 5: Actualizar estado ======
+      // Actualizar estados inmediatamente
       setMedicamentos(medicamentosNormalizados);
       setLotes(lotesNormalizados);
       setKardexData(kardexResponse || []);
+      setLoading(false);
+      
+      // ✅ RENUMERAR EN SEGUNDO PLANO (después de mostrar)
+      setTimeout(() => {
+        const lotesPorMedicamento = {};
+        
+        lotesNormalizados.forEach(item => {
+          const key = item.id_producto_fk;
+          if (!lotesPorMedicamento[key]) {
+            lotesPorMedicamento[key] = [];
+          }
+          lotesPorMedicamento[key].push(item);
+        });
+        
+        const lotesRenumerados = [];
+        
+        for (const medicamentoId in lotesPorMedicamento) {
+          const lotesDelMedicamento = lotesPorMedicamento[medicamentoId];
+          
+          lotesDelMedicamento.sort((a, b) => 
+            new Date(a.fecha_ingreso) - new Date(b.fecha_ingreso)
+          );
+          
+          lotesDelMedicamento.forEach((item, index) => {
+            const match = item.codigo_lote.match(/LOTE-\d+-(.*)/);
+            const sufijo = match ? match[1] : item.codigo_lote;
+            const nuevoNumero = String(index + 1).padStart(2, '0');
+            
+            lotesRenumerados.push({
+              ...item,
+              codigo_lote: `LOTE-${nuevoNumero}-${sufijo}`
+            });
+          });
+        }
+        
+        setLotes(lotesRenumerados);
+      }, 100);
       
     } catch (error) {
       mostrarMensaje("❌ Error al cargar datos");
-    } finally {
       setLoading(false);
     }
   };
@@ -85,6 +110,27 @@ export const useMedicamentos = () => {
     const lotesDelProducto = lotes.filter(l => l.id_producto_fk === idProducto);
     const total = lotesDelProducto.reduce((sum, l) => sum + parseInt(l.stock_lote || 0), 0);
     return total;
+  };
+
+  // ====== FUNCIÓN: GENERAR CÓDIGO DE LOTE AUTOMÁTICO ======
+  const generarCodigoLote = (medicamento) => {
+    const prefijo = medicamento.presentacion_medicamento.substring(0, 4).toUpperCase();
+    const lotesDelMedicamento = lotes.filter(l => l.id_producto_fk === medicamento.id_producto_pk);
+    
+    // Extraer números de los códigos existentes
+    const numerosExistentes = lotesDelMedicamento
+      .map(l => {
+        const match = l.codigo_lote.match(/LOTE-(\d+)-/);
+        return match ? parseInt(match[1]) : 0;
+      })
+      .filter(n => n > 0);
+    
+    // Encontrar el siguiente número disponible
+    const siguienteNumero = numerosExistentes.length > 0 
+      ? Math.max(...numerosExistentes) + 1 
+      : 1;
+    
+    return `LOTE-${String(siguienteNumero).padStart(2, '0')}-${prefijo}`;
   };
 
   const guardarMedicamento = async (formData, medicamentoEditando) => {
@@ -218,6 +264,45 @@ export const useMedicamentos = () => {
     return true;
   };
 
+  const eliminarMedicamento = async (id_producto) => {
+    try {
+      const resultado = await eliminarProducto({ id_producto });
+      
+      if (resultado.Consulta) {
+        mostrarMensaje("✅ Medicamento eliminado con éxito");
+        await cargarDatos();
+        return true;
+      } else {
+        mostrarMensaje(`❌ ${resultado.error || 'Error al eliminar'}`);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error al eliminar medicamento:', error);
+      mostrarMensaje('❌ Error al eliminar medicamento');
+      return false;
+    }
+  };
+
+  // ====== FUNCIÓN: ELIMINAR LOTE CON RENUMERACIÓN ======
+  const eliminarLote = async (id_lote) => {
+    try {
+      const resultado = await eliminarProducto({ id_lote });
+      
+      if (resultado.Consulta) {
+        mostrarMensaje("✅ Lote eliminado con éxito");
+        await cargarDatos(); // Recargar datos actualizados
+        return true;
+      } else {
+        mostrarMensaje(`❌ ${resultado.error || 'Error al eliminar lote'}`);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error al eliminar lote:', error);
+      mostrarMensaje('❌ Error al eliminar lote');
+      return false;
+    }
+  };
+
   return {
     medicamentos,
     lotes,
@@ -225,8 +310,12 @@ export const useMedicamentos = () => {
     loading,
     mensaje,
     calcularStockTotal,
+    generarCodigoLote, // ✅ NUEVA FUNCIÓN EXPORTADA
     guardarMedicamento,
     guardarLote,
-    guardarMovimiento
+    guardarMovimiento,
+    eliminarMedicamento,
+    eliminarLote,
+    cargarDatos
   };
 };

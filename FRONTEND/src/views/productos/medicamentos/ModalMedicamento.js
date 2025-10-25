@@ -12,7 +12,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
     codigo_lote: "",
     fecha_vencimiento: "",
     stock_lote: "",
-    estado: true
+    activo: true
   });
 
   const [errores, setErrores] = useState({});
@@ -34,7 +34,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
           tipo: medicamentoEditando.tipo_medicamento,
           cantidad_contenido: medicamentoEditando.cantidad_contenido,
           unidad_medida: medicamentoEditando.unidad_medida,
-          estado: medicamentoEditando.estado_medicamento === 'Activo',
+          activo: medicamentoEditando.activo,
           codigo_lote: "",
           fecha_vencimiento: "",
           stock_lote: ""
@@ -48,7 +48,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
           tipo: "",
           cantidad_contenido: "",
           unidad_medida: "",
-          estado: true,
+          activo: true,
           codigo_lote: "",
           fecha_vencimiento: "",
           stock_lote: ""
@@ -165,16 +165,16 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto p-10">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+    >
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-10">
         {/* Header */}
-        <div className="flex justify-between items-center w-full mb-10">
+        <div className="flex justify-between items-center w-full mb-8">
           <div className="flex flex-col">
             <div className="text-xl text-gray-800 font-bold">
               {medicamentoEditando ? "EDITAR MEDICAMENTO" : "NUEVO MEDICAMENTO"}
-            </div>
-            <div className="mt-1 text-sm text-gray-500">
-              {medicamentoEditando ? "Actualizar información del producto" : "Complete la información del producto"}
             </div>
           </div>
           
@@ -182,13 +182,13 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
           {!medicamentoEditando && (
             <div className="flex items-center gap-2">
               <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm transition-all ${
-                paso === 1 ? 'bg-violet-500 text-white shadow-lg' : 'bg-gray-200 text-gray-600'
+                paso === 1 ? 'bg-green-500 text-white shadow-lg' : 'bg-gray-200 text-gray-600'
               }`}>
                 1
               </div>
-              <div className={`h-1 w-8 transition-all ${paso === 2 ? 'bg-violet-500' : 'bg-gray-300'}`}></div>
+              <div className={`h-1 w-8 transition-all ${paso === 2 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
               <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm transition-all ${
-                paso === 2 ? 'bg-violet-500 text-white shadow-lg' : 'bg-gray-200 text-gray-600'
+                paso === 2 ? 'bg-green-500 text-white shadow-lg' : 'bg-gray-200 text-gray-600'
               }`}>
                 2
               </div>
@@ -206,16 +206,16 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                 id="nombre_producto"
                 value={formData.nombre_producto}
                 onChange={(e) => handleChange('nombre_producto', e.target.value)}
-                className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-violet-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-violet-500 focus:ring-0 hover:border-violet-300 peer transition-all"
+                className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"
               />
               <label
                 htmlFor="nombre_producto"
-                className="absolute text-sm text-violet-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
+                className="absolute text-sm text-black-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
               >
                 Nombre del Producto
               </label>
               {errores.nombre_producto && (
-                <p className="text-xs text-red-600 mt-1">{errores.nombre_producto}</p>
+                <p className="text-[10px] text-red-600 mt-1">{errores.nombre_producto}</p>
               )}
             </div>
 
@@ -228,16 +228,16 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                 id="precio_producto"
                 value={formData.precio_producto}
                 onChange={(e) => handleChange('precio_producto', e.target.value)}
-                className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-violet-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-violet-500 focus:ring-0 hover:border-violet-300 peer transition-all"
+                className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"
               />
               <label
                 htmlFor="precio_producto"
-                className="absolute text-sm text-violet-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
+                className="absolute text-sm text-black-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
               >
                 Precio (L)
               </label>
               {errores.precio_producto && (
-                <p className="text-xs text-red-600 mt-1">{errores.precio_producto}</p>
+                <p className="text-[10px] text-red-600 mt-1">{errores.precio_producto}</p>
               )}
             </div>
 
@@ -248,16 +248,16 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                 id="presentacion"
                 value={formData.presentacion}
                 onChange={(e) => handleChange('presentacion', e.target.value)}
-                className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-violet-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-violet-500 focus:ring-0 hover:border-violet-300 peer transition-all"
+                className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"
               />
               <label
                 htmlFor="presentacion"
-                className="absolute text-sm text-violet-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
+                className="absolute text-sm text-black-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
               >
                 Presentación
               </label>
               {errores.presentacion && (
-                <p className="text-xs text-red-600 mt-1">{errores.presentacion}</p>
+                <p className="text-[10px] text-red-600 mt-1">{errores.presentacion}</p>
               )}
             </div>
 
@@ -268,16 +268,16 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                 id="tipo"
                 value={formData.tipo}
                 onChange={(e) => handleChange('tipo', e.target.value)}
-                className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-violet-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-violet-500 focus:ring-0 hover:border-violet-300 peer transition-all"
+                className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"
               />
               <label
                 htmlFor="tipo"
-                className="absolute text-sm text-violet-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
+                className="absolute text-sm text-black-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
               >
                 Tipo de Medicamento
               </label>
               {errores.tipo && (
-                <p className="text-xs text-red-600 mt-1">{errores.tipo}</p>
+                <p className="text-[10px] text-red-600 mt-1">{errores.tipo}</p>
               )}
             </div>
 
@@ -288,11 +288,11 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                 id="cantidad_contenido"
                 value={formData.cantidad_contenido}
                 onChange={(e) => handleChange('cantidad_contenido', e.target.value)}
-                className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-violet-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-violet-500 focus:ring-0 hover:border-violet-300 peer transition-all"
+                className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"
               />
               <label
                 htmlFor="cantidad_contenido"
-                className="absolute text-sm text-violet-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
+                className="absolute text-sm text-black-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
               >
                 Cantidad
               </label>
@@ -305,11 +305,11 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                 id="unidad_medida"
                 value={formData.unidad_medida}
                 onChange={(e) => handleChange('unidad_medida', e.target.value)}
-                className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-violet-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-violet-500 focus:ring-0 hover:border-violet-300 peer transition-all"
+                className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"
               />
               <label
                 htmlFor="unidad_medida"
-                className="absolute text-sm text-violet-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
+                className="absolute text-sm text-black-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
               >
                 Unidad de Medida
               </label>
@@ -317,17 +317,18 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
 
             {/* Estado (Solo cuando edita) */}
             {medicamentoEditando && (
-              <div className="col-span-2 flex items-center justify-between bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <div>
-                </div>
+              <div className="col-span-1 flex items-center justify-start">
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input 
                     type="checkbox" 
                     className="sr-only peer" 
-                    checked={formData.estado}
-                    onChange={(e) => setFormData(prev => ({ ...prev, estado: e.target.checked }))}
+                    checked={formData.activo}
+                    onChange={(e) => setFormData(prev => ({ ...prev, activo: e.target.checked }))}
                   />
-                  <div className="group peer bg-white rounded-full duration-300 w-16 h-8 ring-2 ring-red-500 after:duration-300 after:bg-red-500 peer-checked:after:bg-green-500 peer-checked:ring-green-500 after:rounded-full after:absolute after:h-6 after:w-6 after:top-1 after:left-1 after:flex after:justify-center after:items-center peer-checked:after:translate-x-8 peer-hover:after:scale-95"></div>
+                  <div className="group peer bg-gray-200 rounded-full duration-300 w-16 h-8 after:duration-300 after:bg-gray-400 peer-checked:after:bg-green-500 peer-checked:bg-green-200 after:rounded-full after:absolute after:h-6 after:w-6 after:top-1 after:left-1 after:flex after:justify-center after:items-center peer-checked:after:translate-x-8 peer-hover:after:scale-95 peer-focus:ring-4 peer-focus:ring-blue-300"></div>
+                  <span className={`ml-3 text-sm font-medium ${formData.activo ? 'text-green-600' : 'text-gray-500'}`}>
+                    {formData.activo ? 'Activo' : 'Inactivo'}
+                  </span>
                 </label>
               </div>
             )}
@@ -337,17 +338,12 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
         {paso === 2 && !medicamentoEditando && (
           <div className="space-y-6 mb-10">
             {/* Banner informativo */}
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-2 mb-4">
               <div className="flex items-start gap-3">
-                <svg className="w-6 h-6 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
                 <div>
-                  <p className="text-sm font-bold text-green-700">Medicamento Configurado</p>
-                  <p className="text-sm text-green-600 mt-1">
+                  <p className="text-sm text-blue-600 mt-1">
                     <strong>{formData.nombre_producto}</strong> - {formData.presentacion}
                   </p>
-                  <p className="text-xs text-green-600 mt-2">📦 Ahora ingrese el primer lote del producto</p>
                 </div>
               </div>
             </div>
@@ -366,9 +362,8 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                   htmlFor="codigo_lote"
                   className="absolute text-sm text-gray-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 start-1"
                 >
-                  Código de Lote (Generado Automáticamente)
+                  Código de Lote 
                 </label>
-                <p className="text-xs text-gray-500 mt-1">🔒 Este código se genera automáticamente basado en el nombre del medicamento</p>
               </div>
 
               {/* Fecha de Vencimiento */}
@@ -379,17 +374,17 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                   value={formData.fecha_vencimiento}
                   onChange={(e) => handleChange('fecha_vencimiento', e.target.value)}
                   min={new Date().toISOString().split('T')[0]}
-                  className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-violet-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-violet-500 focus:ring-0 hover:border-violet-300 peer transition-all"
+                  className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"
                   autoFocus
                 />
                 <label
                   htmlFor="fecha_vencimiento"
-                  className="absolute text-sm text-violet-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
+                  className="absolute text-sm text-black-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
                 >
                   Fecha de Vencimiento
                 </label>
                 {errores.fecha_vencimiento && (
-                  <p className="text-xs text-red-600 mt-1">{errores.fecha_vencimiento}</p>
+                  <p className="text-[10px] text-red-600 mt-1">{errores.fecha_vencimiento}</p>
                 )}
               </div>
 
@@ -401,16 +396,16 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                   id="stock_lote"
                   value={formData.stock_lote}
                   onChange={(e) => handleChange('stock_lote', e.target.value)}
-                  className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-violet-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-violet-500 focus:ring-0 hover:border-violet-300 peer transition-all"
+                  className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"
                 />
                 <label
                   htmlFor="stock_lote"
-                  className="absolute text-sm text-violet-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
+                  className="absolute text-sm text-black-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
                 >
                   Cantidad Inicial del Lote
                 </label>
                 {errores.stock_lote && (
-                  <p className="text-xs text-red-600 mt-1">{errores.stock_lote}</p>
+                  <p className="text-[10px] text-red-600 mt-1">{errores.stock_lote}</p>
                 )}
               </div>
             </div>
@@ -422,11 +417,11 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
           {paso === 1 && !medicamentoEditando ? (
             <button
               onClick={handleSiguiente}
-              className="w-fit rounded-lg text-sm px-5 py-2 h-[50px] bg-violet-500 hover:bg-violet-600 focus:bg-violet-700 text-white focus:ring-4 focus:ring-violet-200 hover:ring-4 hover:ring-violet-100 transition-all duration-300"
+              className="w-fit rounded-lg text-sm px-5 py-2 h-[50px] bg-green-500 hover:bg-green-600 focus:bg-green-700 text-white focus:ring-4 focus:ring-green-200 hover:ring-4 hover:ring-green-100 transition-all duration-300"
               type="button"
             >
               <div className="flex gap-2 items-center font-semibold">
-                Siguiente
+                SIGUIENTE
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -435,14 +430,14 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
           ) : (
             <button
               onClick={handleGuardar}
-              className="w-fit rounded-lg text-sm px-5 py-2 h-[50px] bg-violet-500 hover:bg-violet-600 focus:bg-violet-700 text-white focus:ring-4 focus:ring-violet-200 hover:ring-4 hover:ring-violet-100 transition-all duration-300"
+              className="w-fit rounded-lg text-sm px-5 py-2 h-[50px] bg-green-500 hover:bg-green-600 focus:bg-green-700 text-white focus:ring-4 focus:ring-green-200 hover:ring-4 hover:ring-green-100 transition-all duration-300"
               type="button"
             >
               <div className="flex gap-2 items-center font-semibold">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                Guardar Cambios
+                GUARDAR
               </div>
             </button>
           )}
@@ -457,14 +452,14 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Anterior
+                ANTERIOR
               </div>
             </button>
           )}
           
           <button
             onClick={onClose}
-            className="w-fit rounded-lg text-sm px-5 py-2 h-[50px] border bg-transparent border-violet-500 text-violet-500 hover:bg-violet-50 focus:ring-4 focus:ring-gray-100 transition-all duration-300"
+            className="w-fit rounded-lg text-sm px-5 py-2 h-[50px] border bg-transparent border-blue-500 text-blue-500 hover:bg-blue-50 focus:ring-4 focus:ring-gray-100 transition-all duration-300"
             type="button"
           >
             <span className="font-semibold">Cancelar</span>
