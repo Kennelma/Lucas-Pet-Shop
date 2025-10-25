@@ -202,13 +202,8 @@ export const useMedicamentos = () => {
       return false;
     }
 
-    const datosLote = {
-      tipo_producto: 'LOTES',
-      id_producto: formData.id_producto_fk,
-      codigo_lote: formData.codigo_lote.toUpperCase().trim(),
-      fecha_ingreso: formData.fecha_ingreso,
-      fecha_vencimiento: formData.fecha_vencimiento,
-      stock_lote: stockLote
+    const datosLote = { tipo_producto: 'LOTES', id_producto: formData.id_producto_fk, codigo_lote: formData.codigo_lote.toUpperCase().trim(),
+      fecha_ingreso: formData.fecha_ingreso, fecha_vencimiento: formData.fecha_vencimiento, stock_lote: stockLote
     };
 
     const resultado = await insertarProducto(datosLote);
@@ -247,16 +242,9 @@ export const useMedicamentos = () => {
         : l
     ));
 
-    const movimiento = {
-      id_movimiento_pk: Date.now(),
-      tipo_fk: formData.tipo_movimiento === "ENTRADA" ? 1 : 2,
-      fecha: new Date().toISOString().split('T')[0],
-      tipo_movimiento: formData.tipo_movimiento,
-      usuario: "admin",
-      id_medicamento_fk: lote.id_medicamento_fk,
-      id_lote_fk: formData.id_lote_fk,
-      cantidad: cantidad,
-      motivo: formData.motivo
+    const movimiento = { id_movimiento_pk: Date.now(), tipo_fk: formData.tipo_movimiento === "ENTRADA" ? 1 : 2,
+      fecha: new Date().toISOString().split('T')[0], tipo_movimiento: formData.tipo_movimiento, usuario: "admin",
+      id_medicamento_fk: lote.id_medicamento_fk, id_lote_fk: formData.id_lote_fk, cantidad: cantidad, motivo: formData.motivo
     };
 
     setMovimientos(prev => [...prev, movimiento]);
@@ -277,7 +265,6 @@ export const useMedicamentos = () => {
         return false;
       }
     } catch (error) {
-      console.error('Error al eliminar medicamento:', error);
       mostrarMensaje('❌ Error al eliminar medicamento');
       return false;
     }
@@ -303,19 +290,7 @@ export const useMedicamentos = () => {
     }
   };
 
-  return {
-    medicamentos,
-    lotes,
-    kardexData,
-    loading,
-    mensaje,
-    calcularStockTotal,
-    generarCodigoLote, // ✅ NUEVA FUNCIÓN EXPORTADA
-    guardarMedicamento,
-    guardarLote,
-    guardarMovimiento,
-    eliminarMedicamento,
-    eliminarLote,
-    cargarDatos
+  return {medicamentos, lotes, kardexData, loading, mensaje, calcularStockTotal, generarCodigoLote, guardarMedicamento,
+    guardarLote, guardarMovimiento, eliminarMedicamento, eliminarLote, cargarDatos
   };
 };
