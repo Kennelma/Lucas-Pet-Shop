@@ -50,7 +50,7 @@ router.put('/empresa/actualizar', verificarToken, empresa.actualizar);
 
 
 //========== RUTAS DE FACTURACIÓN ==========
-router.post ('facturación/insertar', verificarToken, facturas.crearFactura)
+router.post ('facturación/crearFactura', verificarToken, facturas.crearFactura)
 
 
 
