@@ -181,21 +181,36 @@ const Alimentos = () => {
   };
 
   return (
-    <div className="p-6 text-sm">
-      {/* Contenedor título separado */}
-      <div className="mb-6">
-        <h2 className="text-center text-lg font-bold uppercase text-gray-800">INVENTARIO DE ALIMENTOS</h2>
+    <div className="min-h-screen p-6 bg-gray-50">
+      {/* Título */}
+      <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+        <div className="flex justify-center items-center">
+          <h2 className="text-2xl font-black text-center uppercase text-gray-800">
+            INVENTARIO DE ALIMENTOS
+          </h2>
+        </div>
+        <p className="text-center text-gray-600 italic">Administra alimentos balanceados, snacks y nutrición para mascotas</p>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-xl p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <InputText
-            value={filtroGlobal}
-            onChange={(e) => setFiltroGlobal(e.target.value)}
-            placeholder="Buscar alimentos..."
-            className="w-80 text-sm"
-          />
+        <div className="flex justify-between items-center mb-6">
+          <div className="relative w-80">
+            <input
+              value={filtroGlobal}
+              onChange={(e) => setFiltroGlobal(e.target.value)}
+              placeholder="Buscar alimentos..."
+              className="w-full px-4 py-2 border rounded-full"
+            />
+            {filtroGlobal && (
+              <button
+                onClick={() => setFiltroGlobal('')}
+                className="absolute right-3 top-2 text-gray-500"
+              >
+                ×
+              </button>
+            )}
+          </div>
           <button
             className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors flex items-center gap-2"
             onClick={() => abrirModal()}
@@ -220,7 +235,7 @@ const Alimentos = () => {
           showGridlines
           paginator
           rows={5}
-          rowsPerPageOptions={[5,10, 15, 20]}
+          rowsPerPageOptions={[5, 10, 20, 25]}
           paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
           tableStyle={{ minWidth: '50rem' }}
           className="mt-4"
@@ -231,48 +246,49 @@ const Alimentos = () => {
           <Column 
             field="id_producto" 
             header="ID" 
-            body={(rowData) => filtroAlimentos.indexOf(rowData) + 1} 
+            body={(rowData) => filtroAlimentos.length - filtroAlimentos.indexOf(rowData)}
             sortable 
             className="text-sm"
           />
-          <Column field="nombre" header="Nombre" sortable className="text-sm" />
+          <Column field="nombre" header="NOMBRE" sortable className="text-sm" />
           <Column field="sku" header="SKU" sortable className="text-sm" />
-          <Column field="destino" header="Destino" sortable className="text-sm" />
+          <Column field="destino" header="DESTINADO" sortable className="text-sm" />
           <Column
             field="peso"
-            header="Peso (kg)"
+            header="PESO"
             body={(rowData) => `${rowData.peso} kg`}
             sortable
             className="text-sm"
           />
           <Column
             field="precio"
-            header="Precio"
+            header="PRECIO"
             body={(rowData) => `L. ${rowData.precio.toFixed(2)}`}
             sortable
             className="text-sm"
           />
           <Column
             field="stock"
-            header="Stock"
+            header="STOCK"
             body={(rowData) => (
               <span className={rowData.stock <= rowData.stock_minimo ? 'text-red-500 font-semibold' : ''}>
                 {rowData.stock}
               </span>
             )}
             sortable
-            className="text-sm"
+            className="text-sm text-center"
+            bodyClassName="text-center"
           />
           <Column
             field="activo"
-            header="Estado"
+            header="ESTADO"
             body={estadoTemplate}
             sortable
             sortField="activo"
             className="text-sm"
           />
           <Column
-            header="Acciones"
+            header="ACCIONES"
             body={(rowData) => (
               <div className="flex items-center space-x-2 w-full">
                 <button

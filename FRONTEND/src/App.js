@@ -11,7 +11,7 @@ import './scss/examples.scss'
 import './tailwind.css'
 
 import ProtectedRoute from "./views/pages/login/ProtectedRoute"; 
-import ForgotPassword from './views/pages/login/ForgotPassword';
+import ForgotPassword from './views/pages/login/forgotPassword';
 
 
 // Containers

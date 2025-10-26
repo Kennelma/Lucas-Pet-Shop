@@ -1,8 +1,6 @@
 require('dotenv').config()
 
 const mysqlConnection = require('../config/conexion');
-
-
 const argon2 = require('argon2'); 
 const jwt = require('jsonwebtoken');
 
@@ -32,10 +30,13 @@ exports.login = async (req, res) => {
                 u.contrasena_usuario, 
                 u.intentos_fallidos, 
                 u.bloqueado_hasta,
+                u.id_sucursal_fk,
+                s.nombre_sucursal,
                 e.nombre_estado
             FROM tbl_usuarios u
-            INNER JOIN cat_estados e ON u.cat_estado_fk = e.id_estado_pk
-            WHERE u.email_usuario = ? OR u.usuario = ?`, // ⬅️ Permite login por email o usuario
+            JOIN cat_estados e   ON u.cat_estado_fk = e.id_estado_pk
+            JOIN tbl_sucursales s ON u.id_sucursal_fk = s.id_sucursal_pk
+            WHERE u.email_usuario = ? OR u.usuario = ?`, 
             [login, login]
         );
 
@@ -48,7 +49,7 @@ exports.login = async (req, res) => {
         if (!user) {
             return res.status(401).json({
                 success: false,
-                message: '❌USUARIO INEXISTENTE EN EL SISTEMA',
+                message: '❌ USUARIO INEXISTENTE EN EL SISTEMA',
                 usuario: null,
                 token: null
             });
@@ -56,6 +57,7 @@ exports.login = async (req, res) => {
 
         //VALIDO QUE ESTE USUARIO NO ESTÉ BLOQUEADO
         if (user.bloqueado_hasta) {
+            
             const ahora = new Date();
             const bloqueadoHasta = new Date(user.bloqueado_hasta);
 
@@ -153,7 +155,7 @@ exports.login = async (req, res) => {
                     );
 
                     estado = 200;
-                    mensaje = '✅LOGIN EXITOSO'
+                    mensaje = '✅ LOGIN EXITOSO'
                     break;
                                
                 }
@@ -164,12 +166,13 @@ exports.login = async (req, res) => {
         if (estado === 200) {
             console.log('Antes de JWT:', Date.now() - start, 'ms');
             token = jwt.sign(
-                { 
-                    id_usuario_pk: user.id_usuario_pk }, 
-                    process.env.JWT_SECRET, 
-                    
+                
+                { id_usuario_pk: user.id_usuario_pk },
+                
+                process.env.JWT_SECRET,
+                
                 { expiresIn: '1h' }
-                //{ expiresIn: '1m' }
+                //{ expiresIn: '10s' }
             );
             console.log('Después de JWT:', Date.now() - start, 'ms');
         }
@@ -186,6 +189,8 @@ exports.login = async (req, res) => {
                 id: user.id_usuario_pk,
                 nombre: user.usuario,
                 email: user.email_usuario,
+                sucursal: user.nombre_sucursal,
+                id_sucursal: user.id_sucursal_fk,
                 estado: user.nombre_estado
             } : null,
             token
@@ -240,7 +245,10 @@ exports.solicitarCodigoReset = async (req, res) => {
         //GUARDO EL CÓDIGO EN LA BASE DE DATOS, EN LA TABLA DE 2FA
         //LA COLUMNA fecha_expiracion SE LLENA CON LA FECHA ACTUAL + 5 MINUTOS
         await conn.query(
-            `INSERT INTO tbl_codigos_2fa (id_usuario_fk, codigo, fecha_expiracion)
+            `INSERT INTO tbl_codigos_2fa (
+                id_usuario_fk, 
+                codigo, 
+                fecha_expiracion)
              VALUES (?, ?, DATE_ADD(NOW(), INTERVAL ? MINUTE))`,
             [user.id_usuario_pk, codigoOTP, expirationMinutes]
         );

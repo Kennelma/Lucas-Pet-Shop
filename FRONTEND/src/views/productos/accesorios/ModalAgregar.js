@@ -62,9 +62,9 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
     setErrores(prev => {
       const newErrores = { ...prev };
       if (field === 'nombre') {
-        newErrores[field] = val.trim() ? '' : 'El nombre es obligatorio';
+        newErrores[field] = val.trim() ? '' : 'El nombre del accesorio es obligatorio';
       } else if (field === 'categoria') {
-        newErrores[field] = val ? '' : 'Selecciona una categoría';
+        newErrores[field] = val ? '' : 'Debe seleccionar una categoría';
       } else if (field === 'precio') {
         newErrores[field] = val > 0 ? '' : 'El precio debe ser mayor a 0';
       } else if (field === 'cantidad') {
@@ -78,11 +78,11 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
     let temp = {};
     
     if (!data.nombre?.trim()) {
-      temp.nombre = 'El nombre es obligatorio';
+      temp.nombre = 'El nombre del accesorio es obligatorio';
     }
     
     if (!data.categoria) {
-      temp.categoria = 'Selecciona una categoría';
+      temp.categoria = 'Debe seleccionar una categoría';
     }
     
     if (data.precio <= 0) {
@@ -99,12 +99,6 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
 
   const handleSubmit = async () => {
     if (!validarDatos()) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Campos incompletos',
-        text: 'Por favor completa todos los campos requeridos',
-        confirmButtonText: 'Entendido'
-      });
       return;
     }
 
@@ -166,17 +160,6 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
     }
   };
 
-  // Verificar si todos los campos están completos
-  const isFormValid = () => {
-    return (
-      data.nombre.trim() !== '' &&
-      data.categoria !== '' &&
-      data.precio > 0 &&
-      data.cantidad > 0 &&
-      Object.keys(errores).every(key => !errores[key])
-    );
-  };
-
   const footer = (
     <div className="flex justify-end gap-3 mt-2">
       <Button
@@ -192,101 +175,102 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
         className="p-button-success p-button-rounded"
         onClick={handleSubmit}
         loading={loading}
-        disabled={!isFormValid()}
       />
     </div>
   );
 
   return (
     <Dialog
-      header="Agregar Nuevo Accesorio"
+      header={<div className="w-full text-center text-lg font-bold">NUEVO ACCESORIO</div>}
       visible={isOpen}
-      style={{ width: '50rem', borderRadius: '1.5rem' }}
+      style={{ width: '28rem', borderRadius: '1.5rem' }}
       modal
       closable={false}
       onHide={onClose}
       footer={footer}
+      position="center"
+      dismissableMask={false}
       draggable={false}
       resizable={false}
     >
-      <div className="flex flex-col gap-2 mt-1 text-sm">
-        {/* Nombre */}
-        <label className="text-xs font-semibold">
-          Nombre <span className="text-red-500">*</span>
-        </label>
-        <InputText
-          value={data.nombre}
-          onChange={(e) => handleChange('nombre', e.target.value)}
-          className={`w-full rounded-xl h-9 text-sm ${errores.nombre ? 'p-invalid' : ''}`}
-          placeholder="Ingresa el nombre del producto"
-        />
-        {errores.nombre && <small className="text-red-500">{errores.nombre}</small>}
+      {/* Formulario */}
+      <div className="flex flex-col gap-3">
+        {/* Nombre del Accesorio */}
+        <span>
+          <label htmlFor="nombre" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE DEL ACCESORIO</label>
+          <InputText
+            id="nombre"
+            name="nombre"
+            value={data.nombre}
+            onChange={(e) => handleChange('nombre', e.target.value)}
+            className="w-full rounded-xl h-9 text-sm"
+            placeholder="Ej: Collar de cuero"
+          />
+          {errores.nombre && <p className="text-xs text-red-600 mt-1">{errores.nombre}</p>}
+        </span>
 
-        {/* SKU */}
-        <label className="text-xs font-semibold">SKU (Auto-generado)</label>
-        <InputText
-          value={data.sku}
-          readOnly
-          className="w-full rounded-xl h-9 text-sm bg-gray-100"
-          placeholder="Se generará automáticamente"
-        />
+        {/* SKU (Auto-generado) */}
+        <span>
+          <label htmlFor="sku" className="text-xs font-semibold text-gray-700 mb-1">SKU (GENERADO AUTOMÁTICAMENTE)</label>
+          <InputText
+            id="sku"
+            name="sku"
+            value={data.sku}
+            readOnly
+            className="w-full rounded-xl h-9 text-sm bg-gray-100"
+            placeholder="Se generará automáticamente"
+          />
+        </span>
 
         {/* Categoría */}
-        <div>
-          <label className="text-xs font-semibold">
-            Categoría <span className="text-red-500">*</span>
-          </label>
+        <span>
+          <label htmlFor="categoria" className="text-xs font-semibold text-gray-700 mb-1">CATEGORÍA</label>
           <Dropdown
+            id="categoria"
+            name="categoria"
             value={data.categoria}
             options={categorias}
             onChange={(e) => handleChange('categoria', e.value)}
-            className={`w-full rounded-xl text-sm mt-1 ${errores.categoria ? 'p-invalid' : ''}`}
+            className="w-full rounded-xl h-9 text-sm"
             placeholder="Seleccionar categoría"
           />
-          {errores.categoria && <small className="text-red-500">{errores.categoria}</small>}
-        </div>
+          {errores.categoria && <p className="text-xs text-red-600 mt-1">{errores.categoria}</p>}
+        </span>
 
-        {/* Precio y Stock */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs font-semibold">
-              Precio (L.) <span className="text-red-500">*</span>
-            </label>
-            <InputNumber
-              value={data.precio}
-              onValueChange={(e) => handleChange('precio', e.value)}
-              mode="currency"
-              currency="HNL"
-              locale="es-HN"
-              className={`w-full rounded-xl text-sm mt-1 ${errores.precio ? 'p-invalid' : ''}`}
-              inputClassName="h-9 text-sm"
-              placeholder="0.00"
-              min={0}
-            />
-            {errores.precio && <small className="text-red-500">{errores.precio}</small>}
-          </div>
+        {/* Precio */}
+        <span>
+          <label htmlFor="precio" className="text-xs font-semibold text-gray-700 mb-1">PRECIO (L)</label>
+          <InputNumber
+            id="precio"
+            name="precio"
+            value={data.precio}
+            onValueChange={(e) => handleChange('precio', e.value)}
+            mode="currency"
+            currency="HNL"
+            locale="es-HN"
+            className="w-full rounded-xl h-9 text-sm"
+            inputClassName="h-9 text-sm"
+            placeholder="0.00"
+            min={0}
+          />
+          {errores.precio && <p className="text-xs text-red-600 mt-1">{errores.precio}</p>}
+        </span>
 
-          <div>
-            <label className="text-xs font-semibold">
-              Stock <span className="text-red-500">*</span>
-            </label>
-            <InputNumber
-              value={data.cantidad}
-              onValueChange={(e) => handleChange('cantidad', e.value)}
-              className={`w-full rounded-xl text-sm mt-1 ${errores.cantidad ? 'p-invalid' : ''}`}
-              inputClassName="h-9 text-sm"
-              placeholder="0"
-              min={0}
-            />
-            {errores.cantidad && <small className="text-red-500">{errores.cantidad}</small>}
-          </div>
-        </div>
-
-        {/* Nota informativa */}
-        <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-          <i className="pi pi-info-circle mr-1"></i>
-          Los campos marcados con <span className="text-red-500">*</span> son obligatorios
-        </div>
+        {/* Stock */}
+        <span>
+          <label htmlFor="stock" className="text-xs font-semibold text-gray-700 mb-1">STOCK DISPONIBLE</label>
+          <InputNumber
+            id="stock"
+            name="stock"
+            value={data.cantidad}
+            onValueChange={(e) => handleChange('cantidad', e.value)}
+            className="w-full rounded-xl h-9 text-sm"
+            inputClassName="h-9 text-sm"
+            placeholder="Cantidad disponible"
+            min={0}
+          />
+          {errores.cantidad && <p className="text-xs text-red-600 mt-1">{errores.cantidad}</p>}
+        </span>
       </div>
     </Dialog>
   );

@@ -1,60 +1,51 @@
-import axios from 'axios';
-
-const API_URL = "http://localhost:4000/api";
+import axiosInstance from './axiosConfig';
 
 export const login = async ({ login, password }) => {
   try {
-    const { data } = await axios.post(`${API_URL}/login`, { login, password });
+    const { data } = await axiosInstance.post(`/login`, { login, password });
 
-    return data; //MENSAJES DEL BACKEND { success: true, token: '...'
+    return data; 
 
   } catch (error) {
 
-    //MANEJO DE ERRORES CONSISTENTE
     if (error.response && error.response.data) {
       return error.response.data;
     }
 
-    //SI NO HAY DATA, DEVOLVEMOS UN MENSAJE GENERICO
     return { success: false, message: "ERROR AL OBTENER INFO DEL SERVIDOR" };
   }
 };
 
-
-//LLAMADA DEL ENDPOINT PARA SOLICITAR CODIGO RESETEO
+// LLAMADA DEL ENDPOINT PARA SOLICITAR CODIGO RESETEO
 export const solicitarCodigoReseteo = async (email) => {
-    try {
+  try {
+    const { data } = await axiosInstance.post(`/solicitar-reset`, { email });
+    return data;
 
-        const { data } = await axios.post(`${API_URL}/solicitar-reset`, { email });
-        return data; 
-
-    } catch (error) {
-        if (error.response && error.response.data) {
-            return error.response.data;
-        }
-        return { success: false, message: "ERROR AL SOLICITAR CÓDIGO DEL SERVIDOR" };
+  } catch (error) {
+    if (error.response && error.response.data) {
+      return error.response.data;
     }
+    return { success: false, message: "ERROR AL SOLICITAR CÓDIGO DEL SERVIDOR" };
+  }
 };
 
 
-//ENDPOINT PARA RESETEAR CONTRASEÑA.
+// ENDPOINT PARA RESETEAR CONTRASEÑA
 export const resetearContrasena = async (idUsuario, codigoOTP, nuevaContrasena) => {
-    try {
-        // Usamos la ruta exacta: /api/resetear-contrasena
-        const { data } = await axios.post(`${API_URL}/resetear-contrasena`, { 
-            idUsuario, 
-            codigoOTP, 
-            nuevaContrasena 
-        });
+  try {
+    const { data } = await axiosInstance.post(`/resetear-contrasena`, {
+      idUsuario,
+      codigoOTP,
+      nuevaContrasena
+    });
 
-        return data; 
+    return data;
 
-    } catch (error) {
-        
-        
-        if (error.response && error.response.data) {
-            return error.response.data; 
-        }
-        return { success: false, message: "ERROR AL RESETEAR CONTRASEÑA EN EL SERVIDOR" };
+  } catch (error) {
+    if (error.response && error.response.data) {
+      return error.response.data;
     }
+    return { success: false, message: "ERROR AL RESETEAR CONTRASEÑA EN EL SERVIDOR" };
+  }
 };
