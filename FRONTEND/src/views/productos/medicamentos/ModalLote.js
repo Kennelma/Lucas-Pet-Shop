@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 
 const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExistentes = [] }) => {
-  const [formData, setFormData] = useState({ codigo_lote: "", fecha_ingreso: new Date().toISOString().split('T')[0],
-    fecha_vencimiento: "", stock_lote: "", id_producto_fk: null
+  const [formData, setFormData] = useState({
+    codigo_lote: "",
+    fecha_vencimiento: "",
+    stock_lote: "",
+    id_producto_fk: null
   });
 
   const [errores, setErrores] = useState({});
@@ -36,8 +39,11 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExis
       
       const codigoAuto = generarCodigoLote( medicamentoSeleccionado.nombre_producto, lotesDelMedicamento );
       
-      setFormData({ codigo_lote: codigoAuto, fecha_ingreso: new Date().toISOString().split('T')[0],
-        fecha_vencimiento: "", stock_lote: "", id_producto_fk: medicamentoSeleccionado.id_producto_pk
+      setFormData({
+        codigo_lote: codigoAuto,
+        fecha_vencimiento: "",
+        stock_lote: "",
+        id_producto_fk: medicamentoSeleccionado.id_producto_pk
       });
       setErrores({});
     }
@@ -52,7 +58,18 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExis
       const newErrores = { ...prev };
       
       if (field === 'fecha_vencimiento') {
-        newErrores[field] = value ? '' : 'La fecha de vencimiento es obligatoria';
+        if (!value) {
+          newErrores[field] = 'La fecha de vencimiento es obligatoria';
+        } else {
+          const fechaSeleccionada = new Date(value);
+          const hoy = new Date();
+          hoy.setHours(0, 0, 0, 0);
+          if (fechaSeleccionada <= hoy) {
+            newErrores[field] = 'La fecha de vencimiento debe ser mayor a la fecha actual';
+          } else {
+            newErrores[field] = '';
+          }
+        }
       } else if (field === 'stock_lote') {
         newErrores[field] = parseInt(value) >= 5 ? '' : 'El stock del lote debe ser mínimo 5 unidades';
       }
@@ -66,6 +83,13 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExis
     
     if (!formData.fecha_vencimiento) {
       temp.fecha_vencimiento = 'La fecha de vencimiento es obligatoria';
+    } else {
+      const fechaSeleccionada = new Date(formData.fecha_vencimiento);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      if (fechaSeleccionada <= hoy) {
+        temp.fecha_vencimiento = 'La fecha de vencimiento debe ser mayor a la fecha actual';
+      }
     }
     if (!formData.stock_lote || parseInt(formData.stock_lote) < 5) {
       temp.stock_lote = 'El stock del lote debe ser mínimo 5 unidades';
@@ -83,8 +107,11 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExis
   };
 
   const handleCerrar = () => {
-    setFormData({ codigo_lote: "", fecha_ingreso: new Date().toISOString().split('T')[0],
-      fecha_vencimiento: "", stock_lote: "", id_producto_fk: null
+    setFormData({
+      codigo_lote: "",
+      fecha_vencimiento: "",
+      stock_lote: "",
+      id_producto_fk: null
     });
     setErrores({});
     onClose();
@@ -121,24 +148,18 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExis
           <div className="relative col-span-2">
             <input type="text" id="codigo_lote" value={formData.codigo_lote} disabled className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-gray-100 rounded-lg border border-gray-300 cursor-not-allowed font-mono font-bold"/>
             <label htmlFor="codigo_lote" className="absolute text-sm text-gray-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 start-1" >
-              Código de Lote 
-            </label>
-          </div>
-
-          {/* Fecha de Ingreso */}
-          <div className="relative">
-            <input type="date" id="fecha_ingreso" value={formData.fecha_ingreso} onChange={(e) => handleChange('fecha_ingreso', e.target.value)} className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"/>
-            <label htmlFor="fecha_ingreso"
-              className="absolute text-sm text-black-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
-            >
-              Fecha de Ingreso
+              Código de Lote (Generado Automáticamente)
             </label>
           </div>
 
           {/* Fecha de Vencimiento */}
-          <div className="relative">
+          <div className="relative col-span-2">
             <input type="date" id="fecha_vencimiento" value={formData.fecha_vencimiento} onChange={(e) => handleChange('fecha_vencimiento', e.target.value)}
-              min={new Date().toISOString().split('T')[0]}
+              min={(() => {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                return tomorrow.toISOString().split('T')[0];
+              })()}
               className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"
               autoFocus
             />
