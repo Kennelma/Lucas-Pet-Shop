@@ -74,7 +74,6 @@ exports.actualizar = async (req, res) => {
                  intentos = COALESCE(?, intentos),
                  ultimo_error = COALESCE(?, ultimo_error),
                  id_estado_programacion_fk = COALESCE(?, id_estado_programacion_fk),
-                 id_cliente_fk = COALESCE(?, id_cliente_fk),
                  id_tipo_item_fk = COALESCE(?, id_tipo_item_fk),
                  id_frecuencia_fk = COALESCE(?, id_frecuencia_fk)
              WHERE id_recordatorio_pk = ?`,
@@ -84,7 +83,6 @@ exports.actualizar = async (req, res) => {
                 req.body.intentos || null,
                 req.body.ultimo_error || null,
                 req.body.id_estado_programacion_fk || null,
-                req.body.id_cliente_fk || null,
                 req.body.id_tipo_item_fk || null,
                 req.body.id_frecuencia_fk || null,
                 id_recordatorio
