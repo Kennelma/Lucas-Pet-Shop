@@ -5,6 +5,7 @@ import { Column } from 'primereact/column';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { useState } from 'react';
+import ResumenPromocionesDelDia from "./ResumenPromocionesDelDia";
 
 const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocion, actualizarEstadoPromocion }) => {
   
@@ -63,7 +64,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
   return (
     <>
       {/* Título */}
-      <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
             GESTIÓN DE PROMOCIONES
@@ -71,6 +72,10 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
         </div>
         <p className="text-center text-gray-600 italic">Administra ofertas, descuentos y promociones especiales</p>
       </div>
+
+      {/* Resumen de promociones del día en tiempo real */}
+      <ResumenPromocionesDelDia />
+      
 
       <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
       {/* Barra de búsqueda + botón Nuevo */}
