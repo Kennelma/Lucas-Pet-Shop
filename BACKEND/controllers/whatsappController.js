@@ -26,7 +26,7 @@ export const iniciarWhatsApp = () => {
   sock.ev.on('creds.update', saveState);
 };
 
-// Iniciar WhatsApp al cargar el módulo
+//Iniciar WhatsApp al cargar el módulo
 iniciarWhatsApp();
 
 export { sock };

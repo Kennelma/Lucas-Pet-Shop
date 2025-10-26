@@ -63,12 +63,13 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
   return (
     <>
       {/* Título */}
-      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
+      <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
             GESTIÓN DE PROMOCIONES
           </h2>
         </div>
+        <p className="text-center text-gray-600 italic">Administra ofertas, descuentos y promociones especiales</p>
       </div>
 
       <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
@@ -141,12 +142,12 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
           rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}        
         >
         
-          <Column field="id_promocion_pk" header="ID" body={(rowData) => promociones.indexOf(rowData) + 1} sortable className="text-sm"/>
-          <Column field="nombre_promocion" header="Nombre" sortable className="text-sm"></Column>
-          <Column field="descripcion_promocion" header="Descripción" className="text-sm"></Column>
+          <Column field="id_promocion_pk" header="ID" body={(rowData) => promociones.length - promociones.indexOf(rowData)}  sortable className="text-sm"/>
+          <Column field="nombre_promocion" header="NOMBRE" sortable className="text-sm"></Column>
+          <Column field="descripcion_promocion" header="DESCRIPCIÓN" className="text-sm"></Column>
           <Column 
             field="precio_promocion"
-            header="Precio" 
+            header="PRECIO" 
             body={(rowData) => `L. ${parseFloat(rowData.precio_promocion || 0).toFixed(2)}`}
             sortable 
             sortField="precio_promocion"
@@ -159,7 +160,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
             className="text-sm"
           ></Column>
           <Column 
-            header="Duración" 
+            header="DÍAS DE PROMOCIÓN" 
             body={(rowData) => {
               let duracion = rowData.dias_promocion;
               if (Array.isArray(duracion)) {
@@ -174,13 +175,13 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
           ></Column>
           <Column 
             field="activo"
-            header="Estado" 
+            header="ESTADO" 
             body={estadoTemplate}
             sortable
             sortField="activo"
             className="text-sm"
           ></Column>
-          <Column header="Acciones" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm"></Column>
+          <Column header="ACCIONES" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm"></Column>
         </DataTable>
         </>
       )}

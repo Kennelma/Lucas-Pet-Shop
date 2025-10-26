@@ -5,6 +5,7 @@ import { InputText } from "primereact/inputtext";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { InputSwitch } from "primereact/inputswitch";
+import { Dialog } from "primereact/dialog";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
 
@@ -15,6 +16,7 @@ import {
   verProductos,
   eliminarProducto,
   actualizarProducto,
+  insertarProducto,
 } from "../../../AXIOS.SERVICES/products-axios";
 
 const Animales = () => {
@@ -190,12 +192,13 @@ const Animales = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-50">
      {/* Título */}
-      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
+      <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
-            inventario de animales
+            INVENTARIO DE ANIMALES
           </h2>
         </div>
+        <p className="text-center text-gray-600 italic">Administra el inventario de mascotas disponibles para venta</p>
       </div>
 
       <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
@@ -252,24 +255,24 @@ const Animales = () => {
           <Column 
             field="id_producto" 
             header="ID" 
-            body={(rowData) => filtroAnimales.indexOf(rowData) + 1} 
+            body={(rowData) => filtroAnimales.length - filtroAnimales.indexOf(rowData)}
             sortable 
             className="text-sm"
           />
-          <Column field="nombre" header="Nombre" sortable className="text-sm" />
+          <Column field="nombre" header="NOMBRE" sortable className="text-sm" />
           <Column field="sku" header="SKU" sortable className="text-sm" />
-          <Column field="especie" header="Especie" sortable className="text-sm" />
-          <Column field="sexo" header="Sexo" sortable className="text-sm" />
+          <Column field="especie" header="ESPECIE" sortable className="text-sm" />
+          <Column field="sexo" header="SEXO" sortable className="text-sm" />
           <Column
             field="precio"
-            header="Precio"
+            header="PRECIO"
             body={(rowData) => `L. ${rowData.precio.toFixed(2)}`}
             sortable
             className="text-sm"
           />
           <Column
             field="stock"
-            header="Stock"
+            header="STOCK"
             body={(rowData) => (
               <span className={rowData.stock <= rowData.stock_minimo ? 'text-red-500 font-semibold' : ''}>
                 {rowData.stock}
@@ -281,14 +284,14 @@ const Animales = () => {
           />
           <Column
             field="activo"
-            header="Estado"
+            header="ESTADO"
             body={estadoTemplate}
             sortable
             sortField="activo"
             className="text-sm"
           />
           <Column
-            header="Acciones"
+            header="ACCIONES"
             body={(rowData) => (
               <div className="flex items-center space-x-2 w-full">
                 <button
@@ -316,7 +319,7 @@ const Animales = () => {
         </DataTable>
       </div>
 
-      {/* Modal */}
+      {/* Modales */}
       {modalAbierto &&
         (animalEditando ? (
           <ModalActualizarAnimal

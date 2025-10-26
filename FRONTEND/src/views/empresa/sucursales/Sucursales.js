@@ -195,13 +195,13 @@ export default function Sucursales() {
             sucursal.telefono_sucursal.toLowerCase().includes(globalFilter.toLowerCase()) ||
             (sucursal.nombre_empresa && sucursal.nombre_empresa.toLowerCase().includes(globalFilter.toLowerCase()))
           ).map((sucursal) => (
-          <div key={sucursal.id_sucursal_pk} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+          <div key={sucursal.id_sucursal_pk} className="bg-blue-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <div className="mb-2">
                   <h4 className="font-semibold text-gray-900">{sucursal.nombre_sucursal}</h4>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
                     <FontAwesomeIcon icon={freeSolidSvgIcons.faMapMarkerAlt} className="w-3 h-3" />
                     {sucursal.direccion_sucursal}
@@ -214,17 +214,17 @@ export default function Sucursales() {
                     <FontAwesomeIcon icon={freeSolidSvgIcons.faBuilding} className="w-3 h-3" />
                     {sucursal.nombre_empresa}
                   </div>
+                  <div className="flex items-center gap-2 justify-end">
+                    <BotonEditarSucursal 
+                      sucursal={sucursal}
+                      onEdit={handleactualizarSucursal}
+                    />
+                    <BotonEliminarSucursal 
+                      sucursal={sucursal}
+                      onReload={cargarDatos}
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="flex gap-2 ml-4">
-                <BotonEditarSucursal 
-                  sucursal={sucursal}
-                  onEdit={handleactualizarSucursal}
-                />
-                <BotonEliminarSucursal 
-                  sucursal={sucursal}
-                  onReload={cargarDatos}
-                />
               </div>
             </div>
           </div>

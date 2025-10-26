@@ -42,11 +42,43 @@ export const eliminarSucursal = async (sucursal, onReload) => {
     }
   } catch (error) {
     console.error('Error al eliminar sucursal:', error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudo eliminar la sucursal'
-    });
+    
+    // Verificar si es un error de foreign key constraint
+    if (error.message && error.message.includes('foreign key constraint fails')) {
+      if (error.message.includes('tbl_usuarios')) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'No se puede eliminar',
+          html: `
+            <div class="text-center">
+              <p class="mb-2">Esta sucursal no puede ser eliminada porque tiene <strong>usuarios asociados</strong>.</p>
+              <p class="text-sm text-gray-600">Para eliminar esta sucursal, primero debes eliminar o reasignar todos sus usuarios a otra sucursal.</p>
+            </div>
+          `,
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#3b82f6'
+        });
+      } else {
+        Swal.fire({
+          icon: 'warning',
+          title: 'No se puede eliminar',
+          html: `
+            <div class="text-center">
+              <p class="mb-2">Esta sucursal no puede ser eliminada porque tiene <strong>registros asociados</strong>.</p>
+              <p class="text-sm text-gray-600">Verifica que no tenga usuarios u otros datos vinculados antes de eliminarla.</p>
+            </div>
+          `,
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#3b82f6'
+        });
+      }
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'No se pudo eliminar la sucursal'
+      });
+    }
   }
 };
 
@@ -60,11 +92,10 @@ export const BotonEliminarSucursal = ({ sucursal, onReload }) => {
   return (
     <button
       onClick={handleEliminar}
-      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm flex items-center gap-1.5 transition-colors"
+      className="bg-red-500 hover:bg-red-600 text-white p-2 rounded text-sm flex items-center justify-center transition-colors"
       title="Eliminar sucursal"
     >
-      <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
-      <span>Eliminar</span>
+      <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
     </button>
   );
 };
