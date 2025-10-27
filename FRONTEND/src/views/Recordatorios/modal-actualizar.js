@@ -3,12 +3,12 @@ import { Dialog } from "primereact/dialog";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Button } from "primereact/button";
 import Swal from "sweetalert2";
-import axios from "axios";
+import { actualizarRecordatorio } from "../../AXIOS.SERVICES/reminder";
 
 const ModalActualizar = ({
   visible,
   onHide,
-  recordatorioSeleccionado,
+  recordatorioSeleccionado, // ✅ Puede ser null o undefined
   tiposItems,
   frecuencias,
   onReload
@@ -22,12 +22,12 @@ const ModalActualizar = ({
 
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Cargar datos cuando se selecciona un recordatorio
+  // 🔹 Cargar datos SOLO si recordatorioSeleccionado existe
   useEffect(() => {
     if (recordatorioSeleccionado && visible) {
       console.log("📥 Recordatorio seleccionado:", recordatorioSeleccionado);
       setFormData({
-        id_recordatorio_pk: recordatorioSeleccionado.id_recordatorio_pk,
+        id_recordatorio_pk: recordatorioSeleccionado.id_recordatorio_pk || "",
         mensaje_recordatorio: recordatorioSeleccionado.mensaje_recordatorio || "",
         id_tipo_item_fk: recordatorioSeleccionado.id_tipo_item_fk || "",
         id_frecuencia_fk: recordatorioSeleccionado.id_frecuencia_fk || ""
@@ -35,7 +35,6 @@ const ModalActualizar = ({
     }
   }, [recordatorioSeleccionado, visible]);
 
-  // 🔹 Manejar cambios en los campos
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -44,7 +43,6 @@ const ModalActualizar = ({
     }));
   };
 
-  // 🔹 Validar campos antes de enviar
   const validarCampos = () => {
     if (!formData.mensaje_recordatorio?.trim()) {
       Swal.fire({
@@ -76,21 +74,18 @@ const ModalActualizar = ({
     return true;
   };
 
-  // 🔹 ACTUALIZAR RECORDATORIO
   const handleActualizar = async () => {
     if (!validarCampos()) return;
 
     setLoading(true);
 
-    // 🔥 Payload exacto según el backend
     const datosEnviar = {
-      id_recordatorio: formData.id_recordatorio_pk, // ✅ El backend espera "id_recordatorio"
+      id_recordatorio: formData.id_recordatorio_pk,
       mensaje_recordatorio: formData.mensaje_recordatorio.trim(),
       ultimo_envio: null,
       intentos: null,
       ultimo_error: null,
       id_estado_programacion_fk: null,
-      id_cliente_fk: null,
       id_tipo_item_fk: parseInt(formData.id_tipo_item_fk),
       id_frecuencia_fk: parseInt(formData.id_frecuencia_fk)
     };
@@ -98,22 +93,11 @@ const ModalActualizar = ({
     console.log("📤 Payload enviado:", datosEnviar);
 
     try {
-      const token = sessionStorage.getItem("token");
-      
-      const response = await axios.put(
-        "http://localhost:4000/api/recordatorios/actualizar",
-        datosEnviar,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": token ? `Bearer ${token}` : ""
-          }
-        }
-      );
+      const response = await actualizarRecordatorio(datosEnviar);
 
-      console.log("✅ Respuesta del servidor:", response.data);
+      console.log("✅ Respuesta del servidor:", response);
 
-      if (response.data?.Consulta) {
+      if (response?.Consulta) {
         Swal.fire({
           icon: "success",
           title: "¡Actualizado!",
@@ -130,19 +114,17 @@ const ModalActualizar = ({
           }, 500);
         }
       } else {
-        throw new Error(response.data?.error || "Error desconocido al actualizar");
+        throw new Error(response?.error || "Error desconocido al actualizar");
       }
 
     } catch (error) {
       console.error("❌ Error completo:", error);
-      console.error("❌ Response data:", error.response?.data);
-      console.error("❌ Status:", error.response?.status);
       
       Swal.fire({
         icon: "error",
         title: "Error al actualizar",
         html: `
-          <p>${error.response?.data?.error || error.message}</p>
+          <p>${error.message || 'Error desconocido'}</p>
           <p class="text-sm text-gray-500 mt-2">Revisa la consola para más detalles</p>
         `
       });
@@ -171,6 +153,11 @@ const ModalActualizar = ({
     </div>
   );
 
+  // ✅ No renderizar si no hay recordatorio seleccionado
+  if (!recordatorioSeleccionado) {
+    return null;
+  }
+
   return (
     <Dialog
       header={
@@ -191,7 +178,6 @@ const ModalActualizar = ({
     >
       <div className="mt-2">
         <div className="flex flex-col gap-3">
-          {/* Tipo de servicio */}
           <div>
             <label htmlFor="id_tipo_item_fk" className="text-xs font-semibold text-gray-700 mb-1 block">
               DESTINADO A CLIENTES QUE COMPRARON <span className="text-red-600">*</span>
@@ -213,7 +199,6 @@ const ModalActualizar = ({
             </select>
           </div>
 
-          {/* Frecuencia */}
           <div>
             <label htmlFor="id_frecuencia_fk" className="text-xs font-semibold text-gray-700 mb-1 block">
               FRECUENCIA <span className="text-red-600">*</span>
@@ -235,7 +220,6 @@ const ModalActualizar = ({
             </select>
           </div>
 
-          {/* Mensaje */}
           <div>
             <label htmlFor="mensaje_recordatorio" className="text-xs font-semibold text-gray-700 mb-1 block">
               MENSAJE DEL RECORDATORIO <span className="text-red-600">*</span>

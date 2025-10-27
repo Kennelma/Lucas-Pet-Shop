@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const API_URL = "http://localhost:4000/api/recordatorios";
+const WHATSAPP_URL = "http://localhost:4000/api/whatsapp";
 
 const getHeaders = () => {
   const token = sessionStorage.getItem("token");
@@ -71,11 +72,11 @@ export const eliminarRecordatorio = async (id) => {
   }
 };
 
-
-/*SERVICIO PARA VER CATALOGOS POR TIPO*/
+// ───────────────────────────────────────────────
+// SERVICIO PARA VER CATALOGOS POR TIPO
+// ───────────────────────────────────────────────
 export const verCatalogo = async (tipo_catalogo) => {
   try {
-
     const res = await axios.get(`${API_URL}/verCatalogos`, {
       params: { tipo_catalogo },
       headers: getHeaders(),
@@ -86,9 +87,62 @@ export const verCatalogo = async (tipo_catalogo) => {
       Consulta: res.data.Consulta,
       servicios: res.data.Catalogo || []
     };
-
   } catch (err) {
     console.error(`Error al traer catálogo ${tipo_catalogo}:`, err);
     return { Consulta: false, error: err.message, servicios: [] }; 
+  }
+};
+
+// ───────────────────────────────────────────────
+// SERVICIOS DE WHATSAPP
+// ───────────────────────────────────────────────
+
+export const verificarEstadoWhatsApp = async () => {
+  try {
+    const res = await axios.get(`${WHATSAPP_URL}/status`, {
+      headers: getHeaders(),
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Error al verificar estado de WhatsApp:", err);
+    return { Consulta: false, connected: false };
+  }
+};
+
+export const conectarWhatsApp = async () => {
+  try {
+    const res = await axios.post(`${WHATSAPP_URL}/connect`, {}, {
+      headers: getHeaders(),
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Error al conectar WhatsApp:", err);
+    return { Consulta: false, error: err.message };
+  }
+};
+
+export const desconectarWhatsApp = async () => {
+  try {
+    const res = await axios.post(`${WHATSAPP_URL}/disconnect`, {}, {
+      headers: getHeaders(),
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Error al desconectar WhatsApp:", err);
+    return { Consulta: false, error: err.message };
+  }
+};
+
+export const enviarRecordatorioMasivo = async (id_recordatorio, mensaje) => {
+  try {
+    const res = await axios.post(
+      `${WHATSAPP_URL}/enviar-masivo`,
+      { id_recordatorio, mensaje },
+      { headers: getHeaders() }
+    );
+    return res.data;
+  } catch (err) {
+    console.error("Error al enviar recordatorio masivo:", err);
+    return { Consulta: false, error: err.message };
   }
 };

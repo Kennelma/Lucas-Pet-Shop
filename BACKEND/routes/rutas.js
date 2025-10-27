@@ -76,5 +76,12 @@ router.delete ('/recordatorios/eliminar', verificarToken, recordatorios.eliminar
 
 router.get ('/recordatorios/verCatalogos', verificarToken, recordatorios.verCatalogo);
 
+// ========== RUTAS DE WHATSAPP ==========
+ const whatsapp = require('../controllers/whatsappController');
+
+ router.get('/whatsapp/status', verificarToken, whatsapp.getStatus);
+ router.post('/whatsapp/connect', verificarToken, whatsapp.connect);
+ router.post('/whatsapp/disconnect', verificarToken, whatsapp.disconnect);
+ router.post('/whatsapp/enviar-masivo', verificarToken, whatsapp.enviarRecordatorioMasivo);
 
 module.exports = router;
