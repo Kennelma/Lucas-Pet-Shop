@@ -1,21 +1,13 @@
-import axios from "axios";
+import axiosInstance from './axiosConfig';
 
-const API_URL = "http://localhost:4000/api/servicios-peluqueria";
-
-const getHeaders = () => {
-    const token = sessionStorage.getItem('token');
-    return {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : '' 
-    };
-};
+const API_URL = "/servicios-peluqueria";
 
 
 //VER SERVICIOS O PROMOCIONES
 export const verServicios = async (tipo_servicio) => {
   try {
-    const res = await axios.get(`${API_URL}/ver`, {
-      params: { tipo_servicio }, headers: getHeaders()
+    const res = await axiosInstance.get(`${API_URL}/ver`, {
+      params: { tipo_servicio }
     });
     return res.data.servicios || [];
   } catch (err) {
@@ -27,8 +19,7 @@ export const verServicios = async (tipo_servicio) => {
 //INSERTAR SERVICIO O PROMOCIÓN
 export const insertarServicio = async (datosServicio) => {
   try {
-    const res = await axios.post(`${API_URL}/insertar`, datosServicio, 
-      { headers: getHeaders() });
+    const res = await axiosInstance.post(`${API_URL}/insertar`, datosServicio);
     return res.data;
   } catch (err) {
     console.error(`Error al insertar servicio:`, err);
@@ -39,9 +30,7 @@ export const insertarServicio = async (datosServicio) => {
 //ACTUALIZAR SERVICIO O PROMOCIÓN */
 export const actualizarServicio = async (datosServicio) => {
   try {
-    const res = await axios.put(`${API_URL}/actualizar`, datosServicio, 
-      { headers: getHeaders() }
-    );
+    const res = await axiosInstance.put(`${API_URL}/actualizar`, datosServicio);
     return res.data;
   } catch (err) {
     console.error(`Error al actualizar servicio:`, err);
@@ -52,9 +41,8 @@ export const actualizarServicio = async (datosServicio) => {
 //ELIMINAR SERVICIO O PROMOCIÓN
 export const eliminarServicio = async (id, tipo_servicio) => {
   try {
-    const res = await axios.delete(`${API_URL}/eliminar`, {
-      data: { id, tipo_servicio },
-      headers: getHeaders()
+    const res = await axiosInstance.delete(`${API_URL}/eliminar`, {
+      data: { id, tipo_servicio }
     });
     return res.data;
   } catch (err) {

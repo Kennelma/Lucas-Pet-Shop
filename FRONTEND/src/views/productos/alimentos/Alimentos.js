@@ -188,8 +188,10 @@ const Alimentos = () => {
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
             INVENTARIO DE ALIMENTOS
+            INVENTARIO DE ALIMENTOS
           </h2>
         </div>
+        <p className="text-center text-gray-600 italic">Administra alimentos balanceados, snacks y nutrición para mascotas</p>
         <p className="text-center text-gray-600 italic">Administra alimentos balanceados, snacks y nutrición para mascotas</p>
       </div>
 
@@ -250,30 +252,30 @@ const Alimentos = () => {
           <Column 
             field="id_producto" 
             header="ID" 
-            body={(rowData) => filtroAlimentos.indexOf(rowData) + 1} 
+            body={(rowData) => filtroAlimentos.length - filtroAlimentos.indexOf(rowData)}
             sortable 
             className="text-sm"
           />
-          <Column field="nombre" header="Nombre" sortable className="text-sm" />
+          <Column field="nombre" header="NOMBRE" sortable className="text-sm" />
           <Column field="sku" header="SKU" sortable className="text-sm" />
-          <Column field="destino" header="Destino" sortable className="text-sm" />
+          <Column field="destino" header="DESTINADO" sortable className="text-sm" />
           <Column
             field="peso"
-            header="Peso (kg)"
+            header="PESO"
             body={(rowData) => `${rowData.peso} kg`}
             sortable
             className="text-sm"
           />
           <Column
             field="precio"
-            header="Precio"
+            header="PRECIO"
             body={(rowData) => `L. ${rowData.precio.toFixed(2)}`}
             sortable
             className="text-sm"
           />
           <Column
             field="stock"
-            header="Stock"
+            header="STOCK"
             body={(rowData) => (
               <span className={rowData.stock <= rowData.stock_minimo ? 'text-red-500 font-semibold' : ''}>
                 {rowData.stock}
@@ -285,14 +287,14 @@ const Alimentos = () => {
           />
           <Column
             field="activo"
-            header="Estado"
+            header="ESTADO"
             body={estadoTemplate}
             sortable
             sortField="activo"
             className="text-sm"
           />
           <Column
-            header="Acciones"
+            header="ACCIONES"
             body={(rowData) => (
               <div className="flex items-center space-x-2 w-full">
                 <button

@@ -58,17 +58,23 @@ exports.crear = async (req, res) => {
             case 'USUARIOS':
                                 
                 const contraHasheada = await argon2.hash(req.body.contrasena_usuario, options); 
+
+                const fechaCreacion = new Date();
                 
                 await conn.query (
                     `INSERT INTO tbl_usuarios(
                         usuario, 
                         email_usuario, 
+                        fecha_creacion,
+                        password_update_at,
                         contrasena_usuario, 
                         id_sucursal_fk
                     ) VALUES (?,?,?,?)`, 
                     [
                         req.body.usuario,
                         req.body.email_usuario,
+                        fechaCreacion,
+                        fechaCreacion,
                         contraHasheada,
                         req.body.id_sucursal_fk
                     ]
@@ -327,7 +333,8 @@ exports.ver = async (req, res) => {
                         detalle_gasto,
                         monto_gasto,
                         fecha_registro_gasto
-                    FROM tbl_gastos`);
+                    FROM tbl_gastos
+                    ORDER BY id_gasto_pk DESC`);
                 break;
    
             default:

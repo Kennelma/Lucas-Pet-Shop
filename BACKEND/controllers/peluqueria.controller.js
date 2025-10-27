@@ -76,9 +76,6 @@ exports.crear = async (req, res) => {
     }
 }
 
-
-
-
 // ─────────────────────────────────────────────────────────
 //     ENDPOINT DE ACTUALIZAR SERVICIOS Y PROMOCIONES 
 // ─────────────────────────────────────────────────────────

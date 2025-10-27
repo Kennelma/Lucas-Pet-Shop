@@ -1,24 +1,13 @@
-import axios from "axios";
+import axiosInstance from './axiosConfig';
 
-const API_URL = "http://localhost:4000/api/productos";
-
-
-
-const getHeaders = () => {
-    const token = sessionStorage.getItem('token');
-    return {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : '' 
-    };
-};
+const API_URL = "/productos";
 
 
-/*SERVICIO PARA VER PRODUCTOS POR TIPO*/
+//SERVICIO PARA VER PRODUCTOS POR TIPO*/
 export const verProductos = async (tipo_producto) => {
   try {
-    const res = await axios.get(`${API_URL}/ver`, {
-      params: { tipo_producto },
-      headers: getHeaders()
+    const res = await axiosInstance.get(`${API_URL}/ver`, {
+      params: { tipo_producto }
     });
     return res.data.productos || [];
   } catch (err) {
@@ -31,9 +20,7 @@ export const verProductos = async (tipo_producto) => {
 //SERVICIO PARA INSERTAR PRODUCTO
 export const insertarProducto = async (datosProducto) => {
   try {
-    const res = await axios.post(`${API_URL}/insertar`, datosProducto,
-      { headers: getHeaders() }
-    );
+    const res = await axiosInstance.post(`${API_URL}/insertar`, datosProducto);
     return res.data;
   } catch (err) {
     console.error(`Error al insertar producto:`, err);
@@ -43,12 +30,10 @@ export const insertarProducto = async (datosProducto) => {
 
 
 
-/*SERVICIO PARA ACTUALIZAR PRODUCTO*/
+//SERVICIO PARA ACTUALIZAR PRODUCTO*/
 export const actualizarProducto = async (datosProducto) => {
   try {
-    const res = await axios.put(`${API_URL}/actualizar`, datosProducto,
-      { headers: getHeaders() }
-    );
+    const res = await axiosInstance.put(`${API_URL}/actualizar`, datosProducto);
     return res.data;
   } catch (err) {
     console.error(`Error al actualizar producto:`, err);
@@ -56,11 +41,11 @@ export const actualizarProducto = async (datosProducto) => {
   }
 };
 
-/*SERVICIO PARA ELIMINAR PRODUCTO*/
+//SERVICIO PARA ELIMINAR PRODUCTO*/
 export const eliminarProducto = async (id_producto) => {
   try {
-    const res = await axios.delete(`${API_URL}/eliminar`, {
-      data: { id_producto } , headers: getHeaders()
+    const res = await axiosInstance.delete(`${API_URL}/eliminar`, {
+      data: { id_producto }
     });
     return res.data;
   } catch (err) {
@@ -68,5 +53,3 @@ export const eliminarProducto = async (id_producto) => {
     return { Consulta: false, error: err.message };
   }
 };
-
-
