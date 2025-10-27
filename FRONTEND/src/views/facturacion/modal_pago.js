@@ -6,6 +6,7 @@ function ModalPago({ show, total, onClose, onSuccess }) {
   const [paymentType, setPaymentType] = useState(null);
   const [selectedPaymentMethods, setSelectedPaymentMethods] = useState([]);
   const [paymentAmounts, setPaymentAmounts] = useState({});
+  
 
   const paymentMethods = [
     { id: 'efectivo', name: 'Efectivo', icon: Banknote, color: 'bg-green-500' },
@@ -21,6 +22,7 @@ function ModalPago({ show, total, onClose, onSuccess }) {
       setPaymentType(null);
       setSelectedPaymentMethods([]);
       setPaymentAmounts({});
+      
     }
   }, [show]);
 

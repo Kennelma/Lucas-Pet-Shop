@@ -26,11 +26,7 @@ const _nav = [
     component: CNavItem,
     name: 'Dashboard',
     to: '/dashboard',
-    icon: <FontAwesomeIcon icon={faGaugeHigh} className="nav-icon" />,
-    badge: {
-      color: 'info',
-      text: 'NEW',
-    },
+    icon: <FontAwesomeIcon icon={faGaugeHigh} className="nav-icon" />
   },
 
   
