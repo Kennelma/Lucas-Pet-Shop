@@ -1,7 +1,7 @@
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell, faPenToSquare } from '@fortawesome/free-solid-svg-icons';
+import { faBell, faPenToSquare, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
 import { BotonEliminar } from './modal-eliminar';
 
 const TablaRecordatorios = ({ 
@@ -16,19 +16,22 @@ const TablaRecordatorios = ({
 }) => {
 
   const estadoTemplate = (rowData) => {
-    const estado = estadosProgramacion.find(
-      e => e.id_estado_pk === rowData.id_estado_programacion_fk
-    )?.nombre_estado || 'Pendiente';
+    const getEstadoInfo = (idEstado) => {
+      const estados = {
+        1: { nombre: 'Pendiente', clase: 'bg-yellow-100 text-yellow-800' },
+        2: { nombre: 'Enviando', clase: 'bg-blue-100 text-blue-800' },
+        3: { nombre: 'Enviado', clase: 'bg-green-100 text-green-800' },
+        4: { nombre: 'Fallido', clase: 'bg-red-100 text-red-800' },
+        5: { nombre: 'Parcial', clase: 'bg-orange-100 text-orange-800' }
+      };
+      return estados[idEstado] || estados[1];
+    };
 
-    const isActivo = rowData.id_estado_programacion_fk === 1;
+    const estadoInfo = getEstadoInfo(rowData.id_estado_programacion_fk);
     
     return (
-      <span
-        className={`px-2 py-1 rounded-full text-xs font-medium ${
-          isActivo ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-        }`}
-      >
-        {estado}
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${estadoInfo.clase}`}>
+        {estadoInfo.nombre}
       </span>
     );
   };
@@ -63,29 +66,59 @@ const TablaRecordatorios = ({
     );
   };
 
+  // 🔹 NUEVA: Template para próximo envío
+  const proximoEnvioTemplate = (rowData) => {
+    if (!rowData.proximo_envio) {
+      return <span className="text-sm text-gray-400">—</span>;
+    }
+    
+    const fechaProximo = new Date(rowData.proximo_envio);
+    const hoy = new Date();
+    const esHoy = fechaProximo.toDateString() === hoy.toDateString();
+    const esPasado = fechaProximo < hoy;
+    
+    return (
+      <div className="flex items-center gap-2">
+        <FontAwesomeIcon 
+          icon={faCalendarAlt} 
+          className={`text-sm ${
+            esHoy ? 'text-orange-500' : 
+            esPasado ? 'text-red-500' : 'text-green-500'
+          }`} 
+        />
+        <span className={`text-sm ${
+          esHoy ? 'text-orange-600 font-semibold' : 
+          esPasado ? 'text-red-600' : 'text-gray-700'
+        }`}>
+          {fechaProximo.toLocaleDateString('es-ES')}
+          {esHoy && <span className="text-xs ml-1">(Hoy)</span>}
+          {esPasado && <span className="text-xs ml-1">(Vencido)</span>}
+        </span>
+      </div>
+    );
+  };
+
   const fechaTemplate = (rowData) => (
     <span className="text-sm text-gray-700">
-      {rowData.programada_para
-        ? new Date(rowData.programada_para).toLocaleDateString('es-ES')
+      {rowData.ultimo_envio
+        ? new Date(rowData.ultimo_envio).toLocaleDateString('es-ES')
         : '—'}
     </span>
   );
 
   const accionesTemplate = (rowData) => (
     <div className="flex items-center space-x-2">
-      {/* ✅ Botón EDITAR funcional */}
       <button
         className="text-green-600 hover:text-green-800 p-2 rounded transition-colors"
         onClick={(e) => {
           e.stopPropagation();
-          onEdit(rowData); // ✅ Pasa el recordatorio al modal
+          onEdit(rowData);
         }}
         title="Editar"
       >
         <FontAwesomeIcon icon={faPenToSquare} size="lg" />
       </button>
 
-      {/* ✅ Botón ELIMINAR funcional */}
       <BotonEliminar recordatorio={rowData} onReload={onDelete} />
     </div>
   );
@@ -136,7 +169,7 @@ const TablaRecordatorios = ({
       rows={5}
       rowsPerPageOptions={[5, 10, 20, 25]}
       paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-      tableStyle={{ minWidth: '50rem' }}
+      tableStyle={{ minWidth: '60rem' }} // 🔹 Aumentado para nueva columna
       className="mt-4"
       size="small"
       selectionMode="single"
@@ -147,6 +180,9 @@ const TablaRecordatorios = ({
       <Column field="mensaje_recordatorio" header="Mensaje" body={mensajeTemplate} />
       <Column field="tipo" header="Tipo Servicio" body={tipoTemplate} />
       <Column field="frecuencia" header="Frecuencia" body={frecuenciaTemplate} />
+      {/* 🔹 NUEVA COLUMNA: Próximo Envío */}
+      <Column field="proximo_envio" header="Próximo Envío" body={proximoEnvioTemplate} />
+      <Column field="ultimo_envio" header="Último Envío" body={fechaTemplate} />
       <Column field="acciones" header="Acciones" body={accionesTemplate} />
     </DataTable>
   );

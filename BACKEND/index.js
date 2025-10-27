@@ -36,5 +36,19 @@ app.use('/api', require('./routes/rutas'));
 const PORT = 4000;
 app.listen(PORT, function() {
     console.log('🚀 Servidor en puerto ' + PORT);
-     console.log('📱 Escanea el QR de WhatsApp si aparece en la terminal');
+//     console.log('📱 Escanea el QR de WhatsApp si aparece en la terminal');
 });
+
+// Agregar al final del archivo, después de inicializar el servidor:
+
+// 🔹 PROGRAMADOR AUTOMÁTICO - Ejecutar cada hora
+const whatsappController = require('./controllers/whatsappController');
+
+setInterval(() => {
+    whatsappController.procesarRecordatoriosProgramados();
+}, 60 * 60 * 1000); // Cada hora
+
+// 🔹 También ejecutar al iniciar el servidor (opcional)
+whatsappController.procesarRecordatoriosProgramados();
+
+console.log('⏰ Programador automático de recordatorios iniciado');

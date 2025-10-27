@@ -80,8 +80,10 @@ router.get ('/recordatorios/verCatalogos', verificarToken, recordatorios.verCata
  const whatsapp = require('../controllers/whatsappController');
 
  router.get('/whatsapp/status', verificarToken, whatsapp.getStatus);
+ router.get('/whatsapp/qr', verificarToken, whatsapp.getQR); // ✅ NUEVA RUTA
  router.post('/whatsapp/connect', verificarToken, whatsapp.connect);
  router.post('/whatsapp/disconnect', verificarToken, whatsapp.disconnect);
  router.post('/whatsapp/enviar-masivo', verificarToken, whatsapp.enviarRecordatorioMasivo);
 
+ 
 module.exports = router;

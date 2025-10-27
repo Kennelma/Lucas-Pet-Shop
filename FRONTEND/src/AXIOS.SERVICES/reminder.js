@@ -55,7 +55,21 @@ export const actualizarRecordatorio = async (datosRecordatorio) => {
     return { Consulta: false, error: err.message };
   }
 };
+////////////////////////////////////////////////////
+////////   PARA OBTENER QR //////////////////
+// 🔹 NUEVO servicio para obtener QR
 
+export const obtenerQRWhatsApp = async () => {
+  try {
+    const res = await axios.get(`${WHATSAPP_URL}/qr`, {
+      headers: getHeaders(),
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Error al obtener QR de WhatsApp:", err);
+    return { success: false, error: err.message };
+  }
+};
 // ───────────────────────────────────────────────
 // SERVICIO PARA ELIMINAR RECORDATORIO
 // ───────────────────────────────────────────────
@@ -145,4 +159,7 @@ export const enviarRecordatorioMasivo = async (id_recordatorio, mensaje) => {
     console.error("Error al enviar recordatorio masivo:", err);
     return { Consulta: false, error: err.message };
   }
+
+
+  
 };

@@ -8,7 +8,8 @@ import {
   verCatalogo,
   verificarEstadoWhatsApp,
   conectarWhatsApp,
-  enviarRecordatorioMasivo
+  enviarRecordatorioMasivo,
+  obtenerQRWhatsApp
 } from '../../AXIOS.SERVICES/reminder';
 import TablaRecordatorios from './tabla-recordatorios';
 import ModalAgregar, { BotonAgregar } from './modal-agregar';
@@ -21,6 +22,9 @@ const Recordatorios = () => {
   const [modalActualizarVisible, setModalActualizarVisible] = useState(false);
   const [globalFilter, setGlobalFilter] = useState('');
   const [whatsappConnected, setWhatsappConnected] = useState(false);
+  const [qrCode, setQrCode] = useState('');
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [checkingConnection, setCheckingConnection] = useState(false);
   
   const INITIAL_FORM_DATA = {
     id_recordatorio_pk: null, 
@@ -42,61 +46,110 @@ const Recordatorios = () => {
   }, []);
 
   // 🔹 Verificar estado de WhatsApp
- const verificarWhatsAppStatus = async () => {
-  try {
-    const res = await verificarEstadoWhatsApp();
-    setWhatsappConnected(res.connected);
-  } catch (err) {
-    console.error('Error verificando WhatsApp:', err);
-  }
-};
-  // 🔹 Conectar WhatsApp
-  const conectarWhatsApp = async () => {
-  try {
-    Swal.fire({
-      title: 'Conectando WhatsApp...',
-      html: 'Escanea el código QR en la terminal del servidor',
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      }
-    });
+  const verificarWhatsAppStatus = async () => {
+    try {
+      const res = await verificarEstadoWhatsApp();
+      setWhatsappConnected(res.connected);
+    } catch (err) {
+      console.error('Error verificando WhatsApp:', err);
+    }
+  };
 
-    await conectarWhatsApp();
+  // 🔹 Función mejorada para conectar WhatsApp
+  const handleConectarWhatsApp = async () => {
+    try {
+      setCheckingConnection(true);
+      Swal.fire({
+        title: 'Iniciando conexión...',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
 
-    // Esperar conexión
+      // 1. Iniciar conexión
+      await conectarWhatsApp();
+      
+      // 2. Obtener QR
+      let intentosQR = 0;
+      const maxIntentosQR = 30;
+      
+      const checkQR = setInterval(async () => {
+        try {
+          const qrRes = await obtenerQRWhatsApp();
+          
+          if (qrRes.Consulta && qrRes.qrCode) {
+            clearInterval(checkQR);
+            setQrCode(qrRes.qrCode);
+            setShowQRModal(true);
+            Swal.close();
+            
+            // 3. Esperar conexión exitosa
+            await esperarConexionWhatsApp();
+            
+          } else if (intentosQR >= maxIntentosQR) {
+            clearInterval(checkQR);
+            setCheckingConnection(false);
+            Swal.fire({
+              icon: 'error',
+              title: 'Timeout',
+              text: 'No se pudo generar el QR. Intenta de nuevo.'
+            });
+          }
+          
+          intentosQR++;
+        } catch (error) {
+          console.error('Error obteniendo QR:', error);
+        }
+      }, 1000);
+
+    } catch (error) {
+      setCheckingConnection(false);
+      Swal.fire('Error', 'No se pudo iniciar la conexión: ' + error.message, 'error');
+    }
+  };
+
+  // 🔹 Esperar conexión exitosa
+  const esperarConexionWhatsApp = async () => {
     let intentos = 0;
-    const maxIntentos = 60;
-
+    const maxIntentos = 120; // 2 minutos
+    
     const checkConnection = setInterval(async () => {
-      const statusRes = await verificarEstadoWhatsApp();
+      try {
+        const statusRes = await verificarEstadoWhatsApp();
 
-      if (statusRes.connected) {
-        clearInterval(checkConnection);
-        setWhatsappConnected(true);
-        Swal.fire({
-          icon: 'success',
-          title: '¡WhatsApp Conectado!',
-          text: 'Ya puedes enviar recordatorios masivos',
-          timer: 2000
-        });
-      }
+        if (statusRes.connected) {
+          clearInterval(checkConnection);
+          setWhatsappConnected(true);
+          setShowQRModal(false);
+          setQrCode('');
+          setCheckingConnection(false);
+          
+          Swal.fire({
+            icon: 'success',
+            title: '¡WhatsApp Conectado!',
+            text: 'Ya puedes enviar recordatorios masivos',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        }
 
-      intentos++;
-      if (intentos >= maxIntentos) {
-        clearInterval(checkConnection);
-        Swal.fire({
-          icon: 'warning',
-          title: 'Tiempo agotado',
-          text: 'No se detectó el escaneo del QR. Intenta de nuevo.'
-        });
+        intentos++;
+        if (intentos >= maxIntentos) {
+          clearInterval(checkConnection);
+          setShowQRModal(false);
+          setCheckingConnection(false);
+          Swal.fire({
+            icon: 'warning',
+            title: 'Tiempo agotado',
+            text: 'No se detectó el escaneo del QR. Intenta de nuevo.'
+          });
+        }
+      } catch (error) {
+        console.error('Error verificando conexión:', error);
       }
     }, 1000);
-
-  } catch (error) {
-    Swal.fire('Error', 'No se pudo conectar WhatsApp', 'error');
-  }
-};
+  };
 
   const cargarTodo = async () => {
     try {
@@ -151,7 +204,7 @@ const Recordatorios = () => {
     }));
   };
 
-  // 🔹 GUARDAR Y ENVIAR CON BAILEYS
+  // 🔹 GUARDAR Y ENVIAR CON BAILEYS - MEJORADO
   const guardarRecordatorio = async () => {
     if (!formData.mensaje_recordatorio?.trim()) {
       Swal.fire('Campo requerido', 'El mensaje del recordatorio es obligatorio', 'warning');
@@ -178,8 +231,11 @@ const Recordatorios = () => {
       });
 
       if (result.isConfirmed) {
-        await conectarWhatsApp();
-        if (!whatsappConnected) return; // Si no conectó, cancelar
+        await handleConectarWhatsApp();
+        if (!whatsappConnected) {
+          Swal.fire('Info', 'Recordatorio guardado sin enviar mensajes', 'info');
+          return; // Si no conectó, solo guardar
+        }
       }
     }
 
@@ -198,7 +254,7 @@ const Recordatorios = () => {
         cerrarModalAgregar();
         await cargarTodo();
 
-        // 🔹 ENVÍO AUTOMÁTICO CON BAILEYS
+        // 🔹 ENVÍO AUTOMÁTICO CON BAILEYS - MEJORADO
         if (whatsappConnected) {
           Swal.fire({
             title: 'Enviando mensajes...',
@@ -223,15 +279,24 @@ const Recordatorios = () => {
 
           const { exitosos, fallidos, total } = envioRes.data.resultados;
 
+          // Recargar para ver estados actualizados
+          await cargarTodo();
+
           Swal.fire({
-            icon: 'success',
-            title: 'Envío completado',
+            icon: fallidos.length === 0 ? 'success' : 'warning',
+            title: fallidos.length === 0 ? '¡Éxito Total!' : 'Envío Parcial',
             html: `
-              <p><strong>Total:</strong> ${total}</p>
-              <p><strong>Exitosos:</strong> ${exitosos.length}</p>
-              <p><strong>Fallidos:</strong> ${fallidos.length}</p>
+              <div class="text-left">
+                <p><strong>Total:</strong> ${total} clientes</p>
+                <p><strong>✅ Exitosos:</strong> ${exitosos.length}</p>
+                <p><strong>❌ Fallidos:</strong> ${fallidos.length}</p>
+                ${fallidos.length > 0 ? 
+                  '<p class="text-sm text-gray-600 mt-2">Revisa la tabla para más detalles</p>' : 
+                  ''
+                }
+              </div>
             `,
-            timer: 3000
+            timer: 4000
           });
         } else {
           Swal.fire({
@@ -255,6 +320,43 @@ const Recordatorios = () => {
     }
   };
 
+  // 🔹 Modal para mostrar QR
+  const QRModal = () => (
+    <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${showQRModal ? 'block' : 'hidden'}`}>
+      <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+        <h3 className="text-lg font-bold mb-3 text-center">Escanear Código QR de WhatsApp</h3>
+        <p className="text-sm text-gray-600 mb-4 text-center">
+          Abre WhatsApp → Configuración → Dispositivos vinculados → Vincular dispositivo
+        </p>
+        
+        {qrCode && (
+          <div className="flex justify-center mb-4 p-4 bg-white rounded-lg border">
+            <img 
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrCode}`} 
+              alt="QR Code WhatsApp" 
+              className="border rounded"
+            />
+          </div>
+        )}
+        
+        <div className="text-center">
+          <p className="text-xs text-gray-500 mb-3">
+            Escanea el código QR con tu teléfono para conectar WhatsApp
+          </p>
+          <button
+            onClick={() => {
+              setShowQRModal(false);
+              setCheckingConnection(false);
+            }}
+            className="px-4 py-2 bg-gray-500 text-white rounded-lg text-sm hover:bg-gray-600"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       {/* Título */}
@@ -272,10 +374,15 @@ const Recordatorios = () => {
             </span>
             {!whatsappConnected && (
               <button
-                onClick={conectarWhatsApp}
-                className="ml-2 px-3 py-1 bg-green-500 text-white rounded-lg text-xs hover:bg-green-600"
+                onClick={handleConectarWhatsApp}
+                disabled={checkingConnection}
+                className={`ml-2 px-3 py-1 rounded-lg text-xs ${
+                  checkingConnection 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-green-500 hover:bg-green-600'
+                } text-white`}
               >
-                Conectar
+                {checkingConnection ? 'Conectando...' : 'Conectar'}
               </button>
             )}
           </div>
@@ -340,6 +447,9 @@ const Recordatorios = () => {
         frecuencias={frecuencias}
         onReload={cargarTodo}
       />
+
+      {/* Modal QR */}
+      <QRModal />
     </div>
   );
 };

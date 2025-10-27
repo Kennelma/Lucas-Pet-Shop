@@ -2,7 +2,7 @@ import { Dialog } from 'primereact/dialog';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Button } from 'primereact/button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
 
 const ModalAgregar = ({ 
   visible, 
@@ -15,6 +15,40 @@ const ModalAgregar = ({
   tiposItems, 
   frecuencias,
 }) => {
+
+  // 🔹 Función para calcular próxima fecha basada en frecuencia
+  const calcularProximaFecha = (frecuenciaId) => {
+    const frecuencia = frecuencias.find(f => f.id_frecuencia_record_pk == frecuenciaId);
+    if (!frecuencia) return '';
+
+    const hoy = new Date();
+    let proximaFecha = new Date();
+    
+    switch(frecuencia.dias_intervalo) {
+      case 1: // Diario
+        proximaFecha.setDate(hoy.getDate() + 1);
+        break;
+      case 7: // Semanal
+        proximaFecha.setDate(hoy.getDate() + 7);
+        break;
+      case 15: // Quincenal
+        proximaFecha.setDate(hoy.getDate() + 15);
+        break;
+      case 30: // Mensual
+        proximaFecha.setMonth(hoy.getMonth() + 1);
+        break;
+      case 60: // Bimestral
+        proximaFecha.setMonth(hoy.getMonth() + 2);
+        break;
+      case 90: // Trimestral
+        proximaFecha.setMonth(hoy.getMonth() + 3);
+        break;
+      default:
+        proximaFecha.setDate(hoy.getDate() + 1);
+    }
+    
+    return proximaFecha.toLocaleDateString('es-ES');
+  };
 
   return (
     <Dialog
@@ -82,31 +116,43 @@ const ModalAgregar = ({
             )}
           </span>
 
-          {/* Frecuencia */}
+          {/* Frecuencia - MEJORADO */}
           <span>
             <label htmlFor="id_frecuencia_fk" className="text-xs font-semibold text-gray-700 mb-1">
-              FRECUENCIA <span className="text-red-600">*</span>
+              FRECUENCIA DE ENVÍO <span className="text-red-600">*</span>
             </label>
             {loading ? (
               <div className="w-full h-9 bg-gray-100 rounded-xl flex items-center justify-center">
                 <span className="text-gray-500 text-sm">Cargando frecuencias...</span>
               </div>
             ) : (
-              <select
-                id="id_frecuencia_fk"
-                name="id_frecuencia_fk"
-                value={formData.id_frecuencia_fk || ''}
-                onChange={onChange}
-                className="w-full rounded-xl h-9 px-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={frecuencias.length === 0}
-              >
-                <option value="">-- Seleccionar frecuencia --</option>
-                {frecuencias.map(f => (
-                  <option key={f.id_frecuencia_record_pk} value={f.id_frecuencia_record_pk}>
-                    {f.frecuencia_recordatorio}
-                  </option>
-                ))}
-              </select>
+              <div>
+                <select
+                  id="id_frecuencia_fk"
+                  name="id_frecuencia_fk"
+                  value={formData.id_frecuencia_fk || ''}
+                  onChange={onChange}
+                  className="w-full rounded-xl h-9 px-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                  disabled={frecuencias.length === 0}
+                >
+                  <option value="">-- Seleccionar frecuencia --</option>
+                  {frecuencias.map(f => (
+                    <option key={f.id_frecuencia_record_pk} value={f.id_frecuencia_record_pk}>
+                      {f.frecuencia_recordatorio}
+                    </option>
+                  ))}
+                </select>
+                
+                {/* 🔹 MOSTRAR PRÓXIMA FECHA CALCULADA */}
+                {formData.id_frecuencia_fk && (
+                  <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 p-2 rounded-lg">
+                    <FontAwesomeIcon icon={faCalendarAlt} className="text-green-500" />
+                    <span>
+                      <strong>Próximo envío:</strong> {calcularProximaFecha(formData.id_frecuencia_fk)}
+                    </span>
+                  </div>
+                )}
+              </div>
             )}
           </span>
 
@@ -132,7 +178,7 @@ const ModalAgregar = ({
   );
 };
 
-// Botón de agregar para usar en la interfaz principal
+// Botón de agregar (se mantiene igual)
 export const BotonAgregar = ({ onClick, loading = false }) => {
   return (
     <button
