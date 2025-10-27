@@ -187,12 +187,13 @@ const Accesorios = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       {/* Título */}
-      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
+      <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
-            Inventario de Accesorios
+            INVENTARIO DE ACCESORIOS
           </h2>
         </div>
+        <p className="text-center text-gray-600 italic">Administra accesorios para mascotas disponibles</p>
       </div>
 
       <div className="bg-white rounded-xl p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
@@ -249,23 +250,23 @@ const Accesorios = () => {
             <Column 
               field="id_producto" 
               header="ID" 
-              body={(rowData) => filtroAccesorios.indexOf(rowData) + 1} 
+              body={(rowData) => filtroAccesorios.length - filtroAccesorios.indexOf(rowData)}
               sortable
               className="text-sm"
             />
-            <Column field="nombre" header="Nombre" sortable className="text-sm" />
+            <Column field="nombre" header="NOMBRE" sortable className="text-sm" />
             <Column field="sku" header="SKU" sortable className="text-sm" />
-            <Column field="categoria" header="Categoría" sortable className="text-sm" />
+            <Column field="categoria" header="CATEGORIA" sortable className="text-sm" />
             <Column
               field="precio"
-              header="Precio"
+              header="PRECIO"
               body={(rowData) => `L. ${rowData.precio.toFixed(2)}`}
               sortable
               className="text-sm"
             />
             <Column
               field="stock"
-              header="Stock"
+              header="STOCK"
               body={(rowData) => (
                 <span className={rowData.stock <= rowData.stock_minimo ? "text-red-500 font-semibold" : ""}>
             {rowData.stock}
@@ -277,14 +278,14 @@ const Accesorios = () => {
             />
             <Column
               field="activo"
-              header="Estado"
+              header="ESTADO"
               body={estadoTemplate}
               sortable
               sortField="activo"
               className="text-sm"
             />
             <Column
-              header="Acciones"
+              header="ACCIONES"
               body={(rowData) => (
                 <div className="flex items-center space-x-2 w-full">
             <button

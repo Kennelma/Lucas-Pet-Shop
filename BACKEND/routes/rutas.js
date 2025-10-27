@@ -13,6 +13,7 @@ const servicios = require('../controllers/peluqueria.controller');
 const empresa = require('../controllers/empresa.controller');
 const recordatorios = require('../controllers/recordatorios.controller');
 const estilistas = require('../controllers/empleados.controller');
+const facturas = require('../controllers/facturacion.controller')
 
 //========== RUTAS DE AUTENTICACIÓN Y SEGURIDAD ==========
 router.post('/login', auth.login);
@@ -48,8 +49,8 @@ router.delete ('/empresa/eliminar', verificarToken, empresa.eliminar);
 router.put('/empresa/actualizar', verificarToken, empresa.actualizar);
 
 
-
 //========== RUTAS DE FACTURACIÓN ==========
+router.post ('facturación/crearFactura', verificarToken, facturas.crearFactura)
 
 
 
