@@ -27,11 +27,8 @@ async function insertarMovimientoKardex (conn, datosMovimiento) {
         origen_movimiento
     } = datosMovimiento;
 
-<<<<<<< HEAD
-=======
 
     
->>>>>>> 25b67c24d1f6e9150d0fdfd6ac571a0926d1b8d3
     //OBTENER ID DEL TIPO DE MOVIMIENTO
     const [tipo] = await conn.query(
         `SELECT id_estado_pk AS id
@@ -86,30 +83,6 @@ exports.crear = async (req, res) => {
         
         await conn.beginTransaction(); //INICIO LA TRANSACCIÓN
 
-<<<<<<< HEAD
-        //OBTENGO EL ID DEL TIPO DE PRODUCTO (CATALOGO)
-        const [tipoProducto] = await conn.query(
-            `SELECT id_tipo_producto_pk 
-             FROM cat_tipo_productos 
-             WHERE nombre_tipo_producto = ?`,
-            [req.body.tipo_producto]
-        );
-
-        //SE LLENA LA TABLA PADRE PRIMERO
-        const [productos] = await conn.query(
-            `INSERT INTO tbl_productos (
-                nombre_producto, 
-                precio_producto, 
-                stock,
-                tipo_producto_fk
-            ) VALUES (?, ?, ?, ?)`,
-             [...insert_atributos_padre(req.body), tipoProducto[0].id_tipo_producto_pk]
-        );
-
-        //OBTENGO EL ID DEL PRODUCTO INSERTADO
-        const id_producto = productos.insertId;
-
-=======
         let id_producto;
 
         if (req.body.tipo_producto !== 'LOTES') { 
@@ -136,7 +109,6 @@ exports.crear = async (req, res) => {
             //OBTENGO EL ID DEL PRODUCTO INSERTADO
             id_producto = productos.insertId;
         }
->>>>>>> 25b67c24d1f6e9150d0fdfd6ac571a0926d1b8d3
 
         switch (req.body.tipo_producto) {
 
@@ -695,20 +667,12 @@ exports.ver = async (req, res) => {
                         k.id_movimiento_pk,
                         p.nombre_producto,
                         l.codigo_lote,
-<<<<<<< HEAD
-                        k.cantidad,
-=======
                         k.cantidad_movimiento,
->>>>>>> 25b67c24d1f6e9150d0fdfd6ac571a0926d1b8d3
                         k.costo_unitario,
                         k.fecha_movimiento, 
                         tm.nombre_estado AS tipo_movimiento, 
                         om.nombre_estado AS origen_movimiento, 
-<<<<<<< HEAD
-                        k.usuario
-=======
                         u.usuario AS nombre_usuario_movimiento 
->>>>>>> 25b67c24d1f6e9150d0fdfd6ac571a0926d1b8d3
                     FROM
                         tbl_movimientos_kardex k 
                     INNER JOIN
@@ -721,11 +685,8 @@ exports.ver = async (req, res) => {
                         cat_estados tm ON k.id_tipo_fk = tm.id_estado_pk AND tm.dominio = 'TIPO' 
                     INNER JOIN
                         cat_estados om ON k.id_origen_fk = om.id_estado_pk AND om.dominio = 'ORIGEN' 
-<<<<<<< HEAD
-=======
                     INNER JOIN
                         tbl_usuarios u ON k.id_usuario_fk = u.id_usuario_pk
->>>>>>> 25b67c24d1f6e9150d0fdfd6ac571a0926d1b8d3
                     ORDER BY
                         k.fecha_movimiento DESC, k.id_movimiento_pk DESC`
                 );
