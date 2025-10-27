@@ -1,23 +1,14 @@
-import axios from "axios";
+import axiosInstance from './axiosConfig';
 
-const API_URL = "http://localhost:4000/api/recordatorios";
 
-const getHeaders = () => {
-  const token = sessionStorage.getItem("token");
-  return {
-    "Content-Type": "application/json",
-    "Authorization": token ? `Bearer ${token}` : "",
-  };
-};
+const API_URL = "/recordatorios";
 
 // ───────────────────────────────────────────────
 // SERVICIO PARA VER RECORDATORIOS
 // ───────────────────────────────────────────────
 export const verRecordatorios = async () => {
   try {
-    const res = await axios.get(`${API_URL}/ver`, {
-      headers: getHeaders(),
-    });
+    const res = await axiosInstance.get(`${API_URL}/ver`);
     return res.data.recordatorios || [];
   } catch (err) {
     console.error("Error al traer recordatorios:", err);
@@ -30,9 +21,7 @@ export const verRecordatorios = async () => {
 // ───────────────────────────────────────────────
 export const insertarRecordatorio = async (datosRecordatorio) => {
   try {
-    const res = await axios.post(`${API_URL}/insertar`, datosRecordatorio, {
-      headers: getHeaders(),
-    });
+    const res = await axiosInstance.post(`${API_URL}/insertar`, datosRecordatorio);
     return res.data;
   } catch (err) {
     console.error("Error al insertar recordatorio:", err);
@@ -45,9 +34,7 @@ export const insertarRecordatorio = async (datosRecordatorio) => {
 // ───────────────────────────────────────────────
 export const actualizarRecordatorio = async (datosRecordatorio) => {
   try {
-    const res = await axios.put(`${API_URL}/actualizar`, datosRecordatorio, {
-      headers: getHeaders(),
-    });
+    const res = await axiosInstance.put(`${API_URL}/actualizar`, datosRecordatorio);
     return res.data;
   } catch (err) {
     console.error("Error al actualizar recordatorio:", err);
@@ -60,9 +47,8 @@ export const actualizarRecordatorio = async (datosRecordatorio) => {
 // ───────────────────────────────────────────────
 export const eliminarRecordatorio = async (id) => {
   try {
-    const res = await axios.delete(`${API_URL}/eliminar`, {
+    const res = await axiosInstance.delete(`${API_URL}/eliminar`, {
       data: { id },
-      headers: getHeaders(),
     });
     return res.data;
   } catch (err) {
@@ -71,14 +57,12 @@ export const eliminarRecordatorio = async (id) => {
   }
 };
 
-
 /*SERVICIO PARA VER CATALOGOS POR TIPO*/
 export const verCatalogo = async (tipo_catalogo) => {
   try {
 
-    const res = await axios.get(`${API_URL}/verCatalogos`, {
+    const res = await axiosInstance.get(`${API_URL}/verCatalogos`, {
       params: { tipo_catalogo },
-      headers: getHeaders(),
     });
     
     console.log(`Respuesta ${tipo_catalogo}:`, res.data);

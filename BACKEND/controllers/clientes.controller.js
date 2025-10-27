@@ -11,13 +11,16 @@ exports.crear = async (req, res) => {
 
     try {
 
+        const fechaRegistro = new Date();
+
         await conn.query(
-        `INSERT INTO tbl_clientes (nombre_cliente, apellido_cliente, identidad_cliente, telefono_cliente) VALUES (?, ?, ?, ?)`,
+        `INSERT INTO tbl_clientes (nombre_cliente, apellido_cliente, identidad_cliente, telefono_cliente, fecha_registro) VALUES (?, ?, ?, ?, ?)`,
         [   
            req.body.nombre_cliente,  
            req.body.apellido_cliente,
            req.body.identidad_cliente,
-           req.body.telefono_cliente 
+           req.body.telefono_cliente,
+           fechaRegistro
         ]                
         );
 

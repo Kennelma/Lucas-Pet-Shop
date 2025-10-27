@@ -139,15 +139,15 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
             <Column 
               field="id_servicio_peluqueria_pk" 
               header="ID" 
-              body={(rowData) => servicios.indexOf(rowData) + 1} 
+              body={(rowData) => servicios.length - servicios.indexOf(rowData)}
               sortable 
               className="text-sm"
             />
-            <Column field="nombre_servicio_peluqueria" header="Servicio" sortable className="text-sm"></Column>
-            <Column field="descripcion_servicio" header="Descripción" className="text-sm"></Column>
+            <Column field="nombre_servicio_peluqueria" header="SERVICIO" sortable className="text-sm"></Column>
+            <Column field="descripcion_servicio" header="DESCRIPCIÓN" className="text-sm"></Column>
             <Column 
               field="precio_servicio"
-              header="Precio" 
+              header="PRECIO" 
               body={(rowData) => `L. ${parseFloat(rowData.precio_servicio || 0).toFixed(2)}`}
               sortable 
               sortField="precio_servicio"
@@ -156,23 +156,23 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
             ></Column>
             <Column 
               field="duracion_estimada"
-              header="Duración" 
+              header="DURACIÓN" 
               body={(rowData) => `${rowData.duracion_estimada} Min`}
               sortable
               sortField="duracion_estimada"
               dataType="numeric"
               className="text-sm"
             ></Column>
-            <Column field="requisitos" header="Requisitos" className="text-sm"></Column>
+            <Column field="requisitos" header="REQUISITOS" className="text-sm"></Column>
             <Column 
               field="activo"
-              header="Estado" 
+              header="ESTADO" 
               body={estadoTemplate}
               sortable
               sortField="activo"
               className="text-sm"
             ></Column>
-            <Column header="Acciones" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm"></Column>
+            <Column header="ACCIONES" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm"></Column>
           </DataTable>
         </>
       )}
