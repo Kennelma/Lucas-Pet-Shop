@@ -12,12 +12,20 @@ const ResumenPromocionesDelDia = () => {
 
   // Actualizar fecha cada minuto
   useEffect(() => {
-    const interval = setInterval(() => {
-      setFechaActual(new Date());
-    }, 60000); // Actualizar cada minuto
+  let minutoAnterior = new Date().getMinutes();
 
-    return () => clearInterval(interval);
-  }, []);
+  const interval = setInterval(() => {
+    const ahora = new Date();
+    const minutoActual = ahora.getMinutes();
+
+    if (minutoActual !== minutoAnterior) {
+      minutoAnterior = minutoActual;
+      setFechaActual(ahora); // Actualiza solo si cambia el minuto
+    }
+  }, 1000); // Verifica cada segundo
+
+  return () => clearInterval(interval);
+}, []);
 
   // Cargar promociones inicialmente y cada 30 segundos para actualizaciones en tiempo real
   useEffect(() => {
@@ -131,8 +139,7 @@ const ResumenPromocionesDelDia = () => {
   const obtenerHoraActual = () => {
     return fechaActual.toLocaleTimeString('es-HN', { 
       hour: '2-digit', 
-      minute: '2-digit',
-      second: '2-digit'
+      minute: '2-digit'
     });
   };
 

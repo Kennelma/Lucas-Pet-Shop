@@ -71,7 +71,6 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
           </h2>
         </div>
         <p className="text-center text-gray-600 italic">Administra ofertas, descuentos y promociones especiales</p>
-        <p className="text-center text-gray-600 italic">Administra ofertas, descuentos y promociones especiales</p>
       </div>
 
       {/* Resumen de promociones del día en tiempo real */}

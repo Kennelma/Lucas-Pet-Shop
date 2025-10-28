@@ -188,11 +188,10 @@ const Alimentos = () => {
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
             INVENTARIO DE ALIMENTOS
-            INVENTARIO DE ALIMENTOS
           </h2>
         </div>
         <p className="text-center text-gray-600 italic">Administra alimentos balanceados, snacks y nutrición para mascotas</p>
-        <p className="text-center text-gray-600 italic">Administra alimentos balanceados, snacks y nutrición para mascotas</p>
+        
       </div>
 
       {/* Componente de Alimentos Más Vendidos */}
