@@ -11,6 +11,7 @@ import { faPenToSquare, faTrash, faPlus } from "@fortawesome/free-solid-svg-icon
 
 import ModalNuevoAnimal from "./modal_nuevo_animal";
 import ModalActualizarAnimal from "./modal_actualizar_animal";
+import AnimalesMasVendidos from "./AnimalesMasVendidos";
 
 import {
   verProductos,
@@ -56,7 +57,7 @@ const Animales = () => {
     setLoading(true);
     try {
       const productos = await verProductos("ANIMALES");
-      
+
       const normalizados = (productos || []).map((item) => ({
         id_producto: item.id_producto_pk,
         nombre: item.nombre_producto,
@@ -142,7 +143,7 @@ const Animales = () => {
 
   const actualizarEstadoAnimal = async (animal, nuevoEstado) => {
     try {
-      
+
       const payload = {
         id_producto: animal.id_producto,
         tipo_producto: "ANIMALES",
@@ -192,7 +193,7 @@ const Animales = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-50">
      {/* Título */}
-      <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
             INVENTARIO DE ANIMALES
@@ -200,6 +201,9 @@ const Animales = () => {
         </div>
         <p className="text-center text-gray-600 italic">Administra el inventario de mascotas disponibles para venta</p>
       </div>
+
+      {/* Componente de Animales Más Vendidos */}
+      <AnimalesMasVendidos animales={animales} />
 
       <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         {/* Header */}
@@ -252,11 +256,11 @@ const Animales = () => {
           selectionMode="single"
           rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
         >
-          <Column 
-            field="id_producto" 
-            header="ID" 
+          <Column
+            field="id_producto"
+            header="ID"
             body={(rowData) => filtroAnimales.length - filtroAnimales.indexOf(rowData)}
-            sortable 
+            sortable
             className="text-sm"
           />
           <Column field="nombre" header="NOMBRE" sortable className="text-sm" />
@@ -319,6 +323,7 @@ const Animales = () => {
         </DataTable>
       </div>
 
+      {/* Modales */}
       {/* Modales */}
       {modalAbierto &&
         (animalEditando ? (

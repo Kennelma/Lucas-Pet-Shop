@@ -6,13 +6,6 @@ const identidadEsValida = (s) => limpiaIdentidad(s).length === 13; // ajusta tu 
 const EncabezadoFactura = ({
   RTN,
   setRTN,
-  vendedor,
-  identidad,
-  setIdentidad,
-  onBuscarCliente,      // (identidadLimpia) => Promise<void>
-  sucursal,
-  buscando = false,     // ← NUEVO: estado de carga
-  errorMsg = "",        // ← NUEVO: mensaje opcional
 }) => {
 
   const esValida = useMemo(() => identidadEsValida(identidad), [identidad]);

@@ -38,6 +38,8 @@ export default function Facturacion () {
                             <div className="flex items-center gap-2">
                                 <Plus size={20} />
                                 Nueva Factura
+
+                                
                             </div>
                         </button>
 

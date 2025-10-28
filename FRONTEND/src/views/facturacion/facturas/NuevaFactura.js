@@ -4,20 +4,12 @@ import EncabezadoFactura from "./EncabezadoFactura";
 import DetallesFactura from "./DetallesFactura";
 import { obtenerDetallesFactura } from "../../../AXIOS.SERVICES/factura-axios";
 
-import { buscarClientePorIdentidad } from "../../../AXIOS.SERVICES/factura-axios";
-
-const limpiaIdentidad = (s = "") => s.replace(/[^\d]/g, "");
-const identidadEsValida = (s = "") => limpiaIdentidad(s).length === 13;
-
 const NuevaFactura = () => {
   // Encabezado
   const [RTN, setRTN] = useState("");
   const [vendedor] = useState("");
   const [sucursal] = useState("");
   const [identidad, setIdentidad] = useState("");
-
-  const [buscando, setBuscando] = useState(false);
-  const [errorBuscar, setErrorBuscar] = useState("");
 
   //DETALLES DE FACTURA
   const [items, setItems] = useState([
@@ -59,43 +51,7 @@ const NuevaFactura = () => {
     buscarItemTipo("PROMOCIONES");
   }, []);
 
-  //BUSQUEDA POR CLIENTE
-  const onBuscarCliente = async (identidadInput) => {
-    const id13 = limpiaIdentidad(identidadInput);
-    if (!identidadEsValida(id13)) {
-      setErrorBuscar("Ingrese una identidad válida (13 dígitos).");
-      return;
-    }
 
-    try {
-      setBuscando(true);
-      setErrorBuscar("");
-
-      const resp = await buscarClientePorIdentidad(id13);
-      // Tu servicio retorna { success, mensaje, data? }
-      if (resp?.success && Array.isArray(resp.data) && resp.data.length > 0) {
-        const cliente = resp.data[0];
-
-        setRTN(cliente.rtn_cliente || "");
-      } else {
-        setErrorBuscar(resp?.mensaje || "Cliente no encontrado.");
-        const agregar = window.confirm(
-          "Cliente no encontrado. ¿Deseas agregarlo?"
-        );
-        if (agregar) {
-          // abrir modal de agregar cliente (impleméntalo a tu gusto)
-          // openModalAgregarCliente({ identidad: id13 });
-        } else {
-          // usar un valor por defecto si quieres
-          setRTN("0000-0000-000000");
-        }
-      }
-    } catch {
-      setErrorBuscar("Error al buscar cliente. Intente de nuevo.");
-    } finally {
-      setBuscando(false);
-    }
-  };
 
   //CALCULOS MATEMATICOS DE LA FACTURA
   const calculateLineTotal = (item) => {
@@ -180,28 +136,15 @@ const NuevaFactura = () => {
   return (
     <div className="space-y-6 p-4 max-w-5xl mx-auto bg-white shadow-xl rounded-lg">
       {/* ENCABEZADO */}
-      <div className="border-2 border-dashed border-blue-300 p-4 rounded-lg bg-blue-50">
-        <p className="text-blue-700 font-semibold mb-2">
-          CONTENEDOR DE ENCABEZADO
-        </p>
+      <div className="border-dashed rounded-lg bg-blue-50">
         <EncabezadoFactura
           RTN={RTN}
           setRTN={setRTN}
-          vendedor={vendedor}
-          identidad={identidad}
-          setIdentidad={setIdentidad}
-          onBuscarCliente={onBuscarCliente}
-          sucursal={sucursal}
-          buscando={buscando}
-          errorMsg={errorBuscar}
         />
       </div>
 
       {/* DETALLES */}
-      <div className="border-2 border-dashed border-green-300 p-4 rounded-lg bg-green-50">
-        <p className="text-green-700 font-semibold mb-2">
-          CONTENEDOR DE DETALLES
-        </p>
+      <div className="border-dashed border-green-300  rounded-lg bg-green-50">
         <DetallesFactura
           items={items}
           addItem={addItem}

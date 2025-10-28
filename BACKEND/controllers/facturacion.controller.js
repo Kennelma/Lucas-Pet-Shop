@@ -238,7 +238,7 @@ exports.encabezadoFactura = async (req, res) => {
         const { identidad } = req.query;
 
         [resultados] = await conn.query(
-             `SELECT
+            `SELECT
                 id_cliente_pk,
                 nombre_cliente,
                 identidad_cliente

@@ -18,6 +18,7 @@ require('dotenv').config({
     silent: true
 }); 
 
+
 //PARA QUE EL SERVIDOR PUEDA RECIBIR JSON Y XXWW-FORM-URLENCODED
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
