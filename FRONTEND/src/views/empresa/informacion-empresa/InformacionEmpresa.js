@@ -43,7 +43,15 @@ export default function InformacionEmpresa() {
 
   const handleChangeEmpresa = (e) => {
     const copia = { ...formEmpresa };
-    copia[e.target.name] = e.target.value;
+    const { name, value } = e.target;
+    
+    // Convertir a mayúsculas excepto el campo de correo electrónico
+    if (name === 'correo_empresa') {
+      copia[name] = value.toLowerCase(); // Correo en minúsculas
+    } else {
+      copia[name] = value.toUpperCase(); // Otros campos en mayúsculas
+    }
+    
     setFormEmpresa(copia);
   };
 

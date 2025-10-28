@@ -293,7 +293,63 @@ exports.crear = async (req, res) => {
 
 };
 
-
+// ─────────────────────────────────────────────────────────
+//        ENDPOINT PARA VER CATÁLOGOS DE PRODUCTOS
+// ─────────────────────────────────────────────────────────
+exports.verCatalogo = async (req, res) => {
+    
+    const conn = await mysqlConnection.getConnection();
+    
+    try {
+        
+        let registros;
+        
+        switch (req.query.tipo_catalogo) {
+            
+            case 'TIPOS_PRODUCTOS':
+                [registros] = await conn.query(
+                    `SELECT id_tipo_producto_pk, nombre_tipo_producto 
+                     FROM cat_tipo_productos 
+                     ORDER BY id_tipo_producto_pk`
+                );
+                break;
+                
+            case 'ESTADOS_TIPO':
+                [registros] = await conn.query(
+                    `SELECT id_estado_pk, nombre_estado 
+                     FROM cat_estados 
+                     WHERE dominio = 'TIPO' 
+                     ORDER BY id_estado_pk`
+                );
+                break;
+                
+            case 'ESTADOS_ORIGEN':
+                [registros] = await conn.query(
+                    `SELECT id_estado_pk, nombre_estado 
+                     FROM cat_estados 
+                     WHERE dominio = 'ORIGEN' 
+                     ORDER BY id_estado_pk`
+                );
+                break;
+                
+            default:
+                throw new Error('Tipo de catálogo no válido');
+        }
+        
+        res.json({
+            Consulta: true,
+            catalogo: registros || []
+        });
+        
+    } catch (err) {
+        res.json({
+            Consulta: false,
+            error: err.message
+        });
+    } finally {
+        conn.release();
+    }
+};
 
 // ─────────────────────────────────────────────────────────
 //          ENDPOINT DE ACTUALIZAR PRODUCTOS
