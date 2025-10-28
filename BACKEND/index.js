@@ -28,27 +28,58 @@ app.use(cors());
 app.use('/api', require('./routes/rutas'));
 
 // 🔹 Inicializar WhatsApp al arrancar servidor
- const whatsappService = require('./services/whatsappService');
- whatsappService.connect().catch(err => {
-     console.warn('⚠️ WhatsApp no conectado automáticamente. Conéctalo desde el frontend.');
- });
+const whatsappService = require('./services/whatsappService');
+whatsappService.connect().catch(err => {
+    console.warn('⚠️ WhatsApp no conectado automáticamente. Conéctalo desde el frontend.');
+});
 
 const PORT = 4000;
 app.listen(PORT, function() {
     console.log('🚀 Servidor en puerto ' + PORT);
-//     console.log('📱 Escanea el QR de WhatsApp si aparece en la terminal');
+    console.log('📱 Escanea el QR de WhatsApp si aparece en la terminal');
+    
+    // 🔹 PROGRAMADOR AUTOMÁTICO - Iniciar después de que el servidor esté listo
+    iniciarProgramadorAutomatico();
 });
 
-// Agregar al final del archivo, después de inicializar el servidor:
+// 🔹 FUNCIÓN PARA INICIAR EL PROGRAMADOR AUTOMÁTICO
+const iniciarProgramadorAutomatico = () => {
+    try {
+        const whatsappController = require('./controllers/whatsappController');
+        
+        // Verificar si la función existe antes de llamarla
+        if (whatsappController && typeof whatsappController.procesarRecordatoriosProgramados === 'function') {
+            
+            // 🔹 Ejecutar al iniciar el servidor (opcional)
+            console.log('⏰ Iniciando verificación inicial de recordatorios...');
+            whatsappController.procesarRecordatoriosProgramados().catch(err => {
+                console.warn('⚠️ Error en verificación inicial:', err.message);
+            });
+            
+            // 🔹 Programar ejecución cada hora
+            setInterval(() => {
+                console.log('⏰ Verificando recordatorios programados...');
+                whatsappController.procesarRecordatoriosProgramados().catch(err => {
+                    console.warn('⚠️ Error en verificación programada:', err.message);
+                });
+            }, 60 * 60 * 1000); // Cada hora
+            
+            console.log('✅ Programador automático de recordatorios iniciado');
+            
+        } else {
+            console.warn('⚠️ Función procesarRecordatoriosProgramados no disponible');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error iniciando programador automático:', error.message);
+    }
+};
 
-// 🔹 PROGRAMADOR AUTOMÁTICO - Ejecutar cada hora
-const whatsappController = require('./controllers/whatsappController');
+// 🔹 Manejo de errores no capturados
+process.on('uncaughtException', (error) => {
+    console.error('❌ Error no capturado:', error);
+});
 
-setInterval(() => {
-    whatsappController.procesarRecordatoriosProgramados();
-}, 60 * 60 * 1000); // Cada hora
-
-// 🔹 También ejecutar al iniciar el servidor (opcional)
-whatsappController.procesarRecordatoriosProgramados();
-
-console.log('⏰ Programador automático de recordatorios iniciado');
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ Promesa rechazada no manejada:', reason);
+});

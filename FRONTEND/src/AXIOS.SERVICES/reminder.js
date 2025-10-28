@@ -34,7 +34,13 @@ export const insertarRecordatorio = async (datosRecordatorio) => {
     const res = await axios.post(`${API_URL}/insertar`, datosRecordatorio, {
       headers: getHeaders(),
     });
-    return res.data;
+    
+    // 🔹 Asegurar que devolvemos el ID del recordatorio creado
+    return {
+      Consulta: res.data.Consulta,
+      mensaje: res.data.mensaje,
+      id_recordatorio: res.data.id_recordatorio // ✅ Importante para el envío automático
+    };
   } catch (err) {
     console.error("Error al insertar recordatorio:", err);
     return { Consulta: false, error: err.message };
@@ -70,6 +76,22 @@ export const obtenerQRWhatsApp = async () => {
     return { success: false, error: err.message };
   }
 };
+
+///////////////////////////////////////////
+// 🔹 NUEVO servicio para obtener QR en Base64
+/////////////////////////////////////////////////////
+export const obtenerQRBase64 = async () => {
+  try {
+    const res = await axios.get(`${WHATSAPP_URL}/qr-base64`, {
+      headers: getHeaders(),
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Error al obtener QR Base64:", err);
+    return { success: false, error: err.message };
+  }
+};
+
 // ───────────────────────────────────────────────
 // SERVICIO PARA ELIMINAR RECORDATORIO
 // ───────────────────────────────────────────────

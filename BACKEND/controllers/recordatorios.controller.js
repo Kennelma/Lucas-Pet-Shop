@@ -4,35 +4,57 @@ const mysqlConnection = require('../config/conexion');
 exports.crear = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
     await conn.beginTransaction();
-    
-
 
     try {
+        // 🔹 CALCULAR PRÓXIMO ENVÍO BASADO EN FRECUENCIA
+        let proximoEnvio = null;
+        const { id_frecuencia_fk } = req.body;
+        
+        if (id_frecuencia_fk) {
+            // Obtener información de la frecuencia
+            const [frecuenciaData] = await conn.query(
+                `SELECT dias_intervalo FROM cat_frecuencia_recordatorio WHERE id_frecuencia_record_pk = ?`,
+                [id_frecuencia_fk]
+            );
+            
+            if (frecuenciaData.length > 0 && frecuenciaData[0].dias_intervalo) {
+                const diasIntervalo = frecuenciaData[0].dias_intervalo;
+                proximoEnvio = new Date();
+                proximoEnvio.setDate(proximoEnvio.getDate() + diasIntervalo);
+                
+                // Formatear para MySQL
+                proximoEnvio = proximoEnvio.toISOString().slice(0, 19).replace('T', ' ');
+            }
+        }
 
-        await conn.query(
+        // 🔹 INSERTAR CON PRÓXIMO ENVÍO CALCULADO
+        const [result] = await conn.query(
             `INSERT INTO tbl_recordatorios (
                 mensaje_recordatorio,    
                 id_tipo_item_fk, 
-                id_frecuencia_fk
-                )
-             VALUES (?, ?, ?)`,
+                id_frecuencia_fk,
+                proximo_envio,
+                id_estado_programacion_fk,
+                activo
+             ) VALUES (?, ?, ?, ?, 1, 1)`, // 1 = Pendiente, 1 = Activo
             [
                 req.body.mensaje_recordatorio,
                 req.body.id_tipo_item_fk,
-                req.body.id_frecuencia_fk
+                req.body.id_frecuencia_fk,
+                proximoEnvio
             ]
         );
 
         await conn.commit();
         res.status(200).json({
             Consulta: true,
-            mensaje: 'Recordatorio creado con éxito'
+            mensaje: 'Recordatorio creado con éxito',
+            id_recordatorio: result.insertId
         });
     } catch (err) {
         await conn.rollback();
+        console.error('Error al crear recordatorio:', err);
         res.status(500).json({ Consulta: false, error: err.message });
-
-
     } finally {
         conn.release();
     }
@@ -127,7 +149,6 @@ exports.eliminar = async (req, res) => {
 
 
 };
-
 //CREAR RECORDATORIO
 exports.crear = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
@@ -138,19 +159,25 @@ exports.crear = async (req, res) => {
         let proximoEnvio = null;
         const { id_frecuencia_fk } = req.body;
         
-        // Obtener información de la frecuencia
-        const [frecuenciaData] = await conn.query(
-            `SELECT dias_intervalo FROM cat_frecuencia_recordatorio WHERE id_frecuencia_record_pk = ?`,
-            [id_frecuencia_fk]
-        );
-        
-        if (frecuenciaData.length > 0) {
-            const diasIntervalo = frecuenciaData[0].dias_intervalo || 1;
-            proximoEnvio = new Date();
-            proximoEnvio.setDate(proximoEnvio.getDate() + diasIntervalo);
+        if (id_frecuencia_fk) {
+            // Obtener información de la frecuencia
+            const [frecuenciaData] = await conn.query(
+                `SELECT dias_intervalo FROM cat_frecuencia_recordatorio WHERE id_frecuencia_record_pk = ?`,
+                [id_frecuencia_fk]
+            );
+            
+            if (frecuenciaData.length > 0 && frecuenciaData[0].dias_intervalo) {
+                const diasIntervalo = frecuenciaData[0].dias_intervalo;
+                proximoEnvio = new Date();
+                proximoEnvio.setDate(proximoEnvio.getDate() + diasIntervalo);
+                
+                // Formatear para MySQL
+                proximoEnvio = proximoEnvio.toISOString().slice(0, 19).replace('T', ' ');
+            }
         }
 
-        await conn.query(
+        // 🔹 INSERTAR CON PRÓXIMO ENVÍO CALCULADO
+        const [result] = await conn.query(
             `INSERT INTO tbl_recordatorios (
                 mensaje_recordatorio,    
                 id_tipo_item_fk, 
@@ -169,10 +196,12 @@ exports.crear = async (req, res) => {
         await conn.commit();
         res.status(200).json({
             Consulta: true,
-            mensaje: 'Recordatorio creado con éxito'
+            mensaje: 'Recordatorio creado con éxito',
+            id_recordatorio: result.insertId
         });
     } catch (err) {
         await conn.rollback();
+        console.error('Error al crear recordatorio:', err);
         res.status(500).json({ Consulta: false, error: err.message });
     } finally {
         conn.release();

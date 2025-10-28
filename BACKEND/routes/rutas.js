@@ -85,5 +85,4 @@ router.get ('/recordatorios/verCatalogos', verificarToken, recordatorios.verCata
  router.post('/whatsapp/disconnect', verificarToken, whatsapp.disconnect);
  router.post('/whatsapp/enviar-masivo', verificarToken, whatsapp.enviarRecordatorioMasivo);
 
- 
 module.exports = router;

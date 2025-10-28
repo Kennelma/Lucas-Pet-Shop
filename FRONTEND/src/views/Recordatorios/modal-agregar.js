@@ -178,6 +178,25 @@ const ModalAgregar = ({
   );
 };
 
+// 🔹 Función para calcular próxima fecha basada en frecuencia (MANTENER ESTA FUNCIÓN)
+const calcularProximaFecha = (frecuenciaId) => {
+  const frecuencia = frecuencias.find(f => f.id_frecuencia_record_pk == frecuenciaId);
+  if (!frecuencia || !frecuencia.dias_intervalo) return '';
+
+  const hoy = new Date();
+  let proximaFecha = new Date(hoy);
+  
+  // Usar días_intervalo de la base de datos
+  proximaFecha.setDate(hoy.getDate() + frecuencia.dias_intervalo);
+  
+  return proximaFecha.toLocaleDateString('es-ES', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
 // Botón de agregar (se mantiene igual)
 export const BotonAgregar = ({ onClick, loading = false }) => {
   return (
