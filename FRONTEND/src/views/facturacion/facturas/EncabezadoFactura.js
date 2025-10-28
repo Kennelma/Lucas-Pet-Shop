@@ -1,75 +1,100 @@
-import React from "react";
-import { User } from 'lucide-react';
+import React, { useMemo } from 'react';
 
-// NOTA: Estas variables son placeholders. Se asume que serán pasadas como props desde un componente padre.
-const nuevaFactura = { nombre: "", apellido: "", identidad: "" }; // Placeholder del objeto de estado
-const setNuevaFactura = () => {}; // Placeholder de la función de estado
+const limpiaIdentidad = (s = "") => s.replace(/[^\d]/g, ""); // solo dígitos (0801198712345)
+const identidadEsValida = (s) => limpiaIdentidad(s).length === 13; // ajusta tu regla
 
+const EncabezadoFactura = ({
+  RTN,
+  setRTN,
+  vendedor,
+  identidad,
+  setIdentidad,
+  onBuscarCliente,      // (identidadLimpia) => Promise<void>
+  sucursal,
+  buscando = false,     // ← NUEVO: estado de carga
+  errorMsg = "",        // ← NUEVO: mensaje opcional
+}) => {
 
-const EncabezadoFactura = () => {
+  const esValida = useMemo(() => identidadEsValida(identidad), [identidad]);
 
-    return (
-        // El Fragment <> o <div> es necesario para envolver el contenido JSX devuelto.
+  const handleSubmit = async () => {
+    if (!esValida || buscando) return;
+    await onBuscarCliente(limpiaIdentidad(identidad));
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+      <h1 className="text-xl font-semibold text-gray-800 mb-3">Factura</h1>
+
+      <div className="grid grid-cols-2 gap-3 items-end mb-4 border-b pb-4 border-gray-200">
+        {/* Identidad + Buscar */}
         <div>
-            {/* Información del Cliente */}
-            <div className="mb-4">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                    <User size={16} />
-                    Información del cliente
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-
-                    {/* Campo Nombre */}
-                    <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                            Nombre *
-                        </label>
-                        <input
-                            type="text"
-                            value={nuevaFactura.nombre}
-                            // En la implementación real, usarías:
-                            // onChange={(e) => setNuevaFactura({ ...nuevaFactura, nombre: e.target.value })}
-                            onChange={() => {}}
-                            className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
-                            placeholder="Nombre"
-                        />
-                    </div>
-
-                    {/* Campo Apellido */}
-                    <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                            Apellido *
-                        </label>
-                        <input
-                            type="text"
-                            value={nuevaFactura.apellido}
-                            // En la implementación real, usarías:
-                            // onChange={(e) => setNuevaFactura({ ...nuevaFactura, apellido: e.target.value })}
-                            onChange={() => {}}
-                            className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
-                            placeholder="Apellido"
-                        />
-                    </div>
-
-                    {/* Campo Identidad */}
-                    <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                            Identidad
-                        </label>
-                        <input
-                            type="text"
-                            value={nuevaFactura.identidad}
-                            // En la implementación real, usarías:
-                            // onChange={(e) => setNuevaFactura({ ...nuevaFactura, identidad: e.target.value })}
-                            onChange={() => {}}
-                            className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
-                            placeholder="0000-0000-00000"
-                        />
-                    </div>
-                </div>
-            </div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Identidad</label>
+          <div className="relative flex items-center">
+            <input
+              type="text"
+              value={identidad}
+              onChange={(e) => setIdentidad(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
+              className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="0801-1987-12345"
+            />
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={!esValida || buscando}
+              className={`absolute right-1.5 h-[70%] px-2 text-xs text-white rounded-md transition-colors
+                ${(!esValida || buscando) ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+            >
+              {buscando ? '...' : 'Buscar'}
+            </button>
+          </div>
+          {errorMsg && <p className="mt-1 text-xs text-red-600">{errorMsg}</p>}
+          {!errorMsg && !esValida && identidad && (
+            <p className="mt-1 text-[11px] text-gray-500">La identidad debe tener 13 dígitos.</p>
+          )}
         </div>
-    );
+
+        {/* RTN */}
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">RTN*</label>
+          <input
+            type="text"
+            value={RTN}
+            onChange={(e) => setRTN(e.target.value)}
+            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="0000-0000-000000"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        {/* Vendedor */}
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Vendedor</label>
+          <input
+            type="text"
+            value={vendedor}
+            readOnly
+            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-default"
+            placeholder="Nombre del vendedor"
+          />
+        </div>
+
+        {/* Sucursal */}
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Sucursal</label>
+          <input
+            type="text"
+            value={sucursal}
+            readOnly
+            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-default"
+            placeholder="Sucursal de la operación"
+          />
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default EncabezadoFactura;

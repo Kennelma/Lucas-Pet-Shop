@@ -3,7 +3,7 @@ const conexion = require('../config/conexion');
 const express = require('express');
 const router = express.Router();
 
-const { verificarToken } = require('../middleware/auth'); 
+const { verificarToken } = require('../middleware/auth');
 
 
 const auth = require('../controllers/auth.controller');
@@ -50,7 +50,11 @@ router.put('/empresa/actualizar', verificarToken, empresa.actualizar);
 
 
 //========== RUTAS DE FACTURACIÓN ==========
-router.post ('facturación/crearFactura', verificarToken, facturas.crearFactura)
+router.get ('/facturacion/seleccionarDetallesFactura', facturas.detallesFactura);
+
+router.get ('/facturacion/seleccionarEncabezadoFactura', facturas.encabezadoFactura);
+
+router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFactura)
 
 
 

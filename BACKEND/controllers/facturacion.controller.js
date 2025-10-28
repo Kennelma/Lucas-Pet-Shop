@@ -17,15 +17,11 @@ exports.crearFactura = async (req, res) => {
 
         // 1) OBTENER LOS DETALLES DE LA FACTURA DESDE EL BODY
         const {
-            RTN, 
+            RTN,
             descuento_monto,
             id_cliente,
             detalles
         } = req.body
-
-        // 2) SE TOMA EL ID DEL USUARIO Y LA SUCURSAL POR EL AUTENTICADO (MIDDLEWARE AUTH)
-        const id_usuario = req.usuario?.id_usuario_pk;
-        const id_sucursal = req.usuario?.id_sucursal_fk;
 
         //VALIDAR QUE EXISTAN OBJETOS PARA PODER CREAR LA FACTURA
         if (!detalles || detalles.length === 0) {
@@ -67,131 +63,6 @@ exports.crearFactura = async (req, res) => {
             const ajuste = parseFloat(detalle.ajuste_precio || 0);
             let nombre_item = '';
             let precio_item = 0;
-            let id_tipo_item = null;
-
-
-            //SI ES UN PRODUCTO
-            if (detalle.id_producto) {
-
-                const [producto] = await conn.query(
-                    `SELECT
-                        nombre_producto,
-                        precio_producto,
-                        stock,
-                        tipo_producto_fk
-                    FROM tbl_productos
-                    WHERE id_producto_pk = ? AND activo = TRUE`,
-                    [detalle.id_producto]
-                );
-
-                //VALIDACIONES BASICAS DE STOCK BAJO O INACTIVO
-                 if (!producto || producto.length === 0) {
-                    return res.status(404).json({
-                        success: false,
-                        mensaje: `Producto con ID ${detalle.id_producto} no encontrado o inactivo`
-                    });
-
-                }
-
-                if (producto[0].stock < cantidad) {
-                    await conn.rollback();
-                    return res.status(400).json({
-                        success: false,
-                        mensaje: `Stock insuficiente para ${producto[0].nombre_producto}. Disponible: ${producto[0].stock}, Solicitado: ${cantidad}`
-                    });
-
-                }
-
-
-                nombre_item = producto[0].nombre_producto;
-                precio_item = parseFloat(producto[0].precio_producto);
-
-                const [tipoItem] = await conn.query(
-                    `SELECT id_tipo_item_pk
-                    FROM cat_tipo_item
-                    WHERE nombre_tipo_item = 'PRODUCTOS'`
-                );
-
-                id_tipo_item = tipoItem && tipoItem.length > 0 ? tipoItem[0].id_tipo_item_pk : null;
-
-
-                //SI ES UN SERVICIO
-            } else if (detalle.id_servicio) {
-
-                const [servicio] = await conn.query(
-                    `SELECT
-                        nombre_servicio_peluqueria,
-                        precio_servicio
-                    FROM tbl_servicios_peluqueria_canina
-                    WHERE id_servicio_peluqueria_pk = ? AND activo = TRUE`,
-                    [detalle.id_servicio]
-                );
-
-                //VALIDACIONES BASICAS
-                if (!servicio || servicio.length === 0) {
-                    await conn.rollback();
-                    return res.status(404).json({
-                        success: false,
-                        mensaje: `Servicio con ID ${detalle.id_servicio} no encontrado o inactivo`
-                    });
-                }
-
-                nombre_item = servicio[0].nombre_servicio_peluqueria;
-                precio_item = parseFloat(servicio[0].precio_servicio);
-
-                const [tipoItem] = await conn.query(
-                    `SELECT id_tipo_item_pk
-                     FROM cat_tipo_item
-                     WHERE nombre_tipo_item = 'SERVICIOS PELUQUERIA'`
-                );
-
-                id_tipo_item = tipoItem && tipoItem.length > 0 ? tipoItem[0].id_tipo_item_pk : null;
-
-
-                // SI ES UNA PROMOCIÓN
-            } else if (detalle.id_promocion) {
-
-                const [promocion] = await conn.query(
-                    `SELECT
-                        nombre_promocion,
-                        precio_promocion
-                    FROM tbl_promociones
-                    WHERE id_promocion_pk = ?`,
-                    [detalle.id_promocion]
-                );
-
-                //VALIDACIONES BASICAS
-                if (!promocion || promocion.length === 0) {
-                    await conn.rollback();
-                    return res.status(404).json({
-                        success: false,
-                        mensaje: `Promoción con ID ${detalle.id_promocion} no encontrada`
-                    });
-                }
-
-                nombre_item = promocion[0].nombre_promocion;
-                precio_item = parseFloat(promocion[0].precio_promocion);
-
-                const [tipoItem] = await conn.query(
-                    `SELECT id_tipo_item_pk
-                     FROM cat_tipo_item
-                     WHERE nombre_tipo_item LIKE '%Promocion%'
-                     LIMIT 1`
-                );
-
-                id_tipo_item = tipoItem && tipoItem.length > 0 ? tipoItem[0].id_tipo_item_pk : null;
-
-                console.log(`Promoción: ${nombre_item} | Precio: L.${precio_item}`);
-
-            } else {
-                await conn.rollback();
-                return res.status(400).json({
-                    success: false,
-                    mensaje: 'CADA DETALLE DEBE TENER UN ID, YA SE PRODUCTO, SERVICIO O PROMOCION'
-                });
-            }
-
-
             //--CALCULO TOTAL DE LINEA
             //SE PROCESAN LOS DETALLES DE LA FACTURA
             const total_linea = (cantidad * precio_item) + ajuste;
@@ -354,3 +225,125 @@ exports.crearFactura = async (req, res) => {
 
 }
 
+
+
+exports.encabezadoFactura = async (req, res) => {
+
+    const conn = await mysqlConnection.getConnection();
+
+    let resultados;
+
+    try {
+
+        const { identidad } = req.query;
+
+        [resultados] = await conn.query(
+             `SELECT
+                id_cliente_pk,
+                nombre_cliente,
+                identidad_cliente
+            FROM tbl_clientes
+            WHERE identidad_cliente = ?`,
+            [identidad]
+        );
+
+        if (!resultados || resultados.length === 0) {
+        return res.status(404).json({
+            success: false,
+            mensaje: `NO SE ENCONTRÓ NINGUN REGISTRO CON ESTA IDENTIDAD: ${identidad}.`,
+        });
+        }
+
+        return res.status(200).json({
+            success: true,
+            mensaje: 'Datos obtenidos con éxito',
+            data: resultados
+        });
+
+    } catch (err) {
+
+        res.status(500).json({
+            mensaje: 'ERROR AL MOSTRAR DATOS',
+            error: err.message
+        });
+
+    } finally {
+        conn.release();
+    }
+
+}
+
+
+
+
+
+
+
+
+
+exports.detallesFactura = async (req, res) => {
+
+    const conn = await mysqlConnection.getConnection();
+
+    let resultados;
+
+    try {
+        switch (req.query.tipo_item) {
+
+            case 'PRODUCTOS':
+
+                [resultados] = await conn.query(
+                    `SELECT
+                        id_producto_pk,
+                        nombre_producto,
+                        precio_producto
+                    FROM tbl_productos
+                    WHERE activo = TRUE`
+                )
+
+                break;
+
+            case 'SERVICIOS':
+
+                [resultados] = await conn.query(
+                    `SELECT
+                        id_servicio_peluqueria_pk,
+                        nombre_servicio_peluqueria,
+                        precio_servicio
+                    FROM tbl_servicios_peluqueria_canina
+                    WHERE activo = TRUE`
+                )
+
+                break;
+
+            case 'PROMOCIONES':
+
+                [resultados] = await conn.query(
+                    `SELECT
+                        id_promocion_pk,
+                        nombre_promocion,
+                        precio_promocion
+                    FROM tbl_promociones
+                    WHERE activo = TRUE`
+                )
+                break;
+
+            default:
+                throw new Error('TIPO DE ITEM NO VÁLIDO, INTENTE DE NUEVO');
+
+        }
+
+        return res.status(200).json({ success: true, data: resultados })
+
+    } catch (err) {
+
+        res.status(500).json({
+            mensaje: 'ERROR AL MOSTRAR DATOS',
+            error: err.message
+        });
+
+    } finally {
+        conn.release();
+    }
+
+}
