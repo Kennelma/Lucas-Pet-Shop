@@ -26,12 +26,10 @@ export const crearFactura = async (datosFactura) => {
   }
 };
 
-
-
 export const obtenerDetallesFactura = async (tipo_item) => {
   try {
     const { data } = await axiosInstance.get(
-      `${API_URL}/seleccionarDetallesFactura`,
+      `${API_URL}/detallesFactura`,
       { params: { tipo_item } }
     );
     return data;
@@ -46,20 +44,24 @@ export const obtenerDetallesFactura = async (tipo_item) => {
   }
 };
 
+export const buscarCliente = async (identidad) => {
+  if (!identidad) return [];
+  try {
+    const { data } = await axiosInstance.get(`${API_URL}/buscarCliente`, {
+      params: { identidad },
+    });
 
-export const buscarClientePorIdentidad = async (identidad) => {
-  try {
-    const { data } = await axiosInstance.get(
-      `${API_URL}/seleccionarEncabezadoFactura`,
-      {
-          params: {
-            identidad: identidad
-          }
-      }
-    );
-    return data;
-  } catch (err) {
-    return { success: false, mensaje: "Error al buscar cliente." };
-  }
+    const registros = Array.isArray(data?.data) ? data.data : [];
+    return registros.map((r) => ({
+      id: r.id_cliente_pk,
+      identidad: r.identidad_cliente,
+      nombre: r.nombre_cliente,
+      apellido: r.apellido_cliente,
+    }));
+  } catch (err) {
+    if (err.response?.status === 404) {
+      return [];
+    }
+    throw err;
+  }
 };
-

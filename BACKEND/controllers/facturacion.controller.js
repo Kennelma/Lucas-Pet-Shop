@@ -280,7 +280,6 @@ exports.encabezadoFactura = async (req, res) => {
 
 
 
-
 exports.detallesFactura = async (req, res) => {
 
     const conn = await mysqlConnection.getConnection();
@@ -347,3 +346,51 @@ exports.detallesFactura = async (req, res) => {
     }
 
 }
+
+
+
+// ENDPOINT BUSCAR CLIENTE POR IDENTIDAD PARA FACTURA
+exports.buscarPorIdentidad = async (req, res) => {
+
+    const { identidad } = req.query;
+
+    const conn = await mysqlConnection.getConnection();
+
+    try {
+        // Buscar cliente por identidad (puede ser parcial, mínimo 8 dígitos)
+        const [registros] = await conn.query(
+            `SELECT
+                id_cliente_pk,
+                identidad_cliente,
+                nombre_cliente,
+                apellido_cliente
+             FROM tbl_clientes
+             WHERE identidad_cliente = ?`,
+            [identidad]
+        );
+
+        if (registros.length > 0) {
+            res.status(200).json({
+                success: true,
+                message: "CLIENTE ENCONTRADO",
+                data: registros
+            });
+
+        } else {
+            // El 404 está bien
+            res.status(404).json({
+                success: false,
+                message: "CLIENTE NO ENCONTRADO"
+            });
+        }
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+
+    } finally {
+        conn.release();
+    }
+};

@@ -5,13 +5,16 @@ import DetallesFactura from "./DetallesFactura";
 import { obtenerDetallesFactura } from "../../../AXIOS.SERVICES/factura-axios";
 
 const NuevaFactura = () => {
-  // Encabezado
-  const [RTN, setRTN] = useState("");
-  const [vendedor] = useState("");
-  const [sucursal] = useState("");
+  // ⭐ Estado del cliente controlado por el PADRE
   const [identidad, setIdentidad] = useState("");
+  const [nombreCliente, setNombreCliente] = useState("");
+  const [RTN, setRTN] = useState("");
 
-  //DETALLES DE FACTURA
+  // (Opcional) vendedor/sucursal desde sesión/usuario
+  const [vendedor] = useState("Vendedor Demo");
+  const [sucursal] = useState("Sucursal Central");
+
+  // DETALLES DE FACTURA
   const [items, setItems] = useState([
     {
       id: Date.now(),
@@ -21,10 +24,11 @@ const NuevaFactura = () => {
       cantidad: "1",
       precio: "0.00",
       ajuste: "0.00",
+      estilistas: [],
     },
   ]);
 
-  //TODOS LOS ITEMS DE ESE ARRAY
+  // CATÁLOGOS
   const [disponiblesItems, setDisponiblesItems] = useState({
     PRODUCTOS: [],
     SERVICIOS: [],
@@ -32,12 +36,19 @@ const NuevaFactura = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  //CATALOGOS DE ESOS ITEMS
+  // Estilistas de ejemplo
+  const [estilistas] = useState([
+    { id: 1, nombre: "María González" },
+    { id: 2, nombre: "Juan Pérez" },
+    { id: 3, nombre: "Ana Rodríguez" },
+  ]);
+
+  // Cargar catálogos por tipo
   const buscarItemTipo = async (tipo) => {
     setIsLoading(true);
     try {
       const response = await obtenerDetallesFactura(tipo);
-      if (response.success && response.data) {
+      if (response?.success && response?.data) {
         setDisponiblesItems((prev) => ({ ...prev, [tipo]: response.data }));
       }
     } finally {
@@ -51,9 +62,7 @@ const NuevaFactura = () => {
     buscarItemTipo("PROMOCIONES");
   }, []);
 
-
-
-  //CALCULOS MATEMATICOS DE LA FACTURA
+  // Cálculos
   const calculateLineTotal = (item) => {
     const cantidad = parseFloat(item.cantidad) || 0;
     const precio = parseFloat(item.precio) || 0;
@@ -61,14 +70,13 @@ const NuevaFactura = () => {
     return (cantidad * precio + ajuste).toFixed(2);
   };
 
-  //CALCULO TOTAL DE TODAS LAS LINEAS
   const calculateTotal = () => {
     return items
       .reduce((sum, it) => sum + parseFloat(calculateLineTotal(it)), 0)
       .toFixed(2);
   };
 
-  //FILAS
+  // Filas
   const addItem = () => {
     setItems((prev) => [
       ...prev,
@@ -80,6 +88,7 @@ const NuevaFactura = () => {
         cantidad: "1",
         precio: "0.00",
         ajuste: "0.00",
+        estilistas: [],
       },
     ]);
   };
@@ -94,8 +103,9 @@ const NuevaFactura = () => {
   };
 
   const handleItemTypeChange = (id, nuevoTipo) => {
-    if ((disponiblesItems[nuevoTipo] || []).length === 0)
+    if ((disponiblesItems[nuevoTipo] || []).length === 0) {
       buscarItemTipo(nuevoTipo);
+    }
     setItems((prev) =>
       prev.map((it) =>
         it.id === id
@@ -107,6 +117,7 @@ const NuevaFactura = () => {
               precio: "0.00",
               cantidad: "1",
               ajuste: "0.00",
+              estilistas: [],
             }
           : it
       )
@@ -133,18 +144,53 @@ const NuevaFactura = () => {
     );
   };
 
+  // Cancelar
+  const handleCancel = () => {
+    if (
+      window.confirm(
+        "¿Estás seguro de cancelar esta factura? Se perderán todos los datos."
+      )
+    ) {
+      // Reiniciar detalles
+      setItems([
+        {
+          id: Date.now(),
+          tipo: "PRODUCTOS",
+          item: "",
+          nombre: "",
+          cantidad: "1",
+          precio: "0.00",
+          ajuste: "0.00",
+          estilistas: [],
+        },
+      ]);
+
+      // Reiniciar encabezado
+      setIdentidad("");
+      setNombreCliente("");
+      setRTN("");
+    }
+  };
+
   return (
     <div className="space-y-6 p-4 max-w-5xl mx-auto bg-white shadow-xl rounded-lg">
       {/* ENCABEZADO */}
       <div className="border-dashed rounded-lg bg-blue-50">
         <EncabezadoFactura
+          identidad={identidad}
+          setIdentidad={setIdentidad}
+          nombreCliente={nombreCliente}
+          setNombreCliente={setNombreCliente}
           RTN={RTN}
           setRTN={setRTN}
+          vendedor={vendedor}
+          sucursal={sucursal}
+          // fecha/onFechaChange: opcionales; el hijo ya maneja su reloj interno
         />
       </div>
 
       {/* DETALLES */}
-      <div className="border-dashed border-green-300  rounded-lg bg-green-50">
+      <div className="border-dashed border-green-300 rounded-lg bg-green-50">
         <DetallesFactura
           items={items}
           addItem={addItem}
@@ -155,6 +201,8 @@ const NuevaFactura = () => {
           disponiblesItems={disponiblesItems}
           onItemTypeChange={handleItemTypeChange}
           onItemChange={handleItemChange}
+          estilistas={estilistas}
+          onCancel={handleCancel}
         />
         {isLoading && (
           <div className="mt-2 text-xs text-gray-500">Cargando catálogos…</div>

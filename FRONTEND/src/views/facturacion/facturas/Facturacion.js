@@ -3,6 +3,7 @@ import { FileText, Import, Plus } from 'lucide-react';
 
 // 1. IMPORTAR EL COMPONENTE NUEVAFactura
 import NuevaFactura from './NuevaFactura.js'
+import ListaFacturas from './ListaFacturas.js';
 
 
 export default function Facturacion () {
@@ -39,7 +40,7 @@ export default function Facturacion () {
                                 <Plus size={20} />
                                 Nueva Factura
 
-                                
+
                             </div>
                         </button>
 
@@ -69,9 +70,7 @@ export default function Facturacion () {
                 )}
 
                 {activeTab === 'facturas' && (
-                    <div className="p-8 bg-white rounded-lg shadow-md border border-gray-100">
-                        <p className="text-gray-500 text-center">Aquí iría la tabla o listado de facturas existentes.</p>
-                    </div>
+                    <><ListaFacturas /></>
                 )}
             </div>
         </div>

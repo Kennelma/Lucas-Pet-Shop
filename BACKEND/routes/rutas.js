@@ -50,9 +50,14 @@ router.put('/empresa/actualizar', verificarToken, empresa.actualizar);
 
 
 //========== RUTAS DE FACTURACIÓN ==========
-router.get ('/facturacion/seleccionarDetallesFactura', facturas.detallesFactura);
+router.get ('/facturacion/detallesFactura', facturas.detallesFactura);
+router.get ('/facturacion/buscarCliente', facturas.buscarPorIdentidad);
 
-router.get ('/facturacion/seleccionarEncabezadoFactura', facturas.encabezadoFactura);
+
+
+
+
+
 
 router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFactura)
 
