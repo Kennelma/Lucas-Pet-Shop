@@ -15,13 +15,13 @@ exports.crear = async (req, res) => {
 
         await conn.query(
         `INSERT INTO tbl_clientes (nombre_cliente, apellido_cliente, identidad_cliente, telefono_cliente, fecha_registro) VALUES (?, ?, ?, ?, ?)`,
-        [   
-           req.body.nombre_cliente,  
+        [
+           req.body.nombre_cliente,
            req.body.apellido_cliente,
            req.body.identidad_cliente,
            req.body.telefono_cliente,
            fechaRegistro
-        ]                
+        ]
         );
 
         await conn.commit();
@@ -102,9 +102,9 @@ exports.actualizar = async (req, res) => {
             Consulta: true,
             mensaje: 'Cliente actualizado con éxito',
             id_cliente
-            
+
         });
-        
+
     } catch (err) {
         await conn.rollback();
         res.status(500).json({
@@ -120,7 +120,7 @@ exports.actualizar = async (req, res) => {
 
 };
 
-//ENDPOINT PARA ELIMINAR CLIENTES 
+//ENDPOINT PARA ELIMINAR CLIENTES
 exports.eliminar = async (req, res) => {
 
     const conn = await mysqlConnection.getConnection();
@@ -151,3 +151,4 @@ exports.eliminar = async (req, res) => {
         conn.release();
     }
 };
+

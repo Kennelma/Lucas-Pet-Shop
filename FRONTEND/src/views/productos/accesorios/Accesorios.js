@@ -229,8 +229,8 @@ const Accesorios = () => {
         </div>
 
         {/* Tabla */}
-          <DataTable 
-            value={filtroAccesorios} 
+          <DataTable
+            value={filtroAccesorios}
             loading={loading}
             loadingIcon={() => (
               <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
@@ -251,9 +251,9 @@ const Accesorios = () => {
             selectionMode="single"
             rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
           >
-            <Column 
-              field="id_producto" 
-              header="ID" 
+            <Column
+              field="id_producto"
+              header="ID"
               body={(rowData) => filtroAccesorios.length - filtroAccesorios.indexOf(rowData)}
               sortable
               className="text-sm"
@@ -278,7 +278,7 @@ const Accesorios = () => {
               )}
               sortable
               className="text-sm text-center"
-              bodyClassName="text-center"     
+              bodyClassName="text-center"
             />
             <Column
               field="activo"
