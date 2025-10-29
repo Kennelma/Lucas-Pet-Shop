@@ -221,31 +221,6 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
           </div>
         </div>
 
-        {/* Estado Activo/Inactivo */}
-        <div className="mt-4 p-3 bg-gray-50 rounded border">
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="text-xs font-semibold">Estado del Producto</label>
-              <p className="text-xs text-gray-600 mt-1">
-                {data.activo ? "Producto visible en el inventario" : "Producto oculto del inventario"}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setData(prev => ({ ...prev, activo: !prev.activo }))}
-              className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
-                data.activo ? 'bg-green-500' : 'bg-gray-300'
-              }`}
-              disabled={loading}
-            >
-              <span
-                className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                  data.activo ? 'translate-x-7' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
-        </div>
       </div>
     </Dialog>
   );

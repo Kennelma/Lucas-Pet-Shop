@@ -63,6 +63,6 @@
     "recharts": "^3.3.0",
     "redux": "^5.0.1",
     "simplebar-react": "^3.3.2",
-    "sweetalert2": "^11.23.0"
+    "sweetalert2": "^11.26.3"
   }
 }
