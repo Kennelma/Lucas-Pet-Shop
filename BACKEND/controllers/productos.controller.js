@@ -86,7 +86,6 @@ exports.crear = async (req, res) => {
         let id_producto;
 
         if (req.body.tipo_producto !== 'LOTES') { 
-
             //OBTENGO EL ID DEL TIPO DE PRODUCTO (CATALOGO)
             const [tipoProducto] = await conn.query(
                 `SELECT id_tipo_producto_pk AS id_tipo
