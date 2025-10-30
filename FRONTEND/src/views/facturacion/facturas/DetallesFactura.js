@@ -183,17 +183,17 @@ const DetallesFactura = ({
           </button>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-hidden">
           <table className="w-full table-fixed">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 w-36">TIPO</th>
-                <th className="text-left py-3 px-6 text-sm font-medium text-gray-700 w-72">ITEM</th>
-                <th className="text-center py-3 px-4 text-sm font-medium text-gray-700 w-24">CANTIDAD</th>
-                <th className="text-right py-3 px-4 text-sm font-medium text-gray-700 w-28">PRECIO</th>
-                <th className="text-right py-3 px-4 text-sm font-medium text-gray-700 w-28">AJUSTE</th>
-                <th className="text-right py-3 px-4 text-sm font-medium text-gray-700 w-32">TOTAL LÍNEA</th>
-                <th className="py-3 px-4 w-12"></th>
+                <th className="text-left py-3 px-6 text-sm font-medium text-gray-700 w-36">TIPO</th>
+                <th className="text-left py-3 px-12 text-sm font-medium text-gray-700 w-90">ITEM</th>
+                <th className="text-center py-3 px-3 text-sm font-medium text-gray-700 w-16">CANT.</th>
+                <th className="text-right py-3 px-3 text-sm font-medium text-gray-700 w-25">PRECIO</th>
+                <th className="text-right py-3 px-3 text-sm font-medium text-gray-700 w-20">AJUSTE</th>
+                <th className="text-right py-3 px-3 text-sm font-medium text-gray-700 w-24">TOTAL</th>
+                <th className="py-3 px-2 w-12"></th>
               </tr>
             </thead>
 
@@ -214,8 +214,8 @@ const DetallesFactura = ({
                   <React.Fragment key={item.id}>
                     <tr className="border-b border-gray-100">
                       {/* Tipo */}
-                      <td className="py-3 px-4">
-                        <div className="w-36">
+                      <td className="py-3 px-6">
+                        <div className="w-44">
                           <Select
                             value={{ value: tipo, label: tipo }}
                             onChange={(selectedOption) => handleTipoChange(item.id, selectedOption.value)}
@@ -232,7 +232,7 @@ const DetallesFactura = ({
                       </td>
 
                       {/* COLUMNA SELECCIÓN DE ITEM CON BÚSQUEDA*/}
-                      <td className="py-3 px-6">
+                      <td className="py-3 px-15">
                         <Select
                           value={
                             currentItems
@@ -266,44 +266,44 @@ const DetallesFactura = ({
                       </td>
 
                       {/* Cantidad */}
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-3">
                         <input
                           type="number"
                           value={item.cantidad ?? 0}
                           onChange={(e) => updateItem(item.id, "cantidad", e.target.value)}
-                          className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-12 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                         />
                       </td>
 
                       {/* Precio */}
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-3">
                         <input
                           type="number"
                           step="0.01"
                           value={item.precio || "0.00"}
                           readOnly
-                          className="w-24 px-2 py-1 border border-gray-300 rounded bg-gray-100 text-gray-700 cursor-default focus:ring-0"
+                          className="w-full px-2 py-1 border border-gray-300 rounded bg-gray-100 text-gray-700 cursor-default focus:ring-0 text-sm"
                         />
                       </td>
 
                       {/* Ajuste */}
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-3">
                         <input
                           type="number"
                           step="0.01"
                           value={item.ajuste ?? 0}
                           onChange={(e) => updateItem(item.id, "ajuste", e.target.value)}
-                          className="w-24 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-16 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                         />
                       </td>
 
                       {/* Total línea */}
-                      <td className="py-3 px-4">
-                        <span className="font-medium text-gray-800">L {calculateLineTotal(item)}</span>
+                      <td className="py-3 px-3 text-right">
+                        <span className="font-medium text-gray-800 text-sm">L {calculateLineTotal(item)}</span>
                       </td>
 
                       {/* Eliminar */}
-                      <td className="py-3 px-4 w-12 text-center">
+                      <td className="py-3 px-2 w-10 text-center">
                         <button
                           onClick={() => removeItem(item.id)}
                           className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors inline-flex"
