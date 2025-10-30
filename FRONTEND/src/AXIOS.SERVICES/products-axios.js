@@ -17,6 +17,35 @@ export const verProductos = async (tipo_producto) => {
 };
 
 
+// ✅ NUEVA FUNCIÓN PARA FACTURACIÓN - TRAE TODOS LOS PRODUCTOS ACTIVOS
+export const verProductosDisponibles = async () => {
+  try {
+    // Traer todos los tipos de productos (los 4 tipos)
+    const [alimentos, accesorios, medicamentos, animales] = await Promise.all([
+      verProductos('ALIMENTOS'),
+      verProductos('ACCESORIOS'),
+      verProductos('MEDICAMENTOS'),
+      verProductos('ANIMALES')  // ⬅️ Agregar este
+    ]);
+    
+    // Combinar todos y filtrar solo los activos con stock
+    const todosProductos = [...alimentos, ...accesorios, ...medicamentos, ...animales]; // ⬅️ Agregar animales aquí también
+    
+    // Filtrar solo productos activos y con stock disponible
+    const productosDisponibles = todosProductos.filter(p => 
+      (p.activo === 1 || p.activo === "1") && 
+      parseInt(p.stock || 0) > 0
+    );
+    
+    return productosDisponibles;
+  } catch (err) {
+    console.error('Error al traer productos disponibles:', err);
+    return [];
+  }
+};
+
+
+
 //SERVICIO PARA INSERTAR PRODUCTO
 export const insertarProducto = async (datosProducto) => {
   try {
@@ -50,6 +79,21 @@ export const eliminarProducto = async (id_producto) => {
     return res.data;
   } catch (err) {
     console.error(`Error al eliminar producto:`, err);
+    return { Consulta: false, error: err.message };
+  }
+};
+
+//SERVICIO PARA CAMBIAR ESTADO DE PRODUCTO*/
+export const cambiarEstadoProducto = async (id_producto, nuevoEstado) => {
+  try {
+    const res = await axiosInstance.put(`${API_URL}/actualizar`, {
+      id_producto,
+      activo: nuevoEstado,
+      tipo_producto: 'MEDICAMENTOS'
+    });
+    return res.data;
+  } catch (err) {
+    console.error(`Error al cambiar estado del producto:`, err);
     return { Consulta: false, error: err.message };
   }
 };

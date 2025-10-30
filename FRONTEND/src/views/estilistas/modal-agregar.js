@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
+import { InputMask } from 'primereact/inputmask';
 import { Button } from 'primereact/button';
 import Swal from 'sweetalert2';
 import { insertarEstilista } from '../../AXIOS.SERVICES/employees-axios';
@@ -48,9 +49,9 @@ const ModalAgregarEstilista = ({ isOpen, onClose, onSave }) => {
     }
     
     if (!formData.identidad_estilista?.trim()) {
-      temp.identidad_estilista = 'La identidad es obligatoria';
-    } else if (!/^[0-9]{13}$/.test(formData.identidad_estilista)) {
-      temp.identidad_estilista = 'La identidad debe tener exactamente 13 dígitos';
+      temp.identidad_estilista = 'La identidad es requerida';
+    } else if (!/^[0-9]{4}-[0-9]{4}-[0-9]{5}$/.test(formData.identidad_estilista)) {
+      temp.identidad_estilista = 'La identidad debe tener el formato 0000-0000-00000';
     }
 
     setErrores(temp);
@@ -168,16 +169,21 @@ const ModalAgregarEstilista = ({ isOpen, onClose, onSave }) => {
 
         {/* Identidad */}
         <span>
-          <label htmlFor="identidad" className="text-xs font-semibold text-gray-700 mb-1">NÚMERO DE IDENTIDAD</label>
-          <InputText
-            id="identidad"
-            name="identidad"
+          <label htmlFor="identidad_estilista" className="text-xs font-semibold text-gray-700 mb-1">IDENTIDAD</label>
+          <InputMask
+            id="identidad_estilista"
+            name="identidad_estilista"
             value={formData.identidad_estilista}
-            onChange={(e) => handleChange('identidad_estilista', e.target.value)}
+            onChange={(e) => {
+              setFormData({ ...formData, identidad_estilista: e.value });
+              if (e.value && e.value.trim() !== "") {
+                setErrores({ ...errores, identidad_estilista: false });
+              }
+            }}
+            mask="9999-9999-99999"
+            placeholder="0000-0000-00000"
             className="w-full rounded-xl h-9 text-sm"
-            placeholder="0000000000000"
-            maxLength={13}
-            keyfilter="int"
+            autoComplete="off"
           />
           {errores.identidad_estilista && <p className="text-xs text-red-600 mt-1">{errores.identidad_estilista}</p>}
         </span>

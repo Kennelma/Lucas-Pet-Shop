@@ -16,6 +16,7 @@ const Facturacion = React.lazy(() => import('./views/facturacion/facturas/Factur
 
 const Estilistas = React.lazy(() => import('./views/estilistas/Estilistas'))
 const Reportes = React.lazy(() => import('./views/reportes/Reportes'))
+
 const routes = [
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/clientes', name: 'Clientes', element: Clientes },
@@ -27,7 +28,7 @@ const routes = [
   { path: '/peluqueria_canina/servicios', name: 'Peluquería Canina / Servicios', element: Servicios },
   { path: '/recordatorios', name: 'Recordatorios', element: Recordatorios },
   { path: '/empresa', name: 'Empresa y Sucursales', element: Empresa },
-  { path: '/facturacion', name: 'Facturación', element: Facturacion },
+  { path: '/facturacion', name: 'InvoiceModule', element: Facturacion },
   {path: '/estilistas', name: 'Estilistas', element: Estilistas },
   {path: '/reportes', name: 'Reportes', element: Reportes },
 ]
