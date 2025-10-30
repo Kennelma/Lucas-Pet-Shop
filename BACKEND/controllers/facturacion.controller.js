@@ -350,7 +350,7 @@ exports.detallesFactura = async (req, res) => {
 
 
 // ENDPOINT BUSCAR CLIENTE POR IDENTIDAD PARA FACTURA
-exports.buscarPorIdentidad = async (req, res) => {
+exports.buscarClientesPorIdentidad = async (req, res) => {
 
     const { identidad } = req.query;
 
@@ -444,3 +444,48 @@ exports.usuarioFactura = async (req, res) => {
         conn.release();
     }
 };
+
+
+//BUSCAR ESTILISTAS
+exports.buscarEstilistas = async (req, res) => {
+
+    const conn = await mysqlConnection.getConnection();
+
+    try {
+
+         //BUSCAR EsTILISTAS ACTIVOS
+        const [registros] = await conn.query(
+            `SELECT
+                id_estilista_pk,
+                nombre_estilista,
+                apellido_estilista
+             FROM tbl_estilistas_caninos`,
+        );
+
+        if (registros.length > 0) {
+            res.status(200).json({
+                success: true,
+                message: "ESTILISTAS ENCONTRADOS",
+                data: registros
+            });
+
+        } else {
+
+            res.status(404).json({
+                success: false,
+                message: "ESTILISTAS NO ENCONTRADOS"
+            });
+        }
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+
+    } finally {
+        conn.release();
+    }
+
+}

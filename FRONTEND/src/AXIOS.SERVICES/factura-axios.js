@@ -71,3 +71,18 @@ export const obtenerUsuarioFactura = async () => {
     };
   }
 };
+
+
+//SERVICIO PARA OBTENER ESTILSTAS
+export const obtenerEstilistasFactura = async () => {
+  try {
+    const { data } = await axiosInstance.get(`${API_URL}/estilistasFacturacion`);
+    return data;
+  } catch (error) {
+    console.error("Error al obtener estilistas:", error);
+    return {
+      success: false,
+      mensaje: error?.response?.data?.mensaje || "Error al obtener datos de los estilistas",
+    };
+  }
+};

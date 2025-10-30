@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import EncabezadoFactura from "./EncabezadoFactura";
 import DetallesFactura from "./DetallesFactura";
-import { obtenerDetallesFactura, obtenerUsuarioFactura } from "../../../AXIOS.SERVICES/factura-axios";
+import { obtenerDetallesFactura, obtenerUsuarioFactura, obtenerEstilistasFactura } from "../../../AXIOS.SERVICES/factura-axios";
 
 const NuevaFactura = () => {
   //====================ESTADOS_DEL_CLIENTE====================
@@ -37,11 +37,7 @@ const NuevaFactura = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   //====================ESTADOS_ESTILISTAS====================
-  const [estilistas] = useState([
-    { id: 1, nombre: "María González" },
-    { id: 2, nombre: "Juan Pérez" },
-    { id: 3, nombre: "Ana Rodríguez" },
-  ]);
+  const [estilistas, setEstilistas] = useState([]);
 
   //====================FUNCIONES_AUXILIARES====================
 
@@ -55,6 +51,18 @@ const NuevaFactura = () => {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  //CARGA LOS ESTILISTAS DISPONIBLES
+  const cargarEstilistas = async () => {
+    try {
+      const response = await obtenerEstilistasFactura();
+      if (response?.success && response?.data) {
+        setEstilistas(response.data);
+      }
+    } catch (error) {
+      console.error("Error al cargar estilistas:", error);
     }
   };
 
@@ -177,7 +185,7 @@ const NuevaFactura = () => {
 
   //====================EFFECTS====================
 
-  //CARGA DATOS DEL USUARIO SUCURSAL Y CATÁLOGOS AL MONTAR EL COMPONENTE
+  //CARGA DATOS DEL USUARIO SUCURSAL ESTILISTAS Y CATÁLOGOS AL MONTAR EL COMPONENTE
   useEffect(() => {
     const cargarDatosIniciales = async () => {
 
@@ -188,6 +196,16 @@ const NuevaFactura = () => {
       if (responseUsuario?.success && responseUsuario?.data) {
         setVendedor(responseUsuario.data.usuario);
         setSucursal(responseUsuario.data.nombre_sucursal);
+      }
+
+      //CARGAR ESTILISTAS
+      console.log("🔍 Cargando estilistas...");
+      const responseEstilistas = await obtenerEstilistasFactura();
+      console.log("📦 Respuesta estilistas:", responseEstilistas);
+
+      if (responseEstilistas?.success && responseEstilistas?.data) {
+        console.log("✅ Estilistas cargados:", responseEstilistas.data);
+        setEstilistas(responseEstilistas.data);
       }
 
       //CARGAR CATÁLOGOS DE PRODUCTOS SERVICIOS Y PROMOCIONES
