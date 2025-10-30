@@ -57,7 +57,7 @@ const Animales = () => {
     setLoading(true);
     try {
       const productos = await verProductos("ANIMALES");
-      
+
       const normalizados = (productos || []).map((item) => ({
         id_producto: item.id_producto_pk,
         nombre: item.nombre_producto,
@@ -143,7 +143,7 @@ const Animales = () => {
 
   const actualizarEstadoAnimal = async (animal, nuevoEstado) => {
     try {
-      
+
       const payload = {
         id_producto: animal.id_producto,
         tipo_producto: "ANIMALES",
@@ -256,11 +256,11 @@ const Animales = () => {
           selectionMode="single"
           rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
         >
-          <Column 
-            field="id_producto" 
-            header="ID" 
+          <Column
+            field="id_producto"
+            header="ID"
             body={(rowData) => filtroAnimales.length - filtroAnimales.indexOf(rowData)}
-            sortable 
+            sortable
             className="text-sm"
           />
           <Column field="nombre" header="NOMBRE" sortable className="text-sm" />

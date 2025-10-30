@@ -191,7 +191,7 @@ const Alimentos = () => {
           </h2>
         </div>
         <p className="text-center text-gray-600 italic">Administra alimentos balanceados, snacks y nutrición para mascotas</p>
-        
+
       </div>
 
       {/* Componente de Alimentos Más Vendidos */}
@@ -248,11 +248,11 @@ const Alimentos = () => {
           selectionMode="single"
           rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
         >
-          <Column 
-            field="id_producto" 
-            header="ID" 
+          <Column
+            field="id_producto"
+            header="ID"
             body={(rowData) => filtroAlimentos.length - filtroAlimentos.indexOf(rowData)}
-            sortable 
+            sortable
             className="text-sm"
           />
           <Column field="nombre" header="NOMBRE" sortable className="text-sm" />

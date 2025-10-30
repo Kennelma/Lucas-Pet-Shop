@@ -144,13 +144,7 @@ const Login = () => {
                   type="button" 
                   onClick={togglePasswordVisibility}
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-blue-600 focus:outline-none transition-colors duration-200"
-                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                >
-                  {showPassword ? (
-                    <AiOutlineEye size={20} />
-                  ) : (
-                    <AiOutlineEyeInvisible size={20} />
-                  )}
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
                 </button>
               </div>
             </div>
@@ -184,7 +178,7 @@ const Login = () => {
           </form>
         </div>
 
-        {/* IMAGE RIGHT SIDE */}
+        {/*LOGO DE LA EMPRESA*/}
         <div className="w-1/2 flex items-center justify-center bg-gray-50 relative overflow-hidden">
           <div className="absolute inset-0 bg-white/20"></div>
           <img

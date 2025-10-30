@@ -165,8 +165,8 @@ const actionBotones = (rowData) => {
           globalFilterFields={['nombre_producto', 'sku', 'presentacion_medicamento', 'tipo_medicamento']}
           showGridlines
           paginator
-          rows={8}
-          rowsPerPageOptions={[4, 8, 12, 16]}
+          rows={5}
+          rowsPerPageOptions={[5, 10, 15, 20]}
           paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
           tableStyle={{ minWidth: '50rem' }}
           className="mt-4"
