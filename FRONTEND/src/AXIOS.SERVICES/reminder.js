@@ -35,11 +35,10 @@ export const insertarRecordatorio = async (datosRecordatorio) => {
       headers: getHeaders(),
     });
     
-    // 🔹 Asegurar que devolvemos el ID del recordatorio creado
     return {
       Consulta: res.data.Consulta,
       mensaje: res.data.mensaje,
-      id_recordatorio: res.data.id_recordatorio // ✅ Importante para el envío automático
+      id_recordatorio: res.data.id_recordatorio
     };
   } catch (err) {
     console.error("Error al insertar recordatorio:", err);
@@ -61,34 +60,19 @@ export const actualizarRecordatorio = async (datosRecordatorio) => {
     return { Consulta: false, error: err.message };
   }
 };
+
 ////////////////////////////////////////////////////
-////////   PARA OBTENER QR //////////////////
-// 🔹 NUEVO servicio para obtener QR
-
-export const obtenerQRWhatsApp = async () => {
-  try {
-    const res = await axios.get(`${WHATSAPP_URL}/qr`, {
-      headers: getHeaders(),
-    });
-    return res.data;
-  } catch (err) {
-    console.error("Error al obtener QR de WhatsApp:", err);
-    return { success: false, error: err.message };
-  }
-};
-
-///////////////////////////////////////////
-// 🔹 NUEVO servicio para obtener QR en Base64
-/////////////////////////////////////////////////////
-export const obtenerQRBase64 = async () => {
+////////   SERVICIO PARA OBTENER QR ////////////////
+////////////////////////////////////////////////////
+export const obtenerQR = async () => {
   try {
     const res = await axios.get(`${WHATSAPP_URL}/qr-base64`, {
       headers: getHeaders(),
     });
     return res.data;
   } catch (err) {
-    console.error("Error al obtener QR Base64:", err);
-    return { success: false, error: err.message };
+    console.error("Error al obtener QR:", err);
+    return { Consulta: false, error: err.message };
   }
 };
 
@@ -132,7 +116,6 @@ export const verCatalogo = async (tipo_catalogo) => {
 // ───────────────────────────────────────────────
 // SERVICIOS DE WHATSAPP
 // ───────────────────────────────────────────────
-
 export const verificarEstadoWhatsApp = async () => {
   try {
     const res = await axios.get(`${WHATSAPP_URL}/status`, {
@@ -181,7 +164,10 @@ export const enviarRecordatorioMasivo = async (id_recordatorio, mensaje) => {
     console.error("Error al enviar recordatorio masivo:", err);
     return { Consulta: false, error: err.message };
   }
+};
 
-
-  
+// 🔹 TEMPORAL: Para evitar error de Facturacion.js
+export const obtenerQRWhatsApp = async () => {
+  console.warn('⚠️ obtenerQRWhatsApp está obsoleto. Usa obtenerQR en su lugar.');
+  return await obtenerQR();
 };

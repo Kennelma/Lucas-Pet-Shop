@@ -78,17 +78,17 @@ const ModalActualizar = ({
     if (!validarCampos()) return;
 
     setLoading(true);
+const datosEnviar = {
+  id_recordatorio_pk: formData.id_recordatorio_pk, // 👈 mismo nombre que en la DB
+  mensaje_recordatorio: formData.mensaje_recordatorio.trim(),
+  ultimo_envio: null,
+  proximo_envio: null, // 👈 también existe en la tabla
+  intentos: 0, // 👈 default 0
+  id_estado_programacion_fk: null,
+  id_tipo_item_fk: parseInt(formData.id_tipo_item_fk),
+  id_frecuencia_fk: parseInt(formData.id_frecuencia_fk)
+};
 
-    const datosEnviar = {
-      id_recordatorio: formData.id_recordatorio_pk,
-      mensaje_recordatorio: formData.mensaje_recordatorio.trim(),
-      ultimo_envio: null,
-      intentos: null,
-      ultimo_error: null,
-      id_estado_programacion_fk: null,
-      id_tipo_item_fk: parseInt(formData.id_tipo_item_fk),
-      id_frecuencia_fk: parseInt(formData.id_frecuencia_fk)
-    };
 
     console.log("📤 Payload enviado:", datosEnviar);
 

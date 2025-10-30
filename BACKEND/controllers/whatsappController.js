@@ -1,12 +1,14 @@
 const whatsappService = require('../services/whatsappService');
 const mysqlConnection = require('../config/conexion');
 
-// 🔹 Variable global para almacenar QR
+// 🔹 Variables globales para QR
 let currentQR = null;
+let currentQRBase64 = null;
 
-// 🔹 Registrar listener para QR
-whatsappService.onQRGenerated((qr) => {
+// 🔹 Registrar listener para QR (recibe ambos parámetros del service)
+whatsappService.onQRGenerated(async (qr, qrBase64) => {
     currentQR = qr;
+    currentQRBase64 = qrBase64;
     console.log('🔄 QR almacenado para frontend');
 });
 
@@ -17,7 +19,8 @@ exports.getStatus = async (req, res) => {
             Consulta: true,
             connected: status.connected,
             qrCode: currentQR,
-            needsQR: status.needsQR
+            qrBase64: currentQRBase64,
+            status: status.status
         });
     } catch (error) {
         res.status(500).json({
@@ -31,6 +34,7 @@ exports.connect = async (req, res) => {
     try {
         // Limpiar QR anterior
         currentQR = null;
+        currentQRBase64 = null;
         
         console.log('🔄 Solicitando conexión WhatsApp...');
         await whatsappService.connect();
@@ -38,7 +42,8 @@ exports.connect = async (req, res) => {
         res.json({
             Consulta: true,
             mensaje: 'Conectando WhatsApp...',
-            qrCode: currentQR
+            qrCode: currentQR,
+            qrBase64: currentQRBase64
         });
     } catch (error) {
         console.error('❌ Error en connect:', error);
@@ -53,6 +58,7 @@ exports.disconnect = async (req, res) => {
     try {
         await whatsappService.disconnect();
         currentQR = null;
+        currentQRBase64 = null;
         res.json({
             Consulta: true,
             mensaje: 'WhatsApp desconectado'
@@ -65,7 +71,7 @@ exports.disconnect = async (req, res) => {
     }
 };
 
-// 🔹 Endpoint simple para obtener QR
+// 🔹 Endpoint para obtener QR (string)
 exports.getQR = async (req, res) => {
     try {
         const status = whatsappService.getStatus();
@@ -91,12 +97,51 @@ exports.getQR = async (req, res) => {
         res.json({
             Consulta: false,
             qrCode: null,
-            message: 'No hay QR disponible',
+            message: 'No hay QR disponible. Intenta conectar primero.',
             isConnected: false
         });
         
     } catch (error) {
         console.error('❌ Error en getQR:', error);
+        res.status(500).json({
+            Consulta: false,
+            error: error.message
+        });
+    }
+};
+
+// 🔹 Endpoint para obtener QR en Base64
+exports.getQRBase64 = async (req, res) => {
+    try {
+        const status = whatsappService.getStatus();
+        
+        if (currentQRBase64) {
+            return res.json({
+                Consulta: true,
+                qrBase64: currentQRBase64,
+                message: 'QR Base64 disponible',
+                isConnected: status.connected
+            });
+        }
+
+        if (status.connected) {
+            return res.json({
+                Consulta: true,
+                qrBase64: null,
+                message: 'WhatsApp ya está conectado',
+                isConnected: true
+            });
+        }
+        
+        res.json({
+            Consulta: false,
+            qrBase64: null,
+            message: 'No hay QR disponible. Intenta conectar primero.',
+            isConnected: false
+        });
+        
+    } catch (error) {
+        console.error('❌ Error en getQRBase64:', error);
         res.status(500).json({
             Consulta: false,
             error: error.message
@@ -182,12 +227,13 @@ exports.enviarRecordatorioMasivo = async (req, res) => {
     } catch (error) {
         console.error('Error en envío masivo:', error);
         
-        if (id_recordatorio) {
+        // Asegurar que id_recordatorio está definido en este scope
+        if (req.body.id_recordatorio) {
             await conn.query(
                 `UPDATE tbl_recordatorios 
                  SET id_estado_programacion_fk = 4
                  WHERE id_recordatorio_pk = ?`,
-                [id_recordatorio]
+                [req.body.id_recordatorio]
             );
         }
 
@@ -198,10 +244,4 @@ exports.enviarRecordatorioMasivo = async (req, res) => {
     } finally {
         conn.release();
     }
-};
-
-// 🔹 Función básica para procesar recordatorios
-exports.procesarRecordatoriosProgramados = async () => {
-    console.log('⏰ Verificando recordatorios programados...');
-    return { success: true, message: 'Función de procesamiento llamada' };
 };

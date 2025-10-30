@@ -8,28 +8,39 @@ const { Boom } = require('@hapi/boom');
 const pino = require('pino');
 const fs = require('fs');
 const path = require('path');
-const QRCode = require('qrcode');
+const QRCode = require('qrcode'); // ✅ IMPORTANTE: Agregar esto
 
 class WhatsAppService {
     constructor() {
         this.sock = null;
         this.qrCode = null;
-        this.qrCodeBase64 = null;
+        this.qrBase64 = null;
         this.isConnected = false;
         this.authFolder = path.join(__dirname, '../whatsapp_auth');
         this.qrListeners = [];
         this.connectionPromise = null;
+        this.connectionStatus = 'disconnected';
     }
 
     onQRGenerated(callback) {
         this.qrListeners.push(callback);
     }
 
-    notifyQR(qr) {
+    async notifyQR(qr) {
         console.log('📱 Notificando QR a listeners:', this.qrListeners.length);
+        
+        // ✅ GENERAR QR BASE64 INMEDIATAMENTE
+        try {
+            this.qrBase64 = await QRCode.toDataURL(qr);
+            console.log('✅ QR Base64 generado correctamente');
+        } catch (error) {
+            console.error('❌ Error generando QR Base64:', error);
+            this.qrBase64 = null;
+        }
+
         this.qrListeners.forEach(callback => {
             try {
-                callback(qr);
+                callback(qr, this.qrBase64); // ✅ Enviar ambos
             } catch (error) {
                 console.error('Error en QR listener:', error);
             }
@@ -37,11 +48,11 @@ class WhatsAppService {
     }
 
     async connect() {
-        // 🔹 Evitar múltiples conexiones simultáneas
         if (this.connectionPromise) {
             return this.connectionPromise;
         }
 
+        this.connectionStatus = 'connecting';
         this.connectionPromise = (async () => {
             try {
                 if (!fs.existsSync(this.authFolder)) {
@@ -56,7 +67,7 @@ class WhatsAppService {
                 this.sock = makeWASocket({
                     version,
                     logger: pino({ level: 'silent' }),
-                    printQRInTerminal: false, // ❌ NO mostrar en terminal automático
+                    printQRInTerminal: false, // ✅ DESACTIVAR - ya no funciona
                     auth: state,
                     browser: ['Sistema Recordatorios', 'Chrome', '1.0.0'],
                     markOnlineOnConnect: false,
@@ -66,73 +77,73 @@ class WhatsAppService {
 
                 this.sock.ev.on('creds.update', saveCreds);
 
-                // 🔹 MANEJADOR DE CONEXIÓN MEJORADO CON QR TERMINAL
+                // 🔹 MANEJADOR DE CONEXIÓN MEJORADO
                 this.sock.ev.on('connection.update', async (update) => {
                     const { connection, lastDisconnect, qr } = update;
                     
-                    console.log('🔄 Estado conexión:', connection, qr ? 'QR disponible' : '');
+                    console.log('🔄 Estado conexión:', connection);
 
-                    // 📱 Manejo de QR Code con visualización en terminal
+                    // 📱 GENERAR QR - MANUALMENTE
                     if (qr) {
-                        console.log('📱 QR Code generado, almacenando...');
+                        console.log('📱 QR Code generado, notificando listeners...');
                         this.qrCode = qr;
                         
-                        // ✅ MOSTRAR QR EN TERMINAL SIEMPRE (para debug)
+                        // ✅ MOSTRAR QR EN TERMINAL MANUALMENTE
                         try {
-                            const QRCode = require('qrcode-terminal');
                             console.log('\n\n📱 ====== QR CODE WHATSAPP ======');
-                            QRCode.generate(qr, { small: true });
+                            console.log('📱 Escanea este código con tu teléfono:');
                             console.log('📱 ===============================\n\n');
+                            
+                            // Generar QR en terminal
+                            const qrTerminal = await import('qrcode-terminal');
+                            qrTerminal.generate(qr, { small: true });
                         } catch (error) {
                             console.log('📱 QR generado (no se pudo mostrar en terminal)');
                         }
                         
-                        // ✅ Notificar QR inmediatamente a listeners
-                        this.notifyQR(qr);
+                        await this.notifyQR(qr);
                     }
 
-                    // ❌ Manejo de desconexión
+                    if (connection === 'open') {
+                        this.isConnected = true;
+                        this.connectionStatus = 'connected';
+                        this.qrCode = null;
+                        this.qrBase64 = null;
+                        this.connectionPromise = null;
+                        console.log('✅ WhatsApp conectado exitosamente');
+                    }
+
                     if (connection === 'close') {
+                        this.isConnected = false;
+                        this.connectionStatus = 'disconnected';
+                        this.qrCode = null;
+                        this.qrBase64 = null;
+                        this.connectionPromise = null;
+                        
                         const statusCode = (lastDisconnect?.error instanceof Boom) 
                             ? lastDisconnect.error.output.statusCode 
                             : null;
                         
-                        const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+                        console.log('❌ Conexión cerrada. StatusCode:', statusCode);
                         
-                        console.log('❌ Conexión cerrada. StatusCode:', statusCode, 'Reconectar:', shouldReconnect);
-                        
-                        if (shouldReconnect) {
+                        if (statusCode !== DisconnectReason.loggedOut && statusCode !== 408) {
                             console.log('🔄 Intentando reconexión en 5 segundos...');
-                            this.connectionPromise = null; // Limpiar promesa antes de reconectar
-                            
-                            setTimeout(async () => {
-                                try {
-                                    await this.connect();
-                                } catch (error) {
-                                    console.error('❌ Error en reconexión:', error);
-                                }
+                            setTimeout(() => {
+                                this.connect().catch(console.error);
                             }, 5000);
-                        } else {
-                            // Usuario cerró sesión manualmente
-                            this.isConnected = false;
-                            this.qrCode = null;
-                            this.connectionPromise = null;
-                            console.log('⚠️ Sesión cerrada manualmente. Vuelve a escanear el QR.');
+                        } else if (statusCode === 408) {
+                            console.log('⏰ Timeout de conexión. Reiniciando...');
+                            setTimeout(() => {
+                                this.connect().catch(console.error);
+                            }, 3000);
                         }
-                    }
-
-                    // ✅ Manejo de conexión exitosa
-                    if (connection === 'open') {
-                        this.isConnected = true;
-                        this.qrCode = null;
-                        this.connectionPromise = null;
-                        console.log('✅ WhatsApp conectado exitosamente');
                     }
                 });
 
                 return true;
             } catch (error) {
                 this.connectionPromise = null;
+                this.connectionStatus = 'disconnected';
                 console.error('❌ Error conectando WhatsApp:', error);
                 throw error;
             }
@@ -226,22 +237,20 @@ class WhatsAppService {
         if (this.sock) {
             await this.sock.logout();
             this.isConnected = false;
+            this.connectionStatus = 'disconnected';
             this.qrCode = null;
+            this.qrBase64 = null;
             this.connectionPromise = null;
             console.log('🔴 WhatsApp desconectado');
         }
     }
 
-    // 🔹 Método para verificar estado de conexión
-    async checkConnection() {
-        return this.isConnected && this.sock !== null;
-    }
-
     getStatus() {
         return {
             connected: this.isConnected,
+            status: this.connectionStatus,
             qrCode: this.qrCode,
-            needsQR: !this.isConnected && !fs.existsSync(path.join(this.authFolder, 'creds.json'))
+            qrBase64: this.qrBase64
         };
     }
 
@@ -251,5 +260,4 @@ class WhatsAppService {
 }
 
 const whatsappService = new WhatsAppService();
-
 module.exports = whatsappService;

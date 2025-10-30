@@ -9,7 +9,8 @@ import {
   verificarEstadoWhatsApp,
   conectarWhatsApp,
   enviarRecordatorioMasivo,
-  obtenerQRWhatsApp
+  
+  obtenerQR
 } from '../../AXIOS.SERVICES/reminder';
 import TablaRecordatorios from './tabla-recordatorios';
 import ModalAgregar, { BotonAgregar } from './modal-agregar';
@@ -25,7 +26,7 @@ const Recordatorios = () => {
   const [qrCode, setQrCode] = useState('');
   const [showQRModal, setShowQRModal] = useState(false);
   const [checkingConnection, setCheckingConnection] = useState(false);
-  const [serverOnline, setServerOnline] = useState(true); // 🔹 NUEVO ESTADO
+  const [serverOnline, setServerOnline] = useState(true);
   
   const INITIAL_FORM_DATA = {
     id_recordatorio_pk: null, 
@@ -79,7 +80,7 @@ const Recordatorios = () => {
   // 🔹 Esperar conexión exitosa
   const esperarConexionWhatsApp = async () => {
     let intentos = 0;
-    const maxIntentos = 120; // 2 minutos
+    const maxIntentos = 60; // 1 minuto
     
     const checkConnection = setInterval(async () => {
       try {
@@ -118,7 +119,7 @@ const Recordatorios = () => {
     }, 1000);
   };
 
-  // 🔹 FUNCIÓN MEJORADA PARA CONECTAR WHATSAPP CON REINTENTOS
+  // 🔹 FUNCIÓN CORREGIDA PARA CONECTAR WHATSAPP
   const handleConectarWhatsApp = async () => {
     if (!serverOnline) {
       Swal.fire('Servidor offline', 'El servidor backend no está disponible', 'error');
@@ -130,86 +131,87 @@ const Recordatorios = () => {
       
       Swal.fire({
         title: 'Iniciando WhatsApp...',
-        text: 'Esto puede tomar unos segundos',
+        text: 'Preparando conexión...',
         allowOutsideClick: false,
         didOpen: () => {
           Swal.showLoading();
         }
       });
 
-      // 1. Iniciar conexión
+      // 1. Primero verificar el estado actual
+      const estadoActual = await verificarEstadoWhatsApp();
+      console.log('📱 Estado actual de WhatsApp:', estadoActual);
+
+      // 2. Iniciar conexión
       await conectarWhatsApp();
       
-      // 2. Esperar un poco y luego intentar obtener QR
-      setTimeout(async () => {
+      // 3. Esperar 3 segundos para que el backend genere el QR
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // 4. Intentar obtener el QR con múltiples intentos
+      let qrObtenido = false;
+      let intentosQR = 0;
+      const maxIntentosQR = 8;
+
+      while (!qrObtenido && intentosQR < maxIntentosQR) {
         try {
-          const qrRes = await obtenerQRWhatsApp();
+          console.log(`🔄 Intentando obtener QR (intento ${intentosQR + 1})...`);
+          const qrRes = await obtenerQR();
           console.log('🔍 Respuesta QR del backend:', qrRes);
           
-          if (qrRes.Consulta && qrRes.qrCode) {
-            setQrCode(qrRes.qrCode);
+          if (qrRes.Consulta && qrRes.qrBase64) {
+            setQrCode(qrRes.qrBase64);
             setShowQRModal(true);
             Swal.close();
             console.log('✅ QR mostrado en modal');
+            qrObtenido = true;
             
-            // Esperar conexión exitosa
+            // Iniciar espera de conexión
             await esperarConexionWhatsApp();
+            break;
           } else {
-            // Si no hay QR, intentar una vez más
-            setTimeout(async () => {
-              try {
-                const qrRes2 = await obtenerQRWhatsApp();
-                if (qrRes2.Consulta && qrRes2.qrCode) {
-                  setQrCode(qrRes2.qrCode);
-                  setShowQRModal(true);
-                  Swal.close();
-                  
-                  // Esperar conexión exitosa
-                  await esperarConexionWhatsApp();
-                } else {
-                  throw new Error(qrRes2.message || 'No se pudo generar el QR');
-                }
-              } catch (error2) {
-                throw error2;
-              }
-            }, 3000);
+            console.log('⏳ QR no disponible aún, reintentando...');
           }
         } catch (error) {
-          console.error('❌ Error obteniendo QR:', error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error al obtener QR',
-            html: `
-              <div class="text-left">
-                <p><strong>No se pudo generar el código QR</strong></p>
-                <p class="text-sm text-gray-600 mt-2">
-                  Error: ${error.message}
-                </p>
-                <p class="text-sm text-gray-600 mt-1">
-                  Revisa la consola del servidor para más detalles.
-                </p>
-              </div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Reintentar',
-            cancelButtonText: 'Cancelar'
-          }).then((result) => {
-            if (result.isConfirmed) {
-              handleConectarWhatsApp(); // Reintentar
-            } else {
-              setCheckingConnection(false);
-            }
-          });
+          console.warn(`⚠️ Error en intento ${intentosQR + 1}:`, error.message);
         }
-      }, 3000);
+        
+        intentosQR++;
+        // Esperar 1 segundo entre intentos
+        if (!qrObtenido) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+
+      if (!qrObtenido) {
+        throw new Error('No se pudo obtener el QR después de varios intentos. Verifica la consola del servidor.');
+      }
 
     } catch (error) {
       setCheckingConnection(false);
       console.error('❌ Error en conexión WhatsApp:', error);
+      
       Swal.fire({
         icon: 'error',
         title: 'Error de conexión',
-        text: 'No se pudo iniciar la conexión con WhatsApp: ' + error.message
+        html: `
+          <div class="text-left">
+            <p><strong>No se pudo conectar WhatsApp</strong></p>
+            <p class="text-sm text-gray-600 mt-2">
+              Error: ${error.message}
+            </p>
+            <p class="text-sm text-gray-600 mt-1">
+              Revisa que el servidor esté funcionando correctamente.
+            </p>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Reintentar',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          handleConectarWhatsApp();
+        }
       });
     }
   };
@@ -234,7 +236,6 @@ const Recordatorios = () => {
       setEstadosProgramacion(resEstados?.servicios || []);
     } catch (err) {
       console.error('Error cargando datos:', err);
-      // No mostrar error si es por servidor offline
       if (!err.message.includes('Network Error')) {
         Swal.fire('Error', 'No se pudieron cargar los datos', 'error');
       }
@@ -305,18 +306,15 @@ const Recordatorios = () => {
       if (result.isConfirmed) {
         await handleConectarWhatsApp();
         if (!whatsappConnected) {
-          // Si no conectó, solo guardar sin enviar
           await guardarSoloRecordatorio();
           return;
         }
       } else {
-        // Usuario eligió solo guardar
         await guardarSoloRecordatorio();
         return;
       }
     }
 
-    // Si WhatsApp está conectado, guardar y enviar
     await guardarYEnviarRecordatorio();
   };
 
@@ -438,7 +436,7 @@ const Recordatorios = () => {
     }
   };
 
-  // 🔹 MODAL QR MEJORADO
+  // 🔹 MODAL QR
   const QRModal = () => (
     <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${showQRModal ? 'block' : 'hidden'}`}>
       <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
@@ -451,9 +449,9 @@ const Recordatorios = () => {
             </p>
             <div className="flex justify-center mb-4 p-4 bg-white rounded-lg border">
               <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrCode}`} 
+                src={qrCode}
                 alt="QR Code WhatsApp" 
-                className="border rounded"
+                className="border rounded w-48 h-48 mx-auto"
               />
             </div>
             <p className="text-xs text-gray-500 mb-3 text-center">
