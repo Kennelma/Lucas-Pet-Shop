@@ -45,23 +45,29 @@ export const obtenerDetallesFactura = async (tipo_item) => {
 };
 
 export const buscarCliente = async (identidad) => {
-  if (!identidad) return [];
   try {
     const { data } = await axiosInstance.get(`${API_URL}/buscarCliente`, {
       params: { identidad },
     });
+    return data;
+  } catch (error) {
+    if (error.response?.status === 404) return [];
+    console.error("Error al buscar cliente:", error);
+    throw error;
+  }
+};
 
-    const registros = Array.isArray(data?.data) ? data.data : [];
-    return registros.map((r) => ({
-      id: r.id_cliente_pk,
-      identidad: r.identidad_cliente,
-      nombre: r.nombre_cliente,
-      apellido: r.apellido_cliente,
-    }));
-  } catch (err) {
-    if (err.response?.status === 404) {
-      return [];
-    }
-    throw err;
+
+//SERVICIO PARA OBTENER USUARIO Y SUCURSAL
+export const obtenerUsuarioFactura = async () => {
+  try {
+    const { data } = await axiosInstance.get(`${API_URL}/usuarioFacturacion`);
+    return data;
+  } catch (error) {
+    console.error("Error al obtener usuario:", error);
+    return {
+      success: false,
+      mensaje: error?.response?.data?.mensaje || "Error al obtener datos del usuario",
+    };
   }
 };

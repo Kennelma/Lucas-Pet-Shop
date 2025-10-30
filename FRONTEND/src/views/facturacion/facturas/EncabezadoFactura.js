@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { InputMask } from 'primereact/inputmask';
+import Swal from 'sweetalert2';
 import { buscarCliente } from '../../../AXIOS.SERVICES/factura-axios';
 import FormularioCliente from '../../clientes/modal-agregar';
 
@@ -13,233 +14,294 @@ const EncabezadoFactura = ({
   setNombreCliente = () => {},
   fecha,
   onFechaChange,
-  vendedor,
-  sucursal,
+  vendedor = "",
+  sucursal = "",
 }) => {
+  //====================ESTADOS====================
   const [internalFecha, setInternalFecha] = useState('');
   const [identidadBusqueda, setIdentidadBusqueda] = useState('');
   const [buscando, setBuscando] = useState(false);
   const [clienteEncontrado, setClienteEncontrado] = useState(false);
   const [showModalCliente, setShowModalCliente] = useState(false);
   const [identidadTemp, setIdentidadTemp] = useState('');
+  const [yaConsultado, setYaConsultado] = useState(false);
 
-  const toDateTimeLocal = (d) => {
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  //====================FUNCIONES_AUXILIARES====================
+
+  //CONVIERTE UNA FECHA A FORMATO DATETIME-LOCAL
+  const toDateTimeLocal = (date) => {
+    const pad = (num) => String(num).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   };
 
+  //====================EFFECTS====================
+
+  //ACTUALIZA LA FECHA Y HORA EN TIEMPO REAL CADA SEGUNDO
   useEffect(() => {
-    const tick = () => {
-      const now = toDateTimeLocal(new Date());
-      onFechaChange?.(now);
-      if (!onFechaChange) setInternalFecha(now);
+    const actualizarFecha = () => {
+      const ahora = toDateTimeLocal(new Date());
+      onFechaChange?.(ahora);
+      if (!onFechaChange) setInternalFecha(ahora);
     };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
+
+    actualizarFecha();
+    const intervalo = setInterval(actualizarFecha, 1000);
+
+    return () => clearInterval(intervalo);
   }, [onFechaChange]);
 
-  const fechaValue = fecha ? fecha : internalFecha;
-
-  // Búsqueda dinámica por identidad
+  //ESTABLECE CONSUMIDOR FINAL COMO VALOR POR DEFECTO AL CARGAR
   useEffect(() => {
-    const onlyDigits = identidadBusqueda.replace(/\D/g, '');
-    if (onlyDigits.length < 8) {
-      setClienteEncontrado(false);
+    if (!nombreCliente && !identidad) {
+      setNombreCliente('CONSUMIDOR FINAL');
+      setClienteEncontrado(true);
+    }
+  }, [nombreCliente, identidad, setNombreCliente]);
+
+  //BUSCA AUTOMÁTICAMENTE EL CLIENTE CUANDO SE COMPLETAN 13 DÍGITOS DE IDENTIDAD
+  useEffect(() => {
+    const soloDigitos = identidadBusqueda.replace(/\D/g, '');
+
+    //SI BORRA LA IDENTIDAD VUELVE A CONSUMIDOR FINAL
+    if (soloDigitos.length === 0 && identidad === '') {
+      setNombreCliente('CONSUMIDOR FINAL');
+      setRTN('');
+      setClienteEncontrado(true);
+      setYaConsultado(false);
       return;
     }
 
-    const timer = setTimeout(async () => {
-      setBuscando(true);
-      try {
-        const lista = await buscarCliente(identidadBusqueda);
-        const c = lista[0];
-        if (c) {
-          setIdentidad(c.identidad);
-          setNombreCliente(`${c.nombre} ${c.apellido}`.trim());
-          setRTN('');
-          setClienteEncontrado(true);
-        } else {
-          setClienteEncontrado(false);
-        }
-      } catch (e) {
-        console.error('Error buscarCliente:', e);
-        setClienteEncontrado(false);
-      } finally {
-        setBuscando(false);
-      }
-    }, 400);
+    //SI NO TIENE 13 DÍGITOS RESETEA LA BÚSQUEDA
+    if (soloDigitos.length < 13) {
+      setYaConsultado(false);
+      return;
+    }
 
-    return () => clearTimeout(timer);
-  }, [identidadBusqueda, setIdentidad, setNombreCliente, setRTN]);
+    //BUSCA CUANDO TENGA 13 DÍGITOS COMPLETOS Y NO SE HAYA CONSULTADO
+    if (soloDigitos.length === 13 && !yaConsultado) {
+      const timer = setTimeout(async () => {
+        setBuscando(true);
 
-  // Manejo cuando se pierde el foco del input (onBlur)
-  const handleBlurBusqueda = async () => {
-    if (clienteEncontrado) return; // Si ya encontró el cliente, no hacer nada
+        try {
+          const response = await buscarCliente(identidadBusqueda);
+          const cliente = response?.data?.[0];
 
-    const onlyDigits = identidadBusqueda.replace(/\D/g, '');
-    if (onlyDigits.length < 8) return; // Si no tiene suficientes dígitos, no hacer nada
-
-    // Esperar un poco para asegurarse que la búsqueda automática termine
-    setTimeout(async () => {
-      if (clienteEncontrado) return; // Verificar de nuevo
-
-      try {
-        const lista = await buscarCliente(identidadBusqueda);
-        const c = lista[0];
-
-        if (!c) {
-          // Cliente no encontrado - Mostrar confirmación
-          const agregar = window.confirm(
-            `No se encontró un cliente con identidad "${identidadBusqueda}".\n\n¿Desea agregar este cliente al sistema?`
-          );
-
-          if (agregar) {
-            setIdentidadTemp(identidadBusqueda);
-            setShowModalCliente(true);
-          } else {
-            // Usuario dijo NO - Poner CONSUMIDOR FINAL
-            setIdentidad(identidadBusqueda);
-            setNombreCliente('CONSUMIDOR FINAL');
+          if (cliente) {
+            //CLIENTE ENCONTRADO LLENAR DATOS
+            setIdentidad(cliente.identidad_cliente);
+            setNombreCliente(`${cliente.nombre_cliente} ${cliente.apellido_cliente}`.trim());
             setRTN('');
             setClienteEncontrado(true);
-            setIdentidadBusqueda('');
-          }
-        } else {
-          // Por si acaso, rellenar datos
-          setIdentidad(c.identidad);
-          setNombreCliente(`${c.nombre} ${c.apellido}`.trim());
-          setRTN('');
-          setClienteEncontrado(true);
-          setIdentidadBusqueda('');
-        }
-      } catch (e) {
-        console.error('Error al buscar cliente (blur):', e);
-      }
-    }, 600);
-  };
+            setYaConsultado(true);
+          } else {
+            //CLIENTE NO ENCONTRADO PREGUNTAR SI DESEA AGREGARLO
+            setYaConsultado(true);
+            setBuscando(false);
 
-  // Cuando se agrega un cliente desde el modal
+            const resultado = await Swal.fire({
+              icon: 'question',
+              title: 'Cliente no encontrado',
+              html: `<p>No se encontró un cliente con identidad <strong>"${identidadBusqueda}"</strong>.</p><p>¿Desea agregar este cliente al sistema?</p>`,
+              showCancelButton: true,
+              confirmButtonText: 'Sí, agregar',
+              cancelButtonText: 'No, continuar sin cliente',
+              confirmButtonColor: '#3085d6',
+              cancelButtonColor: '#6c757d',
+            });
+
+            if (resultado.isConfirmed) {
+              //ABRIR MODAL PARA AGREGAR CLIENTE
+              setIdentidadTemp(identidadBusqueda);
+              setShowModalCliente(true);
+            } else {
+              //VOLVER A CONSUMIDOR FINAL
+              setClienteEncontrado(true);
+              setNombreCliente('CONSUMIDOR FINAL');
+              setRTN('');
+              setIdentidad('');
+              setIdentidadBusqueda('');
+            }
+            return;
+          }
+        } catch (error) {
+          console.error('Error al buscar cliente:', error);
+          setYaConsultado(true);
+
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo buscar el cliente. Intente nuevamente.',
+          });
+        } finally {
+          setBuscando(false);
+        }
+      }, 800);
+
+      return () => clearTimeout(timer);
+    }
+  }, [identidadBusqueda, yaConsultado, identidad, setIdentidad, setNombreCliente, setRTN]);
+
+  //====================MANEJADORES_DE_EVENTOS====================
+
+  //MANEJA CUANDO SE AGREGA UN NUEVO CLIENTE DESDE EL MODAL
+  
   const handleClienteAgregado = (nuevoCliente) => {
     if (nuevoCliente) {
-      setIdentidad(nuevoCliente.identidad_cliente || identidadTemp);
-      setNombreCliente(`${nuevoCliente.nombre_cliente} ${nuevoCliente.apellido_cliente}`.trim());
+      const identidadCliente = nuevoCliente.identidad_cliente || identidadTemp;
+      const nombreCompleto = `${nuevoCliente.nombre_cliente || ''} ${nuevoCliente.apellido_cliente || ''}`.trim();
+
+      setIdentidad(identidadCliente);
+      setNombreCliente(nombreCompleto);
       setRTN('');
       setClienteEncontrado(true);
+      setYaConsultado(true);
+
+      Swal.fire({
+        icon: 'success',
+        title: '¡Cliente Agregado!',
+        text: 'El cliente se agregó correctamente a la factura',
+        timer: 1500,
+        showConfirmButton: false,
+      });
     }
+
     setShowModalCliente(false);
-    setIdentidadBusqueda('');
   };
 
+  //MANEJA EL CAMBIO EN EL INPUT DE IDENTIDAD
+  const handleIdentidadChange = (e) => {
+    const valor = e.value;
+    setIdentidad(valor);
+    setIdentidadBusqueda(valor);
+    setClienteEncontrado(false);
+    setYaConsultado(false);
+  };
+
+  //====================VALORES_COMPUTADOS====================
+  const fechaActual = fecha || internalFecha;
+
+  //====================RENDER====================
   return (
     <>
       <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+
+        {/*TÍTULO*/}
         <h1 className="text-xl font-semibold text-gray-800 mb-3">Factura</h1>
 
-        <div className="grid grid-cols-3 gap-3 items-end mb-4 border-b pb-4 border-gray-200">
-          {/* IDENTIDAD CON BÚSQUEDA Y MÁSCARA */}
+        {/*SECCIÓN CLIENTE*/}
+        <div className="grid grid-cols-3 gap-3 mb-4 border-b pb-4 border-gray-200">
+
+          {/*CAMPO IDENTIDAD CON BÚSQUEDA AUTOMÁTICA*/}
           <div className="relative">
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              Buscar Cliente (Identidad)*
+              Buscar Cliente (Identidad)
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none z-10" size={18} />
               <InputMask
                 value={identidad}
-                onChange={(e) => {
-                  const v = e.value;
-                  setIdentidad(v);
-                  setIdentidadBusqueda(v);
-                  setClienteEncontrado(false);
-                }}
-                onBlur={handleBlurBusqueda}
+                onChange={handleIdentidadChange}
                 mask="9999-9999-99999"
                 placeholder="0000-0000-00000"
-                className={`w-full pl-10 pr-10 py-1.5 text-sm border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none ${
+                className={`w-full h-9 px-3 pr-10 text-sm border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none ${
                   clienteEncontrado ? 'border-green-500 bg-green-50' : 'border-gray-300'
                 }`}
                 autoComplete="off"
               />
+
+              {/*ICONOS A LA DERECHA*/}
               {buscando && (
                 <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-500 animate-spin pointer-events-none z-10" size={18} />
               )}
-              {clienteEncontrado && !buscando && (
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-600 pointer-events-none z-10">
-                  ✓
-                </div>
+              {!buscando && identidad && (
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none z-10" size={18} />
               )}
             </div>
-            {/* Solo mensaje de "Buscando..." */}
+
+            {/*MENSAJE BUSCANDO*/}
             {buscando && (
-              <p className="absolute -bottom-5 left-0 text-xs text-gray-500 z-20">Buscando cliente...</p>
+              <p className="absolute -bottom-5 left-0 text-xs text-gray-500 z-20">
+                Buscando cliente...
+              </p>
             )}
           </div>
 
-          {/* NOMBRE CLIENTE (BLOQUEADO) */}
+          {/*CAMPO NOMBRE CLIENTE SOLO LECTURA*/}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Nombre Cliente*</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Nombre Cliente*
+            </label>
             <input
               type="text"
               value={nombreCliente}
               readOnly
-              className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
+              className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
               placeholder="Nombre completo del cliente"
             />
           </div>
 
-          {/* RTN CON MÁSCARA */}
+          {/*CAMPO RTN*/}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">RTN</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              RTN
+            </label>
             <InputMask
               value={RTN}
               onChange={(e) => setRTN(e.value)}
               mask="9999-9999-999999"
               placeholder="0000-0000-000000"
-              className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+              className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
               autoComplete="off"
             />
           </div>
         </div>
 
+        {/*SECCIÓN INFORMACIÓN ADICIONAL*/}
         <div className="grid grid-cols-3 gap-3">
-          {/* VENDEDOR */}
+
+          {/*CAMPO VENDEDOR SOLO LECTURA*/}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Vendedor</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Vendedor
+            </label>
             <input
               type="text"
-              value={vendedor}
+              value={vendedor || "Cargando..."}
               readOnly
-              className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-default"
+              className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
               placeholder="Nombre del vendedor"
             />
           </div>
 
-          {/* SUCURSAL */}
+          {/*CAMPO SUCURSAL SOLO LECTURA*/}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Sucursal</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Sucursal
+            </label>
             <input
               type="text"
-              value={sucursal}
+              value={sucursal || "Cargando..."}
               readOnly
-              className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-default"
+              className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
               placeholder="Sucursal de la operación"
             />
           </div>
 
-          {/* FECHA Y HORA */}
+          {/*CAMPO FECHA Y HORA SOLO LECTURA*/}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Fecha y hora</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Fecha y hora
+            </label>
             <input
               type="datetime-local"
-              value={fechaValue}
+              value={fechaActual}
               readOnly
-              className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-100 text-gray-700 cursor-not-allowed"
+              className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md bg-gray-100 text-gray-700 cursor-not-allowed"
             />
           </div>
         </div>
       </div>
 
-      {/* MODAL PARA AGREGAR CLIENTE */}
+      {/*MODAL AGREGAR NUEVO CLIENTE*/}
       <FormularioCliente
         isOpen={showModalCliente}
         onClose={() => setShowModalCliente(false)}
