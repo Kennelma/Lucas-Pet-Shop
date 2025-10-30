@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import clienteImage from "../../views/clientes/icon-formulario-clientes.png";
 import { Dialog } from "primereact/dialog";
 import { Tooltip } from "primereact/tooltip";
@@ -8,7 +8,12 @@ import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
 import { insertarCliente } from "../../AXIOS.SERVICES/clients-axios.js";
 
-export default function FormularioCliente({ isOpen, onClose, onClienteAgregado }) {
+export default function FormularioCliente({
+  isOpen,
+  onClose,
+  onClienteAgregado,
+  identidadInicial = '' // ← Nueva prop
+}) {
     const toast = useRef(null);
 
     const [nuevoCliente, setNuevoCliente] = useState({
@@ -68,7 +73,10 @@ export default function FormularioCliente({ isOpen, onClose, onClienteAgregado }
                     detail: `Cliente ${nuevoCliente.nombre_cliente} ${nuevoCliente.apellido_cliente} registrado correctamente`,
                     life: 3000
                 });
-                onClienteAgregado();
+
+                // ✅ PASAR LOS DATOS DEL CLIENTE AL CALLBACK
+                onClienteAgregado(nuevoCliente);
+
                 onClose();
                 setNuevoCliente({
                     nombre_cliente: "",
@@ -113,6 +121,30 @@ export default function FormularioCliente({ isOpen, onClose, onClienteAgregado }
         </div>
     );
 
+    // Resetear y pre-llenar cuando se abre el modal
+    useEffect(() => {
+        if (isOpen) {
+            if (identidadInicial) {
+                // Si viene identidad, pre-llenarla
+                setNuevoCliente({
+                    nombre_cliente: "",
+                    apellido_cliente: "",
+                    identidad_cliente: identidadInicial, // ← Pre-llenado
+                    telefono_cliente: "",
+                });
+            } else {
+                // Si no, resetear todo
+                setNuevoCliente({
+                    nombre_cliente: "",
+                    apellido_cliente: "",
+                    identidad_cliente: "",
+                    telefono_cliente: "",
+                });
+            }
+            setErrores({});
+        }
+    }, [isOpen, identidadInicial]);
+
     return (
         <>
             <Toast ref={toast} position="top-center" />
@@ -139,7 +171,7 @@ export default function FormularioCliente({ isOpen, onClose, onClienteAgregado }
                             className="w-25 h-30 object-cover rounded-xl border-[1px] border-white"
                         />
                     </div>
-                    
+
                     {/* Formulario */}
                     <div className="flex flex-col gap-3">
                         {/* Nombre del Cliente */}

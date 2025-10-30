@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Plus, Trash2, UserPlus } from "lucide-react";
+import Select from 'react-select';
 import ModalPago from "../pagos/ModalPago";
 
 const keyMap = {
@@ -17,9 +18,12 @@ const DetallesFactura = ({
   disponiblesItems,
   onItemTypeChange,
   onItemChange,
-  estilistas = [],
+  estilistas = [],  // ✅ Esto está bien
   onCancel,
 }) => {
+
+  console.log("👥 Estilistas recibidos en DetallesFactura:", estilistas); // ⬅️ AGREGA ESTO PARA DEBUGGEAR
+
   // Estados para el modal de pago
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentData, setPaymentData] = useState(null);
@@ -183,13 +187,13 @@ const DetallesFactura = ({
           <table className="w-full table-fixed">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-2 text-sm font-medium text-gray-700 w-36">TIPO</th>
-                <th className="text-left py-3 px-2 text-sm font-medium text-gray-700 w-72">ITEM</th>
-                <th className="text-center py-3 px-2 text-sm font-medium text-gray-700 w-24">CANTIDAD</th>
-                <th className="text-right py-3 px-2 text-sm font-medium text-gray-700 w-28">PRECIO</th>
-                <th className="text-right py-3 px-2 text-sm font-medium text-gray-700 w-28">AJUSTE</th>
-                <th className="text-right py-3 px-2 text-sm font-medium text-gray-700 w-32">TOTAL LÍNEA</th>
-                <th className="py-3 px-2 w-12"></th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 w-36">TIPO</th>
+                <th className="text-left py-3 px-6 text-sm font-medium text-gray-700 w-72">ITEM</th>
+                <th className="text-center py-3 px-4 text-sm font-medium text-gray-700 w-24">CANTIDAD</th>
+                <th className="text-right py-3 px-4 text-sm font-medium text-gray-700 w-28">PRECIO</th>
+                <th className="text-right py-3 px-4 text-sm font-medium text-gray-700 w-28">AJUSTE</th>
+                <th className="text-right py-3 px-4 text-sm font-medium text-gray-700 w-32">TOTAL LÍNEA</th>
+                <th className="py-3 px-4 w-12"></th>
               </tr>
             </thead>
 
@@ -210,36 +214,59 @@ const DetallesFactura = ({
                   <React.Fragment key={item.id}>
                     <tr className="border-b border-gray-100">
                       {/* Tipo */}
-                      <td className="py-3 px-2">
-                        <select
-                          value={tipo}
-                          onChange={(e) => handleTipoChange(item.id, e.target.value)}
-                          className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                          {Object.keys(disponiblesItems).map((t) => (
-                            <option key={t} value={t}>{t}</option>
-                          ))}
-                        </select>
+                      <td className="py-3 px-4">
+                        <div className="w-36">
+                          <Select
+                            value={{ value: tipo, label: tipo }}
+                            onChange={(selectedOption) => handleTipoChange(item.id, selectedOption.value)}
+                            options={Object.keys(disponiblesItems).map((t) => ({
+                              value: t,
+                              label: t,
+                            }))}
+                            isSearchable={false}
+                            menuPortalTarget={document.body}
+                            menuPosition="fixed"
+                            className="text-sm [&_.react-select__control]:min-h-[34px] [&_.react-select__control]:h-[34px] [&_.react-select__control]:text-sm [&_.react-select__control]:border-gray-300 hover:[&_.react-select__control]:border-blue-500 focus:[&_.react-select__control]:border-blue-500 focus:[&_.react-select__control]:ring-2 focus:[&_.react-select__control]:ring-blue-500/50 [&_.react-select__option]:text-sm [&_.react-select__single-value]:text-sm"
+                          />
+                        </div>
                       </td>
 
-                      {/* SELECCION DE ITEM */}
-                      <td className="py-3 px-2">
-                        <select
-                          value={item.item || ""}
-                          onChange={(e) => handleItemSelect(item.id, e.target.value, tipo)}
-                          className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs leading-tight"
-                        >
-                          <option value="">Seleccionar...</option>
-                          {currentItems.map((availableItem) => (
-                            <option key={availableItem[idKey]} value={availableItem[idKey]}>
-                              {availableItem[idKey]} - {availableItem[nameKey]}
-                            </option>
-                          ))}
-                        </select>
+                      {/* COLUMNA SELECCIÓN DE ITEM CON BÚSQUEDA*/}
+                      <td className="py-3 px-6">
+                        <Select
+                          value={
+                            currentItems
+                              .map((availableItem) => ({
+                                value: availableItem[idKey],
+                                label: availableItem[nameKey],
+                              }))
+                              .find((opt) => opt.value === item.item) || null
+                          }
+                          onChange={(selectedOption) => {
+                            if (!selectedOption) {
+                              onItemChange(item.id, "", null, nameKey, priceKey);
+                              return;
+                            }
+                            const selectedItemData = currentItems.find(
+                              (it) => String(it[idKey]) === String(selectedOption.value)
+                            );
+                            onItemChange(item.id, selectedOption.value, selectedItemData, nameKey, priceKey);
+                          }}
+                          options={currentItems.map((availableItem) => ({
+                            value: availableItem[idKey],
+                            label: availableItem[nameKey],
+                          }))}
+                          isClearable
+                          placeholder="Seleccionar..."
+                          noOptionsMessage={() => "No se encontraron resultados"}
+                          menuPortalTarget={document.body}
+                          menuPosition="fixed"
+                          className="text-sm [&_.react-select__control]:min-h-[34px] [&_.react-select__control]:h-[34px] [&_.react-select__control]:text-sm [&_.react-select__control]:border-gray-300 hover:[&_.react-select__control]:border-blue-500 focus:[&_.react-select__control]:border-blue-500 focus:[&_.react-select__control]:ring-2 focus:[&_.react-select__control]:ring-blue-500/50 [&_.react-select__option]:text-sm [&_.react-select__single-value]:text-sm [&_.react-select__placeholder]:text-sm"
+                        />
                       </td>
 
                       {/* Cantidad */}
-                      <td className="py-3 px-2">
+                      <td className="py-3 px-4">
                         <input
                           type="number"
                           value={item.cantidad ?? 0}
@@ -249,7 +276,7 @@ const DetallesFactura = ({
                       </td>
 
                       {/* Precio */}
-                      <td className="py-3 px-2">
+                      <td className="py-3 px-4">
                         <input
                           type="number"
                           step="0.01"
@@ -260,7 +287,7 @@ const DetallesFactura = ({
                       </td>
 
                       {/* Ajuste */}
-                      <td className="py-3 px-2">
+                      <td className="py-3 px-4">
                         <input
                           type="number"
                           step="0.01"
@@ -271,12 +298,12 @@ const DetallesFactura = ({
                       </td>
 
                       {/* Total línea */}
-                      <td className="py-3 px-2">
+                      <td className="py-3 px-4">
                         <span className="font-medium text-gray-800">L {calculateLineTotal(item)}</span>
                       </td>
 
                       {/* Eliminar */}
-                      <td className="py-3 px-2 w-12 text-center">
+                      <td className="py-3 px-4 w-12 text-center">
                         <button
                           onClick={() => removeItem(item.id)}
                           className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors inline-flex"
@@ -304,8 +331,8 @@ const DetallesFactura = ({
                                   >
                                     <option value="">Seleccionar...</option>
                                     {estilistas.map((estilista) => (
-                                      <option key={estilista.id} value={estilista.id}>
-                                        {estilista.nombre}
+                                      <option key={estilista.id_estilista_pk} value={estilista.id_estilista_pk}>
+                                        {estilista.nombre_estilista} {estilista.apellido_estilista}
                                       </option>
                                     ))}
                                   </select>

@@ -279,7 +279,7 @@ exports.encabezadoFactura = async (req, res) => {
 
 
 
-
+// ENDPOINT OBTENER DETALLES DE FACTURA (PRODUCTOS, SERVICIOS, PROMOCIONES)
 exports.detallesFactura = async (req, res) => {
 
     const conn = await mysqlConnection.getConnection();
@@ -350,14 +350,14 @@ exports.detallesFactura = async (req, res) => {
 
 
 // ENDPOINT BUSCAR CLIENTE POR IDENTIDAD PARA FACTURA
-exports.buscarPorIdentidad = async (req, res) => {
+exports.buscarClientesPorIdentidad = async (req, res) => {
 
     const { identidad } = req.query;
 
     const conn = await mysqlConnection.getConnection();
 
     try {
-        // Buscar cliente por identidad (puede ser parcial, mínimo 8 dígitos)
+        //SE BUSCAN LOS CLEINTES CON LA IDENTIDAD PROPORCIONADA
         const [registros] = await conn.query(
             `SELECT
                 id_cliente_pk,
@@ -377,7 +377,7 @@ exports.buscarPorIdentidad = async (req, res) => {
             });
 
         } else {
-            // El 404 está bien
+
             res.status(404).json({
                 success: false,
                 message: "CLIENTE NO ENCONTRADO"
@@ -394,3 +394,98 @@ exports.buscarPorIdentidad = async (req, res) => {
         conn.release();
     }
 };
+
+//ENDPOINT PARA MOSTRAR EL USUARIO Y SUCURSAL QUE CREA LA FACTURA
+exports.usuarioFactura = async (req, res) => {
+
+    const conn = await mysqlConnection.getConnection();
+
+    try {
+
+        //OBTENER EL ID DEL USUARIO DESDE EL TOKEN
+        const id_usuario = req.usuario.id_usuario_pk;
+
+        //BUSCAR EL USUARIO Y SUCURSAL
+        const [registros] = await conn.query(
+            `SELECT
+                u.id_usuario_pk,
+                u.usuario,
+                s.id_sucursal_pk,
+                s.nombre_sucursal
+             FROM tbl_usuarios u
+             INNER JOIN tbl_sucursales s ON u.id_sucursal_fk = s.id_sucursal_pk
+             WHERE u.id_usuario_pk = ?`,
+            [id_usuario]
+        );
+
+        if (registros.length > 0) {
+            res.status(200).json({
+                success: true,
+                message: "USUARIO Y SUCURSAL ENCONTRADOS",
+                data: registros[0]
+            });
+
+        } else {
+
+            res.status(404).json({
+                success: false,
+                message: "USUARIO NO ENCONTRADO"
+            });
+        }
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+
+    } finally {
+        conn.release();
+    }
+};
+
+
+//BUSCAR ESTILISTAS
+exports.buscarEstilistas = async (req, res) => {
+
+    const conn = await mysqlConnection.getConnection();
+
+    try {
+
+         //BUSCAR EsTILISTAS ACTIVOS
+        const [registros] = await conn.query(
+            `SELECT
+                id_estilista_pk,
+                nombre_estilista,
+                apellido_estilista
+             FROM tbl_estilistas_caninos`,
+        );
+
+        if (registros.length > 0) {
+            res.status(200).json({
+                success: true,
+                message: "ESTILISTAS ENCONTRADOS",
+                data: registros
+            });
+
+        } else {
+
+            res.status(404).json({
+                success: false,
+                message: "ESTILISTAS NO ENCONTRADOS"
+            });
+        }
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+
+    } finally {
+        conn.release();
+    }
+
+}

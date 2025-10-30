@@ -2,19 +2,19 @@
 import React, { useState, useEffect } from "react";
 import EncabezadoFactura from "./EncabezadoFactura";
 import DetallesFactura from "./DetallesFactura";
-import { obtenerDetallesFactura } from "../../../AXIOS.SERVICES/factura-axios";
+import { obtenerDetallesFactura, obtenerUsuarioFactura, obtenerEstilistasFactura } from "../../../AXIOS.SERVICES/factura-axios";
 
 const NuevaFactura = () => {
-  // ⭐ Estado del cliente controlado por el PADRE
+  //====================ESTADOS_DEL_CLIENTE====================
   const [identidad, setIdentidad] = useState("");
   const [nombreCliente, setNombreCliente] = useState("");
   const [RTN, setRTN] = useState("");
 
-  // (Opcional) vendedor/sucursal desde sesión/usuario
-  const [vendedor] = useState("Vendedor Demo");
-  const [sucursal] = useState("Sucursal Central");
+  //====================ESTADOS_VENDEDOR_SUCURSAL====================
+  const [vendedor, setVendedor] = useState("");
+  const [sucursal, setSucursal] = useState("");
 
-  // DETALLES DE FACTURA
+  //====================ESTADOS_DETALLES_FACTURA====================
   const [items, setItems] = useState([
     {
       id: Date.now(),
@@ -28,7 +28,7 @@ const NuevaFactura = () => {
     },
   ]);
 
-  // CATÁLOGOS
+  //====================ESTADOS_CATÁLOGOS====================
   const [disponiblesItems, setDisponiblesItems] = useState({
     PRODUCTOS: [],
     SERVICIOS: [],
@@ -36,14 +36,12 @@ const NuevaFactura = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  // Estilistas de ejemplo
-  const [estilistas] = useState([
-    { id: 1, nombre: "María González" },
-    { id: 2, nombre: "Juan Pérez" },
-    { id: 3, nombre: "Ana Rodríguez" },
-  ]);
+  //====================ESTADOS_ESTILISTAS====================
+  const [estilistas, setEstilistas] = useState([]);
 
-  // Cargar catálogos por tipo
+  //====================FUNCIONES_AUXILIARES====================
+
+  //CARGA LOS ITEMS DISPONIBLES SEGÚN EL TIPO PRODUCTOS SERVICIOS PROMOCIONES
   const buscarItemTipo = async (tipo) => {
     setIsLoading(true);
     try {
@@ -56,13 +54,19 @@ const NuevaFactura = () => {
     }
   };
 
-  useEffect(() => {
-    buscarItemTipo("PRODUCTOS");
-    buscarItemTipo("SERVICIOS");
-    buscarItemTipo("PROMOCIONES");
-  }, []);
+  //CARGA LOS ESTILISTAS DISPONIBLES
+  const cargarEstilistas = async () => {
+    try {
+      const response = await obtenerEstilistasFactura();
+      if (response?.success && response?.data) {
+        setEstilistas(response.data);
+      }
+    } catch (error) {
+      console.error("Error al cargar estilistas:", error);
+    }
+  };
 
-  // Cálculos
+  //CALCULA EL TOTAL DE UNA LÍNEA CANTIDAD × PRECIO + AJUSTE
   const calculateLineTotal = (item) => {
     const cantidad = parseFloat(item.cantidad) || 0;
     const precio = parseFloat(item.precio) || 0;
@@ -70,13 +74,16 @@ const NuevaFactura = () => {
     return (cantidad * precio + ajuste).toFixed(2);
   };
 
+  //CALCULA EL TOTAL GENERAL DE LA FACTURA
   const calculateTotal = () => {
     return items
       .reduce((sum, it) => sum + parseFloat(calculateLineTotal(it)), 0)
       .toFixed(2);
   };
 
-  // Filas
+  //====================MANEJADORES_DE_ITEMS====================
+
+  //AGREGA UN NUEVO ITEM A LA FACTURA
   const addItem = () => {
     setItems((prev) => [
       ...prev,
@@ -93,15 +100,18 @@ const NuevaFactura = () => {
     ]);
   };
 
+  //ELIMINA UN ITEM DE LA FACTURA
   const removeItem = (id) =>
     setItems((prev) => prev.filter((it) => it.id !== id));
 
+  //ACTUALIZA UN CAMPO ESPECÍFICO DE UN ITEM
   const updateItem = (id, field, value) => {
     setItems((prev) =>
       prev.map((it) => (it.id === id ? { ...it, [field]: value } : it))
     );
   };
 
+  //MANEJA EL CAMBIO DE TIPO DE ITEM PRODUCTOS SERVICIOS PROMOCIONES
   const handleItemTypeChange = (id, nuevoTipo) => {
     if ((disponiblesItems[nuevoTipo] || []).length === 0) {
       buscarItemTipo(nuevoTipo);
@@ -124,6 +134,7 @@ const NuevaFactura = () => {
     );
   };
 
+  //MANEJA LA SELECCIÓN DE UN ITEM ESPECÍFICO
   const handleItemChange = (
     id,
     selectedId,
@@ -144,14 +155,14 @@ const NuevaFactura = () => {
     );
   };
 
-  // Cancelar
+  //CANCELA LA FACTURA Y REINICIA TODOS LOS CAMPOS
   const handleCancel = () => {
     if (
       window.confirm(
         "¿Estás seguro de cancelar esta factura? Se perderán todos los datos."
       )
     ) {
-      // Reiniciar detalles
+      //REINICIAR DETALLES
       setItems([
         {
           id: Date.now(),
@@ -165,16 +176,52 @@ const NuevaFactura = () => {
         },
       ]);
 
-      // Reiniciar encabezado
+      //REINICIAR ENCABEZADO
       setIdentidad("");
       setNombreCliente("");
       setRTN("");
     }
   };
 
+  //====================EFFECTS====================
+
+  //CARGA DATOS DEL USUARIO SUCURSAL ESTILISTAS Y CATÁLOGOS AL MONTAR EL COMPONENTE
+  useEffect(() => {
+    const cargarDatosIniciales = async () => {
+
+      //LLAMAR AL SERVICIO AXIOS PARA OBTENER USUARIO Y SUCURSAL
+      const responseUsuario = await obtenerUsuarioFactura();
+
+      //SI LA RESPUESTA ES EXITOSA ACTUALIZAR LOS ESTADOS
+      if (responseUsuario?.success && responseUsuario?.data) {
+        setVendedor(responseUsuario.data.usuario);
+        setSucursal(responseUsuario.data.nombre_sucursal);
+      }
+
+      //CARGAR ESTILISTAS
+      console.log("🔍 Cargando estilistas...");
+      const responseEstilistas = await obtenerEstilistasFactura();
+      console.log("📦 Respuesta estilistas:", responseEstilistas);
+
+      if (responseEstilistas?.success && responseEstilistas?.data) {
+        console.log("✅ Estilistas cargados:", responseEstilistas.data);
+        setEstilistas(responseEstilistas.data);
+      }
+
+      //CARGAR CATÁLOGOS DE PRODUCTOS SERVICIOS Y PROMOCIONES
+      buscarItemTipo("PRODUCTOS");
+      buscarItemTipo("SERVICIOS");
+      buscarItemTipo("PROMOCIONES");
+    };
+
+    cargarDatosIniciales();
+  }, []);
+
+  //====================RENDER====================
   return (
     <div className="space-y-6 p-4 max-w-5xl mx-auto bg-white shadow-xl rounded-lg">
-      {/* ENCABEZADO */}
+
+      {/*SECCIÓN ENCABEZADO*/}
       <div className="border-dashed rounded-lg bg-blue-50">
         <EncabezadoFactura
           identidad={identidad}
@@ -185,11 +232,10 @@ const NuevaFactura = () => {
           setRTN={setRTN}
           vendedor={vendedor}
           sucursal={sucursal}
-          // fecha/onFechaChange: opcionales; el hijo ya maneja su reloj interno
         />
       </div>
 
-      {/* DETALLES */}
+      {/*SECCIÓN DETALLES*/}
       <div className="border-dashed border-green-300 rounded-lg bg-green-50">
         <DetallesFactura
           items={items}
@@ -204,6 +250,8 @@ const NuevaFactura = () => {
           estilistas={estilistas}
           onCancel={handleCancel}
         />
+
+        {/*INDICADOR DE CARGA CATÁLOGOS*/}
         {isLoading && (
           <div className="mt-2 text-xs text-gray-500">Cargando catálogos…</div>
         )}
