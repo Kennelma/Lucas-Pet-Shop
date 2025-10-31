@@ -2,7 +2,7 @@ const conexion = require('../config/conexion');
 const express = require('express');
 const router = express.Router();
 
-const { verificarToken } = require('../middleware/auth'); 
+const { verificarToken } = require('../middleware/auth');
 
 const auth = require('../controllers/auth.controller');
 const clientes = require('../controllers/clientes.controller');
@@ -11,7 +11,9 @@ const servicios = require('../controllers/peluqueria.controller');
 const empresa = require('../controllers/empresa.controller');
 const recordatoriosController = require('../controllers/recordatorios.controller');
 const estilistas = require('../controllers/empleados.controller');
-const whatsappController = require('../controllers/whatsappController');
+
+const whatsappController = require('../controllers/whatsapp.controller');
+
 
 //========== RUTAS DE AUTENTICACIÓN Y SEGURIDAD ==========
 router.post('/login', auth.login);
@@ -63,13 +65,9 @@ router.delete('/recordatorios/eliminar', verificarToken, recordatoriosController
 router.get('/recordatorios/catalogo', verificarToken, recordatoriosController.verCatalogo);
 
 // ========== RUTAS DE WHATSAPP ==========
-router.get('/whatsapp/status', verificarToken, whatsappController.getStatus);
-router.post('/whatsapp/connect', verificarToken, whatsappController.connect);
-router.post('/whatsapp/disconnect', verificarToken, whatsappController.disconnect);
-router.post('/whatsapp/reconnect', verificarToken, whatsappController.reconnect);
-router.get('/whatsapp/qr', verificarToken, whatsappController.getQR);
-router.get('/whatsapp/qr-base64', verificarToken, whatsappController.getQRBase64);
-router.post('/whatsapp/enviar-masivo', verificarToken, whatsappController.enviarRecordatorioMasivo);
-router.post('/whatsapp/enviar-individual', verificarToken, whatsappController.enviarMensajeIndividual);
+router.get('/whatsapp/qr', whatsappController.obtenerQR);
+router.get('/whatsapp/estado', whatsappController.verificarEstado);
+
+
 
 module.exports = router;
