@@ -10,6 +10,7 @@ require('dotenv').config({
     silent: true
 });
 
+const app = express();
 
 //PARA QUE EL SERVIDOR PUEDA RECIBIR JSON Y XXWW-FORM-URLENCODED
 app.use(express.json());
@@ -26,7 +27,7 @@ connectWhatsApp().catch(err => {
 const PORT = 4000;
 app.listen(PORT, function() {
     console.log('🚀 Servidor en puerto ' + PORT);
-    console.log('📱 Escanea el QR de WhatsApp si aparece en la terminal');
+    //console.log('📱 Escanea el QR de WhatsApp si aparece en la terminal');
 });
 
 module.exports = app;

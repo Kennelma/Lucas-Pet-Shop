@@ -13,6 +13,7 @@ const empresa = require('../controllers/empresa.controller');
 const recordatorios = require('../controllers/recordatorios.controller');
 const estilistas = require('../controllers/empleados.controller');
 const facturas = require('../controllers/facturacion.controller')
+const whatsappController = require('../controllers/whatsapp.controller');
 
 //========== RUTAS DE AUTENTICACIÓN Y SEGURIDAD ==========
 router.post('/login', auth.login);
