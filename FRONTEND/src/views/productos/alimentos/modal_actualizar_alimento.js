@@ -32,7 +32,7 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
   const generarSKU = (nombre, id) => {
     if (!nombre) return '';
     const partes = nombre.trim().split(' ').map(p => p.substring(0, 3).toUpperCase());
-    return partes.join('-') + (id ? `-${id}` : '-XXX');
+    return partes.join('-');
   };
 
   useEffect(() => {
@@ -44,7 +44,7 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
         peso: editData.peso || '',
         destino: (editData.destino || '').toUpperCase(),
         stock_minimo: editData.stock_minimo || '',
-        sku: generarSKU(editData.nombre || '', editData.id_producto)
+        sku: generarSKU(editData.nombre)
       });
       setErrores({});
     }
@@ -54,7 +54,7 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
     const val = ['nombre', 'destino'].includes(field) ? value.toUpperCase() : value;
     setData(prev => {
       const newData = { ...prev, [field]: val };
-      if (field === 'nombre') newData.sku = generarSKU(val, editData.id_producto);
+      if (field === 'nombre') newData.sku = generarSKU(val);
       return newData;
     });
     setErrores(prev => ({ ...prev, [field]: '' }));
@@ -86,7 +86,7 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
         tipo_producto: 'ALIMENTOS',
         peso_alimento: data.peso,
         alimento_destinado: data.destino,
-        sku: generarSKU(data.nombre, editData.id_producto)
+        sku: generarSKU(data.nombre)
       };
 
       const res = await actualizarProducto(body);

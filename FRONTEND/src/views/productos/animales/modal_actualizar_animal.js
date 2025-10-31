@@ -37,7 +37,7 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
   const generarSKU = (nombre, id) => {
     if (!nombre) return '';
     const partes = nombre.trim().split(' ').map(p => p.substring(0, 3).toUpperCase());
-    return partes.join('-') + (id ? `-${id}` : '-XXX');
+    return partes.join('-');
   };
 
   useEffect(() => {
@@ -49,7 +49,7 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
         precio: editData.precio || '',
         cantidad: editData.stock || '',
         stock_minimo: editData.stock_minimo || '',
-        sku: generarSKU(editData.nombre || '', editData.id_producto)
+        sku: generarSKU(editData.nombre)
       });
       setErrores({});
     }
@@ -62,7 +62,7 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
 
     setData(prev => {
       const newData = { ...prev, [field]: val };
-      if (field === 'nombre') newData.sku = generarSKU(val, editData.id_producto);
+      if (field === 'nombre') newData.sku = generarSKU(val);
       return newData;
     });
 
@@ -104,7 +104,8 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
         stock_minimo: data.stock_minimo,
         especie: data.especie,
         sexo: data.sexo,
-        tipo_producto: 'ANIMALES'
+        tipo_producto: 'ANIMALES',
+        sku: generarSKU(data.nombre)
       };
 
       const res = await actualizarProducto(body);
