@@ -54,12 +54,6 @@ router.get ('/facturacion/detallesFactura', verificarToken, facturas.detallesFac
 router.get ('/facturacion/buscarCliente', verificarToken,facturas.buscarClientesPorIdentidad);
 router.get ('/facturacion/usuarioFacturacion', verificarToken, facturas.usuarioFactura);
 router.get ('/facturacion/estilistasFacturacion', verificarToken, facturas.buscarEstilistas);
-
-
-
-
-
-
 router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFactura)
 
 

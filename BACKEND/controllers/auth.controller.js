@@ -1,34 +1,34 @@
 require('dotenv').config()
 
 const mysqlConnection = require('../config/conexion');
-const argon2 = require('argon2'); 
+const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
 
 const { enviarCodigo2FA } = require('../config/email');
-const { generarCodigoOTP } = require('../config/otp-generator'); 
+const { generarCodigoOTP } = require('../config/otp-generator');
 
 //ENDPOINT PARA EL LOGUEO DE USUARIOS
 exports.login = async (req, res) => {
 
-    const start = Date.now(); 
+    const start = Date.now();
 
     const conn = await mysqlConnection.getConnection();
-    
+
     const LIMITE_INTENTOS = parseInt(process.env.LIMITE_INTENTOS_LOGIN); //SE BLOQUEA EL USUARIO SI LO EXCEDE
     const TIEMPO_BLOQUEO = parseInt(process.env.TIEMPO_BLOQUEO_MINUTOS); //EL TIEMPO QUE DEBE ESPERAR PARA VOLVER INTENTAR INICIAR SESION
 
     const { login, password } = req.body;
-    
+
     try {
 
         //SE EJECUTA EL SP PARA OBTENER DATOS DEL USUARIO
         const result = await conn.query(
-            `SELECT 
+            `SELECT
                 u.id_usuario_pk,
                 u.usuario,
-                u.email_usuario, 
-                u.contrasena_usuario, 
-                u.intentos_fallidos, 
+                u.email_usuario,
+                u.contrasena_usuario,
+                u.intentos_fallidos,
                 u.bloqueado_hasta,
                 u.id_sucursal_fk,
                 s.nombre_sucursal,
@@ -36,7 +36,7 @@ exports.login = async (req, res) => {
             FROM tbl_usuarios u
             JOIN cat_estados e   ON u.cat_estado_fk = e.id_estado_pk
             JOIN tbl_sucursales s ON u.id_sucursal_fk = s.id_sucursal_pk
-            WHERE u.email_usuario = ? OR u.usuario = ?`, 
+            WHERE u.email_usuario = ? OR u.usuario = ?`,
             [login, login]
         );
 
@@ -57,16 +57,16 @@ exports.login = async (req, res) => {
 
         //VALIDO QUE ESTE USUARIO NO ESTÉ BLOQUEADO
         if (user.bloqueado_hasta) {
-            
+
             const ahora = new Date();
             const bloqueadoHasta = new Date(user.bloqueado_hasta);
 
             if (ahora < bloqueadoHasta) {
                 return res.status(403).json({
                     success: false,
-                    message: `🔒 CUENTA BLOQUEADA HASTA ${bloqueadoHasta.toLocaleTimeString('es-ES', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
+                    message: `🔒 CUENTA BLOQUEADA HASTA ${bloqueadoHasta.toLocaleTimeString('es-ES', {
+                        hour: '2-digit',
+                        minute: '2-digit'
                     })}`,
                     usuario: null,
                     token: null
@@ -74,40 +74,40 @@ exports.login = async (req, res) => {
             } else {
                 //PASADO LOS MINUTOS, SE DESBLOQUEA EL USUARIO
                     await conn.query(
-                    `UPDATE tbl_usuarios 
-                    SET intentos_fallidos = 0, bloqueado_hasta = NULL 
+                    `UPDATE tbl_usuarios
+                    SET intentos_fallidos = 0, bloqueado_hasta = NULL
                     WHERE id_usuario_pk = ?`,
                     [user.id_usuario_pk]
                 );
                 user.intentos_fallidos = 0;
                 user.bloqueado_hasta = null;
-                    
+
 
             }
         }
-        
+
 
         //VALIDACION PARA USUARIOS NO REGISTRADOS O INACTIVOS
-        let mensaje; 
-        let estado; 
+        let mensaje;
+        let estado;
 
         switch (true) {
-            //SI EL USUARIO ESTÁ DENTRO DEL SISTEMA, PERO INACTIVO 
+            //SI EL USUARIO ESTÁ DENTRO DEL SISTEMA, PERO INACTIVO
             case user.nombre_estado !== 'ACTIVO':
                 estado = 403;
                 mensaje = '⚠️USUARIO INACTIVO, CONSULTE CON EL ADMINISTRADOR'
-                break;     
+                break;
 
             default:
-                 
+
                 //SI EL USUARIO ESTÁ DENTRO DEL SISTEMA Y ACTIVO
                 const validarContrasena = await argon2.verify(user.contrasena_usuario, password);
                 console.log('Validación de contraseña:', validarContrasena);
-                
+
                 //SI LA CONTRASEÑA ES INCORRECTA
                 if (!validarContrasena) {
-                    
-                    
+
+
                     const nuevosIntentos = user.intentos_fallidos + 1;
 
                     //SI LOS INTENTOS PASAN DEL LIMITE (5)
@@ -115,8 +115,8 @@ exports.login = async (req, res) => {
 
                         //SE BLOQUEA LA CUENTA
                         await conn.query(
-                            `UPDATE tbl_usuarios 
-                            SET intentos_fallidos = ?, 
+                            `UPDATE tbl_usuarios
+                            SET intentos_fallidos = ?,
                                 bloqueado_hasta = DATE_ADD(NOW(), INTERVAL ? MINUTE)
                             WHERE id_usuario_pk = ?`,
                             [nuevosIntentos, TIEMPO_BLOQUEO, user.id_usuario_pk]
@@ -125,39 +125,39 @@ exports.login = async (req, res) => {
                         estado = 403;
                         mensaje = `🔒 CUENTA BLOQUEADA POR ${TIEMPO_BLOQUEO} MINUTOS (demasiados intentos fallidos)`;
                         break;
-                         
+
                     } else {
 
                         //SOLO SE INCREMENTAN, PERO NO SE BLOQUEA
                         await conn.query(
-                            `UPDATE tbl_usuarios 
-                            SET intentos_fallidos = ? 
+                            `UPDATE tbl_usuarios
+                            SET intentos_fallidos = ?
                             WHERE id_usuario_pk = ?`,
                             [nuevosIntentos, user.id_usuario_pk]
                         );
-                        
+
                         estado = 401;
                         mensaje = `⚠️CREDENCIALES INCORRECTAS\n(Intento ${nuevosIntentos}/${LIMITE_INTENTOS})`;
                         break;
 
                     }
-                    
 
-                }else {   
-                    
+
+                }else {
+
                     //SE RESETEAN LOS INTENTOS Y LO DEJA LOGUEAR
                     await conn.query(
-                        `UPDATE tbl_usuarios 
-                        SET intentos_fallidos = 0, bloqueado_hasta = NULL 
+                        `UPDATE tbl_usuarios
+                        SET intentos_fallidos = 0, bloqueado_hasta = NULL
                         WHERE id_usuario_pk = ?`,
                         [user.id_usuario_pk]
-                        
+
                     );
 
                     estado = 200;
                     mensaje = '✅ LOGIN EXITOSO'
                     break;
-                               
+
                 }
         }
 
@@ -166,11 +166,15 @@ exports.login = async (req, res) => {
         if (estado === 200) {
             console.log('Antes de JWT:', Date.now() - start, 'ms');
             token = jwt.sign(
-                
-                { id_usuario_pk: user.id_usuario_pk },
-                
+
+                {
+                    id_usuario_pk: user.id_usuario_pk,
+                    usuario: user.usuario,
+                    id_sucursal_fk: user.id_sucursal_fk
+                },
+
                 process.env.JWT_SECRET,
-                
+
                 { expiresIn: '1h' }
                 //{ expiresIn: '10s' }
             );
@@ -179,7 +183,7 @@ exports.login = async (req, res) => {
 
         const responseTime = Date.now() - start;
         console.log('Tiempo total login (CORREGIDO):', responseTime, 'ms');
-        
+
 
         //RESPUESTA
         return res.status(estado).json({
@@ -196,7 +200,7 @@ exports.login = async (req, res) => {
             token
         });
 
-        
+
     } catch (err) {
         console.error('Error en login:', err);
         res.status(500).json({ error: "Error al procesar login" });
@@ -204,8 +208,8 @@ exports.login = async (req, res) => {
     } finally {
 
         //SE ASEGURA DE LIBERAR LA CONEXIÓN
-        if (conn) { 
-            conn.release(); 
+        if (conn) {
+            conn.release();
         }
     }
 };
@@ -215,7 +219,7 @@ exports.login = async (req, res) => {
 //ENDPOINT PARA SOLICITAR CÓDIGO DE RESETEO DE CONTRASEÑA
 exports.solicitarCodigoReset = async (req, res) => {
 
-    const { email } = req.body; 
+    const { email } = req.body;
 
     const conn = await mysqlConnection.getConnection();
 
@@ -223,8 +227,8 @@ exports.solicitarCodigoReset = async (req, res) => {
 
         //VERIFICAR SI EL EMAIL PERTENECE A UN USUARIO
         const [result] = await conn.query(
-            `SELECT id_usuario_pk, email_usuario 
-            FROM tbl_usuarios WHERE email_usuario = ?`, 
+            `SELECT id_usuario_pk, email_usuario
+            FROM tbl_usuarios WHERE email_usuario = ?`,
             [email]
         );
 
@@ -237,7 +241,7 @@ exports.solicitarCodigoReset = async (req, res) => {
         }
 
         //SE GENERA EL CÓDIGO OTP Y SE ENVÍA AL EMAIL
-        const codigoOTP = generarCodigoOTP().toString(); 
+        const codigoOTP = generarCodigoOTP().toString();
         const expirationMinutes = 5; //VALIDO POR 5 MINUTOS
 
         console.log(`Código OTP generado para ${email}:`, codigoOTP);
@@ -246,19 +250,19 @@ exports.solicitarCodigoReset = async (req, res) => {
         //LA COLUMNA fecha_expiracion SE LLENA CON LA FECHA ACTUAL + 5 MINUTOS
         await conn.query(
             `INSERT INTO tbl_codigos_2fa (
-                id_usuario_fk, 
-                codigo, 
+                id_usuario_fk,
+                codigo,
                 fecha_expiracion)
              VALUES (?, ?, DATE_ADD(NOW(), INTERVAL ? MINUTE))`,
             [user.id_usuario_pk, codigoOTP, expirationMinutes]
         );
 
-        //SE ENVIA AL CORREO 
+        //SE ENVIA AL CORREO
         //SE USA LA FUNCION ASINCRONICA, POR LO QUE SE USA EL AWAIT
-        await enviarCodigo2FA(user.email_usuario, codigoOTP); 
-        
+        await enviarCodigo2FA(user.email_usuario, codigoOTP);
+
         //RESPUESTA
-        res.status(200).json({ 
+        res.status(200).json({
             success: true,
             message: 'Se ha enviado un código de verificación para restablecer la contraseña.',
             idUsuario: user.id_usuario_pk //SE ENVIA EL ID DEL USUARIO PARA EL SIGUIENTE PASO
@@ -285,9 +289,9 @@ exports.resetearConCodigo = async (req, res) => {
 
         //SE BUSCA EL CÓDIGO EN LA BASE DE DATOS
         const [codeResult] = await conn.query(
-            `SELECT codigo, fecha_expiracion, usado 
-             FROM tbl_codigos_2fa 
-             WHERE id_usuario_fk = ? AND usado = 0 
+            `SELECT codigo, fecha_expiracion, usado
+             FROM tbl_codigos_2fa
+             WHERE id_usuario_fk = ? AND usado = 0
              ORDER BY fecha_creacion DESC LIMIT 1`, //BUSCO EL MÁS RECIENTE
             [idUsuario]
         );
@@ -314,7 +318,7 @@ exports.resetearConCodigo = async (req, res) => {
             `UPDATE tbl_usuarios SET contrasena_usuario = ? WHERE id_usuario_pk = ?`,
             [hashedPassword, idUsuario]
         );
-        
+
         //SE MARCA EL CÓDIGO COMO USADO
         await conn.query(
             `UPDATE tbl_codigos_2fa SET usado = 1 WHERE id_usuario_fk = ? AND codigo = ?`,
