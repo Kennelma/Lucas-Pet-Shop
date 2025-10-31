@@ -52,7 +52,7 @@ router.get ('/facturacion/buscarCliente', verificarToken,facturas.buscarClientes
 router.get ('/facturacion/usuarioFacturacion', verificarToken, facturas.usuarioFactura);
 router.get ('/facturacion/estilistasFacturacion', verificarToken, facturas.buscarEstilistas);
 router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFactura)
-
+router.get  ('/facturacion/verFacturas', facturas.historialFacturas);
 
 
 //========== RUTAS DE REPORTES ==========

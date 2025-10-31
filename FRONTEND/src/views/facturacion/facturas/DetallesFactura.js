@@ -85,7 +85,70 @@ const DetallesFactura = ({
   const DESCUENTO = TOTAL_AJUSTE < 0 ? Math.abs(TOTAL_AJUSTE) : 0;
   const SALDO = TOTAL_FINAL;
 
-  //====================⭐ FUNCIÓN PARA CREAR FACTURA====================
+  //====================⭐ FUNCIÓN PARA GUARDAR FACTURA SIN ABRIR PAGOS====================
+  const handleGuardarFacturaSinPago = async () => {
+    // VALIDACIONES
+    if (items.length === 0) {
+      alert('Debes agregar al menos un item a la factura');
+      return;
+    }
+
+    const itemsInvalidos = items.filter(item => !item.item || item.item === '');
+    if (itemsInvalidos.length > 0) {
+      alert('Todos los items deben tener un producto o servicio seleccionado');
+      return;
+    }
+
+    const itemsSinEstilista = items.filter(item => {
+      const tipo = safeTipo(item.tipo);
+      const requiereEstilista = tipo === "SERVICIOS" || tipo === "PROMOCIONES";
+      const estilistas = item.estilistas || [];
+      return requiereEstilista && estilistas.length === 0;
+    });
+
+    if (itemsSinEstilista.length > 0) {
+      alert('Los servicios y promociones deben tener al menos un estilista asignado');
+      return;
+    }
+
+    // ⭐ CONSTRUIR PAYLOAD PARA EL BACKEND
+    setLoading(true);
+
+    const datosFactura = {
+      RTN: RTN || null,
+      id_cliente: id_cliente || null,
+      items: items.map(item => ({
+        tipo: item.tipo,
+        item: item.item,
+        cantidad: parseFloat(item.cantidad) || 1,
+        ajuste: parseFloat(item.ajuste) || 0,
+        estilistas: (item.estilistas || []).map(est => ({
+          estilistaId: est.estilistaId,
+          cantidadMascotas: parseInt(est.cantidadMascotas) || 0
+        }))
+      }))
+    };
+
+    console.log('📤 Guardando factura sin pagos:', datosFactura);
+
+    try {
+      const response = await crearFactura(datosFactura); // ← Mismo servicio axios
+
+      console.log('📥 Respuesta:', response);
+
+      if (response.success) {
+        alert(`✅ Factura ${response.data.numero_factura} guardada exitosamente!`);
+        onCancel(); // ← Redirige a /facturas
+      }
+    } catch (error) {
+      console.error('❌ Error al crear factura:', error);
+      alert('Error inesperado al crear la factura');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  //====================⭐ FUNCIÓN PARA CREAR FACTURA Y ABRIR MODAL DE PAGOS====================
   const handleOpenPaymentModal = async () => {
     // VALIDACIONES
     if (items.length === 0) {
@@ -129,7 +192,7 @@ const DetallesFactura = ({
       }))
     };
 
-    console.log('📤 Enviando factura:', datosFactura);
+    console.log('📤 Enviando factura con pagos:', datosFactura);
 
     try {
       const response = await crearFactura(datosFactura);
@@ -139,7 +202,7 @@ const DetallesFactura = ({
       if (response.success) {
         alert(`✅ Factura ${response.data.numero_factura} creada exitosamente!\nTotal: L ${response.data.total}\nSaldo: L ${response.data.saldo}`);
 
-        // ⭐ OPCIONAL: Abrir modal de pago
+        // ⭐ Abrir modal de pago
         setPaymentData({
           id_factura: response.data.id_factura,
           numero_factura: response.data.numero_factura,
@@ -404,16 +467,24 @@ const DetallesFactura = ({
           <div className="flex justify-between items-center" style={{ marginTop: '24px', gap: '24px' }}>
             <div className="flex flex-1 justify-center" style={{ gap: '12px' }}>
               <button
+                onClick={handleGuardarFacturaSinPago}
+                disabled={loading}
+                className={`${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white font-semibold rounded-lg transition-colors`}
+                style={{ padding: '12px 32px' }}
+              >
+                {loading ? 'Guardando...' : 'Guardar Factura'}
+              </button>
+              <button
                 onClick={handleOpenPaymentModal}
-                disabled={loading} // ⭐ DESHABILITAR MIENTRAS CARGA
+                disabled={loading}
                 className={`${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'} text-white font-semibold rounded-lg transition-colors`}
                 style={{ padding: '12px 32px' }}
               >
-                {loading ? 'Guardando...' : 'Guardar y Continuar'} {/* ⭐ CAMBIAR TEXTO */}
+                {loading ? 'Guardando...' : 'Guardar y Continuar a Pagos'}
               </button>
               <button
                 onClick={onCancel}
-                disabled={loading} // ⭐ DESHABILITAR MIENTRAS CARGA
+                disabled={loading}
                 className="bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition-colors"
                 style={{ padding: '12px 32px' }}
               >

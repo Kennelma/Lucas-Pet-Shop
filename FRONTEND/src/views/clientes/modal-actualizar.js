@@ -47,18 +47,13 @@ export default function FormularioActualizarCliente({ isOpen, onClose, cliente, 
     }, [cliente]);
 
 
-    const capitalizar = (texto) => {
-        if (!texto) return "";
-        return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
-    };
-
     const handleChange = (e) => {
         const { name, value } = e.target;
 
         let nuevoValor = value;
         if (name === "nombre_cliente" || name === "apellido_cliente") {
             nuevoValor = nuevoValor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
-            nuevoValor = capitalizar(nuevoValor);
+            nuevoValor = nuevoValor.toUpperCase();
         }
 
         setClienteData({ ...clienteData, [name]: nuevoValor });
@@ -88,14 +83,14 @@ export default function FormularioActualizarCliente({ isOpen, onClose, cliente, 
             const res = await actualizarCliente(clienteData);
 
             if (res.Consulta !== false) {
-                
+
                 onClienteActualizado();
                 handleCerrarModal();
-                toast.current.show({ 
-                    severity: 'success', 
-                    summary: 'Actualizado', 
-                    detail: `Cliente ${clienteData.nombre_cliente} (ID: ${clienteData.indexVisual}) actualizado con éxito`, 
-                    life: 2000 
+                toast.current.show({
+                    severity: 'success',
+                    summary: 'Actualizado',
+                    detail: `Cliente ${clienteData.nombre_cliente} (ID: ${clienteData.indexVisual}) actualizado con éxito`,
+                    life: 2000
                 });
             } else {
                 console.error("Error en la consulta:", res.error);

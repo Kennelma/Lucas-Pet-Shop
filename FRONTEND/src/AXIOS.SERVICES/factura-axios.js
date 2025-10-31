@@ -83,3 +83,19 @@ export const obtenerEstilistasFactura = async () => {
     };
   }
 };
+
+
+//SERVICIO PARA OBTENER HISTORIAL DE FACTURAS
+export const obtenerHistorialFacturas = async () => {
+  try {
+    const { data } = await axiosInstance.get(`${API_URL}/verFacturas`);
+    return data;
+  } catch (error) {
+    console.error("Error al obtener historial de facturas:", error);
+    return {
+      success: false,
+      mensaje: error?.response?.data?.mensaje || "Error al obtener el historial de facturas",
+      data: []
+    };
+  }
+};
