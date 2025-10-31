@@ -9,7 +9,6 @@ import {
   verificarEstadoWhatsApp,
   conectarWhatsApp,
   enviarRecordatorioMasivo,
-  
   obtenerQR
 } from '../../AXIOS.SERVICES/reminder';
 import TablaRecordatorios from './tabla-recordatorios';
@@ -28,11 +27,15 @@ const Recordatorios = () => {
   const [checkingConnection, setCheckingConnection] = useState(false);
   const [serverOnline, setServerOnline] = useState(true);
   
+  // ✅ ESTADO INICIAL ACTUALIZADO
   const INITIAL_FORM_DATA = {
     id_recordatorio_pk: null, 
     mensaje_recordatorio: '',
     id_tipo_item_fk: '',
-    id_frecuencia_fk: ''
+    id_frecuencia_fk: '',
+    fecha_programada: '',
+    hora_programada: '',
+    tipo_envio: 'programar' // ✅ NUEVO: 'programar' | 'inmediato' | 'ambos'
   };
 
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
@@ -222,19 +225,25 @@ const Recordatorios = () => {
       return;
     }
 
-    try {
-      setLoading(true);
-      const recordatoriosData = await verRecordatorios(); 
-      setRecordatorios(recordatoriosData || []);
+ try {
+    setLoading(true);
+    const recordatoriosData = await verRecordatorios(); 
+    setRecordatorios(recordatoriosData || []);
 
-      const resTipos = await verCatalogo('TIPO_SERVICIO');
-      const resFrecuencias = await verCatalogo('FRECUENCIA');
-      const resEstados = await verCatalogo('ESTADO');
+    console.log('🔄 Cargando catálogos...');
+    
+    const resTipos = await verCatalogo('TIPO_SERVICIO');
+    console.log('📊 Tipos de servicio:', resTipos);
+    
+    const resFrecuencias = await verCatalogo('FRECUENCIA');
+    console.log('📊 Frecuencias:', resFrecuencias);
+    
+    const resEstados = await verCatalogo('ESTADO');
+    console.log('📊 Estados:', resEstados);
 
-      setTiposItems(resTipos?.servicios || []);
-      setFrecuencias(resFrecuencias?.servicios || []);
-      setEstadosProgramacion(resEstados?.servicios || []);
-    } catch (err) {
+    setTiposItems(resTipos?.servicios || []);
+    setFrecuencias(resFrecuencias?.servicios || []);
+    setEstadosProgramacion(resEstados?.servicios || []);    } catch (err) {
       console.error('Error cargando datos:', err);
       if (!err.message.includes('Network Error')) {
         Swal.fire('Error', 'No se pudieron cargar los datos', 'error');
@@ -242,19 +251,43 @@ const Recordatorios = () => {
     } finally {
       setLoading(false);
     }
+
+
   };
 
   const abrirModalAgregar = () => {
-    setFormData(INITIAL_FORM_DATA);
+    // ✅ INICIALIZAR CON FECHA Y HORA POR DEFECTO
+    const hoy = new Date();
+    const fechaMinima = hoy.toISOString().split('T')[0];
+    const horaPorDefecto = new Date(hoy.setHours(hoy.getHours() + 1))
+      .toTimeString().slice(0, 5);
+    
+    setFormData({
+      ...INITIAL_FORM_DATA,
+      fecha_programada: fechaMinima,
+      hora_programada: horaPorDefecto
+    });
     setModalVisible(true);
   };
 
   const abrirModalActualizar = (recordatorio) => {
+    // ✅ CONVERTIR FECHA DE LA BASE DE DATOS
+    let fechaProgramada = "";
+    let horaProgramada = "09:00";
+    
+    if (recordatorio.proximo_envio) {
+      const fecha = new Date(recordatorio.proximo_envio);
+      fechaProgramada = fecha.toISOString().split('T')[0];
+      horaProgramada = fecha.toTimeString().slice(0, 5);
+    }
+
     setFormData({
       id_recordatorio_pk: recordatorio.id_recordatorio_pk,
       mensaje_recordatorio: recordatorio.mensaje_recordatorio,
       id_tipo_item_fk: String(recordatorio.id_tipo_item_fk),
-      id_frecuencia_fk: String(recordatorio.id_frecuencia_fk)
+      id_frecuencia_fk: String(recordatorio.id_frecuencia_fk),
+      fecha_programada: fechaProgramada,
+      hora_programada: horaProgramada
     });
     setModalActualizarVisible(true);
   };
@@ -277,8 +310,9 @@ const Recordatorios = () => {
     }));
   };
 
-  // 🔹 GUARDAR Y ENVIAR CON BAILEYS - MEJORADO CON PRÓXIMO ENVÍO
+  // 🔹 FUNCIÓN PRINCIPAL MEJORADA CON LAS 3 OPCIONES
   const guardarRecordatorio = async () => {
+    // Validaciones básicas
     if (!formData.mensaje_recordatorio?.trim()) {
       Swal.fire('Campo requerido', 'El mensaje del recordatorio es obligatorio', 'warning');
       return;
@@ -287,155 +321,163 @@ const Recordatorios = () => {
       Swal.fire('Campo requerido', 'Debe seleccionar un tipo de servicio', 'warning');
       return;
     }
-    if (!formData.id_frecuencia_fk) {
-      Swal.fire('Campo requerido', 'Debe seleccionar una frecuencia', 'warning');
-      return;
+
+    // ✅ VALIDACIÓN MEJORADA SEGÚN TIPO DE ENVÍO
+    if (formData.tipo_envio === 'programar' || formData.tipo_envio === 'ambos') {
+      if (!formData.id_frecuencia_fk) {
+        Swal.fire('Campo requerido', 'Debe seleccionar una frecuencia para la programación', 'warning');
+        return;
+      }
+      if (!formData.fecha_programada || !formData.hora_programada) {
+        Swal.fire('Campos requeridos', 'Debe seleccionar fecha y hora para la programación', 'warning');
+        return;
+      }
+
+      // Validar que la fecha programada no sea pasada
+      const fechaProgramada = new Date(`${formData.fecha_programada}T${formData.hora_programada}`);
+      const ahora = new Date();
+      if (fechaProgramada < ahora) {
+        Swal.fire('Fecha inválida', 'No puede programar recordatorios para fechas pasadas', 'warning');
+        return;
+      }
     }
 
-    // Verificar si WhatsApp está conectado
-    if (!whatsappConnected) {
+    // Verificar WhatsApp para envíos inmediatos
+    const necesitaWhatsApp = formData.tipo_envio === 'inmediato' || formData.tipo_envio === 'ambos';
+    
+    if (necesitaWhatsApp && !whatsappConnected) {
       const result = await Swal.fire({
         icon: 'warning',
         title: 'WhatsApp no conectado',
-        text: '¿Deseas conectar WhatsApp ahora para enviar automáticamente?',
+        text: '¿Deseas conectar WhatsApp ahora para enviar el recordatorio?',
         showCancelButton: true,
         confirmButtonText: 'Sí, conectar',
-        cancelButtonText: 'Solo guardar'
+        cancelButtonText: 'Cancelar envío'
       });
 
       if (result.isConfirmed) {
         await handleConectarWhatsApp();
         if (!whatsappConnected) {
-          await guardarSoloRecordatorio();
+          Swal.fire('WhatsApp no conectado', 'No se pudo conectar WhatsApp. El envío inmediato no se realizará.', 'warning');
           return;
         }
       } else {
-        await guardarSoloRecordatorio();
-        return;
+        return; // Usuario canceló
       }
     }
 
-    await guardarYEnviarRecordatorio();
+    // Ejecutar según el tipo de envío
+    await ejecutarGuardado();
   };
 
-  // 🔹 FUNCIÓN PARA SOLO GUARDAR (SIN ENVIAR)
-  const guardarSoloRecordatorio = async () => {
-    setLoading(true);
+  // 🔹 FUNCIÓN ÚNICA DE GUARDADO MEJORADA
+  // 🔹 FUNCIÓN ÚNICA DE GUARDADO MEJORADA
+// 🔹 FUNCIÓN ÚNICA DE GUARDADO MEJORADA
+const ejecutarGuardado = async () => {
+  setLoading(true);
 
-    const datosEnviar = {
-      mensaje_recordatorio: formData.mensaje_recordatorio.trim(),
-      id_tipo_item_fk: parseInt(formData.id_tipo_item_fk),
-      id_frecuencia_fk: parseInt(formData.id_frecuencia_fk),
-    };
+  // ✅ SI ES "SOLO ENVIAR AHORA", USAR FRECUENCIA DIARIA POR DEFECTO
+  let frecuenciaEnviar = parseInt(formData.id_frecuencia_fk);
+  
+  if (formData.tipo_envio === 'inmediato') {
+    // Buscar frecuencia diaria en el catálogo
+    const frecuenciaDiaria = frecuencias.find(f => f.dias_intervalo === 1);
+    frecuenciaEnviar = frecuenciaDiaria ? frecuenciaDiaria.id_frecuencia_record_pk : 1;
+    console.log('🚀 Usando frecuencia por defecto para envío inmediato:', frecuenciaEnviar);
+  }
 
-    try {
-      const resultado = await insertarRecordatorio(datosEnviar);
+  const datosEnviar = {
+    mensaje_recordatorio: formData.mensaje_recordatorio.trim(),
+    id_tipo_item_fk: parseInt(formData.id_tipo_item_fk),
+    id_frecuencia_fk: frecuenciaEnviar, // ✅ Siempre enviar una frecuencia válida
+    fecha_programada: formData.tipo_envio === 'inmediato' ? null : formData.fecha_programada,
+    hora_programada: formData.tipo_envio === 'inmediato' ? null : formData.hora_programada,
+    tipo_envio: formData.tipo_envio
+  };
 
-      if (resultado.Consulta) {
-        cerrarModalAgregar();
-        await cargarTodo();
-        
+  console.log('📤 Datos a enviar al backend:', datosEnviar);
+
+  try {
+    const resultado = await insertarRecordatorio(datosEnviar);
+
+    if (resultado.Consulta) {
+      cerrarModalAgregar();
+      await cargarTodo();
+
+      // ✅ MENSAJES SEGÚN EL TIPO DE ENVÍO
+      if (formData.tipo_envio === 'programar') {
+        const frecuencia = frecuencias.find(f => f.id_frecuencia_record_pk == formData.id_frecuencia_fk);
         Swal.fire({
           icon: 'success',
-          title: 'Recordatorio guardado',
+          title: '✅ Recordatorio programado',
           html: `
             <div class="text-left">
-              <p>✅ <strong>Recordatorio programado</strong></p>
-              <p class="text-sm text-gray-600 mt-2">
-                Se enviará automáticamente según la frecuencia seleccionada.
-              </p>
+              <p><strong>El recordatorio ha sido programado exitosamente</strong></p>
+              <div class="mt-3 space-y-2 text-sm">
+                <p><strong>📅 Primer envío:</strong> ${new Date(formData.fecha_programada).toLocaleDateString('es-ES')} a las ${formData.hora_programada}</p>
+                <p><strong>🔄 Frecuencia:</strong> Cada ${frecuencia?.dias_intervalo || 'N/A'} días</p>
+                <p class="text-xs text-gray-500 mt-2">
+                  El recordatorio se enviará automáticamente según esta programación.
+                </p>
+              </div>
             </div>
           `,
-          timer: 3000
+          timer: 5000
         });
-      }
-
-    } catch (error) {
-      console.error('Error al guardar recordatorio:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error.message || 'No se pudo guardar el recordatorio',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 🔹 FUNCIÓN PARA GUARDAR Y ENVIAR INMEDIATAMENTE
-  const guardarYEnviarRecordatorio = async () => {
-    setLoading(true);
-
-    const datosEnviar = {
-      mensaje_recordatorio: formData.mensaje_recordatorio.trim(),
-      id_tipo_item_fk: parseInt(formData.id_tipo_item_fk),
-      id_frecuencia_fk: parseInt(formData.id_frecuencia_fk),
-    };
-
-    try {
-      const resultado = await insertarRecordatorio(datosEnviar);
-
-      if (resultado.Consulta) {
-        cerrarModalAgregar();
-        await cargarTodo();
-
-        // 🔹 ENVÍO INMEDIATO CON BAILEYS
+      } 
+      else if (formData.tipo_envio === 'inmediato') {
+        // El envío inmediato ahora lo maneja el backend automáticamente
         Swal.fire({
-          title: 'Enviando mensajes...',
-          html: 'Por favor espera mientras se envían los recordatorios',
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          }
-        });
-
-        const token = sessionStorage.getItem("token");
-        const envioRes = await axios.post(
-          `${API_URL}/whatsapp/enviar-masivo`,
-          {
-            id_recordatorio: resultado.id_recordatorio,
-            mensaje: formData.mensaje_recordatorio.trim()
-          },
-          {
-            headers: { "Authorization": `Bearer ${token}` }
-          }
-        );
-
-        const { exitosos, fallidos, total } = envioRes.data.resultados;
-
-        // Recargar para ver estados actualizados
-        await cargarTodo();
-
-        Swal.fire({
-          icon: fallidos.length === 0 ? 'success' : 'warning',
-          title: fallidos.length === 0 ? '¡Éxito Total!' : 'Envío Parcial',
+          icon: 'success',
+          title: '✅ Recordatorio enviado',
           html: `
             <div class="text-left">
-              <p><strong>Envío inmediato completado:</strong></p>
-              <p><strong>Total:</strong> ${total} clientes</p>
-              <p><strong>✅ Exitosos:</strong> ${exitosos.length}</p>
-              <p><strong>❌ Fallidos:</strong> ${fallidos.length}</p>
-              <p class="text-sm text-gray-600 mt-2">
-                El recordatorio seguirá enviándose automáticamente según la frecuencia seleccionada.
-              </p>
+              <p><strong>El recordatorio ha sido enviado exitosamente</strong></p>
+              <div class="mt-3 space-y-2 text-sm">
+                <p><strong>🚀 Envío:</strong> Completado inmediatamente</p>
+                <p class="text-xs text-gray-500 mt-2">
+                  Este fue un envío único. No hay programación futura.
+                </p>
+              </div>
             </div>
           `,
           timer: 5000
         });
       }
-
-    } catch (error) {
-      console.error('Error al guardar y enviar recordatorio:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error.message || 'No se pudo completar la operación',
-      });
-    } finally {
-      setLoading(false);
+      else if (formData.tipo_envio === 'ambos') {
+        const frecuencia = frecuencias.find(f => f.id_frecuencia_record_pk == formData.id_frecuencia_fk);
+        Swal.fire({
+          icon: 'success',
+          title: '✅ Recordatorio enviado y programado',
+          html: `
+            <div class="text-left">
+              <p><strong>El recordatorio ha sido procesado exitosamente</strong></p>
+              <div class="mt-3 space-y-2 text-sm">
+                <p><strong>🚀 Envío inmediato:</strong> Completado</p>
+                <p><strong>📅 Próximo envío programado:</strong> ${new Date(formData.fecha_programada).toLocaleDateString('es-ES')} a las ${formData.hora_programada}</p>
+                <p><strong>🔄 Frecuencia:</strong> Cada ${frecuencia?.dias_intervalo || 'N/A'} días</p>
+                <p class="text-xs text-gray-500 mt-2">
+                  El recordatorio continuará enviándose automáticamente según la frecuencia.
+                </p>
+              </div>
+            </div>
+          `,
+          timer: 6000
+        });
+      }
     }
-  };
 
+  } catch (error) {
+    console.error('Error al guardar recordatorio:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.message || 'No se pudo completar la operación',
+    });
+  } finally {
+    setLoading(false);
+  }
+};
   // 🔹 MODAL QR
   const QRModal = () => (
     <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${showQRModal ? 'block' : 'hidden'}`}>
@@ -557,6 +599,7 @@ const Recordatorios = () => {
             )}
           </div>
 
+          {/* ✅ BOTÓN AGREGAR CORREGIDO */}
           <BotonAgregar 
             onClick={abrirModalAgregar}
             loading={loading}

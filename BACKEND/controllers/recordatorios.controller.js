@@ -7,21 +7,74 @@ exports.crear = async (req, res) => {
 
     try {
         let proximoEnvio = null;
-        const { id_frecuencia_fk } = req.body;
+        let idFrecuencia = null;
+        const { id_frecuencia_fk, fecha_programada, hora_programada, tipo_envio } = req.body;
         
-        if (id_frecuencia_fk) {
-            const [frecuenciaData] = await conn.query(
-                `SELECT dias_intervalo FROM cat_frecuencia_recordatorio WHERE id_frecuencia_record_pk = ?`,
-                [id_frecuencia_fk]
+        console.log('📥 Datos recibidos:', {
+            tipo_envio,
+            id_frecuencia_fk,
+            fecha_programada,
+            hora_programada
+        });
+
+        // ✅ LÓGICA MEJORADA SEGÚN TIPO DE ENVÍO
+        if (tipo_envio === 'programar' || tipo_envio === 'ambos') {
+            // Programar para fecha/hora específica
+            idFrecuencia = id_frecuencia_fk;
+            
+            if (fecha_programada && hora_programada) {
+                const fechaHoraProgramada = new Date(`${fecha_programada} ${hora_programada}`);
+                proximoEnvio = fechaHoraProgramada.toISOString().slice(0, 19).replace('T', ' ');
+                console.log('📅 Fecha programada:', proximoEnvio);
+            }
+        } else if (tipo_envio === 'inmediato') {
+            // Envío inmediato - usar frecuencia por defecto (diaria)
+            // Buscar frecuencia diaria en la base de datos
+            const [frecuenciaDiaria] = await conn.query(
+                `SELECT id_frecuencia_record_pk FROM cat_frecuencia_recordatorio WHERE dias_intervalo = 1 LIMIT 1`
             );
             
-            if (frecuenciaData.length > 0 && frecuenciaData[0].dias_intervalo) {
-                const diasIntervalo = frecuenciaData[0].dias_intervalo;
-                proximoEnvio = new Date();
-                proximoEnvio.setDate(proximoEnvio.getDate() + diasIntervalo);
-                proximoEnvio = proximoEnvio.toISOString().slice(0, 19).replace('T', ' ');
+            if (frecuenciaDiaria.length > 0) {
+                idFrecuencia = frecuenciaDiaria[0].id_frecuencia_record_pk;
+            } else {
+                // Si no hay frecuencia diaria, usar la primera disponible
+                const [primeraFrecuencia] = await conn.query(
+                    `SELECT id_frecuencia_record_pk FROM cat_frecuencia_recordatorio ORDER BY id_frecuencia_record_pk LIMIT 1`
+                );
+                idFrecuencia = primeraFrecuencia[0].id_frecuencia_record_pk;
+            }
+            console.log('🚀 Envío inmediato - usando frecuencia:', idFrecuencia);
+        } else {
+            // Comportamiento por defecto (programar con frecuencia)
+            idFrecuencia = id_frecuencia_fk;
+            
+            if (id_frecuencia_fk) {
+                const [frecuenciaData] = await conn.query(
+                    `SELECT dias_intervalo FROM cat_frecuencia_recordatorio WHERE id_frecuencia_record_pk = ?`,
+                    [id_frecuencia_fk]
+                );
+                
+                if (frecuenciaData.length > 0 && frecuenciaData[0].dias_intervalo) {
+                    const diasIntervalo = frecuenciaData[0].dias_intervalo;
+                    proximoEnvio = new Date();
+                    proximoEnvio.setDate(proximoEnvio.getDate() + diasIntervalo);
+                    proximoEnvio = proximoEnvio.toISOString().slice(0, 19).replace('T', ' ');
+                    console.log('📅 Fecha calculada por frecuencia:', proximoEnvio);
+                }
             }
         }
+
+        // ✅ VALIDAR QUE TENEMOS UNA FRECUENCIA VÁLIDA
+        if (!idFrecuencia) {
+            throw new Error('Se requiere una frecuencia para el recordatorio');
+        }
+
+        console.log('💾 Insertando recordatorio con:', {
+            mensaje: req.body.mensaje_recordatorio,
+            tipo_item: req.body.id_tipo_item_fk,
+            frecuencia: idFrecuencia,
+            proximo_envio: proximoEnvio
+        });
 
         const [result] = await conn.query(
             `INSERT INTO tbl_recordatorios (
@@ -35,17 +88,79 @@ exports.crear = async (req, res) => {
             [
                 req.body.mensaje_recordatorio,
                 req.body.id_tipo_item_fk,
-                req.body.id_frecuencia_fk,
+                idFrecuencia,
                 proximoEnvio
             ]
         );
 
         await conn.commit();
+        
+        // ✅ SI ES ENVÍO INMEDIATO O AMBOS, EJECUTAR EL ENVÍO
+        if (tipo_envio === 'inmediato' || tipo_envio === 'ambos') {
+            console.log('🚀 Envío inmediato solicitado para recordatorio:', result.insertId);
+            
+            try {
+                // Lógica para enviar inmediatamente
+                const whatsappService = require('../services/whatsappService');
+                
+                if (whatsappService.isConnected) {
+                    // Obtener números de teléfono de clientes
+                    const [clientes] = await conn.query(
+                        `SELECT DISTINCT telefono_cliente 
+                         FROM tbl_clientes 
+                         WHERE telefono_cliente IS NOT NULL 
+                         AND telefono_cliente != ''
+                         AND LENGTH(TRIM(telefono_cliente)) >= 8`
+                    );
+
+                    if (clientes.length > 0) {
+                        const numeros = clientes.map(c => c.telefono_cliente);
+                        console.log(`📤 Enviando inmediatamente a ${numeros.length} números...`);
+                        
+                        // Actualizar estado a "Enviando"
+                        await conn.query(
+                            `UPDATE tbl_recordatorios 
+                             SET id_estado_programacion_fk = 2 
+                             WHERE id_recordatorio_pk = ?`,
+                            [result.insertId]
+                        );
+
+                        // Enviar mensajes
+                        const resultados = await whatsappService.enviarMasivo(numeros, req.body.mensaje_recordatorio);
+
+                        // Determinar estado final
+                        let estadoFinal = 3; // Enviado exitosamente
+                        if (resultados.fallidos.length > 0 && resultados.exitosos.length === 0) {
+                            estadoFinal = 4; // Fallido completamente
+                        } else if (resultados.fallidos.length > 0) {
+                            estadoFinal = 5; // Enviado parcialmente
+                        }
+
+                        await conn.query(
+                            `UPDATE tbl_recordatorios 
+                             SET id_estado_programacion_fk = ?,
+                                 ultimo_envio = NOW(),
+                                 intentos = intentos + 1
+                             WHERE id_recordatorio_pk = ?`,
+                            [estadoFinal, result.insertId]
+                        );
+
+                        console.log(`✅ Envío inmediato completado: ${resultados.exitosos.length}/${resultados.total}`);
+                    }
+                } else {
+                    console.log('⚠️ WhatsApp no conectado, no se puede enviar inmediatamente');
+                }
+            } catch (envioError) {
+                console.error('❌ Error en envío inmediato:', envioError);
+            }
+        }
+
         res.status(200).json({
             Consulta: true,
             mensaje: 'Recordatorio creado con éxito',
             id_recordatorio: result.insertId
         });
+
     } catch (err) {
         await conn.rollback();
         console.error('Error al crear recordatorio:', err);
@@ -75,7 +190,7 @@ exports.ver = async (req, res) => {
     }
 };
 
-// ACTUALIZAR RECORDATORIO - CORREGIDO
+// ACTUALIZAR RECORDATORIO
 exports.actualizar = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
     await conn.beginTransaction();
@@ -188,6 +303,7 @@ exports.eliminar = async (req, res) => {
     }
 };
 
+// VER CATÁLOGO
 exports.verCatalogo = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
 
@@ -234,3 +350,4 @@ exports.verCatalogo = async (req, res) => {
         conn.release();
     }  
 };
+

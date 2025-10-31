@@ -257,7 +257,73 @@ class WhatsAppService {
     sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
+    // 🔄 AGREGAR ESTO AL FINAL DE LA CLASE WhatsAppService
+startScheduler() {
+    // Verificar cada minuto si hay recordatorios pendientes
+   setInterval(async () => {
+    if (!whatsappService.isConnected) return;
+    
+    try {
+        const mysqlConnection = require('./config/conexion');
+        const conn = await mysqlConnection.getConnection();
+        
+        // Buscar recordatorios cuya fecha ya pasó
+        const [recordatorios] = await conn.query(`
+            SELECT * FROM tbl_recordatorios 
+            WHERE proximo_envio <= NOW() 
+            AND id_estado_programacion_fk IN (1, 3, 5)
+            AND activo = 1
+        `);
+
+        if (recordatorios.length > 0) {
+            console.log(`📨 Enviando ${recordatorios.length} recordatorios pendientes...`);
+            
+            for (const recordatorio of recordatorios) {
+                // Enviar y actualizar fecha
+                const [clientes] = await conn.query(`
+                    SELECT telefono_cliente FROM tbl_clientes 
+                    WHERE telefono_cliente IS NOT NULL 
+                `);
+
+                if (clientes.length > 0) {
+                    const numeros = clientes.map(c => c.telefono_cliente);
+                    await whatsappService.enviarMasivo(numeros, recordatorio.mensaje_recordatorio);
+                    
+                    // Calcular nueva fecha
+                    if (recordatorio.id_frecuencia_fk) {
+                        const [frecuencia] = await conn.query(
+                            `SELECT dias_intervalo FROM cat_frecuencia_recordatorio 
+                             WHERE id_frecuencia_record_pk = ?`,
+                            [recordatorio.id_frecuencia_fk]
+                        );
+                        
+                        if (frecuencia[0]) {
+                            const nuevaFecha = new Date();
+                            nuevaFecha.setDate(nuevaFecha.getDate() + frecuencia[0].dias_intervalo);
+                            
+                            await conn.query(
+                                `UPDATE tbl_recordatorios 
+                                 SET proximo_envio = ?, ultimo_envio = NOW(), id_estado_programacion_fk = 3
+                                 WHERE id_recordatorio_pk = ?`,
+                                [nuevaFecha, recordatorio.id_recordatorio_pk]
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        
+        conn.release();
+    } catch (error) {
+        console.log('⚠️ Error en recordatorios automáticos:', error.message);
+    }
+}, 60000); // Cada minuto
+
+console.log('✅ Recordatorios automáticos ACTIVADOS')
+;}
 }
+
+
 
 const whatsappService = new WhatsAppService();
 module.exports = whatsappService;

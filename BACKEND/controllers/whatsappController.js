@@ -5,7 +5,7 @@ const mysqlConnection = require('../config/conexion');
 let currentQR = null;
 let currentQRBase64 = null;
 
-// 🔹 Registrar listener para QR (recibe ambos parámetros del service)
+// 🔹 Registrar listener para QR
 whatsappService.onQRGenerated(async (qr, qrBase64) => {
     currentQR = qr;
     currentQRBase64 = qrBase64;
@@ -64,6 +64,41 @@ exports.disconnect = async (req, res) => {
             mensaje: 'WhatsApp desconectado'
         });
     } catch (error) {
+        res.status(500).json({
+            Consulta: false,
+            error: error.message
+        });
+    }
+};
+
+// 🔄 Forzar reconexión
+exports.reconnect = async (req, res) => {
+    try {
+        console.log('🔄 Forzando reconexión WhatsApp...');
+        
+        // Limpiar QR anterior
+        currentQR = null;
+        currentQRBase64 = null;
+        
+        // Desconectar si está conectado
+        if (whatsappService.isConnected) {
+            await whatsappService.disconnect();
+        }
+        
+        // Esperar un poco
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Conectar de nuevo
+        await whatsappService.connect();
+        
+        res.json({
+            Consulta: true,
+            mensaje: 'Reconexión forzada iniciada. Escanea el nuevo QR.',
+            qrCode: currentQR,
+            qrBase64: currentQRBase64
+        });
+    } catch (error) {
+        console.error('❌ Error en reconexión:', error);
         res.status(500).json({
             Consulta: false,
             error: error.message
@@ -227,7 +262,6 @@ exports.enviarRecordatorioMasivo = async (req, res) => {
     } catch (error) {
         console.error('Error en envío masivo:', error);
         
-        // Asegurar que id_recordatorio está definido en este scope
         if (req.body.id_recordatorio) {
             await conn.query(
                 `UPDATE tbl_recordatorios 
@@ -243,5 +277,41 @@ exports.enviarRecordatorioMasivo = async (req, res) => {
         });
     } finally {
         conn.release();
+    }
+};
+
+// 📨 Enviar mensaje individual
+exports.enviarMensajeIndividual = async (req, res) => {
+    try {
+        const { numero, mensaje } = req.body;
+
+        if (!whatsappService.isConnected) {
+            return res.status(400).json({
+                Consulta: false,
+                error: 'WhatsApp no está conectado'
+            });
+        }
+
+        if (!numero || !mensaje) {
+            return res.status(400).json({
+                Consulta: false,
+                error: 'Número y mensaje son requeridos'
+            });
+        }
+
+        const resultado = await whatsappService.enviarMensaje(numero, mensaje);
+
+        res.json({
+            Consulta: resultado.success,
+            mensaje: resultado.success ? 'Mensaje enviado' : 'Error al enviar',
+            resultado
+        });
+
+    } catch (error) {
+        console.error('❌ Error enviando mensaje:', error);
+        res.status(500).json({
+            Consulta: false,
+            error: error.message
+        });
     }
 };
