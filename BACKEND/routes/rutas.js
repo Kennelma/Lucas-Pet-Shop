@@ -4,16 +4,15 @@ const router = express.Router();
 
 const { verificarToken } = require('../middleware/auth');
 
+
 const auth = require('../controllers/auth.controller');
 const clientes = require('../controllers/clientes.controller');
 const productos = require('../controllers/productos.controller');
 const servicios = require('../controllers/peluqueria.controller');
 const empresa = require('../controllers/empresa.controller');
-const recordatoriosController = require('../controllers/recordatorios.controller');
+const recordatorios = require('../controllers/recordatorios.controller');
 const estilistas = require('../controllers/empleados.controller');
-
-const whatsappController = require('../controllers/whatsapp.controller');
-
+const facturas = require('../controllers/facturacion.controller')
 
 //========== RUTAS DE AUTENTICACIÓN Y SEGURIDAD ==========
 router.post('/login', auth.login);
@@ -34,7 +33,7 @@ router.get('/servicios-peluqueria/ver', verificarToken, servicios.visualizar);
 router.delete('/servicios-peluqueria/eliminar', verificarToken, servicios.eliminar);
 
 //========== RUTAS DE MÓDULO DE CLIENTES ==========
-router.get ('/clientes/ver', verificarToken, clientes.ver); // ✅ CORREGIDO: Agregada coma
+router.get ('/clientes/ver', verificarToken, clientes.ver);
 router.post('/clientes/insertar',verificarToken, clientes.crear);
 router.delete ('/clientes/eliminar', verificarToken, clientes.eliminar);
 router.put('/clientes/actualizar', verificarToken, clientes.actualizar);
@@ -45,7 +44,15 @@ router.get ('/empresa/ver', verificarToken, empresa.ver);
 router.delete ('/empresa/eliminar', verificarToken, empresa.eliminar);
 router.put('/empresa/actualizar', verificarToken, empresa.actualizar);
 
+
 //========== RUTAS DE FACTURACIÓN ==========
+router.get ('/facturacion/detallesFactura', verificarToken, facturas.detallesFactura);
+router.get ('/facturacion/buscarCliente', verificarToken,facturas.buscarClientesPorIdentidad);
+router.get ('/facturacion/usuarioFacturacion', verificarToken, facturas.usuarioFactura);
+router.get ('/facturacion/estilistasFacturacion', verificarToken, facturas.buscarEstilistas);
+router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFactura)
+
+
 
 //========== RUTAS DE REPORTES ==========
 
@@ -58,11 +65,11 @@ router.put('/estilistas/actualizar', verificarToken, estilistas.actualizar);
 router.delete ('/estilistas/eliminar', verificarToken, estilistas.eliminar);
 
 //========== RUTAS DE RECORDATORIOS ==========
-router.post('/recordatorios/crear', verificarToken, recordatoriosController.crear);
-router.get('/recordatorios/ver', verificarToken, recordatoriosController.ver);
-router.put('/recordatorios/actualizar', verificarToken, recordatoriosController.actualizar);
-router.delete('/recordatorios/eliminar', verificarToken, recordatoriosController.eliminar);
-router.get('/recordatorios/catalogo', verificarToken, recordatoriosController.verCatalogo);
+router.post('/recordatorios/crear', verificarToken, recordatorios.crear);
+router.get('/recordatorios/ver', verificarToken, recordatorios.ver);
+router.put('/recordatorios/actualizar', verificarToken, recordatorios.actualizar);
+router.delete('/recordatorios/eliminar', verificarToken, recordatorios.eliminar);
+router.get('/recordatorios/catalogo', verificarToken, recordatorios.verCatalogo);
 
 // ========== RUTAS DE WHATSAPP ==========
 router.get('/whatsapp/qr', whatsappController.obtenerQR);

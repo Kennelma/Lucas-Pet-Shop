@@ -1,726 +1,28 @@
-import React, { useState, useEffect } from "react";
-import { verProductos, insertarProducto, actualizarProducto, eliminarProducto } from "../../../AXIOS.SERVICES/products-axios";
-import MedicamentosBajoStock from "./MedicamentosBajoStock";
-
-const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando }) => {
-  const [paso, setPaso] = useState(1);
-  const [formData, setFormData] = useState({
-    nombre_producto: "",
-    precio_producto: "",
-    stock_minimo: 5,
-    presentacion: "",
-    tipo: "",
-    cantidad_contenido: "",
-    unidad_medida: "",
-    activo: true,
-    codigo_lote: "",
-    fecha_vencimiento: "",
-    stock_lote: ""
-  });
-
-  useEffect(() => {
-    if (isOpen) {
-      if (medicamentoEditando) {
-        setFormData({
-          nombre_producto: medicamentoEditando.nombre_producto,
-          precio_producto: medicamentoEditando.precio_producto,
-          stock_minimo: medicamentoEditando.stock_minimo || 5,
-          presentacion: medicamentoEditando.presentacion_medicamento,
-          tipo: medicamentoEditando.tipo_medicamento,
-          cantidad_contenido: medicamentoEditando.cantidad_contenido,
-          unidad_medida: medicamentoEditando.unidad_medida,
-          activo: medicamentoEditando.activo,
-          codigo_lote: "",
-          fecha_vencimiento: "",
-          stock_lote: ""
-        });
-        setPaso(1);
-      } else {
-        setFormData({
-          nombre_producto: "",
-          precio_producto: "",
-          stock_minimo: 5,
-          presentacion: "",
-          tipo: "",
-          cantidad_contenido: "",
-          unidad_medida: "",
-          activo: true,
-          codigo_lote: "",
-          fecha_vencimiento: "",
-          stock_lote: ""
-        });
-        setPaso(1);
-      }
-    }
-  }, [isOpen, medicamentoEditando]);
-
-  if (!isOpen) return null;
-
-  const validarPaso1 = () => {
-    if (!formData.nombre_producto.trim()) return "⚠️ Ingrese el nombre del producto";
-    if (!formData.precio_producto || parseFloat(formData.precio_producto) <= 0) return "⚠️ Ingrese un precio válido";
-    if (!formData.presentacion.trim()) return "⚠️ Ingrese la presentación";
-    if (!formData.tipo.trim()) return "⚠️ Ingrese el tipo de medicamento";
-    if (parseInt(formData.stock_minimo) < 5) return "⚠️ El stock mínimo debe ser al menos 5";
-    return null;
-  };
-
-  const validarPaso2 = () => {
-    if (!formData.codigo_lote.trim()) return "⚠️ Ingrese el código de lote";
-    if (!formData.fecha_vencimiento) return "⚠️ Ingrese la fecha de vencimiento";
-    if (!formData.stock_lote || parseInt(formData.stock_lote) <= 0) return "⚠️ Ingrese una cantidad válida";
-    return null;
-  };
-
-  const handleSiguiente = () => {
-    const error = validarPaso1();
-    if (error) {
-      alert(error);
-      return;
-    }
-    setPaso(2);
-  };
-
-  const handleGuardar = () => {
-    if (medicamentoEditando) {
-      const error = validarPaso1();
-      if (error) {
-        alert(error);
-        return;
-      }
-    } else {
-      const error = validarPaso2();
-      if (error) {
-        alert(error);
-        return;
-      }
-    }
-    onSave(formData);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">
-            {medicamentoEditando ? "Editar Medicamento" : "Nuevo Medicamento"}
-          </h2>
-          {!medicamentoEditando && (
-            <div className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                paso === 1 ? 'bg-purple-600 text-white' : 'bg-green-500 text-white'
-              }`}>
-                1
-              </div>
-              <div className="w-8 h-1 bg-gray-300"></div>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                paso === 2 ? 'bg-purple-600 text-white' : 'bg-gray-300 text-gray-600'
-              }`}>
-                2
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* PASO 1: DATOS DEL MEDICAMENTO */}
-        {paso === 1 && (
-          <div className="space-y-3">
-            <div className="bg-purple-50 p-3 rounded text-sm mb-3 border border-purple-200">
-              <div className="font-bold text-purple-700 mb-1">📋 Paso 1: Información del Medicamento</div>
-              <div className="text-xs text-purple-600">Complete los datos básicos del producto</div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold mb-1">Nombre del Producto *</label>
-              <input
-                value={formData.nombre_producto}
-                onChange={(e) => setFormData({...formData, nombre_producto: e.target.value})}
-                placeholder="Ej: ANTIPULGAS CANINO"
-                className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-sm font-semibold mb-1">Precio (L.) *</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.precio_producto}
-                  onChange={(e) => setFormData({...formData, precio_producto: e.target.value})}
-                  placeholder="250.50"
-                  className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1">Stock Mínimo *</label>
-                <input
-                  type="number"
-                  min="5"
-                  value={formData.stock_minimo}
-                  onChange={(e) => {
-                    const valor = e.target.value;
-                    setFormData({...formData, stock_minimo: valor});
-                  }}
-                  placeholder="5"
-                  className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-            </div>
-            <span className="text-xs text-gray-500">* Stock mínimo: 5 unidades</span>
-
-            <div>
-              <label className="block text-sm font-semibold mb-1">Presentación *</label>
-              <input
-                value={formData.presentacion}
-                onChange={(e) => setFormData({...formData, presentacion: e.target.value})}
-                placeholder="Ej: TABLETAS, JARABE, INYECTABLE"
-                className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold mb-1">Tipo *</label>
-              <input
-                value={formData.tipo}
-                onChange={(e) => setFormData({...formData, tipo: e.target.value})}
-                placeholder="Ej: ANTIPARASITARIO, ANTIBIÓTICO"
-                className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-sm font-semibold mb-1">Cantidad</label>
-                <input
-                  type="number"
-                  value={formData.cantidad_contenido}
-                  onChange={(e) => setFormData({...formData, cantidad_contenido: e.target.value})}
-                  placeholder="10"
-                  className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1">Unidad</label>
-                <input
-                  value={formData.unidad_medida}
-                  onChange={(e) => setFormData({...formData, unidad_medida: e.target.value})}
-                  placeholder="mg, ml, g"
-                  className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 bg-gray-50 p-2 rounded">
-              <input
-                type="checkbox"
-                checked={formData.activo}
-                onChange={(e) => setFormData({...formData, activo: e.target.checked})}
-                id="activo"
-                className="w-4 h-4"
-              />
-              <label htmlFor="activo" className="text-sm font-semibold">Producto Activo</label>
-            </div>
-          </div>
-        )}
-
-        {/* PASO 2: DATOS DEL LOTE (solo nuevos) */}
-        {paso === 2 && !medicamentoEditando && (
-          <div className="space-y-3">
-            <div className="bg-green-50 p-3 rounded text-sm mb-3 border border-green-200">
-              <div className="font-bold text-green-700 mb-2">✅ Medicamento configurado</div>
-              <div className="text-xs bg-white p-2 rounded border border-green-100">
-                <strong>{formData.nombre_producto}</strong> - {formData.presentacion}
-              </div>
-              <div className="text-xs text-green-600 mt-2">📦 Paso 2: Ingrese el primer lote</div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold mb-1">Código de Lote *</label>
-              <input
-                value={formData.codigo_lote}
-                onChange={(e) => setFormData({...formData, codigo_lote: e.target.value})}
-                placeholder="LOT-2024-001"
-                className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
-                autoFocus
-              />
-              <span className="text-xs text-gray-500">Formato sugerido: LOT-AÑO-NÚMERO</span>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold mb-1">Fecha Vencimiento *</label>
-              <input
-                type="date"
-                value={formData.fecha_vencimiento}
-                onChange={(e) => setFormData({...formData, fecha_vencimiento: e.target.value})}
-                min={new Date().toISOString().split('T')[0]}
-                className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold mb-1">Cantidad Inicial del Lote *</label>
-              <input
-                type="number"
-                min="1"
-                value={formData.stock_lote}
-                onChange={(e) => setFormData({...formData, stock_lote: e.target.value})}
-                placeholder="100"
-                className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
-              />
-              <span className="text-xs text-gray-500">Cantidad de unidades en este lote</span>
-            </div>
-          </div>
-        )}
-
-        {/* BOTONES */}
-        <div className="flex gap-2 mt-6">
-          {paso === 2 && !medicamentoEditando && (
-            <button
-              onClick={() => setPaso(1)}
-              className="px-4 py-2 bg-gray-300 rounded font-semibold hover:bg-gray-400 transition"
-            >
-              ← Anterior
-            </button>
-          )}
-          
-          {paso === 1 && !medicamentoEditando ? (
-            <button
-              onClick={handleSiguiente}
-              className="flex-1 px-4 py-2 bg-purple-600 text-white rounded font-semibold hover:bg-purple-700 transition"
-            >
-              Siguiente →
-            </button>
-          ) : (
-            <button
-              onClick={handleGuardar}
-              className="flex-1 px-4 py-2 bg-purple-600 text-white rounded font-semibold hover:bg-purple-700 transition"
-            >
-              💾 Guardar
-            </button>
-          )}
-          
-          <button
-            onClick={() => {
-              onClose();
-              setPaso(1);
-            }}
-            className="px-4 py-2 bg-gray-400 text-white rounded font-semibold hover:bg-gray-500 transition"
-          >
-            Cancelar
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado }) => {
-  const [formData, setFormData] = useState({
-    codigo_lote: "",
-    fecha_ingreso: new Date().toISOString().split('T')[0],
-    fecha_vencimiento: "",
-    stock_lote: "",
-    id_producto_fk: null
-  });
-
-  useEffect(() => {
-    if (medicamentoSeleccionado && isOpen) {
-      console.log("🔍 Medicamento seleccionado para nuevo lote:", {
-        id_producto_pk: medicamentoSeleccionado.id_producto_pk,
-        nombre: medicamentoSeleccionado.nombre_producto
-      });
-      
-      setFormData(prev => ({
-        ...prev,
-        codigo_lote: "",
-        fecha_vencimiento: "",
-        stock_lote: "",
-        id_producto_fk: medicamentoSeleccionado.id_producto_pk
-      }));
-    }
-  }, [medicamentoSeleccionado, isOpen]);
-
-  const handleGuardar = () => {
-    if (!formData.codigo_lote.trim()) {
-      alert("⚠️ Ingrese el código de lote");
-      return;
-    }
-    if (!formData.fecha_vencimiento) {
-      alert("⚠️ Ingrese la fecha de vencimiento");
-      return;
-    }
-    if (!formData.stock_lote || parseInt(formData.stock_lote) <= 0) {
-      alert("⚠️ Ingrese una cantidad válida");
-      return;
-    }
-    
-    console.log("✅ Datos del lote a guardar:", formData);
-    onSave(formData);
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96">
-        <h2 className="text-xl font-bold mb-4">📦 Nuevo Lote</h2>
-        {medicamentoSeleccionado && (
-          <div className="bg-blue-50 p-3 rounded mb-4 border border-blue-200">
-            <div className="font-bold text-blue-800">{medicamentoSeleccionado.nombre_producto}</div>
-            <div className="text-xs text-blue-600">{medicamentoSeleccionado.presentacion_medicamento}</div>
-            <div className="text-xs text-gray-500 mt-1">ID Producto: {medicamentoSeleccionado.id_producto_pk}</div>
-          </div>
-        )}
-        
-        <div className="space-y-3">
-          <div>
-            <label className="block text-sm font-semibold mb-1">Código de Lote *</label>
-            <input
-              value={formData.codigo_lote}
-              onChange={(e) => setFormData({...formData, codigo_lote: e.target.value})}
-              placeholder="LOT-2024-002"
-              className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
-              autoFocus
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1">Fecha Ingreso</label>
-            <input
-              type="date"
-              value={formData.fecha_ingreso}
-              onChange={(e) => setFormData({...formData, fecha_ingreso: e.target.value})}
-              className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1">Fecha Vencimiento *</label>
-            <input
-              type="date"
-              value={formData.fecha_vencimiento}
-              onChange={(e) => setFormData({...formData, fecha_vencimiento: e.target.value})}
-              min={new Date().toISOString().split('T')[0]}
-              className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1">Cantidad Inicial *</label>
-            <input
-              type="number"
-              min="1"
-              value={formData.stock_lote}
-              onChange={(e) => setFormData({...formData, stock_lote: e.target.value})}
-              placeholder="100"
-              className="w-full px-3 py-2 border rounded focus:border-purple-500 focus:outline-none"
-            />
-          </div>
-        </div>
-
-        <div className="flex gap-2 mt-6">
-          <button
-            onClick={handleGuardar}
-            className="flex-1 px-4 py-2 bg-purple-600 text-white rounded font-semibold hover:bg-purple-700 transition"
-          >
-            💾 Guardar Lote
-          </button>
-          <button
-            onClick={() => {
-              onClose();
-              setFormData({
-                codigo_lote: "",
-                fecha_ingreso: new Date().toISOString().split('T')[0],
-                fecha_vencimiento: "",
-                stock_lote: "",
-                id_producto_fk: null
-              });
-            }}
-            className="flex-1 px-4 py-2 bg-gray-300 rounded font-semibold hover:bg-gray-400 transition"
-          >
-            Cancelar
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ModalMovimiento = ({ isOpen, onClose, onSave, loteSeleccionado }) => {
-  const [formData, setFormData] = useState({
-    tipo_movimiento: "ENTRADA",
-    cantidad: "",
-    motivo: "",
-    id_lote_fk: null
-  });
-
-  useEffect(() => {
-    if (loteSeleccionado) {
-      setFormData(prev => ({
-        ...prev,
-        id_lote_fk: loteSeleccionado
-      }));
-    }
-  }, [loteSeleccionado]);
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96">
-        <h2 className="text-xl font-bold mb-4">Registrar Movimiento</h2>
-        
-        <div className="space-y-3">
-          <div>
-            <label className="block text-sm font-semibold mb-1">Tipo de Movimiento</label>
-            <select
-              value={formData.tipo_movimiento}
-              onChange={(e) => setFormData({...formData, tipo_movimiento: e.target.value})}
-              className="w-full px-3 py-2 border rounded"
-            >
-              <option value="ENTRADA">Entrada</option>
-              <option value="SALIDA">Salida</option>
-              <option value="AJUSTE">Ajuste</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1">Cantidad *</label>
-            <input
-              type="number"
-              value={formData.cantidad}
-              onChange={(e) => setFormData({...formData, cantidad: e.target.value})}
-              placeholder="10"
-              className="w-full px-3 py-2 border rounded"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1">Motivo</label>
-            <textarea
-              value={formData.motivo}
-              onChange={(e) => setFormData({...formData, motivo: e.target.value})}
-              placeholder="Venta, donación, ajuste de inventario..."
-              className="w-full px-3 py-2 border rounded"
-              rows="3"
-            />
-          </div>
-        </div>
-
-        <div className="flex gap-2 mt-6">
-          <button
-            onClick={() => onSave(formData)}
-            className="flex-1 px-4 py-2 bg-purple-600 text-white rounded font-semibold hover:bg-purple-700"
-          >
-            Guardar
-          </button>
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2 bg-gray-300 rounded font-semibold hover:bg-gray-400"
-          >
-            Cancelar
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ModalKardex = ({ isOpen, onClose, medicamentoSeleccionado, kardex }) => {
-  if (!isOpen || !medicamentoSeleccionado) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-[90vw] max-w-5xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h2 className="text-xl font-bold">Kardex de Inventario</h2>
-            <p className="text-sm font-semibold text-gray-700">{medicamentoSeleccionado.nombre_producto}</p>
-            <p className="text-xs text-gray-600">{medicamentoSeleccionado.presentacion_medicamento}</p>
-          </div>
-          <button onClick={onClose} className="text-2xl hover:text-red-600">×</button>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-purple-600 text-white">
-              <tr>
-                <th className="p-2 text-left">Fecha</th>
-                <th className="p-2 text-left">Lote</th>
-                <th className="p-2 text-left">Tipo</th>
-                <th className="p-2 text-left">Motivo</th>
-                <th className="p-2 text-right">Entrada</th>
-                <th className="p-2 text-right">Salida</th>
-                <th className="p-2 text-right bg-purple-700">Saldo</th>
-                <th className="p-2 text-left">Usuario</th>
-              </tr>
-            </thead>
-            <tbody>
-              {kardex.length === 0 ? (
-                <tr>
-                  <td colSpan="8" className="p-4 text-center text-gray-500">
-                    No hay movimientos registrados
-                  </td>
-                </tr>
-              ) : (
-                kardex.map((mov, idx) => (
-                  <tr key={mov.id_movimiento_pk} className={`border-b ${idx % 2 === 0 ? 'bg-gray-50' : ''}`}>
-                    <td className="p-2">{new Date(mov.fecha).toLocaleDateString()}</td>
-                    <td className="p-2 font-mono text-xs">{mov.lote_codigo}</td>
-                    <td className="p-2">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        mov.tipo_movimiento === 'ENTRADA' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                      }`}>
-                        {mov.tipo_movimiento}
-                      </span>
-                    </td>
-                    <td className="p-2 text-xs">{mov.motivo || '-'}</td>
-                    <td className="p-2 text-right text-green-600 font-semibold">
-                      {mov.entrada > 0 ? mov.entrada : '-'}
-                    </td>
-                    <td className="p-2 text-right text-red-600 font-semibold">
-                      {mov.salida > 0 ? mov.salida : '-'}
-                    </td>
-                    <td className="p-2 text-right font-bold bg-purple-50">{mov.saldo}</td>
-                    <td className="p-2 text-xs">{mov.usuario}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-            {kardex.length > 0 && (
-              <tfoot className="bg-purple-100 font-bold">
-                <tr>
-                  <td colSpan="4" className="p-2 text-right">TOTALES:</td>
-                  <td className="p-2 text-right text-green-700">
-                    {kardex.reduce((sum, m) => sum + m.entrada, 0)}
-                  </td>
-                  <td className="p-2 text-right text-red-700">
-                    {kardex.reduce((sum, m) => sum + m.salida, 0)}
-                  </td>
-                  <td className="p-2 text-right bg-purple-200">
-                    {kardex[kardex.length - 1]?.saldo || 0}
-                  </td>
-                  <td></td>
-                </tr>
-              </tfoot>
-            )}
-          </table>
-        </div>
-
-        <div className="mt-4 flex justify-end">
-          <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded font-semibold hover:bg-gray-400">
-            Cerrar
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import React, { useState } from "react";
+import Swal from "sweetalert2";
+import { useMedicamentos } from "./useMedicamentos";
+import MedicamentoTable from "./MedicamentoTable";
+import KardexTable from "./KardexTable";
+import ModalMedicamento from "./ModalMedicamento";
+import ModalLote from "./ModalLote";
+import ModalMovimiento from "./ModalMovimiento";
+import ModalLotesMedicamento from "./ModalLotesMedicamento";
+import { cambiarEstadoProducto } from "../../../AXIOS.SERVICES/products-axios";
 
 const Medicamentos = () => {
-  const [medicamentos, setMedicamentos] = useState([]);
-  const [lotes, setLotes] = useState([]);
-  const [movimientos, setMovimientos] = useState([]);
+  const { medicamentos, setMedicamentos, lotes, kardexData, loading, mensaje, calcularStockTotal, guardarMedicamento, guardarLote, guardarMovimiento,
+    eliminarMedicamento, eliminarLote, cargarDatos
+  } = useMedicamentos();
+
   const [vistaActual, setVistaActual] = useState("medicamentos");
   const [busqueda, setBusqueda] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [modalLoteVisible, setModalLoteVisible] = useState(false);
   const [modalMovVisible, setModalMovVisible] = useState(false);
-  const [modalKardexVisible, setModalKardexVisible] = useState(false);
+  const [modalLotesVisible, setModalLotesVisible] = useState(false);
   const [medicamentoEditando, setMedicamentoEditando] = useState(null);
   const [medicamentoSeleccionado, setMedicamentoSeleccionado] = useState(null);
   const [loteSeleccionado, setLoteSeleccionado] = useState(null);
-  const [mensaje, setMensaje] = useState("");
-  const [filtroEstado, setFiltroEstado] = useState("todos");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    cargarDatos();
-  }, []);
-
-  const cargarDatos = async () => {
-    setLoading(true);
-    try {
-      console.log("🔄 INICIANDO CARGA DE DATOS...");
-      
-      const productos = await verProductos('MEDICAMENTOS');
-      console.log("📦 Productos recibidos:", productos);
-      
-      const medicamentosNormalizados = (productos || []).map((item) => {
-        const sku = item.sku || `MED-${(item.presentacion_medicamento || 'XXX').substring(0, 3).toUpperCase()}-${String(item.id_producto_pk).padStart(3, '0')}`;
-        
-        return {
-          id_producto_pk: item.id_producto_pk,
-          nombre_producto: item.nombre_producto,
-          precio_producto: parseFloat(item.precio_producto || 0),
-          sku: sku,
-          stock: parseInt(item.stock || 0),
-          stock_minimo: parseInt(item.stock_minimo || 5),
-          activo: item.activo === 1 || item.activo === "1" || item.activo === true,
-          presentacion_medicamento: item.presentacion_medicamento || "Sin presentación",
-          tipo_medicamento: item.tipo_medicamento || "Sin tipo",
-          cantidad_contenido: parseInt(item.cantidad_contenido || 0),
-          unidad_medida: item.unidad_medida || ""
-        };
-      });
-
-      setMedicamentos(medicamentosNormalizados);
-      console.log("✅ Medicamentos normalizados:", medicamentosNormalizados);
-
-      const lotesData = await verProductos('LOTES');
-      console.log("📦 Lotes recibidos del backend:", lotesData);
-      
-      const lotesNormalizados = (lotesData || []).map((item) => {
-        console.log("🔍 Procesando lote:", {
-          id_lote: item.id_lote_medicamentos_pk,
-          codigo: item.codigo_lote,
-          id_producto_fk_original: item.id_producto_fk,
-          stock: item.stock_lote
-        });
-        
-        return {
-          id_lote_medicamentos_pk: item.id_lote_medicamentos_pk,
-          codigo_lote: item.codigo_lote || "",
-          fecha_ingreso: item.fecha_ingreso,
-          fecha_vencimiento: item.fecha_vencimiento,
-          stock_lote: parseInt(item.stock_lote || 0),
-          estado_lote_fk: item.estado_lote_fk,
-          id_medicamento_fk: item.id_medicamento_pk,
-          id_producto_fk: item.id_producto_fk,
-          nombre_medicamento: item.nombre_producto
-        };
-      });
-
-      setLotes(lotesNormalizados);
-      console.log("✅ Lotes normalizados:", lotesNormalizados);
-      
-      mostrarMensaje(`✅ Cargados: ${medicamentosNormalizados.length} medicamentos, ${lotesNormalizados.length} lotes`);
-      
-    } catch (error) {
-      console.error("❌ ERROR:", error);
-      mostrarMensaje("❌ Error al cargar datos");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const mostrarMensaje = (texto) => {
-    setMensaje(texto);
-    setTimeout(() => setMensaje(""), 3000);
-  };
-
-  const calcularEstadoLote = (fechaVencimiento) => {
-    const hoy = new Date();
-    const vencimiento = new Date(fechaVencimiento);
-    const diferenciaDias = Math.floor((vencimiento - hoy) / (1000 * 60 * 60 * 24));
-
-    if (diferenciaDias < 0) return { estado: "VENCIDO", clase: "text-red-600", dias: diferenciaDias };
-    if (diferenciaDias <= 30) return { estado: "POR VENCER", clase: "text-orange-600", dias: diferenciaDias };
-    if (diferenciaDias <= 90) return { estado: "PRÓXIMO A VENCER", clase: "text-yellow-600", dias: diferenciaDias };
-    return { estado: "VIGENTE", clase: "text-green-600", dias: diferenciaDias };
-  };
 
   const medicamentosFiltrados = medicamentos.filter((m) =>
     m.nombre_producto.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -729,626 +31,330 @@ const Medicamentos = () => {
     m.sku.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  const lotesFiltrados = lotes.filter(lote => {
-    const estado = calcularEstadoLote(lote.fecha_vencimiento);
-    
-    if (filtroEstado === "todos") return true;
-    if (filtroEstado === "activos") return estado.estado === "VIGENTE";
-    if (filtroEstado === "vencidos") return estado.estado === "VENCIDO";
-    if (filtroEstado === "por-vencer") return estado.estado === "POR VENCER" || estado.estado === "PRÓXIMO A VENCER";
-    
-    return true;
-  }).filter(lote => {
-    const medicamento = medicamentos.find(m => m.id_producto_pk === lote.id_producto_fk);
-    if (!medicamento) return false;
-    
-    return medicamento.nombre_producto.toLowerCase().includes(busqueda.toLowerCase()) ||
-           medicamento.presentacion_medicamento.toLowerCase().includes(busqueda.toLowerCase()) ||
-           lote.codigo_lote.toLowerCase().includes(busqueda.toLowerCase());
+  const kardexFiltrado = kardexData.filter(mov => {
+    const searchLower = busqueda.toLowerCase();
+    return mov.nombre_producto.toLowerCase().includes(searchLower) ||
+           (mov.codigo_lote && mov.codigo_lote.toLowerCase().includes(searchLower)) ||
+           mov.tipo_movimiento.toLowerCase().includes(searchLower) ||
+           mov.origen_movimiento.toLowerCase().includes(searchLower);
   });
 
-  const calcularStockTotal = (idProducto) => {
-    console.log(`\n🔢 ═══════════════════════════════════════════════`);
-    console.log(`📊 CALCULANDO STOCK PARA PRODUCTO ID: ${idProducto}`);
-    console.log(`═══════════════════════════════════════════════`);
-    console.log(`📦 Total de lotes en memoria: ${lotes.length}`);
+  // Función para calcular estado del lote
+  const calcularEstadoLote = (lote) => {
+    const hoy = new Date();
+    const vencimiento = new Date(lote.fecha_vencimiento);
     
-    const lotesDelProducto = lotes.filter(l => {
-      const coincide = l.id_producto_fk === idProducto;
-      if (coincide) {
-        console.log(`   ✅ Lote encontrado:`, {
-          codigo: l.codigo_lote,
-          id_lote: l.id_lote_medicamentos_pk,
-          id_producto_fk: l.id_producto_fk,
-          stock_lote: l.stock_lote
-        });
-      }
-      return coincide;
+    if (vencimiento < hoy) {
+      return { bgBadge: "bg-gray-600", texto: "CADUCADO" };
+    }
+    
+    const stock = parseInt(lote.stock_lote || 0);
+    if (stock === 0) {
+      return { bgBadge: "bg-red-500", texto: "AGOTADO" };
+    }
+    
+    return { bgBadge: "bg-green-500", texto: "DISPONIBLE" };
+  };
+
+  const handleGuardarMedicamento = async (formData) => {
+    const success = await guardarMedicamento(formData, medicamentoEditando);
+    if (success) {
+      setModalVisible(false);
+      setMedicamentoEditando(null);
+    }
+  };
+
+  const handleGuardarLote = async (formData) => {
+    const success = await guardarLote(formData);
+    if (success) {
+      setModalLoteVisible(false);
+      setMedicamentoSeleccionado(null);
+    }
+  };
+
+  const handleGuardarMovimiento = (formData) => {
+    const success = guardarMovimiento(formData);
+    if (success) {
+      setModalMovVisible(false);
+      setLoteSeleccionado(null);
+    }
+  };
+
+  const handleEliminarMedicamento = async (medicamento) => {
+    const lotesAsociados = lotes.filter(l => l.id_producto_fk === medicamento.id_producto_pk).length;
+    
+    const result = await Swal.fire({
+      title: "¿Eliminar medicamento?",
+      html: `
+        <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
+          <p class="mb-1 text-sm"><span class="font-bold">Nombre:</span> ${medicamento.nombre_producto}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Presentación:</span> ${medicamento.presentacion_medicamento}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Tipo:</span> ${medicamento.tipo_medicamento}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Precio:</span> L. ${medicamento.precio_producto.toFixed(2)}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Lotes asociados:</span> ${lotesAsociados}</p>
+        </div>
+        <div class="mt-3 p-2 bg-red-50 rounded-md border border-red-200">
+          <p class="text-xs text-red-600 font-semibold">⚠️ Esta acción eliminará también todos los lotes asociados y no se puede deshacer.</p>
+        </div>
+      `,
+      showCancelButton: true, confirmButtonText: "Eliminar", cancelButtonText: "Cancelar", reverseButtons: true, width: 450, padding: "16px",
+      customClass: {
+        confirmButton: "bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium",
+        cancelButton: "bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium mr-2",
+      },
+      buttonsStyling: false
     });
-    
-    console.log(`\n📊 Resumen:`);
-    console.log(`   • Lotes encontrados: ${lotesDelProducto.length}`);
-    
-    const stockTotal = lotesDelProducto.reduce((sum, l) => {
-      const stock = parseInt(l.stock_lote) || 0;
-      console.log(`   • Sumando lote ${l.codigo_lote}: ${stock}`);
-      return sum + stock;
-    }, 0);
-    
-    console.log(`   • STOCK TOTAL: ${stockTotal}`);
-    console.log(`═══════════════════════════════════════════════\n`);
-    
-    return stockTotal;
-  };
 
-  const guardarMedicamento = async (formData) => {
-    console.log("\n🎯 ═══════════════════════════════════════════════");
-    console.log("📝 GUARDANDO MEDICAMENTO");
-    console.log("═══════════════════════════════════════════════");
-    console.log("📋 Datos del formulario:", JSON.stringify(formData, null, 2));
-    console.log("═══════════════════════════════════════════════\n");
-    
-    if (medicamentoEditando) {
-      const datosActualizar = {
-        id_producto: medicamentoEditando.id_producto_pk,
-        tipo_producto: 'MEDICAMENTOS',
-        nombre_producto: formData.nombre_producto.toUpperCase(),
-        precio_producto: parseFloat(formData.precio_producto),
-        stock_minimo: parseInt(formData.stock_minimo),
-        presentacion_medicamento: formData.presentacion.toUpperCase(),
-        tipo_medicamento: formData.tipo.toUpperCase(),
-        cantidad_contenido: parseInt(formData.cantidad_contenido) || 0,
-        unidad_medida: formData.unidad_medida.toUpperCase(),
-        activo: formData.activo ? 1 : 0
-      };
-
-      const resultado = await actualizarProducto(datosActualizar);
-      
-      if (resultado.Consulta) {
-        mostrarMensaje("✅ Medicamento actualizado");
-        await cargarDatos();
-        setModalVisible(false);
-        setMedicamentoEditando(null);
-      } else {
-        mostrarMensaje("❌ Error: " + (resultado.error || "Desconocido"));
-      }
-      
-    } else {
-      const stockLoteNumerico = parseInt(formData.stock_lote);
-      
-      console.log("🔍 Validación de stock_lote:");
-      console.log(`   • formData.stock_lote (original): "${formData.stock_lote}"`);
-      console.log(`   • parseInt(formData.stock_lote): ${stockLoteNumerico}`);
-      
-      const datosCompletos = {
-        tipo_producto: 'MEDICAMENTOS',
-        nombre_producto: formData.nombre_producto.toUpperCase().trim(),
-        precio_producto: parseFloat(formData.precio_producto),
-        stock: stockLoteNumerico,
-        stock_minimo: parseInt(formData.stock_minimo),
-        presentacion_medicamento: formData.presentacion.toUpperCase().trim(),
-        tipo_medicamento: formData.tipo.toUpperCase().trim(),
-        cantidad_contenido: parseInt(formData.cantidad_contenido) || 0,
-        unidad_medida: formData.unidad_medida ? formData.unidad_medida.toUpperCase().trim() : '',
-        codigo_lote: formData.codigo_lote.toUpperCase().trim(),
-        fecha_vencimiento: formData.fecha_vencimiento,
-        stock_lote: stockLoteNumerico
-      };
-
-      console.log("\n📤 ═══════════════════════════════════════════════");
-      console.log("📤 DATOS ENVIADOS AL BACKEND:");
-      console.log("═══════════════════════════════════════════════");
-      console.log(JSON.stringify(datosCompletos, null, 2));
-      console.log("═══════════════════════════════════════════════\n");
-      
-      const resultado = await insertarProducto(datosCompletos);
-      
-      console.log("📥 ═══════════════════════════════════════════════");
-      console.log("📥 RESPUESTA DEL BACKEND:");
-      console.log("═══════════════════════════════════════════════");
-      console.log(JSON.stringify(resultado, null, 2));
-      console.log("═══════════════════════════════════════════════\n");
-      
-      if (resultado.Consulta) {
-        mostrarMensaje("✅ Medicamento y primer lote creados");
-        setModalVisible(false);
-        await cargarDatos();
-      } else {
-        mostrarMensaje("❌ Error: " + (resultado.error || "Desconocido"));
+    if (result.isConfirmed) {
+      const success = await eliminarMedicamento(medicamento.id_producto_pk);
+      if (success) {
+        Swal.fire({ icon: "success", title: "¡Eliminado!", text: "El medicamento fue eliminado correctamente", timer: 1800, showConfirmButton: false, });
       }
     }
   };
 
-  const guardarLote = async (formData) => {
-    console.log("\n🎯 ═══════════════════════════════════════════════");
-    console.log("📦 GUARDANDO NUEVO LOTE");
-    console.log("═══════════════════════════════════════════════");
-    console.log("📋 Datos del formulario:", JSON.stringify(formData, null, 2));
-    
-    if (!formData.codigo_lote || !formData.fecha_vencimiento || !formData.stock_lote) {
-      mostrarMensaje("⚠️ Complete todos los campos del lote");
-      return;
-    }
-
-    if (!formData.id_producto_fk) {
-      console.error("❌ ERROR: No hay id_producto_fk en formData");
-      mostrarMensaje("❌ Error: No se identificó el medicamento");
-      return;
-    }
-
+  const handleCambiarEstado = async (medicamento) => {
     try {
-      // Validar que el stock sea mayor a 0
-      const stockLote = parseInt(formData.stock_lote);
-      if (stockLote <= 0) {
-        mostrarMensaje("⚠️ El stock debe ser mayor a 0");
-        return;
-      }
-
-      const datosLote = {
-        tipo_producto: 'LOTES',
-        id_producto: formData.id_producto_fk,
-        codigo_lote: formData.codigo_lote.toUpperCase().trim(),
-        fecha_ingreso: formData.fecha_ingreso,
-        fecha_vencimiento: formData.fecha_vencimiento,
-        stock_lote: stockLote
-      };
-
-      console.log("📤 Datos enviados al backend:", JSON.stringify(datosLote, null, 2));
-
-      const resultado = await insertarProducto(datosLote);
+      const nuevoEstado = !medicamento.activo;
       
-      console.log("📥 Respuesta del backend:", JSON.stringify(resultado, null, 2));
+      const response = await cambiarEstadoProducto(medicamento.id_producto_pk, nuevoEstado);
+      
+      if (response.Consulta) {
+        // Actualizar el estado local inmediatamente sin recargar todos los datos
+        setMedicamentos(prev => 
+          prev.map(med => 
+            med.id_producto_pk === medicamento.id_producto_pk
+              ? { ...med, activo: nuevoEstado }
+              : med
+          )
+        );
 
-      if (resultado.Consulta) {
-        mostrarMensaje("✅ Lote agregado exitosamente");
-        
-        setModalLoteVisible(false);
-        setMedicamentoSeleccionado(null);
-        
+        Swal.fire({
+          icon: "success",
+          title: nuevoEstado ? "¡Medicamento Activado!" : "¡Medicamento Desactivado!",
+          text: "Estado actualizado correctamente",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } else {
+        throw new Error(response.error || "Error al cambiar estado");
+      }
+    } catch (error) {
+      console.error("Error al cambiar estado:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo cambiar el estado del medicamento",
+        confirmButtonText: "Entendido"
+      });
+    }
+  };
+
+  const handleEliminarLote = async (lote) => {
+    const estilo = calcularEstadoLote(lote);
+    
+    const result = await Swal.fire({
+      title: "¿Eliminar lote?",
+      html: `
+        <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
+          <p class="mb-1 text-sm"><span class="font-bold">Código Lote:</span> ${lote.codigo_lote}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Stock:</span> ${lote.stock_lote} unidades</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Estado:</span> ${estilo.texto}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Vencimiento:</span> ${new Date(lote.fecha_vencimiento).toLocaleDateString('es-HN')}</p>
+        </div>
+        <p class="text-red-600 text-sm mt-2">⚠️ Esta acción no se puede deshacer</p>
+      `,
+      showCancelButton: true, confirmButtonText: "Eliminar", cancelButtonText: "Cancelar", reverseButtons: true, width: 400, padding: "16px",
+      didOpen: () => {
+        const swalContainer = document.querySelector('.swal2-container');
+        const swalPopup = document.querySelector('.swal2-popup');
+        if (swalContainer) {
+          swalContainer.style.setProperty('z-index', '999999', 'important');
+        }
+        if (swalPopup) {
+          swalPopup.style.setProperty('z-index', '999999', 'important');
+        }
+      },
+      customClass: { confirmButton: "bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium",
+        cancelButton: "bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium mr-2",
+      },
+      buttonsStyling: false
+    });
+
+    if (result.isConfirmed) {
+      // ✅ CORRECCIÓN: Enviar el campo correcto que espera el backend
+      const success = await eliminarLote(lote.id_lote_medicamentos_pk);
+      if (success) {
+        // Recargar datos después de eliminar
         await cargarDatos();
         
-        console.log("✅ Lote guardado y datos recargados");
-      } else {
-        mostrarMensaje("❌ Error: " + (resultado.error || "Desconocido"));
-        console.error("❌ Error del backend:", resultado.error);
+        Swal.fire({ icon: "success", title: "¡Eliminado!", text: "El lote fue eliminado correctamente", timer: 1800, showConfirmButton: false,});
       }
-
-    } catch (error) {
-      console.error("❌ Error al procesar el lote:", error);
-      mostrarMensaje("❌ Error al procesar el lote: " + error.message);
     }
-    
-    console.log("═══════════════════════════════════════════════\n");
   };
 
-  const guardarMovimiento = (formData) => {
-    if (!formData.cantidad || !formData.id_lote_fk) {
-      mostrarMensaje("⚠️ Complete los campos del movimiento");
-      return;
-    }
-
-    const lote = lotes.find(l => l.id_lote_medicamentos_pk === formData.id_lote_fk);
-    const cantidad = parseInt(formData.cantidad);
-
-    if (formData.tipo_movimiento === "SALIDA" && lote.stock_lote < cantidad) {
-      mostrarMensaje("⚠️ Stock insuficiente en el lote");
-      return;
-    }
-
-    setLotes(prev => prev.map(l => 
-      l.id_lote_medicamentos_pk === formData.id_lote_fk
-        ? { 
-            ...l, 
-            stock_lote: formData.tipo_movimiento === "ENTRADA" 
-              ? l.stock_lote + cantidad 
-              : l.stock_lote - cantidad 
-          }
-        : l
-    ));
-
-    const movimiento = {
-      id_movimiento_pk: Date.now(),
-      tipo_fk: formData.tipo_movimiento === "ENTRADA" ? 1 : 2,
-      fecha: new Date().toISOString().split('T')[0],
-      tipo_movimiento: formData.tipo_movimiento,
-      usuario: "admin",
-      id_medicamento_fk: lote.id_medicamento_fk,
-      id_lote_fk: formData.id_lote_fk,
-      cantidad: cantidad,
-      motivo: formData.motivo
-    };
-
-    setMovimientos(prev => [...prev, movimiento]);
-    mostrarMensaje(`✅ Movimiento registrado`);
-    setModalMovVisible(false);
-    setLoteSeleccionado(null);
-  };
-
-  const calcularKardex = (idProducto) => {
-    const movsMed = movimientos
-      .filter(m => m.id_medicamento_fk === idProducto)
-      .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-
-    let saldo = 0;
-    return movsMed.map(mov => {
-      const entrada = mov.tipo_movimiento === "ENTRADA" ? mov.cantidad : 0;
-      const salida = mov.tipo_movimiento === "SALIDA" ? mov.cantidad : 0;
-      saldo += entrada - salida;
-
-      const lote = lotes.find(l => l.id_lote_medicamentos_pk === mov.id_lote_fk);
-
-      return {
-        ...mov,
-        entrada,
-        salida,
-        saldo,
-        lote_codigo: lote?.codigo_lote || "N/A"
-      };
-    });
-  };
-
-  const renderMedicamentos = () => {
-    if (loading) {
-      return (
-        <div className="text-center p-8">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-          <p className="mt-4 text-gray-600">Cargando medicamentos...</p>
-        </div>
-      );
-    }
-
-    if (medicamentosFiltrados.length === 0) {
-      return (
-        <div className="text-center p-8 bg-gray-100 rounded-lg">
-          <p className="text-gray-600 text-lg">📦 No se encontraron medicamentos</p>
-          <p className="text-sm text-gray-500 mt-2">Haz clic en "+ NUEVO MEDICAMENTO" para agregar uno</p>
-        </div>
-      );
-    }
-
+  if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {medicamentosFiltrados.map((med) => {
-          const stockTotal = calcularStockTotal(med.id_producto_pk);
-          const lotesDelMed = lotes.filter(l => l.id_producto_fk === med.id_producto_pk);
-          
-          return (
-            <div 
-              key={med.id_producto_pk} 
-              className={`rounded-lg shadow-md p-4 pb-12 relative min-h-[150px] ${
-                med.activo 
-                  ? 'bg-white border-2 border-purple-200' 
-                  : 'bg-gray-100 opacity-70 border-2 border-gray-300'
-              }`}
-            >
-              <div className="absolute top-2 right-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                  med.activo 
-                    ? 'bg-green-100 text-green-700' 
-                    : 'bg-gray-300 text-gray-600'
-                }`}>
-                  {med.activo ? '✓ ACTIVO' : '✗ INACTIVO'}
-                </span>
-              </div>
-
-              <div className="text-center mb-4 mt-6">
-                <div className="font-bold text-base mb-2 text-gray-800">
-                  {med.nombre_producto}
-                </div>
-                
-                <div className="text-xs font-mono text-purple-600 mb-2 bg-purple-50 py-1 px-2 rounded">
-                  {med.sku}
-                </div>
-
-                <div className="text-xs text-gray-600 mb-1">
-                  📋 {med.presentacion_medicamento}
-                </div>
-                <div className="text-xs text-gray-500 mb-2">
-                  🏷️ {med.tipo_medicamento}
-                </div>
-
-                <div className="text-xs text-gray-500 mb-3">
-                  📦 {med.cantidad_contenido} {med.unidad_medida}
-                </div>
-
-                <div className="text-lg font-bold text-purple-700 mb-2">
-                  L. {med.precio_producto.toFixed(2)}
-                </div>
-
-                <div className={`text-xl font-bold mb-1 ${
-                  stockTotal < med.stock_minimo 
-                    ? 'text-red-600' 
-                    : stockTotal < med.stock_minimo * 2 
-                      ? 'text-orange-600' 
-                      : 'text-green-600'
-                }`}>
-                  Stock: {stockTotal}
-                </div>
-                
-                <div className="text-xs text-gray-500">
-                  Mínimo: {med.stock_minimo}
-                </div>
-
-                <div className="text-xs text-blue-600 mt-2 bg-blue-50 py-1 px-2 rounded inline-block">
-                  {lotesDelMed.length} lote(s) disponible(s)
-                </div>
-
-                {stockTotal < med.stock_minimo && (
-                  <div className="mt-2 text-xs text-red-600 font-bold bg-red-50 py-1 px-2 rounded">
-                    ⚠️ STOCK BAJO
-                  </div>
-                )}
-              </div>
-
-              <div className="absolute bottom-2 left-2 flex gap-1">
-                <button
-                  onClick={() => {
-                    setMedicamentoEditando(med);
-                    setModalVisible(true);
-                  }}
-                  className="p-1 hover:scale-110 transition-transform"
-                  title="Editar"
-                >
-                  ⚙️
-                </button>
-                <button
-                  onClick={() => {
-                    setMedicamentoSeleccionado(med);
-                    setModalLoteVisible(true);
-                  }}
-                  className="p-1 hover:scale-110 transition-transform"
-                  title="Agregar Lote"
-                >
-                  📦
-                </button>
-                <button
-                  onClick={() => {
-                    setMedicamentoSeleccionado(med);
-                    setModalKardexVisible(true);
-                  }}
-                  className="p-1 hover:scale-110 transition-transform"
-                  title="Ver Kardex"
-                >
-                  📊
-                </button>
-              </div>
-            </div>
-          );
-        })}
+      <div className="min-h-screen p-6 bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600"></div>
+          <p className="mt-4 text-gray-600 text-lg">Cargando medicamentos...</p>
+        </div>
       </div>
     );
-  };
-
-  const renderLotes = () => {
-    if (loading) {
-      return (
-        <div className="text-center p-8">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-          <p className="mt-4 text-gray-600">Cargando lotes...</p>
-        </div>
-      );
-    }
-
-    if (lotesFiltrados.length === 0) {
-      return (
-        <div className="text-center p-8 bg-gray-100 rounded-lg">
-          <p className="text-gray-600">📦 No se encontraron lotes</p>
-          <p className="text-sm text-gray-500 mt-2">Agrega lotes desde la vista de medicamentos</p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="overflow-x-auto">
-        <table className="w-full bg-white rounded-lg shadow">
-          <thead className="bg-purple-600 text-white">
-            <tr>
-              <th className="p-3 text-left">Código Lote</th>
-              <th className="p-3 text-left">Medicamento</th>
-              <th className="p-3 text-left">Fecha Ingreso</th>
-              <th className="p-3 text-left">Vencimiento</th>
-              <th className="p-3 text-left">Stock</th>
-              <th className="p-3 text-left">Estado</th>
-              <th className="p-3 text-left">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {lotesFiltrados.map(lote => {
-              const medicamento = medicamentos.find(m => m.id_producto_pk === lote.id_producto_fk);
-              const estado = calcularEstadoLote(lote.fecha_vencimiento);
-              
-              return (
-                <tr key={lote.id_lote_medicamentos_pk} className="border-b hover:bg-gray-50">
-                  <td className="p-3 font-mono text-sm">{lote.codigo_lote}</td>
-                  <td className="p-3">
-                    <div className="font-semibold">{medicamento?.nombre_producto || "N/A"}</div>
-                    <div className="text-xs text-gray-500">{medicamento?.presentacion_medicamento}</div>
-                  </td>
-                  <td className="p-3">{new Date(lote.fecha_ingreso).toLocaleDateString()}</td>
-                  <td className="p-3">{new Date(lote.fecha_vencimiento).toLocaleDateString()}</td>
-                  <td className="p-3 font-bold">{lote.stock_lote}</td>
-                  <td className={`p-3 font-semibold ${estado.clase}`}>
-                    {estado.estado}
-                    {estado.dias >= 0 && ` (${estado.dias}d)`}
-                  </td>
-                  <td className="p-3">
-                    <button
-                      onClick={() => {
-                        setLoteSeleccionado(lote.id_lote_medicamentos_pk);
-                        setModalMovVisible(true);
-                      }}
-                      className="px-2 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                    >
-                      Movimiento
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
+  }
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
-      {/* Título */}
-      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
-        <div className="flex justify-center items-center">
-          <h2 className="text-2xl font-black text-center uppercase text-gray-800">
-            GESTIÓN DE MEDICAMENTOS
-          </h2>
-        </div>
+      {/* Encabezado */}
+      <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-3" 
+           style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+        <h2 className="text-2xl font-black text-center uppercase text-gray-800">
+          GESTIÓN DE MEDICAMENTOS
+        </h2>
+        <p className="text-center text-gray-600 italic">
+          Administra medicamentos veterinarios, lotes y control de inventario
+        </p>
       </div>
 
-      {/* Componente de Medicamentos Bajo Stock */}
-      <MedicamentosBajoStock medicamentos={medicamentos} />
 
-      {/* Barra superior con buscador y botón nuevo */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-        <div className="relative w-full md:w-96">
-          <input
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="🔍 Buscar medicamentos, lotes..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
-          {busqueda && (
-            <button
-              onClick={() => setBusqueda("")}
-              className="absolute right-3 top-2 text-xl hover:text-red-600 transition-colors"
-            >
-              ×
-            </button>
-          )}
-        </div>
+
+      {/* Tabs de navegación*/}
+      <div className="flex flex-wrap rounded-lg bg-gray-200 p-1 w-80 text-sm shadow-sm mb-6">
+        <label className="flex-1 text-center">
+          <input type="radio" name="vista" checked={vistaActual === "medicamentos"} onChange={() => setVistaActual("medicamentos")} className="hidden" />
+          <span className={`flex items-center justify-center rounded-lg py-2 px-4 cursor-pointer transition-all duration-150 ${
+              vistaActual === "medicamentos"
+                ? "bg-white font-semibold text-gray-800 shadow-sm"
+                : "text-gray-600 hover:text-gray-800"
+            }`}
+          >
+             MEDICAMENTOS
+          </span>
+        </label>
         
-        <button
-          onClick={() => setModalVisible(true)}
-          className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors shadow-sm whitespace-nowrap"
-        >
-          + NUEVO MEDICAMENTO
-        </button>
+        <label className="flex-1 text-center">
+          <input type="radio" name="vista" checked={vistaActual === "kardex"} onChange={() => setVistaActual("kardex")} className="hidden" />
+          <span className={`flex items-center justify-center rounded-lg py-2 px-4 cursor-pointer transition-all duration-150 ${
+              vistaActual === "kardex"
+                ? "bg-white font-semibold text-gray-800 shadow-sm"
+                : "text-gray-600 hover:text-gray-800"
+            }`}
+          >
+             KARDEX
+          </span>
+        </label>
       </div>
 
-      {/* Botones de navegación */}
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => setVistaActual("medicamentos")}
-          className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-            vistaActual === "medicamentos" 
-              ? "bg-purple-600 text-white shadow-sm" 
-              : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-          }`}
-        >
-          💊 Medicamentos
-        </button>
-        <button
-          onClick={() => setVistaActual("lotes")}
-          className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-            vistaActual === "lotes" 
-              ? "bg-purple-600 text-white shadow-sm" 
-              : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-          }`}
-        >
-          📦 Lotes
-        </button>
+      {/* Contenido principal */}
+      <div className="bg-white rounded-xl p-6 mb-6" 
+           style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+        {vistaActual === "kardex" ? (
+          <KardexTable kardexData={kardexFiltrado} />
+        ) : (
+          <>
+            {/* Barra de búsqueda y controles - SOLO PARA MEDICAMENTOS */}
+            <div className="flex justify-between items-center mb-6">
+              <div className="relative w-80">
+                <input
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                  placeholder="Buscar medicamentos..."
+                  className="w-full px-4 py-2 border rounded-full"
+                />
+                {busqueda && (
+                  <button
+                    onClick={() => setBusqueda('')}
+                    className="absolute right-3 top-2 text-gray-500"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+
+              <button
+                className="bg-purple-500 text-white px-6 py-2 rounded-full hover:bg-purple-600 transition-colors flex items-center gap-2"
+                style={{ borderRadius: '12px' }}
+                onClick={() => setModalVisible(true)}
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 448 512">
+                  <path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/>
+                </svg>
+                Nuevo Medicamento
+              </button>
+            </div>
+
+            {medicamentosFiltrados.length === 0 ? (
+              <div className="text-center p-8 bg-gray-100 rounded-lg">
+                <p className="text-gray-600 text-lg"> No se encontraron medicamentos</p>
+                <p className="text-sm text-gray-500 mt-2">Haz clic en "+ NUEVO MEDICAMENTO" </p>
+              </div>
+            ) : (
+              <MedicamentoTable
+                medicamentos={medicamentosFiltrados}
+                stockTotals={medicamentos.reduce((acc, med) => {
+                  acc[med.id_producto_pk] = calcularStockTotal(med.id_producto_pk);
+                  return acc;
+                }, {})}
+                lotesCounts={medicamentos.reduce((acc, med) => {
+                  acc[med.id_producto_pk] = lotes.filter(l => l.id_producto_fk === med.id_producto_pk).length;
+                  return acc;
+                }, {})}
+                globalFilter={busqueda}
+                setGlobalFilter={setBusqueda}
+                onEditar={(med) => {
+                  setMedicamentoEditando(med);
+                  setModalVisible(true);
+                }}
+                onAgregarLote={(med) => {
+                  setMedicamentoSeleccionado(med);
+                  setModalLoteVisible(true);
+                }}
+                onVerLotes={(med) => {
+                  setMedicamentoSeleccionado(med);
+                  setModalLotesVisible(true);
+                }}
+                onEliminar={handleEliminarMedicamento}
+                onCambiarEstado={handleCambiarEstado}
+              />
+            )}
+          </>
+        )}
       </div>
 
-      {/* Filtros para lotes */}
-      {vistaActual === "lotes" && (
-        <div className="mb-6 flex flex-wrap gap-2">
-          <button
-            onClick={() => setFiltroEstado("todos")}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-              filtroEstado === "todos" 
-                ? 'bg-purple-600 text-white shadow-sm' 
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            Todos
-          </button>
-          <button
-            onClick={() => setFiltroEstado("activos")}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-              filtroEstado === "activos" 
-                ? 'bg-green-600 text-white shadow-sm' 
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            Vigentes
-          </button>
-          <button
-            onClick={() => setFiltroEstado("por-vencer")}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-              filtroEstado === "por-vencer" 
-                ? 'bg-orange-600 text-white shadow-sm' 
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            Por Vencer
-          </button>
-          <button
-            onClick={() => setFiltroEstado("vencidos")}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-              filtroEstado === "vencidos" 
-                ? 'bg-red-600 text-white shadow-sm' 
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            Vencidos
-          </button>
-        </div>
-      )}
-
-      {vistaActual === "medicamentos" && (
-        <div className="bg-white rounded-xl p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
-          {renderMedicamentos()}
-        </div>
-      )}
-      {vistaActual === "lotes" && renderLotes()}
-
+      {/* Modales */}
       <ModalMedicamento 
-        isOpen={modalVisible} 
-        onClose={() => {
+        isOpen={modalVisible} onClose={() => {
           setModalVisible(false);
           setMedicamentoEditando(null);
         }}
-        onSave={guardarMedicamento}
-        medicamentoEditando={medicamentoEditando}
+        onSave={handleGuardarMedicamento} medicamentoEditando={medicamentoEditando} medicamentosExistentes={medicamentos}
       />
       
       <ModalLote 
-        isOpen={modalLoteVisible}
-        onClose={() => {
+        isOpen={modalLoteVisible} onClose={() => {
           setModalLoteVisible(false);
           setMedicamentoSeleccionado(null);
         }}
-        onSave={guardarLote}
-        medicamentoSeleccionado={medicamentoSeleccionado}
+        onSave={handleGuardarLote} medicamentoSeleccionado={medicamentoSeleccionado} lotesExistentes={lotes}
       />
       
       <ModalMovimiento 
-        isOpen={modalMovVisible}
-        onClose={() => {
+        isOpen={modalMovVisible} onClose={() => {
           setModalMovVisible(false);
           setLoteSeleccionado(null);
         }}
-        onSave={guardarMovimiento}
-        loteSeleccionado={loteSeleccionado}
+        onSave={handleGuardarMovimiento} loteSeleccionado={loteSeleccionado}
       />
       
-      <ModalKardex 
-        isOpen={modalKardexVisible}
-        onClose={() => {
-          setModalKardexVisible(false);
+      <ModalLotesMedicamento isOpen={modalLotesVisible} onClose={() => {
+          setModalLotesVisible(false);
           setMedicamentoSeleccionado(null);
         }}
-        medicamentoSeleccionado={medicamentoSeleccionado}
-        kardex={medicamentoSeleccionado ? calcularKardex(medicamentoSeleccionado.id_producto_pk) : []}
+        medicamentoSeleccionado={medicamentoSeleccionado} lotes={lotes} onEliminarLote={handleEliminarLote}
       />
 
+      {/* Notificación de mensajes */}
       {mensaje && (
         <div className="fixed bottom-5 right-5 px-4 py-2 bg-purple-600 text-white rounded font-bold shadow-lg animate-pulse z-50">
           {mensaje}

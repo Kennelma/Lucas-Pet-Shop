@@ -17,17 +17,26 @@ const Login = () => {
 
   useEffect(() => {
     const token = sessionStorage.getItem('token')
+    const sessionExpired = sessionStorage.getItem('sessionExpired')
+    
     if (token) {
       navigate('/dashboard')
     }
-  }, [])
+    
+    //SI LA SESIÓN EXPIRÓ, MUESTRA EL MENSAJE
+    if (sessionExpired) {
+      setLoginMessage('⏰ TU SESIÓN HA EXPIRADO. INICIA SESIÓN NUEVAMENTE.')
+      setAlertType('warning')
+      sessionStorage.removeItem('sessionExpired')
+    }
+  }, [navigate])
 
   const handleLogin = async (e) => {
     e.preventDefault()
     setLoading(true)
     setLoginMessage('')
 
-    // Normaliza el login
+    //NORMALIZA EL LOGIN (UPPER AND LOWER CASE)
     const cleanLogin = login.trim().toLowerCase();
 
     const data = await loginUsuario({ login: cleanLogin, password })
@@ -35,17 +44,22 @@ const Login = () => {
     if (!data) {
       setLoginMessage('❌ NO SE RECIBIÓ INFORMACIÓN DEL SERVIDOR')
       setAlertType('danger')
+
     } else {
       setLoginMessage(data.message)
+
       if (data.success) {
         setAlertType('success')
         sessionStorage.setItem('token', data.token)
         sessionStorage.setItem('usuario', JSON.stringify(data.usuario))
         navigate('/dashboard')
+
       } else if (data.message && data.message.includes('INEXISTENTE')) {
         setAlertType('danger')
+
       } else if (data.message && data.message.includes('INACTIVO')) {
         setAlertType('warning')
+
       } else {
         setAlertType('warning')
       }
@@ -130,13 +144,7 @@ const Login = () => {
                   type="button" 
                   onClick={togglePasswordVisibility}
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-blue-600 focus:outline-none transition-colors duration-200"
-                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                >
-                  {showPassword ? (
-                    <AiOutlineEye size={20} />
-                  ) : (
-                    <AiOutlineEyeInvisible size={20} />
-                  )}
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
                 </button>
               </div>
             </div>
@@ -170,7 +178,7 @@ const Login = () => {
           </form>
         </div>
 
-        {/* IMAGE RIGHT SIDE */}
+        {/*LOGO DE LA EMPRESA*/}
         <div className="w-1/2 flex items-center justify-center bg-gray-50 relative overflow-hidden">
           <div className="absolute inset-0 bg-white/20"></div>
           <img

@@ -1,24 +1,19 @@
-import axios from "axios";
+import axiosInstance from './axiosConfig';
 
+<<<<<<< HEAD
 const API_URL = "http://localhost:4000/api/recordatorios";
 const WHATSAPP_URL = "http://localhost:4000/api/whatsapp";
+=======
+>>>>>>> ee769b129b34f3b2fad9d0c78e47c4f1203331c5
 
-const getHeaders = () => {
-  const token = sessionStorage.getItem("token");
-  return {
-    "Content-Type": "application/json",
-    "Authorization": token ? `Bearer ${token}` : "",
-  };
-};
+const API_URL = "/recordatorios";
 
 // ───────────────────────────────────────────────
 // SERVICIO PARA VER RECORDATORIOS
 // ───────────────────────────────────────────────
 export const verRecordatorios = async () => {
   try {
-    const res = await axios.get(`${API_URL}/ver`, {
-      headers: getHeaders(),
-    });
+    const res = await axiosInstance.get(`${API_URL}/ver`);
     return res.data.recordatorios || [];
   } catch (err) {
     console.error("Error al traer recordatorios:", err);
@@ -30,6 +25,7 @@ export const verRecordatorios = async () => {
 // ───────────────────────────────────────────────
 export const insertarRecordatorio = async (datosRecordatorio) => {
   try {
+<<<<<<< HEAD
     // ✅ CORRECTO: Crear usa /crear
     const res = await axios.post(`${API_URL}/crear`, datosRecordatorio, {
       headers: getHeaders(),
@@ -40,6 +36,10 @@ export const insertarRecordatorio = async (datosRecordatorio) => {
       mensaje: res.data.mensaje,
       id_recordatorio: res.data.id_recordatorio
     };
+=======
+    const res = await axiosInstance.post(`${API_URL}/insertar`, datosRecordatorio);
+    return res.data;
+>>>>>>> ee769b129b34f3b2fad9d0c78e47c4f1203331c5
   } catch (err) {
     console.error("Error al insertar recordatorio:", err);
     return { Consulta: false, error: err.message };
@@ -51,10 +51,14 @@ export const insertarRecordatorio = async (datosRecordatorio) => {
 // ───────────────────────────────────────────────
 export const actualizarRecordatorio = async (datosRecordatorio) => {
   try {
+<<<<<<< HEAD
     // ✅ CORREGIR: Actualizar usa /actualizar
     const res = await axios.put(`${API_URL}/actualizar`, datosRecordatorio, {
       headers: getHeaders(),
     });
+=======
+    const res = await axiosInstance.put(`${API_URL}/actualizar`, datosRecordatorio);
+>>>>>>> ee769b129b34f3b2fad9d0c78e47c4f1203331c5
     return res.data;
   } catch (err) {
     console.error("Error al actualizar recordatorio:", err);
@@ -66,10 +70,13 @@ export const actualizarRecordatorio = async (datosRecordatorio) => {
 // ───────────────────────────────────────────────
 export const eliminarRecordatorio = async (id) => {
   try {
+<<<<<<< HEAD
     // ✅ CORREGIR: Eliminar usa /eliminar
     const res = await axios.delete(`${API_URL}/eliminar`, {
+=======
+    const res = await axiosInstance.delete(`${API_URL}/eliminar`, {
+>>>>>>> ee769b129b34f3b2fad9d0c78e47c4f1203331c5
       data: { id },
-      headers: getHeaders(),
     });
     return res.data;
   } catch (err) {
@@ -92,6 +99,7 @@ export const obtenerQR = async () => {
   }
 };
 
+<<<<<<< HEAD
 
 // ───────────────────────────────────────────────
 // SERVICIO PARA VER CATALOGOS POR TIPO
@@ -104,8 +112,14 @@ export const verCatalogo = async (tipo_catalogo) => {
   try {
     // ✅ CORRECTO: Catálogo usa /catalogo
     const res = await axios.get(`${API_URL}/catalogo`, {
+=======
+/*SERVICIO PARA VER CATALOGOS POR TIPO*/
+export const verCatalogo = async (tipo_catalogo) => {
+  try {
+
+    const res = await axiosInstance.get(`${API_URL}/verCatalogos`, {
+>>>>>>> ee769b129b34f3b2fad9d0c78e47c4f1203331c5
       params: { tipo_catalogo },
-      headers: getHeaders(),
     });
     
     console.log(`✅ Respuesta ${tipo_catalogo}:`, res.data);
@@ -118,6 +132,7 @@ export const verCatalogo = async (tipo_catalogo) => {
     return { Consulta: false, error: err.message, servicios: [] }; 
   }
 };
+<<<<<<< HEAD
 // ───────────────────────────────────────────────
 // SERVICIOS DE WHATSAPP
 // ───────────────────────────────────────────────
@@ -176,3 +191,5 @@ export const obtenerQRWhatsApp = async () => {
   console.warn('⚠️ obtenerQRWhatsApp está obsoleto. Usa obtenerQR en su lugar.');
   return await obtenerQR();
 };
+=======
+>>>>>>> ee769b129b34f3b2fad9d0c78e47c4f1203331c5

@@ -52,8 +52,8 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
     }
     if (!formData.descripcion_servicio.trim()) {
       nuevosErrores.descripcion_servicio = 'La descripción es requerida';
-    } else if (formData.descripcion_servicio.trim().length < 20) {
-      nuevosErrores.descripcion_servicio = 'La descripción debe tener al menos 20 caracteres';
+    } else if (formData.descripcion_servicio.trim().length < 5) {
+      nuevosErrores.descripcion_servicio = 'La descripción debe tener al menos 5 caracteres';
     }
     const precio = parseFloat(formData.precio_servicio);
     if (!formData.precio_servicio || isNaN(precio)) {
@@ -122,7 +122,6 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
       draggable={false}
       resizable={false}
     >
-      <div className="rounded-lg shadow-md p-4 pb-12 relative min-h-[150px] bg-gray-100 opacity-70 border-2 border-gray-300">
         {/* Formulario */}
         <div className="flex flex-col gap-3">
           {/* Nombre del Servicio */}
@@ -196,7 +195,7 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
         </div>
 
 
-      </div>
+      
     </Dialog>
   );
 }

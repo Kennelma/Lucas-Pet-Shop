@@ -1,22 +1,13 @@
-import axios from "axios";
+import axiosInstance from './axiosConfig';
 
-const API_URL = "http://localhost:4000/api/estilistas";
 
-const getHeaders = () => {
-    const token = sessionStorage.getItem('token');
-    return {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : '' 
-    };
-};
+const API_URL = "/estilistas";
 
 
 //SERVICIO PARA VER ESTILISTAS
 export const verEstilistas = async () => {
   try {
-    const res = await axios.get(`${API_URL}/ver`,
-      { headers: getHeaders() }
-    );
+    const res = await axiosInstance.get(`${API_URL}/ver`);
     return res.data.estilistas || [];
   } catch (err) {
     console.error('Error al traer estilistas:', err);
@@ -27,10 +18,7 @@ export const verEstilistas = async () => {
 //SERVICIO PARA INSERTAR ESTILISTAS
 export const insertarEstilista = async (datosEstilista) => {
   try {
-    const res = await axios.post(`${API_URL}/insertar`, datosEstilista, {
-      headers: getHeaders()
-    });
-
+    const res = await axiosInstance.post(`${API_URL}/insertar`, datosEstilista);
     return res.data;
   } catch (err) {
     console.error('Error al insertar estilista:', err);
@@ -38,13 +26,10 @@ export const insertarEstilista = async (datosEstilista) => {
   }
 };
 
-
 //SERVICIO PARA ACTUALIZAR ESTILISTAS
 export const actualizarEstilista = async (datosEstilista) => {
   try {
-    const res = await axios.put(`${API_URL}/actualizar`, datosEstilista,
-      { headers: getHeaders() }
-    );
+    const res = await axiosInstance.put(`${API_URL}/actualizar`, datosEstilista);
     return res.data;
   } catch (err) {
     console.error('Error al actualizar estilista:', err);
@@ -55,8 +40,8 @@ export const actualizarEstilista = async (datosEstilista) => {
 //SERVICIO PARA ELIMINAR ESTILISTA
 export const eliminarEstilista = async (id) => { 
   try {
-    const res = await axios.delete(`${API_URL}/eliminar`, {
-      data: { id }, headers: getHeaders()
+    const res = await axiosInstance.delete(`${API_URL}/eliminar`, {
+      data: { id }
     });
     return res.data;
   } catch (err) {

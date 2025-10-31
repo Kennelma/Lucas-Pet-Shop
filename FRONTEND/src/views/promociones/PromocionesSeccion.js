@@ -5,9 +5,10 @@ import { Column } from 'primereact/column';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { useState } from 'react';
+import ResumenPromocionesDelDia from "./ResumenPromocionesDelDia";
 
 const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocion, actualizarEstadoPromocion }) => {
-  
+
   const [globalFilter, setGlobalFilter] = useState('');
 
   const handleEliminar = (promocion) => {
@@ -38,19 +39,19 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
   const actionBotones = (rowData) => {
     return (
       <div className="flex items-center space-x-2 w-full">
-        <button 
+        <button
           className="text-blue-500 hover:text-blue-700 p-2 rounded"
           onClick={(e) => {
-            e.stopPropagation(); 
+            e.stopPropagation();
             abrirModalPromocion(rowData);
           }}
         >
           <FontAwesomeIcon icon={faPenToSquare} size="lg" />
         </button>
-        <button 
+        <button
           className="text-red-500 hover:text-red-700 p-2 rounded"
           onClick={(e) => {
-            e.stopPropagation(); 
+            e.stopPropagation();
             handleEliminar(rowData);
           }}
         >
@@ -63,13 +64,18 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
   return (
     <>
       {/* Título */}
-      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
+      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
             GESTIÓN DE PROMOCIONES
           </h2>
         </div>
+        <p className="text-center text-gray-600 italic">Administra ofertas, descuentos y promociones especiales</p>
       </div>
+
+      {/* Resumen de promociones del día en tiempo real */}
+      <ResumenPromocionesDelDia />
+
 
       <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
       {/* Barra de búsqueda + botón Nuevo */}
@@ -106,7 +112,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
           <outline.SparklesIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
           <h3 className="text-lg font-semibold text-gray-700 mb-2">No hay promociones</h3>
           <p className="text-gray-500 mb-6">Crea tu primera promoción para atraer clientes.</p>
-          <button 
+          <button
             className="bg-green-500 text-white px-6 py-3 rounded-full hover:bg-green-600 transition-colors inline-flex items-center gap-2"
             style={{ borderRadius: '12px' }}
             onClick={() => abrirModalPromocion(null)}
@@ -117,7 +123,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
         </div>
       ) : (
         <>
-          
+
           <DataTable
           value={promociones}
           loading={false}
@@ -138,17 +144,17 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
           className="mt-4"
           size="small"
           selectionMode="single"
-          rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}        
+          rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
         >
-        
-          <Column field="id_promocion_pk" header="ID" body={(rowData) => promociones.indexOf(rowData) + 1} sortable className="text-sm"/>
-          <Column field="nombre_promocion" header="Nombre" sortable className="text-sm"></Column>
-          <Column field="descripcion_promocion" header="Descripción" className="text-sm"></Column>
-          <Column 
+
+          <Column field="id_promocion_pk" header="ID" body={(rowData) => promociones.length - promociones.indexOf(rowData)}  sortable className="text-sm"/>
+          <Column field="nombre_promocion" header="NOMBRE" sortable className="text-sm"></Column>
+          <Column field="descripcion_promocion" header="DESCRIPCIÓN" className="text-sm"></Column>
+          <Column
             field="precio_promocion"
-            header="Precio" 
+            header="PRECIO"
             body={(rowData) => `L. ${parseFloat(rowData.precio_promocion || 0).toFixed(2)}`}
-            sortable 
+            sortable
             sortField="precio_promocion"
             dataType="numeric"
             sortFunction={(e) => {
@@ -158,8 +164,8 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
             }}
             className="text-sm"
           ></Column>
-          <Column 
-            header="Duración" 
+          <Column
+            header="DÍAS DE PROMOCIÓN"
             body={(rowData) => {
               let duracion = rowData.dias_promocion;
               if (Array.isArray(duracion)) {
@@ -172,15 +178,15 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
             }}
             className="text-sm"
           ></Column>
-          <Column 
+          <Column
             field="activo"
-            header="Estado" 
+            header="ESTADO"
             body={estadoTemplate}
             sortable
             sortField="activo"
             className="text-sm"
           ></Column>
-          <Column header="Acciones" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm"></Column>
+          <Column header="ACCIONES" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm"></Column>
         </DataTable>
         </>
       )}

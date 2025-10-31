@@ -10,6 +10,7 @@ import Swal from 'sweetalert2';
 import PromocionesSeccion from "./PromocionesSeccion";
 import ModalPromocion from "./modal_promocion";
 
+
 const Promociones = () => {
   const [promociones, setPromociones] = useState([]);
   const [modalAbierto, setModalAbierto] = useState(false);
@@ -82,6 +83,9 @@ const Promociones = () => {
         });
         cerrarModal();
         cargarDatos(); // Recargar datos
+        
+        // Notificar a otros componentes sobre el cambio
+        window.dispatchEvent(new CustomEvent('promocionesUpdated'));
       } else {
         throw new Error(resultado.error || 'Error en la operación');
       }
@@ -127,6 +131,9 @@ const Promociones = () => {
           timer: 1500,
           showConfirmButton: false
         });
+        
+        // Notificar a otros componentes sobre el cambio de estado
+        window.dispatchEvent(new CustomEvent('promocionesUpdated'));
       } else {
         throw new Error(resultado.error || 'Error al actualizar estado');
       }
@@ -177,6 +184,9 @@ const Promociones = () => {
             showConfirmButton: false
           });
           cargarDatos(); // Recargar datos
+          
+          // Notificar a otros componentes sobre la eliminación
+          window.dispatchEvent(new CustomEvent('promocionesUpdated'));
         } else {
           throw new Error(resultado.error || 'Error al eliminar');
         }
@@ -193,6 +203,7 @@ const Promociones = () => {
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
+      
       {loading ? (
         <div className="flex items-center justify-center min-h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>

@@ -9,6 +9,7 @@ import { faPenToSquare, faTrash, faPlus } from '@fortawesome/free-solid-svg-icon
 
 import ModalNuevoAlimento from './modal_nuevo_alimento';
 import ModalActualizarAlimento from './modal_actualizar_alimento';
+import AlimentosMasVendidos from './AlimentosMasVendidos';
 
 import { verProductos, eliminarProducto, actualizarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
@@ -183,13 +184,18 @@ const Alimentos = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       {/* Título */}
-      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
+      <div className="bg-gradient-to-r from-purple-50  rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
-            Inventario de Alimentos
+            INVENTARIO DE ALIMENTOS
           </h2>
         </div>
+        <p className="text-center text-gray-600 italic">Administra alimentos balanceados, snacks y nutrición para mascotas</p>
+
       </div>
+
+      {/* Componente de Alimentos Más Vendidos */}
+      <AlimentosMasVendidos alimentos={alimentos} />
 
       <div className="bg-white rounded-xl p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         {/* Header */}
@@ -242,33 +248,33 @@ const Alimentos = () => {
           selectionMode="single"
           rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
         >
-          <Column 
-            field="id_producto" 
-            header="ID" 
-            body={(rowData) => filtroAlimentos.indexOf(rowData) + 1} 
-            sortable 
+          <Column
+            field="id_producto"
+            header="ID"
+            body={(rowData) => filtroAlimentos.length - filtroAlimentos.indexOf(rowData)}
+            sortable
             className="text-sm"
           />
-          <Column field="nombre" header="Nombre" sortable className="text-sm" />
+          <Column field="nombre" header="NOMBRE" sortable className="text-sm" />
           <Column field="sku" header="SKU" sortable className="text-sm" />
-          <Column field="destino" header="Destino" sortable className="text-sm" />
+          <Column field="destino" header="DESTINADO" sortable className="text-sm" />
           <Column
             field="peso"
-            header="Peso (kg)"
+            header="PESO"
             body={(rowData) => `${rowData.peso} kg`}
             sortable
             className="text-sm"
           />
           <Column
             field="precio"
-            header="Precio"
+            header="PRECIO"
             body={(rowData) => `L. ${rowData.precio.toFixed(2)}`}
             sortable
             className="text-sm"
           />
           <Column
             field="stock"
-            header="Stock"
+            header="STOCK"
             body={(rowData) => (
               <span className={rowData.stock <= rowData.stock_minimo ? 'text-red-500 font-semibold' : ''}>
                 {rowData.stock}
@@ -280,14 +286,14 @@ const Alimentos = () => {
           />
           <Column
             field="activo"
-            header="Estado"
+            header="ESTADO"
             body={estadoTemplate}
             sortable
             sortField="activo"
             className="text-sm"
           />
           <Column
-            header="Acciones"
+            header="ACCIONES"
             body={(rowData) => (
               <div className="flex items-center space-x-2 w-full">
                 <button

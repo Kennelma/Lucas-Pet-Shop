@@ -1,11 +1,43 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { faUserPlus, faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faUserPlus, faPenToSquare, faTrash, faEye } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { Toast } from 'primereact/toast';
+
+// Tooltip component funcional con React y Tailwind
+const Tooltip = ({ children, content }) => {
+    const [show, setShow] = useState(false);
+    return (
+        <div
+            className="relative inline-block"
+            onMouseEnter={() => setShow(true)}
+            onMouseLeave={() => setShow(false)}
+            onFocus={() => setShow(true)}
+            onBlur={() => setShow(false)}
+        >
+            {React.cloneElement(children, {
+                tabIndex: 0, // para accesibilidad
+                onFocus: (e) => {
+                    setShow(true);
+                    if (children.props.onFocus) children.props.onFocus(e);
+                },
+                onBlur: (e) => {
+                    setShow(false);
+                    if (children.props.onBlur) children.props.onBlur(e);
+                }
+            })}
+            <div
+                className={`absolute z-10 left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-1 rounded bg-purple-200 text-black text-xs whitespace-nowrap transition-opacity duration-200 pointer-events-none ${show ? 'opacity-100' : 'opacity-0'}`}
+                role="tooltip"
+            >
+                {content}
+            </div>
+        </div>
+    );
+};
 
 import { verClientes, eliminarCliente } from "../../AXIOS.SERVICES/clients-axios.js";
 
@@ -20,6 +52,10 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
     const [openModal, setOpenModal] = useState(false);
     const [openModalActualizar, setOpenModalActualizar] = useState(false); 
     const [clienteAEditar, setClienteAEditar] = useState(null);
+    
+    //ESTADO PARA EL MODAL DE PERFIL
+    const [openModalPerfil, setOpenModalPerfil] = useState(false);
+    const [clientePerfil, setClientePerfil] = useState(null);
 
     //CONSTANTES PARA LA ELIMINACION DE CLIENTES
     const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
@@ -45,12 +81,12 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
 
     //EVITA EL SCROLL EN LOS MODALES
     useEffect(() => {
-        if (openModal || openModalActualizar) {
+        if (openModal || openModalActualizar || openModalPerfil) {
             document.body.classList.add('overflow-hidden');
         } else {
             document.body.classList.remove('overflow-hidden');
         }
-    }, [openModal, openModalActualizar]);
+    }, [openModal, openModalActualizar, openModalPerfil]);
 
 
     //CONSTANTE PARA ABRIR LOS MODALES DE AGREGAR Y ACTUALIZAR CLIENTES
@@ -58,6 +94,12 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
     const handleActualizarCliente = (cliente, index) => {
         setClienteAEditar({ ...cliente, indexVisual: index + 1 }); //SE AGREGA EL ID VISUAL
         setOpenModalActualizar(true);
+    };
+    
+    //CONSTANTE PARA ABRIR EL MODAL DE PERFIL DEL CLIENTE
+    const handleVerPerfil = (cliente) => {
+        setClientePerfil(cliente);
+        setOpenModalPerfil(true);
     };
 
     //ESTADO DE ELIMINACION, AQUI SE MANEJA LOS TOAST DE CONFIRMACION
@@ -94,9 +136,22 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
         setConfirmDialogVisible(false);
     };
 
-    //CONSTANTE QUE CONTROLAN LAS ACCIONES DE LOS BOTONES DE ACTUALIZAR Y BORRAR
+    //CONSTANTE QUE CONTROLAN LAS ACCIONES DE LOS BOTONES DE VER PERFIL, ACTUALIZAR Y BORRAR
     const actionBotones = (rowData) => (
         <div className="flex items-center space-x-2 w-full">
+            {/* BOTON PARA VER EL PERFIL DEL CLIENTE CON TOOLTIP */}
+            <Tooltip content="Ver perfil">
+                <button
+                    className="text-purple-500 hover:text-purple-700 p-2 rounded"
+                    onClick={(e) => { 
+                        e.stopPropagation(); 
+                        handleVerPerfil(rowData); 
+                    }}
+                >
+                    <FontAwesomeIcon icon={faEye} size="lg" />
+                </button>
+            </Tooltip>
+
             <button
                 className="text-blue-500 hover:text-blue-700 p-2 rounded"
                 onClick={(e) => { e.stopPropagation(); 
@@ -125,7 +180,7 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
             <div className="bg-white rounded-xl p-6 max-w-5xl mx-auto font-poppins" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
                 <div className="flex justify-end items-center mb-4">
                     <button className="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-800"
-                        onClick={handleAgregarCliente}>
+                        onClick={handleAgregarCliente}>AGREGAR NUEVO CLIENTE
                         <FontAwesomeIcon icon={faUserPlus} />
                     </button>
                 </div>
@@ -151,12 +206,29 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                         onRowClick={(e) => setClienteSeleccionado(e.data)}
                         rowClassName={() => 'hover:bg-gray-100 cursor-pointer'}
                     >
-                        <Column field="id_cliente_pk" header="ID" body={(rowData) => clientes.indexOf(rowData) + 1} sortable className="text-sm"/>
-                        <Column field="nombre_cliente" header="Nombre" sortable className="text-sm" />
-                        <Column field="apellido_cliente" header="Apellido" sortable className="text-sm" />
-                        <Column field="identidad_cliente" header="Identidad" className="text-sm" />
-                        <Column field="telefono_cliente" header="Teléfono" className="text-sm" />
-                        <Column header="Acciones" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm" />
+                        <Column field="id_cliente_pk" header="ID" body={(rowData) => clientes.length - clientes.indexOf(rowData)} sortable className="text-sm"/>
+                        <Column field="nombre_cliente" header="NOMBRE" sortable className="text-sm" />
+                        <Column field="apellido_cliente" header="APELLIDO" sortable className="text-sm" />
+                        <Column field="identidad_cliente" header="IDENTIDAD" className="text-sm" />
+                        <Column field="telefono_cliente" header="TELÉFONO" className="text-sm" />
+                        <Column
+                            field="fecha_registro"
+                            header="FECHA DE REGISTRO"
+                            className="text-sm"
+                            body={(rowData) => {
+                                const fecha = new Date(rowData.fecha_registro);
+                                return fecha.toLocaleString('es-HN', {
+                                timeZone: 'America/Tegucigalpa',
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                                });
+                            }}
+                            />
+                        <Column header="ACCIONES" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm" />
                     </DataTable>
                 )}
             </div>
@@ -182,6 +254,45 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                         setClientes(data);
                     }}
                 />
+            )}
+
+            {/*MODAL PARA VER PERFIL DEL CLIENTE*/}
+            {clientePerfil && (
+                <Dialog
+                    header={<div className="w-full text-center text-lg font-bold">PERFIL DE CLIENTE</div>}
+                    visible={openModalPerfil}
+                    style={{ width: '28rem', borderRadius: '1.5rem' }}
+                    modal
+                    closable={false}
+                    onHide={() => setOpenModalPerfil(false)}
+                    footer={
+                        <div className="flex justify-center mt-2">
+                            <Button 
+                                label="Cerrar" 
+                                icon="pi pi-times" 
+                                className="p-button-text p-button-rounded" 
+                                onClick={() => setOpenModalPerfil(false)} 
+                            />
+                        </div>
+                    }
+                    position="center"
+                    dismissableMask={false}
+                    draggable={false}
+                    resizable={false}
+                >
+                    <div className="mt-0">
+                        
+                        {/* Información del cliente */}
+                        <div className="flex flex-col gap-3">
+                            <div>
+                                <label className="text-xs font-semibold text-gray-700 mb-1 block">NOMBRE COMPLETO</label>
+                                <div className="w-full rounded-xl h-9 text-sm bg-gray-100 flex items-center px-3 border">
+                                    {clientePerfil.nombre_cliente} {clientePerfil.apellido_cliente}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </Dialog>
             )}
 
             {/*DIALOG PARA ELIMINAR CLIENTE*/}

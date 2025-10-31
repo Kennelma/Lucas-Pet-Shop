@@ -81,6 +81,7 @@ exports.crear = async (req, res) => {
                 mensaje_recordatorio,    
                 id_tipo_item_fk, 
                 id_frecuencia_fk,
+<<<<<<< HEAD
                 proximo_envio,
                 id_estado_programacion_fk,
                 activo
@@ -90,6 +91,15 @@ exports.crear = async (req, res) => {
                 req.body.id_tipo_item_fk,
                 idFrecuencia,
                 proximoEnvio
+=======
+                proximo_envio
+            ) VALUES (?, ?, ?, ?)`,
+            [
+                req.body.mensaje_recordatorio,
+                req.body.id_tipo_item_fk,
+                req.body.id_frecuencia_fk,
+                req.body.proximo_envio
+>>>>>>> ee769b129b34f3b2fad9d0c78e47c4f1203331c5
             ]
         );
 
@@ -198,6 +208,7 @@ exports.actualizar = async (req, res) => {
     try {
         const { id_recordatorio_pk } = req.body;
 
+<<<<<<< HEAD
         if (!id_recordatorio_pk) {
             return res.status(400).json({
                 Consulta: false,
@@ -209,6 +220,29 @@ exports.actualizar = async (req, res) => {
         const [existeRecordatorio] = await conn.query(
             `SELECT id_recordatorio_pk FROM tbl_recordatorios WHERE id_recordatorio_pk = ?`,
             [id_recordatorio_pk]
+=======
+        await conn.query(
+            `UPDATE tbl_recordatorios
+             SET 
+                mensaje_recordatorio = COALESCE(?, mensaje_recordatorio),
+                ultimo_envio = COALESCE(?, ultimo_envio),
+                proximo_envio = COALESCE(?, proximo_envio),
+                intentos = COALESCE(?, intentos),                
+                id_estado_programacion_fk = COALESCE(?, id_estado_programacion_fk),
+                id_tipo_item_fk = COALESCE(?, id_tipo_item_fk),
+                id_frecuencia_fk = COALESCE(?, id_frecuencia_fk)
+             WHERE id_recordatorio_pk = ?`,
+            [
+                req.body.mensaje_recordatorio || null,
+                req.body.ultimo_envio || null,
+                req.body.proximo_envio || null,
+                req.body.intentos || null,
+                req.body.id_estado_programacion_fk || null,
+                req.body.id_tipo_item_fk || null,
+                req.body.id_frecuencia_fk || null,
+                id_recordatorio
+            ]
+>>>>>>> ee769b129b34f3b2fad9d0c78e47c4f1203331c5
         );
 
         if (existeRecordatorio.length === 0) {
