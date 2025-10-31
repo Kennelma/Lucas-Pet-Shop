@@ -577,3 +577,46 @@ exports.buscarEstilistas = async (req, res) => {
     }
 
 };
+
+exports.historialFacturas = async (req, res) => {
+
+    const conn = await mysqlConnection.getConnection();
+
+    try {
+
+        [facturas] = await conn.query(
+            `SELECT
+                f.numero_factura,
+                f.fecha_emision,
+                f.total,
+                f.saldo,
+                u.usuario,
+                s.nombre_sucursal,
+                c.nombre_estado,
+                cl.nombre_cliente,
+                cl.apellido_cliente,
+                cl.identidad_cliente
+            FROM tbl_facturas f
+            INNER JOIN tbl_usuarios u ON f.id_usuario_fk = u.id_usuario_pk
+            INNER JOIN tbl_sucursales s ON f.id_sucursal_fk = s.id_sucursal_pk
+            INNER JOIN cat_estados c ON f.id_estado_fk = c.id_estado_pk
+            LEFT JOIN tbl_clientes cl ON f.id_cliente_fk = cl.id_cliente_pk`
+        );
+
+        console.log("Historial de facturas:", facturas);
+        res.status(200).json({
+            success: true,
+            data: facturas
+        });
+
+    } catch (error) {
+        console.error("Error al obtener historial de facturas:", error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    } finally {
+        conn.release();
+    }
+
+}

@@ -1,22 +1,22 @@
 import { CNavGroup, CNavItem, CNavTitle} from '@coreui/react'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { 
+import {
   faGaugeHigh,
-  faUsers,          
-  faBoxesStacked ,            
-  faCut,             
-  faTags,                  
-  faBell,            
-  faDollarSign,     
-  faChartPie ,  
+  faUsers,
+  faBoxesStacked ,
+  faCut,
+  faTags,
+  faBell,
+  faDollarSign,
+  faChartPie ,
   faCapsules,
   faDog,
   faUser,
   faGift,
   faBone,
   faCoins,
-  faShower, 
+  faShower,
   faStore,
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -29,11 +29,10 @@ const _nav = [
     icon: <FontAwesomeIcon icon={faGaugeHigh} className="nav-icon" />,
     badge: {
       color: 'info',
-      text: 'NEW',
     },
   },
 
-  
+
 
   {
     component: CNavTitle,
@@ -45,8 +44,8 @@ const _nav = [
     component: CNavItem,
     name: 'Facturación',
     to: '/facturacion',
-    icon: <FontAwesomeIcon icon={faDollarSign} className="nav-icon" />,    
-   
+    icon: <FontAwesomeIcon icon={faDollarSign} className="nav-icon" />,
+
   },
 
   //CLIENTES
@@ -108,7 +107,7 @@ const _nav = [
         style: { paddingLeft: '65px' },
         icon: <FontAwesomeIcon icon={faShower} className="nav-icon" />,
          to: '/peluqueria_canina/servicios',
-        
+
       },
       {
         component: CNavItem,
@@ -116,8 +115,8 @@ const _nav = [
         to: '/peluqueria_canina/promociones',
         style: { paddingLeft: '65px' },
         icon: <FontAwesomeIcon icon={faTags} className="nav-icon" />,
-        
-      }, 
+
+      },
     ],
   },
 
@@ -126,7 +125,7 @@ const _nav = [
     component: CNavItem,
     name: 'Empresa y sucursales',
     icon: <FontAwesomeIcon icon={faStore} className="nav-icon" />,
-    to: '/empresa',    
+    to: '/empresa',
   },
 
   //RECORDATORIOS
@@ -152,11 +151,11 @@ const _nav = [
     name: 'Reportes',
     to: '/reportes',
     icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
-   
+
   },
 
-  
- 
+
+
 
 ]
 

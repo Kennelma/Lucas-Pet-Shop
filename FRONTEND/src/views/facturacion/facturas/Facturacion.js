@@ -38,7 +38,7 @@ export default function Facturacion () {
                         >
                             <div className="flex items-center gap-2">
                                 <Plus size={20} />
-                                Nueva Factura
+                                Nueva factura
 
 
                             </div>
@@ -55,7 +55,7 @@ export default function Facturacion () {
                         >
                             <div className="flex items-center gap-2">
                                 <FileText size={20} />
-                                Facturas
+                                Historial de facturas
                             </div>
                         </button>
                     </div>

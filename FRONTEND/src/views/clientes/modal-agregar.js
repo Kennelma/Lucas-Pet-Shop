@@ -30,17 +30,12 @@ export default function FormularioCliente({
         telefono_cliente: false
     });
 
-    const capitalizar = (texto) => {
-        if (!texto) return "";
-        return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
-    };
-
     const handleChange = (e) => {
         const { name, value } = e.target;
         let nuevoValor = value;
         if (name === "nombre_cliente" || name === "apellido_cliente") {
             nuevoValor = nuevoValor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
-            nuevoValor = capitalizar(nuevoValor);
+            nuevoValor = nuevoValor.toUpperCase();
         }
         setNuevoCliente({ ...nuevoCliente, [name]: nuevoValor });
         if (nuevoValor.trim() !== "") {

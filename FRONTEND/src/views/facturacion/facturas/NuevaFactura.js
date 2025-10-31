@@ -21,7 +21,17 @@ const NuevaFactura = () => {
   const [sucursal, setSucursal] = useState("");
 
   //====================ESTADOS_DE_ITEMS====================
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState([
+    {
+      id: Date.now(),
+      tipo: "PRODUCTOS",
+      item: "",
+      cantidad: 1,
+      precio: 0.0,
+      ajuste: 0,
+      estilistas: [],
+    }
+  ]);
 
   //====================DISPONIBLES_Y_ESTILISTAS====================
   const [disponiblesItems, setDisponiblesItems] = useState({
