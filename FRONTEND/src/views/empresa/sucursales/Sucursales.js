@@ -201,20 +201,20 @@ export default function Sucursales() {
                 <div className="mb-2">
                   <h4 className="font-semibold text-gray-900">{sucursal.nombre_sucursal}</h4>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <FontAwesomeIcon icon={freeSolidSvgIcons.faMapMarkerAlt} className="w-3 h-3" />
-                    {sucursal.direccion_sucursal}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 col-span-5">
+                    <FontAwesomeIcon icon={freeSolidSvgIcons.faMapMarkerAlt} className="w-3 h-3 flex-shrink-0" />
+                    <span className="break-words">{sucursal.direccion_sucursal}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <FontAwesomeIcon icon={freeSolidSvgIcons.faPhone} className="w-3 h-3" />
-                    {sucursal.telefono_sucursal}
+                  <div className="flex items-center gap-2 col-span-3">
+                    <FontAwesomeIcon icon={freeSolidSvgIcons.faPhone} className="w-3 h-3 flex-shrink-0" />
+                    <span>{sucursal.telefono_sucursal}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <FontAwesomeIcon icon={freeSolidSvgIcons.faBuilding} className="w-3 h-3" />
-                    {sucursal.nombre_empresa}
+                  <div className="flex items-center gap-2 col-span-3">
+                    <FontAwesomeIcon icon={freeSolidSvgIcons.faBuilding} className="w-3 h-3 flex-shrink-0" />
+                    <span className="break-words">{sucursal.nombre_empresa}</span>
                   </div>
-                  <div className="flex items-center gap-2 justify-end">
+                  <div className="flex items-center gap-2 justify-end col-span-1">
                     <BotonEditarSucursal 
                       sucursal={sucursal}
                       onEdit={handleactualizarSucursal}

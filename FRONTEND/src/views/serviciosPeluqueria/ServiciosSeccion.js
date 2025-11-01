@@ -1,4 +1,5 @@
 
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   ScissorsIcon, 
   PlusIcon, 
@@ -11,7 +12,98 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { faPlus, faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useState } from 'react';
+
+const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [shouldShowAbove, setShouldShowAbove] = useState(false);
+  const menuRef = useRef(null);
+  const buttonRef = useRef(null);
+  
+  const checkPosition = () => {
+    const showAbove = rowIndex >= 2 || rowIndex >= (totalRows - 3);
+    setShouldShowAbove(showAbove);
+  };
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleResize = () => {
+      setIsOpen(false);
+    };
+
+    const handleScroll = () => {
+      setIsOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleScroll, true);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, []);
+
+  const handleToggleMenu = (e) => {
+    e.stopPropagation();
+    if (!isOpen) {
+      checkPosition();
+      requestAnimationFrame(() => {
+        checkPosition();
+      });
+    }
+    setIsOpen(!isOpen);
+  };
+  
+  return (
+    <div className="relative flex justify-center" ref={menuRef}>
+      <button
+        ref={buttonRef}
+        className="w-8 h-8 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center transition-colors"
+        onClick={handleToggleMenu}
+        title="Más opciones"
+      >
+        <i className="pi pi-ellipsis-h text-white text-xs"></i>
+      </button>
+      
+      {isOpen && (
+        <div className={`absolute right-0 ${shouldShowAbove ? 'bottom-16' : 'top-12'} bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[140px]`}>
+          <div 
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+              onEditar(rowData);
+            }}
+          >
+            <i className="pi pi-pencil text-xs"></i>
+            <span>Editar</span>
+          </div>
+          
+          <hr className="my-0 border-gray-200" />
+          
+          <div 
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+              onEliminar(rowData);
+            }}
+          >
+            <i className="pi pi-trash text-xs"></i>
+            <span>Eliminar</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, actualizarEstadoServicio }) => {
   
@@ -41,29 +133,16 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
     );
   };
 
-  // Botones de acciones para cada fila
-  const actionBotones = (rowData) => {
+  // Botones de acciones con ActionMenu
+  const actionBotones = (servicio, options) => {
     return (
-      <div className="flex items-center space-x-2 w-full">
-        <button 
-          className="text-blue-500 hover:text-blue-700 p-2 rounded"
-          onClick={(e) => {
-            e.stopPropagation(); 
-            abrirModalServicio(rowData);
-          }}
-        >
-          <FontAwesomeIcon icon={faPenToSquare} size="lg" />
-        </button>
-        <button 
-          className="text-red-500 hover:text-red-700 p-2 rounded"
-          onClick={(e) => {
-            e.stopPropagation(); 
-            handleEliminar(rowData);
-          }}
-        >
-          <FontAwesomeIcon icon={faTrash} size="lg" />
-        </button>
-      </div>
+      <ActionMenu
+        rowData={servicio}
+        onEditar={(data) => abrirModalServicio(data)}
+        onEliminar={(data) => handleEliminar(data)}
+        rowIndex={options.rowIndex}
+        totalRows={servicios.length}
+      />
     );
   };
 
@@ -91,7 +170,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
         </div>
 
         <button
-          className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors flex items-center gap-2"
+          className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600 transition-colors flex items-center gap-2"
           onClick={() => abrirModalServicio(null)}
         >
           <FontAwesomeIcon icon={faPlus} />
@@ -105,7 +184,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
           <h3 className="text-lg font-semibold text-gray-700 mb-2 uppercase">No hay servicios</h3>
           <p className="text-gray-500 mb-6">Crea tu primer servicio de peluquería para mascotas.</p>
           <button 
-            className="bg-green-500 text-white px-6 py-3 rounded hover:bg-green-600 transition-colors inline-flex items-center gap-2"
+            className="bg-purple-500 text-white px-6 py-3 rounded hover:bg-purple-600 transition-colors inline-flex items-center gap-2"
             onClick={() => abrirModalServicio(null)}
           >
             <FontAwesomeIcon icon={faPlus} />

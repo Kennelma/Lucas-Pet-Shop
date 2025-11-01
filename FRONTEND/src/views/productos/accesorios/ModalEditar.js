@@ -132,7 +132,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
   };
 
   const footer = (
-    <div className="flex justify-end gap-3 mt-4">
+    <div className="flex justify-end gap-3 mt-2">
       <Button
         label="Cancelar"
         icon="pi pi-times"
@@ -152,100 +152,96 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
 
   return (
     <Dialog
-      header="Actualizar Accesorio"
+      header={<div className="w-full text-center text-lg font-bold">ACTUALIZAR ACCESORIO</div>}
       visible={isOpen}
-      style={{ width: '50rem', borderRadius: '1.5rem' }}
+      style={{ width: '28rem', borderRadius: '1.5rem', overflow: 'visible' }}
       modal
       closable={false}
       onHide={onClose}
       footer={footer}
+      position="center"
+      dismissableMask={false}
       draggable={false}
       resizable={false}
+      contentClassName="overflow-visible"
     >
-      <div className="flex flex-col gap-2 text-sm">
-        {/* Nombre */}
-        <label className="text-xs font-semibold">Nombre</label>
-        <InputText
-          value={data.nombre}
-          onChange={(e) => handleChange('nombre', e.target.value)}
-          className="w-full rounded-xl h-8 text-sm"
-        />
-        {errores.nombre && <small className="text-red-500">{errores.nombre}</small>}
+      {/* Formulario */}
+      <div className="flex flex-col gap-3 overflow-visible">
+        {/* Nombre del Accesorio */}
+        <span>
+          <label htmlFor="nombre" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE DEL ACCESORIO</label>
+          <InputText
+            id="nombre"
+            name="nombre"
+            value={data.nombre}
+            onChange={(e) => handleChange('nombre', e.target.value)}
+            className="w-full rounded-xl h-9 text-sm"
+            placeholder="Ej: Collar de cuero"
+          />
+          {errores.nombre && <p className="text-xs text-red-600 mt-1">{errores.nombre}</p>}
+        </span>
 
         {/* SKU */}
-        <label className="text-xs font-semibold">SKU</label>
-        <InputText
-          value={data.sku}
-          readOnly
-          className="w-full rounded-xl h-8 text-sm bg-gray-100"
-        />
+        <span>
+          <label htmlFor="sku" className="text-xs font-semibold text-gray-700 mb-1">SKU (GENERADO AUTOMÁTICAMENTE)</label>
+          <InputText
+            id="sku"
+            name="sku"
+            value={data.sku}
+            readOnly
+            className="w-full rounded-xl h-9 text-sm bg-gray-100"
+          />
+        </span>
 
         {/* Categoría */}
-        <div>
-          <label className="text-xs font-semibold">Categoría</label>
+        <span>
+          <label htmlFor="categoria" className="text-xs font-semibold text-gray-700 mb-1">CATEGORÍA</label>
           <Dropdown
+            id="categoria"
+            name="categoria"
             value={data.categoria}
             options={categorias}
             onChange={(e) => handleChange('categoria', e.value)}
-            className="w-full rounded-xl text-sm mt-1"
-            placeholder="Seleccionar"
+            className="w-full rounded-xl h-9 text-sm"
+            placeholder="Seleccionar categoría"
           />
-          {errores.categoria && <small className="text-red-500">{errores.categoria}</small>}
-        </div>
+          {errores.categoria && <p className="text-xs text-red-600 mt-1">{errores.categoria}</p>}
+        </span>
 
-        {/* Precio y Stock */}
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="text-xs font-semibold">Precio</label>
-            <InputNumber
-              value={data.precio}
-              onValueChange={(e) => handleChange('precio', e.value)}
-              mode="currency"
-              currency="HNL"
-              locale="es-HN"
-              className="w-full rounded-xl text-sm mt-1"
-              inputClassName="h-8 text-sm"
-            />
-            {errores.precio && <small className="text-red-500">{errores.precio}</small>}
-          </div>
+        {/* Precio */}
+        <span>
+          <label htmlFor="precio" className="text-xs font-semibold text-gray-700 mb-1">PRECIO (L)</label>
+          <InputNumber
+            id="precio"
+            name="precio"
+            value={data.precio}
+            onValueChange={(e) => handleChange('precio', e.value)}
+            mode="currency"
+            currency="HNL"
+            locale="es-HN"
+            className="w-full rounded-xl h-9 text-sm"
+            inputClassName="h-9 text-sm"
+            placeholder="0.00"
+            min={0}
+          />
+          {errores.precio && <p className="text-xs text-red-600 mt-1">{errores.precio}</p>}
+        </span>
 
-          <div>
-            <label className="text-xs font-semibold">Stock</label>
-            <InputNumber
-              value={data.cantidad}
-              onValueChange={(e) => handleChange('cantidad', e.value)}
-              className="w-full rounded-xl text-sm mt-1"
-              inputClassName="h-8 text-sm"
-            />
-            {errores.cantidad && <small className="text-red-500">{errores.cantidad}</small>}
-          </div>
-        </div>
-
-        {/* Estado Activo/Inactivo */}
-        <div className="mt-4 p-3 bg-gray-50 rounded border">
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="text-xs font-semibold">Estado del Producto</label>
-              <p className="text-xs text-gray-600 mt-1">
-                {data.activo ? "Producto visible en el inventario" : "Producto oculto del inventario"}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setData(prev => ({ ...prev, activo: !prev.activo }))}
-              className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
-                data.activo ? 'bg-green-500' : 'bg-gray-300'
-              }`}
-              disabled={loading}
-            >
-              <span
-                className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                  data.activo ? 'translate-x-7' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
-        </div>
+        {/* Stock */}
+        <span>
+          <label htmlFor="stock" className="text-xs font-semibold text-gray-700 mb-1">STOCK DISPONIBLE</label>
+          <InputNumber
+            id="stock"
+            name="stock"
+            value={data.cantidad}
+            onValueChange={(e) => handleChange('cantidad', e.value)}
+            className="w-full rounded-xl h-9 text-sm"
+            inputClassName="h-9 text-sm"
+            placeholder="Cantidad disponible"
+            min={0}
+          />
+          {errores.cantidad && <p className="text-xs text-red-600 mt-1">{errores.cantidad}</p>}
+        </span>
       </div>
     </Dialog>
   );

@@ -10,7 +10,7 @@ import './scss/style.scss'
 import './scss/examples.scss'
 import './tailwind.css'
 
-import ProtectedRoute from "./views/pages/login/ProtectedRoute"; 
+import ProtectedRoute from "./views/pages/login/ProtectedRoute";
 import ForgotPassword from './views/pages/login/forgotPassword';
 
 
@@ -23,7 +23,6 @@ const Login = React.lazy(() => import('./views/pages/login/Login'))
 const Register = React.lazy(() => import('./views/pages/register/Register'))
 const Page404 = React.lazy(() => import('./views/pages/page404/Page404'))
 const Page500 = React.lazy(() => import('./views/pages/page500/Page500'))
-
 
 const App = () => {
 
@@ -57,9 +56,10 @@ const App = () => {
         }
       >
         <Routes>
-         
+
           {/**RUTA RAIZ REDIRIGE AL LOGIN */}
           <Route path="/" element={<Navigate to="/login" replace />} />
+
 
           {/*RUTAS PUBLICAS*/}
           <Route path="/login" element={<Login/>} />
@@ -68,15 +68,15 @@ const App = () => {
           <Route exact path="/404" name="Page 404" element={<Page404 />} />
           <Route exact path="/500" name="Page 500" element={<Page500 />} />
 
-          
+
           {/*RUTAS PROTEGIDAS*/}
           <Route
-            path="/*" 
+            path="/*"
             element={
-              <ProtectedRoute> 
+              <ProtectedRoute>
                 <DefaultLayout />
               </ProtectedRoute>
-            } 
+            }
           />
 
 
@@ -84,7 +84,7 @@ const App = () => {
 
 
 
-        
+
       </Suspense>
     </BrowserRouter>
   )

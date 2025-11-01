@@ -1,25 +1,27 @@
+
 const mysqlConnection = require('../config/conexion');
 
 //CREAR RECORDATORIO
 exports.crear = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
     await conn.beginTransaction();
-    
+
 
 
     try {
 
         await conn.query(
             `INSERT INTO tbl_recordatorios (
-                mensaje_recordatorio,    
-                id_tipo_item_fk, 
-                id_frecuencia_fk
-                )
-             VALUES (?, ?, ?)`,
+                mensaje_recordatorio,
+                id_tipo_item_fk,
+                id_frecuencia_fk,
+                proximo_envio
+            ) VALUES (?, ?, ?, ?)`,
             [
                 req.body.mensaje_recordatorio,
                 req.body.id_tipo_item_fk,
-                req.body.id_frecuencia_fk
+                req.body.id_frecuencia_fk,
+                req.body.proximo_envio
             ]
         );
 
@@ -68,20 +70,20 @@ exports.actualizar = async (req, res) => {
 
         await conn.query(
             `UPDATE tbl_recordatorios
-             SET mensaje_recordatorio = COALESCE(?, mensaje_recordatorio),
-                 programada_para = COALESCE(?, programada_para),
-                 ultimo_envio = COALESCE(?, ultimo_envio),
-                 intentos = COALESCE(?, intentos),
-                 ultimo_error = COALESCE(?, ultimo_error),
-                 id_estado_programacion_fk = COALESCE(?, id_estado_programacion_fk),
-                 id_tipo_item_fk = COALESCE(?, id_tipo_item_fk),
-                 id_frecuencia_fk = COALESCE(?, id_frecuencia_fk)
+             SET
+                mensaje_recordatorio = COALESCE(?, mensaje_recordatorio),
+                ultimo_envio = COALESCE(?, ultimo_envio),
+                proximo_envio = COALESCE(?, proximo_envio),
+                intentos = COALESCE(?, intentos),
+                id_estado_programacion_fk = COALESCE(?, id_estado_programacion_fk),
+                id_tipo_item_fk = COALESCE(?, id_tipo_item_fk),
+                id_frecuencia_fk = COALESCE(?, id_frecuencia_fk)
              WHERE id_recordatorio_pk = ?`,
             [
                 req.body.mensaje_recordatorio || null,
                 req.body.ultimo_envio || null,
+                req.body.proximo_envio || null,
                 req.body.intentos || null,
-                req.body.ultimo_error || null,
                 req.body.id_estado_programacion_fk || null,
                 req.body.id_tipo_item_fk || null,
                 req.body.id_frecuencia_fk || null,
@@ -137,8 +139,8 @@ exports.verCatalogo = async (req, res) => {
 
     try {
 
-        let filas; //VARIABLE DE APOYO 
-        
+        let filas; //VARIABLE DE APOYO
+
         switch (req.query.tipo_catalogo) {
 
             case 'FRECUENCIA':
@@ -152,7 +154,7 @@ exports.verCatalogo = async (req, res) => {
                     SELECT telefono_cliente FROM tbl_clientes`);
                 break;
 
-                
+
             case 'ESTADO':
                 [filas] = await conn.query(`
                     SELECT id_estado_pk , nombre_estado FROM cat_estados WHERE dominio = 'RECORDATORIO'`);
@@ -181,7 +183,7 @@ exports.verCatalogo = async (req, res) => {
         });
 
     } finally {
-    
+
         conn.release();
-    }  
+    }
 };
