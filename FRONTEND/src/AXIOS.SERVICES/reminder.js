@@ -58,12 +58,9 @@ export const eliminarRecordatorio = async (id) => {
 /*SERVICIO PARA VER CATALOGOS POR TIPO*/
 export const verCatalogo = async (tipo_catalogo) => {
   try {
-
-    const res = await axiosInstance.get(`${API_URL}/verCatalogos`, {
+    const res = await axiosInstance.get(`${API_URL}/catalogo`, {
       params: { tipo_catalogo },
     });
-
-    console.log(`✅ Respuesta ${tipo_catalogo}:`, res.data);
     return {
       Consulta: res.data.Consulta,
       servicios: res.data.Catalogo || []

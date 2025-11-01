@@ -2,7 +2,7 @@ import axiosInstance from "./axiosConfig";
 
 const API_URL = "/facturacion";
 
-// SERVICIO PARA CREAR FACTURA COMPLETA
+//SERVICIO PARA CREAR FACTURA COMPLETA
 export const crearFactura = async (datosFactura) => {
   try {
     const res = await axiosInstance.post(`${API_URL}/crearFactura`, datosFactura);
