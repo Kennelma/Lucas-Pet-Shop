@@ -13,7 +13,7 @@ const empresa = require('../controllers/empresa.controller');
 const recordatorios = require('../controllers/recordatorios.controller');
 const estilistas = require('../controllers/empleados.controller');
 const facturas = require('../controllers/facturacion.controller')
-const whatsappController = require('../controllers/whatsapp.controller');
+const whatsapp = require('../controllers/whatsapp.controller');
 
 //========== RUTAS DE AUTENTICACIÓN Y SEGURIDAD ==========
 router.post('/login', auth.login);
@@ -57,7 +57,17 @@ router.get  ('/facturacion/verFacturas', facturas.historialFacturas);
 
 //========== RUTAS DE REPORTES ==========
 
+
+
+
+
+
+
 //========== RUTAS DE NOTIFICACIONES ==========
+
+
+
+
 
 //========== RUTAS DE ESTILISTAS ==========
 router.post('/estilistas/insertar', verificarToken, estilistas.crear);
@@ -73,8 +83,10 @@ router.delete('/recordatorios/eliminar', verificarToken, recordatorios.eliminar)
 router.get('/recordatorios/catalogo', verificarToken, recordatorios.verCatalogo);
 
 // ========== RUTAS DE WHATSAPP ==========
-router.get('/whatsapp/qr', whatsappController.obtenerQR);
-router.get('/whatsapp/estado', whatsappController.verificarEstado);
+router.get('/whatsapp/qr', whatsapp.obtenerQR);
+router.get('/whatsapp/estado', whatsapp.verificarEstado);
+router.post('/whatsapp/pairing', whatsapp.solicitarCodigoEmparejamiento);
+router.post('/whatsapp/logout', whatsapp.cerrarSesion);
 
 
 

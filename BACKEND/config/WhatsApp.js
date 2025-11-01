@@ -1,8 +1,9 @@
 const { makeWASocket, DisconnectReason, useMultiFileAuthState } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
 const pino = require('pino');
-const QRCode = require('qrcode'); // ⭐ Cambiar a generar imagen
+const QRCode = require('qrcode');
 const path = require('path');
+const fs = require('fs');
 
 let sock = null;
 let isConnected = false;
@@ -11,6 +12,11 @@ let qrCodeData = null; // ⭐ Guardar QR aquí
 const connectWhatsApp = async () => {
     try {
         const authPath = path.join(__dirname, '..', 'auth_info');
+
+        if (!fs.existsSync(authPath)) {
+            fs.mkdirSync(authPath, { recursive: true });
+        }
+
         const { state, saveCreds } = await useMultiFileAuthState(authPath);
 
         sock = makeWASocket({
@@ -23,9 +29,7 @@ const connectWhatsApp = async () => {
             const { connection, lastDisconnect, qr } = update;
 
             if (qr) {
-                // ⭐ Generar QR como base64 para el frontend
                 qrCodeData = await QRCode.toDataURL(qr);
-                console.log('📱 QR generado. Accede desde el frontend para escanearlo.');
             }
 
             if (connection === 'close') {
@@ -33,21 +37,16 @@ const connectWhatsApp = async () => {
                     ? lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut
                     : true;
 
-                console.log('🔌 Conexión cerrada.');
-
                 if (shouldReconnect) {
-                    console.log('🔄 Reconectando...');
                     setTimeout(() => connectWhatsApp(), 5000);
                 } else {
-                    console.log('❌ Sesión cerrada.');
                     isConnected = false;
-                    qrCodeData = null; // ⭐ Limpiar QR
+                    qrCodeData = null;
                 }
             }
             else if (connection === 'open') {
-                console.log('✅ WhatsApp conectado');
                 isConnected = true;
-                qrCodeData = null; // ⭐ Limpiar QR cuando se conecta
+                qrCodeData = null;
             }
         });
 
@@ -71,12 +70,48 @@ const getWhatsAppSocket = () => {
 
 const isWhatsAppConnected = () => isConnected;
 
-// ⭐ Obtener QR para el frontend
 const getQRCode = () => qrCodeData;
+
+//====================SOLICITAR_CODIGO_EMPAREJAMIENTO====================
+const requestPairingCode = async (phoneNumber) => {
+    try {
+        if (!sock) {
+            throw new Error('Socket de WhatsApp no inicializado');
+        }
+        const code = await sock.requestPairingCode(phoneNumber);
+        return code;
+    } catch (error) {
+        console.error('❌ Error al solicitar código de emparejamiento:', error);
+        throw error;
+    }
+};
+
+//====================CERRAR_SESION_WHATSAPP====================
+const logoutWhatsApp = async () => {
+    try {
+        if (sock) {
+            await sock.logout();
+            sock = null;
+        }
+        isConnected = false;
+        qrCodeData = null;
+        const authPath = path.join(__dirname, '..', 'auth_info');
+        if (fs.existsSync(authPath)) {
+            fs.rmSync(authPath, { recursive: true, force: true });
+        }
+        await connectWhatsApp();
+        return true;
+    } catch (error) {
+        console.error('❌ Error al cerrar sesión:', error);
+        throw error;
+    }
+};
 
 module.exports = {
     connectWhatsApp,
     getWhatsAppSocket,
     isWhatsAppConnected,
-    getQRCode 
+    getQRCode,
+    requestPairingCode,
+    logoutWhatsApp
 };

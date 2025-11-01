@@ -54,20 +54,6 @@ export const eliminarRecordatorio = async (id) => {
     return { Consulta: false, error: err.message };
   }
 };
-////////////////////////////////////////////////////
-////////   SERVICIO PARA OBTENER QR ////////////////
-////////////////////////////////////////////////////
-export const obtenerQR = async () => {
-  try {
-    const res = await axios.get(`${WHATSAPP_URL}/qr-base64`, {
-      headers: getHeaders(),
-    });
-    return res.data;
-  } catch (err) {
-    console.error("Error al obtener QR:", err);
-    return { Consulta: false, error: err.message };
-  }
-};
 
 /*SERVICIO PARA VER CATALOGOS POR TIPO*/
 export const verCatalogo = async (tipo_catalogo) => {

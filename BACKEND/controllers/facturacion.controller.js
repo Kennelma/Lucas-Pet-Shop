@@ -215,7 +215,7 @@ exports.crearFactura = async (req, res) => {
                 id_cliente_fk
             ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
             [
-                numero_factura,  // ⭐ AGREGAR AQUÍ
+                numero_factura,  
                 fechaEmision,
                 RTN || null,
                 subtotal.toFixed(2),
