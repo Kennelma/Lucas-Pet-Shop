@@ -340,7 +340,7 @@ export const BotonAgregar = ({ onClick, loading = false }) => {
     <button
       onClick={onClick}
       disabled={loading}
-      className="bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-600 transition-colors flex items-center gap-2"
+      className="bg-purple-500 text-white px-6 py-2 rounded-full hover:bg-purple-600 transition-colors flex items-center gap-2"
       style={{ borderRadius: '12px' }}
       title="Agregar nuevo recordatorio"
     >

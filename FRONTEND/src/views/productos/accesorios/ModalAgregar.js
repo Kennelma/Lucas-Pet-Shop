@@ -183,7 +183,7 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">NUEVO ACCESORIO</div>}
       visible={isOpen}
-      style={{ width: '28rem', borderRadius: '1.5rem' }}
+      style={{ width: '28rem', borderRadius: '1.5rem', overflow: 'visible' }}
       modal
       closable={false}
       onHide={onClose}
@@ -192,9 +192,10 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
       dismissableMask={false}
       draggable={false}
       resizable={false}
+      contentClassName="overflow-visible"
     >
       {/* Formulario */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 overflow-visible">
         {/* Nombre del Accesorio */}
         <span>
           <label htmlFor="nombre" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE DEL ACCESORIO</label>
