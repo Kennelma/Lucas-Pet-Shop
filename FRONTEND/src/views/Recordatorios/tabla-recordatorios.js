@@ -2,9 +2,8 @@ import React, { useState, useRef } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell, faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
-import Swal from 'sweetalert2';
-import { BotonActualizar } from './modal-actualizar';
+import { faBell, faPenToSquare, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
+
 
 // Función para eliminar recordatorio
 const eliminarRecordatorio = async (recordatorio, cargarDatos) => {
@@ -148,16 +147,23 @@ const TablaRecordatorios = ({
   onDelete 
 }) => {
 
-  // Plantillas para las columnas de la tabla
   const estadoTemplate = (rowData) => {
-    const estado = estadosProgramacion.find(e => e.id_estado_pk === rowData.id_estado_programacion_fk)?.nombre_estado || 'Pendiente';
-    const isActivo = rowData.id_estado_programacion_fk === 1;
+    const getEstadoInfo = (idEstado) => {
+      const estados = {
+        1: { nombre: 'Pendiente', clase: 'bg-yellow-100 text-yellow-800' },
+        2: { nombre: 'Enviando', clase: 'bg-blue-100 text-blue-800' },
+        3: { nombre: 'Enviado', clase: 'bg-green-100 text-green-800' },
+        4: { nombre: 'Fallido', clase: 'bg-red-100 text-red-800' },
+        5: { nombre: 'Parcial', clase: 'bg-orange-100 text-orange-800' }
+      };
+      return estados[idEstado] || estados[1];
+    };
+
+    const estadoInfo = getEstadoInfo(rowData.id_estado_programacion_fk);
     
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-        isActivo ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-      }`}>
-        {estado}
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${estadoInfo.clase}`}>
+        {estadoInfo.nombre}
       </span>
     );
   };
@@ -171,43 +177,83 @@ const TablaRecordatorios = ({
   );
 
   const tipoTemplate = (rowData) => {
-    if (tiposItems.length === 0) {
-      return <span className="text-xs text-gray-400">Cargando...</span>;
-    }
-    
-    const tipoItem = tiposItems.find(t => t.id_tipo_item_pk === rowData.id_tipo_item_fk);
-    return <span className="text-sm text-gray-700">{tipoItem?.nombre_tipo_item || '—'}</span>;
+    const tipoItem = tiposItems.find(
+      t => t.id_tipo_item_pk === rowData.id_tipo_item_fk
+    );
+    return (
+      <span className="text-sm text-gray-700">
+        {tipoItem?.nombre_tipo_item || '—'}
+      </span>
+    );
   };
 
   const frecuenciaTemplate = (rowData) => {
-    if (frecuencias.length === 0) {
-      return <span className="text-xs text-gray-400">Cargando...</span>;
+    const frecuencia = frecuencias.find(
+      f => f.id_frecuencia_record_pk === rowData.id_frecuencia_fk
+    );
+    return (
+      <span className="text-sm text-gray-700">
+        {frecuencia?.frecuencia_recordatorio || '—'}
+      </span>
+    );
+  };
+
+  // 🔹 NUEVA: Template para próximo envío
+  const proximoEnvioTemplate = (rowData) => {
+    if (!rowData.proximo_envio) {
+      return <span className="text-sm text-gray-400">—</span>;
     }
     
-    const frecuencia = frecuencias.find(f => f.id_frecuencia_record_pk === rowData.id_frecuencia_fk);
-    return <span className="text-sm text-gray-700">{frecuencia?.frecuencia_recordatorio || '—'}</span>;
+    const fechaProximo = new Date(rowData.proximo_envio);
+    const hoy = new Date();
+    const esHoy = fechaProximo.toDateString() === hoy.toDateString();
+    const esPasado = fechaProximo < hoy;
+    
+    return (
+      <div className="flex items-center gap-2">
+        <FontAwesomeIcon 
+          icon={faCalendarAlt} 
+          className={`text-sm ${
+            esHoy ? 'text-orange-500' : 
+            esPasado ? 'text-red-500' : 'text-green-500'
+          }`} 
+        />
+        <span className={`text-sm ${
+          esHoy ? 'text-orange-600 font-semibold' : 
+          esPasado ? 'text-red-600' : 'text-gray-700'
+        }`}>
+          {fechaProximo.toLocaleDateString('es-ES')}
+          {esHoy && <span className="text-xs ml-1">(Hoy)</span>}
+          {esPasado && <span className="text-xs ml-1">(Vencido)</span>}
+        </span>
+      </div>
+    );
   };
 
   const fechaTemplate = (rowData) => (
     <span className="text-sm text-gray-700">
-      {rowData.programada_para 
-        ? new Date(rowData.programada_para).toLocaleDateString('es-ES') 
-        : '—'
-      }
+      {rowData.ultimo_envio
+        ? new Date(rowData.ultimo_envio).toLocaleDateString('es-ES')
+        : '—'}
     </span>
   );
 
-  const accionesTemplate = (recordatorio, options) => {
-    return (
-      <ActionMenu
-        rowData={recordatorio}
-        onEditar={(data) => onEdit && onEdit(data)}
-        onEliminar={(data) => onDelete && onDelete()}
-        rowIndex={options.rowIndex}
-        totalRows={recordatorios.length}
-      />
-    );
-  };
+  const accionesTemplate = (rowData) => (
+    <div className="flex items-center space-x-2">
+      <button
+        className="text-green-600 hover:text-green-800 p-2 rounded transition-colors"
+        onClick={(e) => {
+          e.stopPropagation();
+          onEdit(rowData);
+        }}
+        title="Editar"
+      >
+        <FontAwesomeIcon icon={faPenToSquare} size="lg" />
+      </button>
+
+      <BotonEliminar recordatorio={rowData} onReload={onDelete} />
+    </div>
+  );
 
   if (loading) {
     return (
@@ -221,11 +267,18 @@ const TablaRecordatorios = ({
   if (recordatorios.length === 0) {
     return (
       <div className="text-center py-12">
-        <FontAwesomeIcon icon={faBell} className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">No hay recordatorios</h3>
-        <p className="text-gray-500 mb-6">Crea tu primer recordatorio para mantener a tus clientes informados.</p>
-        <button 
-          className="bg-purple-500 text-white px-6 py-3 rounded-full hover:bg-purple-600 transition-colors inline-flex items-center gap-2"
+        <FontAwesomeIcon
+          icon={faBell}
+          className="w-16 h-16 mx-auto mb-4 text-gray-400"
+        />
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+          No hay recordatorios
+        </h3>
+        <p className="text-gray-500 mb-6">
+          Crea tu primer recordatorio para mantener a tus clientes informados.
+        </p>
+        <button
+          className="bg-green-500 text-white px-6 py-3 rounded-full hover:bg-green-600 transition-colors inline-flex items-center gap-2"
           style={{ borderRadius: '12px' }}
           onClick={() => onEdit(null)}
         >
@@ -241,12 +294,6 @@ const TablaRecordatorios = ({
       key={`table-${tiposItems.length}-${frecuencias.length}`}
       value={recordatorios}
       loading={loading}
-      loadingIcon={() => (
-        <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
-          <span>Cargando recordatorios...</span>
-        </div>
-      )}
       globalFilter={globalFilter}
       globalFilterFields={['mensaje_recordatorio']}
       showGridlines
@@ -254,26 +301,21 @@ const TablaRecordatorios = ({
       rows={5}
       rowsPerPageOptions={[5, 10, 20, 25]}
       paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-      tableStyle={{ minWidth: '50rem' }}
+      tableStyle={{ minWidth: '60rem' }} // 🔹 Aumentado para nueva columna
       className="mt-4"
       size="small"
       selectionMode="single"
       rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
       emptyMessage="No se encontraron recordatorios"
     >
-      <Column 
-        field="id_recordatorio_pk" 
-        header="ID" 
-        body={(rowData) => recordatorios.length - recordatorios.indexOf(rowData)}
-        sortable 
-        className="text-sm"
-      />
-      <Column field="estado" header="ESTADO" body={estadoTemplate} sortable className="text-sm" />
-      <Column field="mensaje_recordatorio" header="MENSAJE" body={mensajeTemplate} sortable className="text-sm" />
-      <Column field="tipo" header="TIPO SERVICIO" body={tipoTemplate} sortable className="text-sm" />
-      <Column field="frecuencia" header="FRECUENCIA" body={frecuenciaTemplate} sortable className="text-sm" />
-      <Column field="fecha" header="PROGRAMADA PARA" body={fechaTemplate} sortable className="text-sm" />
-      <Column header="ACCIONES" body={accionesTemplate} className="py-2 pr-9 pl-1 border-b text-sm" />
+      <Column field="estado" header="Estado" body={estadoTemplate} />
+      <Column field="mensaje_recordatorio" header="Mensaje" body={mensajeTemplate} />
+      <Column field="tipo" header="Tipo Servicio" body={tipoTemplate} />
+      <Column field="frecuencia" header="Frecuencia" body={frecuenciaTemplate} />
+      {/* 🔹 NUEVA COLUMNA: Próximo Envío */}
+      <Column field="proximo_envio" header="Próximo Envío" body={proximoEnvioTemplate} />
+      <Column field="ultimo_envio" header="Último Envío" body={fechaTemplate} />
+      <Column field="acciones" header="Acciones" body={accionesTemplate} />
     </DataTable>
   );
 };
