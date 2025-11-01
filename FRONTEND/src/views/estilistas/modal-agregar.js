@@ -141,7 +141,7 @@ const ModalAgregarEstilista = ({ isOpen, onClose, onSave }) => {
       <div className="flex flex-col gap-3">
         {/* Nombre */}
         <span>
-          <label htmlFor="nombre" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE</label>
+          <label htmlFor="nombre" className="text-xs font-poppins text-gray-700 mb-1">NOMBRE</label>
           <InputText
             id="nombre"
             name="nombre"
@@ -155,7 +155,7 @@ const ModalAgregarEstilista = ({ isOpen, onClose, onSave }) => {
 
         {/* Apellido */}
         <span>
-          <label htmlFor="apellido" className="text-xs font-semibold text-gray-700 mb-1">APELLIDO</label>
+          <label htmlFor="apellido" className="text-xs font-poppins text-gray-700 mb-1">APELLIDO</label>
           <InputText
             id="apellido"
             name="apellido"
@@ -169,7 +169,7 @@ const ModalAgregarEstilista = ({ isOpen, onClose, onSave }) => {
 
         {/* Identidad */}
         <span>
-          <label htmlFor="identidad_estilista" className="text-xs font-semibold text-gray-700 mb-1">IDENTIDAD</label>
+          <label htmlFor="identidad_estilista" className="text-xs font-poppins text-gray-700 mb-1">IDENTIDAD</label>
           <InputMask
             id="identidad_estilista"
             name="identidad_estilista"

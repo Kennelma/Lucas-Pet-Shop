@@ -173,7 +173,7 @@ const DetallesFactura = ({
     <>
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xs font-semibold text-gray-800">Detalles de Factura</h2>
+          <h2 className="text-xs font-poppins text-gray-800">Detalles de Factura</h2>
           <button
             onClick={addItem}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -188,7 +188,7 @@ const DetallesFactura = ({
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-6 text-sm font-medium text-gray-700 w-36">TIPO</th>
-                <th className="text-left py-3 px-12 text-sm font-medium text-gray-700 w-90">ITEM</th>
+                <th className="text-left py-3 px-12 text-sm font-medium text-gray-700 w-95">ITEM</th>
                 <th className="text-center py-3 px-3 text-sm font-medium text-gray-700 w-16">CANT.</th>
                 <th className="text-right py-3 px-3 text-sm font-medium text-gray-700 w-25">PRECIO</th>
                 <th className="text-right py-3 px-3 text-sm font-medium text-gray-700 w-20">AJUSTE</th>
@@ -214,7 +214,7 @@ const DetallesFactura = ({
                   <React.Fragment key={item.id}>
                     <tr className="border-b border-gray-100">
                       {/* Tipo */}
-                      <td className="py-3 px-6">
+                      <td className="py-3 px-4">
                         <div className="w-44">
                           <Select
                             value={{ value: tipo, label: tipo }}
@@ -232,7 +232,7 @@ const DetallesFactura = ({
                       </td>
 
                       {/* COLUMNA SELECCIÓN DE ITEM CON BÚSQUEDA*/}
-                      <td className="py-3 px-15">
+                      <td className="py-3 px-16">
                         <Select
                           value={
                             currentItems
@@ -391,13 +391,13 @@ const DetallesFactura = ({
             <div className="flex gap-3 flex-1 justify-center">
               <button
                 onClick={handleOpenPaymentModal}
-                className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
+                className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-poppins rounded-lg transition-colors"
               >
                 Guardar y Continuar
               </button>
               <button
                 onClick={onCancel}
-                className="px-8 py-3 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition-colors"
+                className="px-8 py-3 bg-gray-500 hover:bg-gray-600 text-white font-poppins rounded-lg transition-colors"
               >
                 Cancelar
               </button>
@@ -424,7 +424,7 @@ const DetallesFactura = ({
                   <span>TOTAL:</span>
                   <span>{formatCurrency(TOTAL_FINAL)}</span>
                 </div>
-                <div className="flex justify-between text-base font-semibold text-blue-600 pt-1">
+                <div className="flex justify-between text-base font-poppins text-blue-600 pt-1">
                   <span>Saldo Pendiente: </span>
                   <span>{formatCurrency(SALDO)}</span>
                 </div>

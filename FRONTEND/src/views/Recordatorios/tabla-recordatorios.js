@@ -1,9 +1,141 @@
+import React, { useState, useRef } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell, faPenToSquare } from '@fortawesome/free-solid-svg-icons';
-import { BotonEliminar } from './modal-eliminar';
+import { faBell, faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
+import Swal from 'sweetalert2';
 import { BotonActualizar } from './modal-actualizar';
+
+// Función para eliminar recordatorio
+const eliminarRecordatorio = async (recordatorio, cargarDatos) => {
+  try {
+    const result = await Swal.fire({
+      title: '¿Eliminar recordatorio?',
+      html: `
+        <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
+          <p class="mb-1 text-sm"><span class="font-bold">Mensaje:</span> ${recordatorio.mensaje_recordatorio}</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Eliminar',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true,
+      width: 380,
+      padding: '16px'
+    });
+
+    if (result.isConfirmed) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Eliminado',
+        text: 'El recordatorio ha sido eliminado exitosamente',
+        timer: 2000,
+        showConfirmButton: false
+      });
+      
+      await cargarDatos();
+    }
+  } catch (error) {
+    console.error('Error al eliminar recordatorio:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'No se pudo eliminar el recordatorio'
+    });
+  }
+};
+
+const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [shouldShowAbove, setShouldShowAbove] = useState(false);
+  const menuRef = useRef(null);
+  const buttonRef = useRef(null);
+  
+  const checkPosition = () => {
+    const showAbove = rowIndex >= 2 || rowIndex >= (totalRows - 3);
+    setShouldShowAbove(showAbove);
+  };
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleResize = () => {
+      setIsOpen(false);
+    };
+
+    const handleScroll = () => {
+      setIsOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleScroll, true);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, []);
+
+  const handleToggleMenu = (e) => {
+    e.stopPropagation();
+    if (!isOpen) {
+      checkPosition();
+      requestAnimationFrame(() => {
+        checkPosition();
+      });
+    }
+    setIsOpen(!isOpen);
+  };
+  
+  return (
+    <div className="relative flex justify-center" ref={menuRef}>
+      <button
+        ref={buttonRef}
+        className="w-8 h-8 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center transition-colors"
+        onClick={handleToggleMenu}
+        title="Más opciones"
+      >
+        <i className="pi pi-ellipsis-h text-white text-xs"></i>
+      </button>
+      
+      {isOpen && (
+        <div className={`absolute right-0 ${shouldShowAbove ? 'bottom-16' : 'top-12'} bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[140px]`}>
+          <div 
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+              onEditar(rowData);
+            }}
+          >
+            <i className="pi pi-pencil text-xs"></i>
+            <span>Editar</span>
+          </div>
+          
+          <hr className="my-0 border-gray-200" />
+          
+          <div 
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            onClick={async (e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+              await eliminarRecordatorio(rowData, onEliminar);
+            }}
+          >
+            <FontAwesomeIcon icon={faTrash} className="text-xs" />
+            <span>Eliminar</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const TablaRecordatorios = ({ 
   recordatorios, 
@@ -65,21 +197,17 @@ const TablaRecordatorios = ({
     </span>
   );
 
-  const accionesTemplate = (rowData) => (
-    <div className="flex items-center space-x-2">
-      <button 
-        className="text-green-600 hover:text-green-800 p-2 rounded transition-colors"
-        onClick={(e) => {
-          e.stopPropagation(); 
-          onEdit(rowData);
-        }}
-        title="Editar"
-      >
-        <FontAwesomeIcon icon={faPenToSquare} size="lg" />
-      </button>
-      <BotonEliminar recordatorio={rowData} onReload={onDelete} />
-    </div>
-  );
+  const accionesTemplate = (recordatorio, options) => {
+    return (
+      <ActionMenu
+        rowData={recordatorio}
+        onEditar={(data) => onEdit && onEdit(data)}
+        onEliminar={(data) => onDelete && onDelete()}
+        rowIndex={options.rowIndex}
+        totalRows={recordatorios.length}
+      />
+    );
+  };
 
   if (loading) {
     return (
@@ -97,7 +225,7 @@ const TablaRecordatorios = ({
         <h3 className="text-lg font-semibold text-gray-700 mb-2">No hay recordatorios</h3>
         <p className="text-gray-500 mb-6">Crea tu primer recordatorio para mantener a tus clientes informados.</p>
         <button 
-          className="bg-green-500 text-white px-6 py-3 rounded-full hover:bg-green-600 transition-colors inline-flex items-center gap-2"
+          className="bg-purple-500 text-white px-6 py-3 rounded-full hover:bg-purple-600 transition-colors inline-flex items-center gap-2"
           style={{ borderRadius: '12px' }}
           onClick={() => onEdit(null)}
         >
@@ -115,7 +243,7 @@ const TablaRecordatorios = ({
       loading={loading}
       loadingIcon={() => (
         <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
           <span>Cargando recordatorios...</span>
         </div>
       )}
@@ -133,12 +261,19 @@ const TablaRecordatorios = ({
       rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
       emptyMessage="No se encontraron recordatorios"
     >
-      <Column field="estado" header="Estado" body={estadoTemplate} />
-      <Column field="mensaje_recordatorio" header="Mensaje" body={mensajeTemplate} />
-      <Column field="tipo" header="Tipo Servicio" body={tipoTemplate} />
-      <Column field="frecuencia" header="Frecuencia" body={frecuenciaTemplate} />
-      <Column field="fecha" header="Programada Para" body={fechaTemplate} />
-      <Column field="acciones" header="Acciones" body={accionesTemplate} />
+      <Column 
+        field="id_recordatorio_pk" 
+        header="ID" 
+        body={(rowData) => recordatorios.length - recordatorios.indexOf(rowData)}
+        sortable 
+        className="text-sm"
+      />
+      <Column field="estado" header="ESTADO" body={estadoTemplate} sortable className="text-sm" />
+      <Column field="mensaje_recordatorio" header="MENSAJE" body={mensajeTemplate} sortable className="text-sm" />
+      <Column field="tipo" header="TIPO SERVICIO" body={tipoTemplate} sortable className="text-sm" />
+      <Column field="frecuencia" header="FRECUENCIA" body={frecuenciaTemplate} sortable className="text-sm" />
+      <Column field="fecha" header="PROGRAMADA PARA" body={fechaTemplate} sortable className="text-sm" />
+      <Column header="ACCIONES" body={accionesTemplate} className="py-2 pr-9 pl-1 border-b text-sm" />
     </DataTable>
   );
 };

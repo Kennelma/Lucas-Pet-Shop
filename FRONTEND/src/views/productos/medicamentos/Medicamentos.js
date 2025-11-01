@@ -3,6 +3,7 @@ import Swal from "sweetalert2";
 import { useMedicamentos } from "./useMedicamentos";
 import MedicamentoTable from "./MedicamentoTable";
 import KardexTable from "./KardexTable";
+import MedicamentosMasVendidos from "./MedicamentosMasVendidos";
 import ModalMedicamento from "./ModalMedicamento";
 import ModalLote from "./ModalLote";
 import ModalMovimiento from "./ModalMovimiento";
@@ -207,7 +208,7 @@ const Medicamentos = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       {/* Encabezado */}
-      <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-3" 
+      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 mb-3" 
            style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         <h2 className="text-2xl font-black text-center uppercase text-gray-800">
           GESTIÓN DE MEDICAMENTOS
@@ -245,6 +246,11 @@ const Medicamentos = () => {
           </span>
         </label>
       </div>
+
+      {/* Sección Más Vendidos - SOLO PARA MEDICAMENTOS */}
+      {vistaActual === "medicamentos" && (
+        <MedicamentosMasVendidos medicamentos={medicamentos} />
+      )}
 
       {/* Contenido principal */}
       <div className="bg-white rounded-xl p-6 mb-6" 

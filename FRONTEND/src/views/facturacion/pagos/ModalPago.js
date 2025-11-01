@@ -45,6 +45,13 @@ function ModalPago({ show, total, onClose, onSuccess }) {
         // Crear nuevo objeto de montos preservando los métodos que quedan
         const newAmounts = { ...paymentAmounts };
         delete newAmounts[methodId]; // Solo eliminar el monto del método deseleccionado
+        
+        // Si queda solo un método, reinicializarlo vacío
+        if (newSelected.length === 1) {
+          const remainingMethod = newSelected[0];
+          newAmounts[remainingMethod] = '';
+        }
+        
         setPaymentAmounts(newAmounts);
         
       } else {
@@ -55,9 +62,8 @@ function ModalPago({ show, total, onClose, onSuccess }) {
 
           const newAmounts = { ...paymentAmounts };
           
-          // Si es el primer método, inicializar con 0.00
           if (newSelected.length === 1) {
-            newAmounts[methodId] = '0.00';
+            newAmounts[methodId] = '';
           } 
           // Si es el segundo método y ya hay un método con monto, calcular automáticamente el restante
           else if (newSelected.length === 2) {
@@ -81,11 +87,12 @@ function ModalPago({ show, total, onClose, onSuccess }) {
   const getRemainingPayment = () => total - getTotalPaid();
 
   const handlePaymentAmountChange = (methodId, value) => {
-    const numericValue = parseFloat(value) || 0;
-    let newAmounts = { ...paymentAmounts, [methodId]: value }; // Mantener como string para el input
+    // Permitir valores vacíos temporalmente durante la edición
+    let newAmounts = { ...paymentAmounts, [methodId]: value };
 
     // Si hay dos métodos en parcial, ajusta automáticamente el segundo
     if (paymentType === 'parcial' && selectedPaymentMethods.length === 2) {
+      const numericValue = parseFloat(value) || 0;
       const otherMethod = selectedPaymentMethods.find(id => id !== methodId);
       if (otherMethod) {
         const restante = total - numericValue;
@@ -94,6 +101,26 @@ function ModalPago({ show, total, onClose, onSuccess }) {
     }
 
     setPaymentAmounts(newAmounts);
+  };
+
+  const handlePaymentAmountBlur = (methodId, value) => {
+    // Formatear el valor agregando .00 si es necesario
+    if (value && !isNaN(parseFloat(value))) {
+      const formattedValue = parseFloat(value).toFixed(2);
+      let newAmounts = { ...paymentAmounts, [methodId]: formattedValue };
+
+      // Si hay dos métodos en parcial, recalcular el segundo método
+      if (paymentType === 'parcial' && selectedPaymentMethods.length === 2) {
+        const numericValue = parseFloat(formattedValue);
+        const otherMethod = selectedPaymentMethods.find(id => id !== methodId);
+        if (otherMethod) {
+          const restante = total - numericValue;
+          newAmounts[otherMethod] = restante >= 0 ? restante.toFixed(2) : "0.00";
+        }
+      }
+
+      setPaymentAmounts(newAmounts);
+    }
   };
 
   const canProcessPayment = () => {
@@ -283,8 +310,10 @@ function ModalPago({ show, total, onClose, onSuccess }) {
                             <input
                               type="number"
                               step="0.01"
+                              min="0"
                               value={paymentAmounts[methodId] || ''}
                               onChange={(e) => handlePaymentAmountChange(methodId, e.target.value)}
+                              onBlur={(e) => handlePaymentAmountBlur(methodId, e.target.value)}
                               placeholder="0.00"
                               readOnly={isReadOnly}
                               className={`flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-purple-600 focus:border-purple-600 ${
@@ -360,6 +389,7 @@ function ModalPago({ show, total, onClose, onSuccess }) {
                                     step="0.01"
                                     value={paymentAmounts[methodId] || ''}
                                     onChange={(e) => handlePaymentAmountChange(methodId, e.target.value)}
+                                    onBlur={(e) => handlePaymentAmountBlur(methodId, e.target.value)}
                                     placeholder="0.00"
                                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-purple-600 focus:border-purple-600"
                                   />

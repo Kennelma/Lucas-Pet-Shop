@@ -44,6 +44,110 @@ import { verClientes, eliminarCliente } from "../../AXIOS.SERVICES/clients-axios
 import FormularioCliente from "./modal-agregar.js";
 import FormularioActualizarCliente from "./modal-actualizar.js"; 
 
+const ActionMenu = ({ rowData, onEditar, onVerPerfil, onEliminar, rowIndex, totalRows }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [shouldShowAbove, setShouldShowAbove] = useState(false);
+  const menuRef = useRef(null);
+  const buttonRef = useRef(null);
+  
+  const checkPosition = () => {
+    const showAbove = rowIndex >= 2 || rowIndex >= (totalRows - 3);
+    setShouldShowAbove(showAbove);
+  };
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleResize = () => {
+      setIsOpen(false);
+    };
+
+    const handleScroll = () => {
+      setIsOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleScroll, true);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, []);
+
+  const handleToggleMenu = (e) => {
+    e.stopPropagation();
+    if (!isOpen) {
+      checkPosition();
+      requestAnimationFrame(() => {
+        checkPosition();
+      });
+    }
+    setIsOpen(!isOpen);
+  };
+  
+  return (
+    <div className="relative flex justify-center" ref={menuRef}>
+      <button
+        ref={buttonRef}
+        className="w-8 h-8 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center transition-colors"
+        onClick={handleToggleMenu}
+        title="Más opciones"
+      >
+        <i className="pi pi-ellipsis-h text-white text-xs"></i>
+      </button>
+      
+      {isOpen && (
+        <div className={`absolute right-0 ${shouldShowAbove ? 'bottom-16' : 'top-12'} bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[140px]`}>
+          <div 
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+              onEditar(rowData);
+            }}
+          >
+            <i className="pi pi-pencil text-xs"></i>
+            <span>Editar</span>
+          </div>
+          
+          <div 
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-cyan-50 hover:text-cyan-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+              onVerPerfil(rowData);
+            }}
+          >
+            <i className="pi pi-eye text-xs"></i>
+            <span>Ver Perfil</span>
+          </div>
+          
+          <hr className="my-0 border-gray-200" />
+          
+          <div 
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+              onEliminar(rowData);
+            }}
+          >
+            <i className="pi pi-trash text-xs"></i>
+            <span>Eliminar</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const TablaClientes = ({ setClienteSeleccionado }) => {
     
     //ESTADOS A UTILIZAR
@@ -136,42 +240,22 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
         setConfirmDialogVisible(false);
     };
 
-    //CONSTANTE QUE CONTROLAN LAS ACCIONES DE LOS BOTONES DE VER PERFIL, ACTUALIZAR Y BORRAR
-    const actionBotones = (rowData) => (
-        <div className="flex items-center space-x-2 w-full">
-            {/* BOTON PARA VER EL PERFIL DEL CLIENTE CON TOOLTIP */}
-            <Tooltip content="Ver perfil">
-                <button
-                    className="text-purple-500 hover:text-purple-700 p-2 rounded"
-                    onClick={(e) => { 
-                        e.stopPropagation(); 
-                        handleVerPerfil(rowData); 
-                    }}
-                >
-                    <FontAwesomeIcon icon={faEye} size="lg" />
-                </button>
-            </Tooltip>
-
-            <button
-                className="text-blue-500 hover:text-blue-700 p-2 rounded"
-                onClick={(e) => { e.stopPropagation(); 
-                handleActualizarCliente(rowData, clientes.indexOf(rowData)); }}
-            >
-                <FontAwesomeIcon icon={faPenToSquare} size="lg" />
-            </button>
-
-            <button
-                className="text-red-500 hover:text-red-700 p-2 rounded"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    setClienteAEliminar(rowData);
+    const actionBotones = (rowData, column) => {
+        const rowIndex = clientes.indexOf(rowData);
+        return (
+            <ActionMenu 
+                rowData={rowData}
+                rowIndex={rowIndex}
+                totalRows={clientes.length}
+                onEditar={(cliente) => handleActualizarCliente(cliente, rowIndex)}
+                onVerPerfil={handleVerPerfil}
+                onEliminar={(cliente) => {
+                    setClienteAEliminar(cliente);
                     setConfirmDialogVisible(true);
                 }}
-            >
-                <FontAwesomeIcon icon={faTrash} size="lg" />
-            </button>
-        </div>
-    );
+            />
+        );
+    };
 
     return (
         <>
@@ -179,9 +263,10 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
 
             <div className="bg-white rounded-xl p-6 max-w-5xl mx-auto font-poppins" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
                 <div className="flex justify-end items-center mb-4">
-                    <button className="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-800"
-                        onClick={handleAgregarCliente}>AGREGAR NUEVO CLIENTE
+                    <button className="bg-purple-500 hover:bg-purple-700 text-white px-3 py-1 text-sm rounded transition-colors flex items-center gap-2"
+                        onClick={handleAgregarCliente}>
                         <FontAwesomeIcon icon={faUserPlus} />
+                        AGREGAR NUEVO CLIENTE
                     </button>
                 </div>
 

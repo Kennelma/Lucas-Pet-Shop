@@ -1,8 +1,100 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
+
+const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [shouldShowAbove, setShouldShowAbove] = useState(false);
+  const menuRef = useRef(null);
+  const buttonRef = useRef(null);
+  
+  const checkPosition = () => {
+    const showAbove = rowIndex >= 2 || rowIndex >= (totalRows - 3);
+    setShouldShowAbove(showAbove);
+  };
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleResize = () => {
+      setIsOpen(false);
+    };
+
+    const handleScroll = () => {
+      setIsOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleScroll, true);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, []);
+
+  const handleToggleMenu = (e) => {
+    e.stopPropagation();
+    if (!isOpen) {
+      checkPosition();
+      requestAnimationFrame(() => {
+        checkPosition();
+      });
+    }
+    setIsOpen(!isOpen);
+  };
+  
+  return (
+    <div className="relative flex justify-center" ref={menuRef}>
+      <button
+        ref={buttonRef}
+        className="w-8 h-8 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center transition-colors"
+        onClick={handleToggleMenu}
+        title="Más opciones"
+      >
+        <i className="pi pi-ellipsis-h text-white text-xs"></i>
+      </button>
+      
+      {isOpen && (
+        <div className={`absolute right-0 ${shouldShowAbove ? 'bottom-16' : 'top-12'} bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[140px]`}>
+          <div 
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+              onEditar(rowData);
+            }}
+          >
+            <i className="pi pi-pencil text-xs"></i>
+            <span>Editar</span>
+          </div>
+          
+          <hr className="my-0 border-gray-200" />
+          
+          <div 
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+              onEliminar(rowData.id_estilista_pk);
+            }}
+          >
+            <i className="pi pi-trash text-xs"></i>
+            <span>Eliminar</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const TablaEstilistas = ({ estilistas, loading, globalFilter, onEdit, onDelete }) => {
   
@@ -15,30 +107,16 @@ const TablaEstilistas = ({ estilistas, loading, globalFilter, onEdit, onDelete }
     });
   };
 
-  const accionesTemplate = (rowData) => {
+  const accionesTemplate = (rowData, column) => {
+    const rowIndex = estilistas.indexOf(rowData);
     return (
-      <div className="flex items-center gap-2 w-full justify-center">
-        <button
-          className="bg-blue-500 hover:bg-blue-700 text-white p-1.5 rounded"
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit(rowData);
-          }}
-          title="Editar"
-        >
-          <FontAwesomeIcon icon={faPenToSquare} size="sm" />
-        </button>
-        <button
-          className="bg-red-500 hover:bg-red-700 text-white p-1.5 rounded"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(rowData.id_estilista_pk);
-          }}
-          title="Eliminar"
-        >
-          <FontAwesomeIcon icon={faTrash} size="sm" />
-        </button>
-      </div>
+      <ActionMenu 
+        rowData={rowData}
+        rowIndex={rowIndex}
+        totalRows={estilistas.length}
+        onEditar={onEdit}
+        onEliminar={onDelete}
+      />
     );
   };
 
@@ -56,7 +134,7 @@ const TablaEstilistas = ({ estilistas, loading, globalFilter, onEdit, onDelete }
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">No hay estilistas</h3>
+          <h3 className="text-lg font-poppins text-gray-700 mb-2">No hay estilistas</h3>
           <p className="text-gray-500 mb-6">Crea tu primer estilista para comenzar.</p>
         </div>
       ) : (

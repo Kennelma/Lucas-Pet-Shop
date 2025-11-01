@@ -1,8 +1,129 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faTrash, faBox, faEye } from "@fortawesome/free-solid-svg-icons";
+
+// Componente separado para el menú de acciones
+const ActionMenu = ({ rowData, onEditar, onVerLotes, onAgregarLote, onEliminar, rowIndex, totalRows }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [shouldShowAbove, setShouldShowAbove] = useState(false);
+  const menuRef = useRef(null);
+  const buttonRef = useRef(null);
+  
+
+  const checkPosition = () => {
+    
+    const showAbove = rowIndex >= 2 || rowIndex >= (totalRows - 3);
+    setShouldShowAbove(showAbove);
+  };
+
+  // Cerrar menú cuando se hace clic fuera
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleResize = () => {
+      setIsOpen(false);
+    };
+
+    const handleScroll = () => {
+      setIsOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleScroll, true);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, []);
+
+  // Verificar posición cuando se abre el menú
+  const handleToggleMenu = (e) => {
+    e.stopPropagation();
+    if (!isOpen) {
+      // Verificar la posición inmediatamente antes de abrir
+      checkPosition();
+      // También verificar después de que el DOM se actualice
+      requestAnimationFrame(() => {
+        checkPosition();
+      });
+    }
+    setIsOpen(!isOpen);
+  };
+  
+  return (
+    <div className="relative flex justify-center" ref={menuRef}>
+      <button
+        ref={buttonRef}
+        className="w-8 h-8 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center transition-colors"
+        onClick={handleToggleMenu}
+        title="Más opciones"
+      >
+        <i className="pi pi-ellipsis-h text-white text-xs"></i>
+      </button>
+      
+      {isOpen && (
+        <div className={`absolute right-0 ${shouldShowAbove ? 'bottom-16' : 'top-12'} bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[140px]`}>
+          <div 
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+              onEditar(rowData);
+            }}
+          >
+            <i className="pi pi-pencil text-xs"></i>
+            <span>Editar</span>
+          </div>
+          
+          <div 
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-cyan-50 hover:text-cyan-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+              onVerLotes(rowData);
+            }}
+          >
+            <i className="pi pi-eye text-xs"></i>
+            <span>Ver Lotes</span>
+          </div>
+          
+          <div 
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+              onAgregarLote(rowData);
+            }}
+          >
+            <i className="pi pi-plus text-xs"></i>
+            <span>Agregar Lote</span>
+          </div>
+          
+          <hr className="my-0 border-gray-200" />
+          
+          <div 
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+              onEliminar(rowData);
+            }}
+          >
+            <i className="pi pi-trash text-xs"></i>
+            <span>Eliminar</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const MedicamentoTable = ({ 
   medicamentos,
@@ -81,7 +202,7 @@ const MedicamentoTable = ({
   const stockTemplate = (rowData) => {
     const stockTotal = stockTotals[rowData.id_producto_pk] || 0;
     return (
-      <span className={stockTotal <= 5 ? 'text-red-500 font-semibold' : ''}>
+      <span className={stockTotal <= 5 ? 'text-red-500 font-poppins' : ''}>
         {stockTotal}
       </span>
     );
@@ -92,52 +213,40 @@ const MedicamentoTable = ({
     const lotesCount = lotesCounts[rowData.id_producto_pk] || 0;
     return `${lotesCount}`;
   };
-const actionBotones = (rowData) => {
+
+  // Template para mostrar tipo y presentación unidos
+  const tipoPresentacionTemplate = (rowData) => {
+    return (
+      <div>
+        <div className="text-sm font-medium">
+          {rowData.tipo_medicamento || 'N/A'}
+        </div>
+        <div className="text-xs text-gray-500">
+          {rowData.presentacion_medicamento || rowData.cantidad_contenido + ' ' + rowData.unidad_medida || 'Sin presentación'}
+        </div>
+      </div>
+    );
+  };
+const actionBotones = (rowData, column) => {
+  const rowIndex = medicamentosConStock.indexOf(rowData);
   return (
-    <div className="flex items-center gap-2 w-full justify-center">
-      <button
-        className="bg-blue-500 hover:bg-blue-700 text-white p-1.5 rounded"
-        onClick={(e) => {
-          e.stopPropagation();
-          onEditar(rowData);
-        }}
-        title="Editar"
-      >
-        <FontAwesomeIcon icon={faPenToSquare} size="sm" />
-      </button>
-      <button
-        className="bg-red-500 hover:bg-red-700 text-white p-1.5 rounded"
-        onClick={(e) => {
-          e.stopPropagation();
-          onEliminar(rowData);
-        }}
-        title="Eliminar"
-      >
-        <FontAwesomeIcon icon={faTrash} size="sm" />
-      </button>
-      <button
-        className="bg-green-500 hover:bg-green-400 text-white p-1.5 rounded"
-        onClick={(e) => {
-          e.stopPropagation();
-          onAgregarLote(rowData);
-        }}
-        title="Agregar Lote"
-      >
-        <FontAwesomeIcon icon={faBox} size="sm" />
-      </button>
-      <button
-        className="bg-blue-600 hover:bg-blue-800 text-white p-1.5 rounded"
-        onClick={(e) => {
-          e.stopPropagation();
-          onVerLotes(rowData);
-        }}
-        title="Ver Lotes"
-      >
-        <FontAwesomeIcon icon={faEye} size="sm" />
-      </button>
-    </div>
+    <ActionMenu 
+      rowData={rowData}
+      rowIndex={rowIndex}
+      totalRows={medicamentosConStock.length}
+      onEditar={onEditar}
+      onVerLotes={onVerLotes}
+      onAgregarLote={onAgregarLote}
+      onEliminar={onEliminar}
+    />
   );
 };
+
+  // Agregar stockTotal a cada medicamento para poder ordenar
+  const medicamentosConStock = medicamentos.map(med => ({
+    ...med,
+    stockTotal: stockTotals[med.id_producto_pk] || 0
+  }));
 
   return (
     <>
@@ -148,12 +257,12 @@ const actionBotones = (rowData) => {
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">No hay medicamentos</h3>
+          <h3 className="text-lg font-poppins text-gray-700 mb-2">No hay medicamentos</h3>
           <p className="text-gray-500 mb-6">Crea tu primer medicamento para comenzar el inventario.</p>
         </div>
       ) : (
         <DataTable
-          value={medicamentos}
+          value={medicamentosConStock}
           loading={false}
           loadingIcon={() => (
             <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
@@ -178,7 +287,7 @@ const actionBotones = (rowData) => {
           <Column 
             field="id_producto_pk" 
             header="ID" 
-            body={(rowData, options) => options.rowIndex + 1}
+            body={(rowData) => medicamentosConStock.length - medicamentosConStock.indexOf(rowData)}
             sortable 
             className="text-sm"
           />
@@ -192,7 +301,8 @@ const actionBotones = (rowData) => {
           />
           <Column 
             field="tipo_medicamento" 
-            header="TIPO" 
+            header="PRESENTACIÓN" 
+            body={tipoPresentacionTemplate}
             sortable 
             className="text-sm"
           />
@@ -208,8 +318,10 @@ const actionBotones = (rowData) => {
             header="STOCK" 
             body={stockTemplate}
             sortable
+            sortField="stockTotal"
+            field="stockTotal"
             className="text-sm text-center"
-            bodyClassName="text-center"
+            bodyClassName="text   "
           />
           
           <Column 
