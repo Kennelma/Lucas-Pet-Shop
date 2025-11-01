@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require("cors");
-const mysqlConnection = require('./config/conexion');
+
 const path = require('path');
+const mysqlConnection = require('./config/conexion');
 const { connectWhatsApp } = require('./config/whatsapp');
 
 require('dotenv').config({

@@ -29,7 +29,7 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
   const [errores, setErrores] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const generarSKU = (nombre, id) => {
+  const generarSKU = (nombre) => {
     if (!nombre) return '';
     const partes = nombre.trim().split(' ').map(p => p.substring(0, 3).toUpperCase());
     return partes.join('-');

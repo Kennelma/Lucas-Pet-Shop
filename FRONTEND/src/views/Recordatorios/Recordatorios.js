@@ -1,648 +1,285 @@
+//====================IMPORTACIONES====================
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import axios from 'axios';
-import { 
-  verRecordatorios, 
+import { Dialog } from 'primereact/dialog';
+import {
+  verRecordatorios,
   insertarRecordatorio,
-  actualizarRecordatorio, 
-  verCatalogo,
-  verificarEstadoWhatsApp,
-  conectarWhatsApp,
-  enviarRecordatorioMasivo,
-  obtenerQR
+  actualizarRecordatorio,
+  verCatalogo
 } from '../../AXIOS.SERVICES/reminder';
+import { cerrarSesionWhatsApp } from '../../AXIOS.SERVICES/whatsapp-axios';
 import TablaRecordatorios from './tabla-recordatorios';
 import ModalAgregar, { BotonAgregar } from './modal-agregar';
-import ModalActualizar from './modal-actualizar';
+import ConexionWhatsApp from './ConexionWhatsApp';
 
-const API_URL = "http://localhost:4000/api";
-
+//====================COMPONENTE_PRINCIPAL====================
 const Recordatorios = () => {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalActualizarVisible, setModalActualizarVisible] = useState(false);
-  const [globalFilter, setGlobalFilter] = useState('');
-  const [whatsappConnected, setWhatsappConnected] = useState(false);
-  const [qrCode, setQrCode] = useState('');
-  const [showQRModal, setShowQRModal] = useState(false);
-  const [checkingConnection, setCheckingConnection] = useState(false);
-  const [serverOnline, setServerOnline] = useState(true);
-  
-  // ✅ ESTADO INICIAL ACTUALIZADO
-  const INITIAL_FORM_DATA = {
-    id_recordatorio_pk: null, 
-    mensaje_recordatorio: '',
-    id_tipo_item_fk: '',
-    id_frecuencia_fk: '',
-    fecha_programada: '',
-    hora_programada: '',
-    tipo_envio: 'programar' // ✅ NUEVO: 'programar' | 'inmediato' | 'ambos'
-  };
+//====================ESTADOS====================
+const [modalVisible, setModalVisible] = useState(false);
+const [modalWhatsApp, setModalWhatsApp] = useState(false);
+const [globalFilter, setGlobalFilter] = useState('');
+const INITIAL_FORM_DATA = {
+  id_recordatorio_pk: null,
+  mensaje_recordatorio: '',
+  id_tipo_item_fk: '',
+  id_frecuencia_fk: ''
+};
+const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+const [editando, setEditando] = useState(false);
+const [loading, setLoading] = useState(false);
+const [recordatorios, setRecordatorios] = useState([]);
+const [tiposItems, setTiposItems] = useState([]);
+const [frecuencias, setFrecuencias] = useState([]);
+const [estadosProgramacion, setEstadosProgramacion] = useState([]);
 
-  const [formData, setFormData] = useState(INITIAL_FORM_DATA);
-  const [loading, setLoading] = useState(false);
-  const [recordatorios, setRecordatorios] = useState([]);
-  const [tiposItems, setTiposItems] = useState([]);
-  const [frecuencias, setFrecuencias] = useState([]);
-  const [estadosProgramacion, setEstadosProgramacion] = useState([]);
+//====================EFFECT_INICIAL====================
+useEffect(() => {
+  cargarTodo();
+}, []);
 
-  // 🔹 Función para verificar si el servidor está online
-  const verificarServidor = async () => {
-    try {
-      await axios.get(`${API_URL}/whatsapp/status`, {
-        timeout: 5000,
-        headers: {
-          "Authorization": `Bearer ${sessionStorage.getItem("token")}`
-        }
-      });
-      setServerOnline(true);
-    } catch (error) {
-      setServerOnline(false);
-      console.warn('⚠️ Servidor backend no disponible');
-    }
-  };
-
-  useEffect(() => {
-    verificarServidor();
-    cargarTodo();
-    verificarWhatsAppStatus();
-  }, []);
-
-  // 🔹 Verificar estado de WhatsApp con manejo de errores
-  const verificarWhatsAppStatus = async () => {
-    if (!serverOnline) return;
-    
-    try {
-      const res = await verificarEstadoWhatsApp();
-      setWhatsappConnected(res.connected);
-    } catch (err) {
-      console.error('Error verificando WhatsApp:', err);
-      setWhatsappConnected(false);
-    }
-  };
-
-  // 🔹 Esperar conexión exitosa
-  const esperarConexionWhatsApp = async () => {
-    let intentos = 0;
-    const maxIntentos = 60; // 1 minuto
-    
-    const checkConnection = setInterval(async () => {
-      try {
-        const statusRes = await verificarEstadoWhatsApp();
-
-        if (statusRes.connected) {
-          clearInterval(checkConnection);
-          setWhatsappConnected(true);
-          setShowQRModal(false);
-          setQrCode('');
-          setCheckingConnection(false);
-          
-          Swal.fire({
-            icon: 'success',
-            title: '¡WhatsApp Conectado!',
-            text: 'Ya puedes enviar recordatorios masivos',
-            timer: 2000,
-            showConfirmButton: false
-          });
-        }
-
-        intentos++;
-        if (intentos >= maxIntentos) {
-          clearInterval(checkConnection);
-          setShowQRModal(false);
-          setCheckingConnection(false);
-          Swal.fire({
-            icon: 'warning',
-            title: 'Tiempo agotado',
-            text: 'No se detectó el escaneo del QR. Intenta de nuevo.'
-          });
-        }
-      } catch (error) {
-        console.error('Error verificando conexión:', error);
-      }
-    }, 1000);
-  };
-
-  // 🔹 FUNCIÓN CORREGIDA PARA CONECTAR WHATSAPP
-  const handleConectarWhatsApp = async () => {
-    if (!serverOnline) {
-      Swal.fire('Servidor offline', 'El servidor backend no está disponible', 'error');
-      return;
-    }
-
-    try {
-      setCheckingConnection(true);
-      
-      Swal.fire({
-        title: 'Iniciando WhatsApp...',
-        text: 'Preparando conexión...',
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
-      });
-
-      // 1. Primero verificar el estado actual
-      const estadoActual = await verificarEstadoWhatsApp();
-      console.log('📱 Estado actual de WhatsApp:', estadoActual);
-
-      // 2. Iniciar conexión
-      await conectarWhatsApp();
-      
-      // 3. Esperar 3 segundos para que el backend genere el QR
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // 4. Intentar obtener el QR con múltiples intentos
-      let qrObtenido = false;
-      let intentosQR = 0;
-      const maxIntentosQR = 8;
-
-      while (!qrObtenido && intentosQR < maxIntentosQR) {
-        try {
-          console.log(`🔄 Intentando obtener QR (intento ${intentosQR + 1})...`);
-          const qrRes = await obtenerQR();
-          console.log('🔍 Respuesta QR del backend:', qrRes);
-          
-          if (qrRes.Consulta && qrRes.qrBase64) {
-            setQrCode(qrRes.qrBase64);
-            setShowQRModal(true);
-            Swal.close();
-            console.log('✅ QR mostrado en modal');
-            qrObtenido = true;
-            
-            // Iniciar espera de conexión
-            await esperarConexionWhatsApp();
-            break;
-          } else {
-            console.log('⏳ QR no disponible aún, reintentando...');
-          }
-        } catch (error) {
-          console.warn(`⚠️ Error en intento ${intentosQR + 1}:`, error.message);
-        }
-        
-        intentosQR++;
-        // Esperar 1 segundo entre intentos
-        if (!qrObtenido) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-      }
-
-      if (!qrObtenido) {
-        throw new Error('No se pudo obtener el QR después de varios intentos. Verifica la consola del servidor.');
-      }
-
-    } catch (error) {
-      setCheckingConnection(false);
-      console.error('❌ Error en conexión WhatsApp:', error);
-      
-      Swal.fire({
-        icon: 'error',
-        title: 'Error de conexión',
-        html: `
-          <div class="text-left">
-            <p><strong>No se pudo conectar WhatsApp</strong></p>
-            <p class="text-sm text-gray-600 mt-2">
-              Error: ${error.message}
-            </p>
-            <p class="text-sm text-gray-600 mt-1">
-              Revisa que el servidor esté funcionando correctamente.
-            </p>
-          </div>
-        `,
-        showCancelButton: true,
-        confirmButtonText: 'Reintentar',
-        cancelButtonText: 'Cancelar'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          handleConectarWhatsApp();
-        }
-      });
-    }
-  };
-
-  const cargarTodo = async () => {
-    if (!serverOnline) {
-      console.warn('Servidor offline, no se pueden cargar datos');
-      return;
-    }
-
- try {
-    setLoading(true);
-    const recordatoriosData = await verRecordatorios(); 
-    setRecordatorios(recordatoriosData || []);
-
-    console.log('🔄 Cargando catálogos...');
-    
-    const resTipos = await verCatalogo('TIPO_SERVICIO');
-    console.log('📊 Tipos de servicio:', resTipos);
-    
-    const resFrecuencias = await verCatalogo('FRECUENCIA');
-    console.log('📊 Frecuencias:', resFrecuencias);
-    
-    const resEstados = await verCatalogo('ESTADO');
-    console.log('📊 Estados:', resEstados);
-
-    setTiposItems(resTipos?.servicios || []);
-    setFrecuencias(resFrecuencias?.servicios || []);
-    setEstadosProgramacion(resEstados?.servicios || []);    } catch (err) {
-      console.error('Error cargando datos:', err);
-      if (!err.message.includes('Network Error')) {
-        Swal.fire('Error', 'No se pudieron cargar los datos', 'error');
-      }
-    } finally {
-      setLoading(false);
-    }
-
-
-  };
-
-  const abrirModalAgregar = () => {
-    // ✅ INICIALIZAR CON FECHA Y HORA POR DEFECTO
-    const hoy = new Date();
-    const fechaMinima = hoy.toISOString().split('T')[0];
-    const horaPorDefecto = new Date(hoy.setHours(hoy.getHours() + 1))
-      .toTimeString().slice(0, 5);
-    
-    setFormData({
-      ...INITIAL_FORM_DATA,
-      fecha_programada: fechaMinima,
-      hora_programada: horaPorDefecto
-    });
-    setModalVisible(true);
-  };
-
-  const abrirModalActualizar = (recordatorio) => {
-    // ✅ CONVERTIR FECHA DE LA BASE DE DATOS
-    let fechaProgramada = "";
-    let horaProgramada = "09:00";
-    
-    if (recordatorio.proximo_envio) {
-      const fecha = new Date(recordatorio.proximo_envio);
-      fechaProgramada = fecha.toISOString().split('T')[0];
-      horaProgramada = fecha.toTimeString().slice(0, 5);
-    }
-
-    setFormData({
-      id_recordatorio_pk: recordatorio.id_recordatorio_pk,
-      mensaje_recordatorio: recordatorio.mensaje_recordatorio,
-      id_tipo_item_fk: String(recordatorio.id_tipo_item_fk),
-      id_frecuencia_fk: String(recordatorio.id_frecuencia_fk),
-      fecha_programada: fechaProgramada,
-      hora_programada: horaProgramada
-    });
-    setModalActualizarVisible(true);
-  };
-
-  const cerrarModalAgregar = () => {
-    setModalVisible(false);
-    setFormData(INITIAL_FORM_DATA);
-  };
-
-  const cerrarModalActualizar = () => {
-    setModalActualizarVisible(false);
-    setFormData(INITIAL_FORM_DATA);
-  };
-
-  const manejarCambio = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'mensaje_recordatorio' ? value.toUpperCase() : value
-    }));
-  };
-
-  // 🔹 FUNCIÓN PRINCIPAL MEJORADA CON LAS 3 OPCIONES
-  const guardarRecordatorio = async () => {
-    // Validaciones básicas
-    if (!formData.mensaje_recordatorio?.trim()) {
-      Swal.fire('Campo requerido', 'El mensaje del recordatorio es obligatorio', 'warning');
-      return;
-    }
-    if (!formData.id_tipo_item_fk) {
-      Swal.fire('Campo requerido', 'Debe seleccionar un tipo de servicio', 'warning');
-      return;
-    }
-
-    // ✅ VALIDACIÓN MEJORADA SEGÚN TIPO DE ENVÍO
-    if (formData.tipo_envio === 'programar' || formData.tipo_envio === 'ambos') {
-      if (!formData.id_frecuencia_fk) {
-        Swal.fire('Campo requerido', 'Debe seleccionar una frecuencia para la programación', 'warning');
-        return;
-      }
-      if (!formData.fecha_programada || !formData.hora_programada) {
-        Swal.fire('Campos requeridos', 'Debe seleccionar fecha y hora para la programación', 'warning');
-        return;
-      }
-
-      // Validar que la fecha programada no sea pasada
-      const fechaProgramada = new Date(`${formData.fecha_programada}T${formData.hora_programada}`);
-      const ahora = new Date();
-      if (fechaProgramada < ahora) {
-        Swal.fire('Fecha inválida', 'No puede programar recordatorios para fechas pasadas', 'warning');
-        return;
-      }
-    }
-
-    // Verificar WhatsApp para envíos inmediatos
-    const necesitaWhatsApp = formData.tipo_envio === 'inmediato' || formData.tipo_envio === 'ambos';
-    
-    if (necesitaWhatsApp && !whatsappConnected) {
-      const result = await Swal.fire({
-        icon: 'warning',
-        title: 'WhatsApp no conectado',
-        text: '¿Deseas conectar WhatsApp ahora para enviar el recordatorio?',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, conectar',
-        cancelButtonText: 'Cancelar envío'
-      });
-
-      if (result.isConfirmed) {
-        await handleConectarWhatsApp();
-        if (!whatsappConnected) {
-          Swal.fire('WhatsApp no conectado', 'No se pudo conectar WhatsApp. El envío inmediato no se realizará.', 'warning');
-          return;
-        }
-      } else {
-        return; // Usuario canceló
-      }
-    }
-
-    // Ejecutar según el tipo de envío
-    await ejecutarGuardado();
-  };
-
-  // 🔹 FUNCIÓN ÚNICA DE GUARDADO MEJORADA
-  // 🔹 FUNCIÓN ÚNICA DE GUARDADO MEJORADA
-// 🔹 FUNCIÓN ÚNICA DE GUARDADO MEJORADA
-const ejecutarGuardado = async () => {
-  setLoading(true);
-
-  // ✅ SI ES "SOLO ENVIAR AHORA", USAR FRECUENCIA DIARIA POR DEFECTO
-  let frecuenciaEnviar = parseInt(formData.id_frecuencia_fk);
-  
-  if (formData.tipo_envio === 'inmediato') {
-    // Buscar frecuencia diaria en el catálogo
-    const frecuenciaDiaria = frecuencias.find(f => f.dias_intervalo === 1);
-    frecuenciaEnviar = frecuenciaDiaria ? frecuenciaDiaria.id_frecuencia_record_pk : 1;
-    console.log('🚀 Usando frecuencia por defecto para envío inmediato:', frecuenciaEnviar);
-  }
-
-  const datosEnviar = {
-    mensaje_recordatorio: formData.mensaje_recordatorio.trim(),
-    id_tipo_item_fk: parseInt(formData.id_tipo_item_fk),
-    id_frecuencia_fk: frecuenciaEnviar, // ✅ Siempre enviar una frecuencia válida
-    fecha_programada: formData.tipo_envio === 'inmediato' ? null : formData.fecha_programada,
-    hora_programada: formData.tipo_envio === 'inmediato' ? null : formData.hora_programada,
-    tipo_envio: formData.tipo_envio
-  };
-
-  console.log('📤 Datos a enviar al backend:', datosEnviar);
-
+//====================CARGAR_DATOS====================
+const cargarTodo = async () => {
   try {
-    const resultado = await insertarRecordatorio(datosEnviar);
-
-    if (resultado.Consulta) {
-      cerrarModalAgregar();
-      await cargarTodo();
-
-      // ✅ MENSAJES SEGÚN EL TIPO DE ENVÍO
-      if (formData.tipo_envio === 'programar') {
-        const frecuencia = frecuencias.find(f => f.id_frecuencia_record_pk == formData.id_frecuencia_fk);
-        Swal.fire({
-          icon: 'success',
-          title: '✅ Recordatorio programado',
-          html: `
-            <div class="text-left">
-              <p><strong>El recordatorio ha sido programado exitosamente</strong></p>
-              <div class="mt-3 space-y-2 text-sm">
-                <p><strong>📅 Primer envío:</strong> ${new Date(formData.fecha_programada).toLocaleDateString('es-ES')} a las ${formData.hora_programada}</p>
-                <p><strong>🔄 Frecuencia:</strong> Cada ${frecuencia?.dias_intervalo || 'N/A'} días</p>
-                <p class="text-xs text-gray-500 mt-2">
-                  El recordatorio se enviará automáticamente según esta programación.
-                </p>
-              </div>
-            </div>
-          `,
-          timer: 5000
-        });
-      } 
-      else if (formData.tipo_envio === 'inmediato') {
-        // El envío inmediato ahora lo maneja el backend automáticamente
-        Swal.fire({
-          icon: 'success',
-          title: '✅ Recordatorio enviado',
-          html: `
-            <div class="text-left">
-              <p><strong>El recordatorio ha sido enviado exitosamente</strong></p>
-              <div class="mt-3 space-y-2 text-sm">
-                <p><strong>🚀 Envío:</strong> Completado inmediatamente</p>
-                <p class="text-xs text-gray-500 mt-2">
-                  Este fue un envío único. No hay programación futura.
-                </p>
-              </div>
-            </div>
-          `,
-          timer: 5000
-        });
-      }
-      else if (formData.tipo_envio === 'ambos') {
-        const frecuencia = frecuencias.find(f => f.id_frecuencia_record_pk == formData.id_frecuencia_fk);
-        Swal.fire({
-          icon: 'success',
-          title: '✅ Recordatorio enviado y programado',
-          html: `
-            <div class="text-left">
-              <p><strong>El recordatorio ha sido procesado exitosamente</strong></p>
-              <div class="mt-3 space-y-2 text-sm">
-                <p><strong>🚀 Envío inmediato:</strong> Completado</p>
-                <p><strong>📅 Próximo envío programado:</strong> ${new Date(formData.fecha_programada).toLocaleDateString('es-ES')} a las ${formData.hora_programada}</p>
-                <p><strong>🔄 Frecuencia:</strong> Cada ${frecuencia?.dias_intervalo || 'N/A'} días</p>
-                <p class="text-xs text-gray-500 mt-2">
-                  El recordatorio continuará enviándose automáticamente según la frecuencia.
-                </p>
-              </div>
-            </div>
-          `,
-          timer: 6000
-        });
-      }
-    }
-
-  } catch (error) {
-    console.error('Error al guardar recordatorio:', error);
+    setLoading(true);
+    const recordatoriosData = await verRecordatorios();
+    setRecordatorios(recordatoriosData || []);
+    const resTipos = await verCatalogo('TIPO_SERVICIO');
+    const resFrecuencias = await verCatalogo('FRECUENCIA');
+    const resEstados = await verCatalogo('ESTADO');
+    const tiposItems = resTipos?.servicios || [];
+    const frecuencias = resFrecuencias?.servicios || [];
+    const estados = resEstados?.servicios || [];
+    setTiposItems(tiposItems);
+    setFrecuencias(frecuencias);
+    setEstadosProgramacion(estados);
+  } catch (err) {
+    console.error('Error cargando datos:', err);
     Swal.fire({
       icon: 'error',
-      title: 'Error',
-      text: error.message || 'No se pudo completar la operación',
+      title: 'Error al cargar datos',
+      text: err.message || 'Ver consola para más detalles'
     });
   } finally {
     setLoading(false);
   }
 };
-  // 🔹 MODAL QR
-  const QRModal = () => (
-    <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${showQRModal ? 'block' : 'hidden'}`}>
-      <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
-        <h3 className="text-lg font-bold mb-3 text-center">Conectar WhatsApp</h3>
-        
-        {qrCode ? (
-          <>
-            <p className="text-sm text-gray-600 mb-4 text-center">
-              Escanea este código QR con tu teléfono:
-            </p>
-            <div className="flex justify-center mb-4 p-4 bg-white rounded-lg border">
-              <img 
-                src={qrCode}
-                alt="QR Code WhatsApp" 
-                className="border rounded w-48 h-48 mx-auto"
-              />
-            </div>
-            <p className="text-xs text-gray-500 mb-3 text-center">
-              <strong>Pasos:</strong><br/>
-              1. Abre WhatsApp<br/>
-              2. Ve a Configuración → Dispositivos vinculados<br/>
-              3. Escanea este código
-            </p>
-          </>
-        ) : (
-          <div className="text-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
-            <p className="text-gray-600">Generando código QR...</p>
-          </div>
-        )}
-        
-        <div className="text-center">
-          <button
-            onClick={() => {
-              setShowQRModal(false);
-              setCheckingConnection(false);
-            }}
-            className="px-4 py-2 bg-gray-500 text-white rounded-lg text-sm hover:bg-gray-600"
-          >
-            Cerrar
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 
-  return (
-    <div className="min-h-screen p-6 bg-gray-50">
-      {/* 🔹 INDICADOR DE ESTADO DEL SERVIDOR */}
-      {!serverOnline && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          <div className="flex items-center">
-            <span className="h-3 w-3 bg-red-500 rounded-full mr-2"></span>
-            <strong>Servidor offline:</strong>
-            <span className="ml-2">El backend no está disponible. Algunas funciones pueden no estar operativas.</span>
-          </div>
-        </div>
-      )}
-
-      {/* Título */}
-      <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-black text-center uppercase text-gray-800">
-            RECORDATORIOS
-          </h2>
-          
-          {/* Indicador de WhatsApp */}
-          <div className="flex items-center gap-2">
-            <span className={`h-3 w-3 rounded-full ${
-              !serverOnline ? 'bg-gray-500' : 
-              whatsappConnected ? 'bg-green-500' : 'bg-red-500'
-            }`}></span>
-            <span className="text-sm font-semibold">
-              {!serverOnline ? 'Servidor Offline' : 
-               whatsappConnected ? 'WhatsApp Conectado' : 'WhatsApp Desconectado'}
-            </span>
-            {!serverOnline ? (
-              <button
-                onClick={verificarServidor}
-                className="ml-2 px-3 py-1 bg-blue-500 text-white rounded-lg text-xs hover:bg-blue-600"
-              >
-                Reintentar
-              </button>
-            ) : !whatsappConnected && (
-              <button
-                onClick={handleConectarWhatsApp}
-                disabled={checkingConnection}
-                className={`ml-2 px-3 py-1 rounded-lg text-xs ${
-                  checkingConnection 
-                    ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'bg-green-500 hover:bg-green-600'
-                } text-white`}
-              >
-                {checkingConnection ? 'Conectando...' : 'Conectar WhatsApp'}
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Barra de búsqueda + botón Nuevo */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
-        <div className="flex justify-between items-center mb-6">
-          <div className="relative w-80">
-            <input
-              value={globalFilter}
-              onChange={(e) => setGlobalFilter(e.target.value)}
-              placeholder="Buscar recordatorios..."
-              className="w-full px-4 py-2 border rounded-full"
-            />
-            {globalFilter && (
-              <button
-                onClick={() => setGlobalFilter('')}
-                className="absolute right-3 top-2 text-gray-500"
-              >
-                ×
-              </button>
-            )}
-          </div>
-
-          {/* ✅ BOTÓN AGREGAR CORREGIDO */}
-          <BotonAgregar 
-            onClick={abrirModalAgregar}
-            loading={loading}
-          />
-        </div>
-
-        <TablaRecordatorios 
-          recordatorios={recordatorios}
-          loading={loading}
-          globalFilter={globalFilter}
-          tiposItems={tiposItems}
-          frecuencias={frecuencias}
-          estadosProgramacion={estadosProgramacion}
-          onEdit={abrirModalActualizar}
-          onDelete={cargarTodo}
-        />
-      </div>
-
-      <ModalAgregar 
-        visible={modalVisible}
-        onHide={cerrarModalAgregar}
-        formData={formData}
-        onChange={manejarCambio}
-        onSave={guardarRecordatorio}
-        loading={loading}
-        editando={false}
-        tiposItems={tiposItems}
-        frecuencias={frecuencias}
-      />
-
-      <ModalActualizar 
-        visible={modalActualizarVisible}
-        onHide={cerrarModalActualizar}
-        recordatorioSeleccionado={formData}
-        tiposItems={tiposItems}
-        frecuencias={frecuencias}
-        onReload={cargarTodo}
-      />
-
-      {/* Modal QR */}
-      <QRModal />
-    </div>
-  );
+//====================ABRIR_MODAL====================
+const abrirModal = (recordatorio = null) => {
+  if (recordatorio) {
+    setFormData({
+      id_recordatorio_pk: recordatorio.id_recordatorio_pk,
+      mensaje_recordatorio: recordatorio.mensaje_recordatorio,
+      id_tipo_item_fk: String(recordatorio.id_tipo_item_fk),
+      id_frecuencia_fk: String(recordatorio.id_frecuencia_fk)
+    });
+    setEditando(true);
+  } else {
+    setFormData(INITIAL_FORM_DATA);
+    setEditando(false);
+  }
+  setModalVisible(true);
 };
 
+//====================CERRAR_MODAL====================
+const cerrarModal = () => {
+  setModalVisible(false);
+  setFormData(INITIAL_FORM_DATA);
+  setEditando(false);
+};
+
+//====================MANEJAR_CAMBIOS_FORMULARIO====================
+const manejarCambio = (e) => {
+  const { name, value } = e.target;
+  let finalValue = value;
+  if (name === 'mensaje_recordatorio') {
+    finalValue = value.toUpperCase();
+  }
+  setFormData(prev => ({ ...prev, [name]: finalValue }));
+};
+
+//====================GUARDAR_RECORDATORIO====================
+const guardarRecordatorio = async () => {
+  if (!formData.mensaje_recordatorio?.trim()) {
+    alert('El mensaje del recordatorio es requerido');
+    return;
+  }
+  if (!formData.id_tipo_item_fk) {
+    alert('Debe seleccionar un tipo de servicio');
+    return;
+  }
+  if (!formData.id_frecuencia_fk) {
+    alert('Debe seleccionar una frecuencia');
+    return;
+  }
+  setLoading(true);
+  const datosEnviar = {
+    mensaje_recordatorio: formData.mensaje_recordatorio.trim(),
+    id_tipo_item_fk: parseInt(formData.id_tipo_item_fk),
+    id_frecuencia_fk: parseInt(formData.id_frecuencia_fk)
+  };
+  try {
+    let resultado;
+    if (editando) {
+      datosEnviar.id_recordatorio_pk = formData.id_recordatorio_pk;
+      resultado = await actualizarRecordatorio(datosEnviar);
+    } else {
+      resultado = await insertarRecordatorio(datosEnviar);
+    }
+    if (resultado.Consulta) {
+      cerrarModal();
+      await cargarTodo();
+      setTimeout(() => {
+        Swal.fire({
+          icon: 'success',
+          title: editando ? 'Recordatorio actualizado' : 'Recordatorio creado',
+          text: resultado.message || 'Operación completada exitosamente',
+          timer: 1500,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        });
+      }, 100);
+    } else {
+      throw new Error(resultado.error || 'Error en la operación');
+    }
+  } catch (error) {
+    console.error('Error al guardar recordatorio:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.message || 'No se pudo guardar el recordatorio'
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
+//====================CERRAR_SESION_WHATSAPP====================
+const handleCerrarSesionWhatsApp = async () => {
+  const result = await Swal.fire({
+    title: '¿Cerrar sesión de WhatsApp?',
+    text: 'Tendrás que escanear el código QR nuevamente para reconectar',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Sí, cerrar sesión',
+    cancelButtonText: 'Cancelar'
+  });
+
+  if (result.isConfirmed) {
+    const response = await cerrarSesionWhatsApp();
+
+    if (response.success) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Sesión cerrada',
+        text: 'WhatsApp desconectado correctamente',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo cerrar la sesión'
+      });
+    }
+  }
+};
+
+//====================RENDERIZADO====================
+return (
+  <div className="min-h-screen p-6 bg-gray-50">
+{/*TITULO*/}
+<div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
+  <div className="flex justify-center items-center">
+    <h2 className="text-2xl font-black text-center uppercase text-gray-800">
+      RECORDATORIOS
+    </h2>
+  </div>
+</div>
+
+{/*BARRA_BUSQUEDA_Y_BOTON_NUEVO*/}
+<div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
+  <div className="flex justify-between items-center mb-6">
+    <div className="relative w-80">
+      <input
+        value={globalFilter}
+        onChange={(e) => setGlobalFilter(e.target.value)}
+        placeholder="Buscar recordatorios..."
+        className="w-full px-4 py-2 border rounded-full"
+        style={{ borderRadius: '9999px' }}
+      />
+      {globalFilter && (
+        <button
+          onClick={() => setGlobalFilter('')}
+          className="absolute right-3 top-2 text-gray-500"
+        >
+          ×
+        </button>
+      )}
+    </div>
+    <div className="flex gap-2">
+      <button
+        onClick={() => setModalWhatsApp(true)}
+        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
+      >
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+        </svg>
+        Conectar WhatsApp
+      </button>
+      <BotonAgregar
+        onClick={() => abrirModal()}
+        loading={loading}
+      />
+    </div>
+  </div>
+
+{/*TABLA_RECORDATORIOS*/}
+<TablaRecordatorios
+  recordatorios={recordatorios}
+  loading={loading}
+  globalFilter={globalFilter}
+  tiposItems={tiposItems}
+  frecuencias={frecuencias}
+  estadosProgramacion={estadosProgramacion}
+  onEdit={abrirModal}
+  onDelete={cargarTodo}
+/>
+</div>
+
+{/*MODAL_AGREGAR_EDITAR*/}
+<ModalAgregar
+  visible={modalVisible}
+  onHide={cerrarModal}
+  formData={formData}
+  onChange={manejarCambio}
+  onSave={guardarRecordatorio}
+  loading={loading}
+  editando={editando}
+  tiposItems={tiposItems}
+  frecuencias={frecuencias}
+  onReload={cargarTodo}
+/>
+
+{/*MODAL_CONEXION_WHATSAPP*/}
+<Dialog
+  visible={modalWhatsApp}
+  onHide={() => setModalWhatsApp(false)}
+  style={{ width: '40rem' }}
+  header="Conexión de WhatsApp"
+  modal
+  draggable={false}
+>
+  <ConexionWhatsApp onCerrarSesion={handleCerrarSesionWhatsApp} />
+</Dialog>
+</div>
+);
+};
+
+//====================EXPORTACION====================
 export default Recordatorios;

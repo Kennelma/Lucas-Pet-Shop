@@ -21,3 +21,25 @@ export const verificarEstado = async () => {
         return { success: false, conectado: false };
     }
 };
+
+//====================SOLICITAR_CODIGO_EMPAREJAMIENTO====================
+export const solicitarCodigoEmparejamiento = async (phoneNumber) => {
+    try {
+        const response = await axios.post(`${API_URL}/whatsapp/pairing`, { phoneNumber });
+        return response.data;
+    } catch (error) {
+        console.error('Error al solicitar código:', error);
+        return { success: false, mensaje: 'Error al solicitar código de emparejamiento' };
+    }
+};
+
+//====================CERRAR_SESION_WHATSAPP====================
+export const cerrarSesionWhatsApp = async () => {
+    try {
+        const response = await axios.post(`${API_URL}/whatsapp/logout`);
+        return response.data;
+    } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+        return { success: false, mensaje: 'Error al cerrar sesión' };
+    }
+};

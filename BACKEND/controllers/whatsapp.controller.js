@@ -1,4 +1,4 @@
-const { getQRCode, isWhatsAppConnected } = require('../config/whatsapp');
+const { getQRCode, isWhatsAppConnected, logoutWhatsApp, requestPairingCode } = require('../config/whatsapp');
 
 exports.obtenerQR = (req, res) => {
     try {
@@ -41,4 +41,51 @@ exports.verificarEstado = (req, res) => {
         success: true,
         conectado: isWhatsAppConnected()
     });
+};
+
+//====================SOLICITAR_CODIGO_EMPAREJAMIENTO====================
+exports.solicitarCodigoEmparejamiento = async (req, res) => {
+    try {
+        const { phoneNumber } = req.body;
+
+        if (!phoneNumber) {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'Número de teléfono requerido'
+            });
+        }
+
+        const code = await requestPairingCode(phoneNumber);
+
+        return res.json({
+            success: true,
+            code: code,
+            mensaje: 'Código de emparejamiento generado'
+        });
+    } catch (error) {
+        console.error('❌ Error al solicitar código:', error);
+        return res.status(500).json({
+            success: false,
+            mensaje: 'Error al solicitar código de emparejamiento',
+            error: error.message
+        });
+    }
+};
+
+//====================CERRAR_SESION====================
+exports.cerrarSesion = async (req, res) => {
+    try {
+        await logoutWhatsApp();
+        return res.json({
+            success: true,
+            mensaje: 'Sesión cerrada correctamente'
+        });
+    } catch (error) {
+        console.error('❌ Error al cerrar sesión:', error);
+        return res.status(500).json({
+            success: false,
+            mensaje: 'Error al cerrar sesión',
+            error: error.message
+        });
+    }
 };

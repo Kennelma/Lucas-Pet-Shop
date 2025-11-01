@@ -11,7 +11,7 @@ export default function Facturacion () {
     const [activeTab, setActiveTab] = useState('nueva');
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
 
             {/* HEADER Y TÍTULO */}
             <div className="bg-white shadow-sm border-b border-gray-200">
@@ -38,7 +38,7 @@ export default function Facturacion () {
                         >
                             <div className="flex items-center gap-2">
                                 <Plus size={20} />
-                                Nueva Factura
+                                Nueva factura
 
 
                             </div>
@@ -55,7 +55,7 @@ export default function Facturacion () {
                         >
                             <div className="flex items-center gap-2">
                                 <FileText size={20} />
-                                Facturas
+                                Historial de facturas
                             </div>
                         </button>
                     </div>

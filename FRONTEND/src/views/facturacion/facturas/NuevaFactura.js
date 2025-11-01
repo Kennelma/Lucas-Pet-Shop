@@ -1,64 +1,75 @@
 // NuevaFactura.jsx
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import EncabezadoFactura from "./EncabezadoFactura";
 import DetallesFactura from "./DetallesFactura";
-import { obtenerDetallesFactura, obtenerUsuarioFactura, obtenerEstilistasFactura } from "../../../AXIOS.SERVICES/factura-axios";
+import {
+  obtenerDetallesFactura,
+  obtenerUsuarioFactura,
+  obtenerEstilistasFactura
+} from "../../../AXIOS.SERVICES/factura-axios";
 
 const NuevaFactura = () => {
   //====================ESTADOS_DEL_CLIENTE====================
   const [identidad, setIdentidad] = useState("");
   const [nombreCliente, setNombreCliente] = useState("");
   const [RTN, setRTN] = useState("");
+  const [id_cliente, setIdCliente] = useState(null); // ⭐ NUEVO
 
-  //====================ESTADOS_VENDEDOR_SUCURSAL====================
+  //====================ESTADOS_DEL_USUARIO====================
   const [vendedor, setVendedor] = useState("");
   const [sucursal, setSucursal] = useState("");
 
-  //====================ESTADOS_DETALLES_FACTURA====================
+  //====================ESTADOS_DE_ITEMS====================
   const [items, setItems] = useState([
     {
       id: Date.now(),
       tipo: "PRODUCTOS",
       item: "",
-      nombre: "",
-      cantidad: "1",
-      precio: "0.00",
-      ajuste: "0.00",
+      cantidad: 1,
+      precio: 0.0,
+      ajuste: 0,
       estilistas: [],
-    },
+    }
   ]);
 
-  //====================ESTADOS_CATÁLOGOS====================
+  //====================DISPONIBLES_Y_ESTILISTAS====================
   const [disponiblesItems, setDisponiblesItems] = useState({
     PRODUCTOS: [],
     SERVICIOS: [],
     PROMOCIONES: [],
   });
+
+  const [estilistas, setEstilistas] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  //====================ESTADOS_ESTILISTAS====================
-  const [estilistas, setEstilistas] = useState([]);
+  const navigate = useNavigate();
 
-  //====================FUNCIONES_AUXILIARES====================
+  //====================CARGA_INICIAL====================
+  useEffect(() => {
+    cargarDatosUsuario();
+    cargarEstilistas();
+    cargarCatalogo("PRODUCTOS");
+    cargarCatalogo("SERVICIOS");
+    cargarCatalogo("PROMOCIONES");
+  }, []);
 
-  //CARGA LOS ITEMS DISPONIBLES SEGÚN EL TIPO PRODUCTOS SERVICIOS PROMOCIONES
-  const buscarItemTipo = async (tipo) => {
-    setIsLoading(true);
+  const cargarDatosUsuario = async () => {
     try {
-      const response = await obtenerDetallesFactura(tipo);
-      if (response?.success && response?.data) {
-        setDisponiblesItems((prev) => ({ ...prev, [tipo]: response.data }));
+      const response = await obtenerUsuarioFactura();
+      if (response.success) {
+        setVendedor(response.data.usuario);
+        setSucursal(response.data.nombre_sucursal);
       }
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      console.error("Error al cargar datos del usuario:", error);
     }
   };
 
-  //CARGA LOS ESTILISTAS DISPONIBLES
   const cargarEstilistas = async () => {
     try {
       const response = await obtenerEstilistasFactura();
-      if (response?.success && response?.data) {
+      if (response.success) {
         setEstilistas(response.data);
       }
     } catch (error) {
@@ -66,162 +77,101 @@ const NuevaFactura = () => {
     }
   };
 
-  //CALCULA EL TOTAL DE UNA LÍNEA CANTIDAD × PRECIO + AJUSTE
-  const calculateLineTotal = (item) => {
-    const cantidad = parseFloat(item.cantidad) || 0;
-    const precio = parseFloat(item.precio) || 0;
-    const ajuste = parseFloat(item.ajuste) || 0;
-    return (cantidad * precio + ajuste).toFixed(2);
+  const cargarCatalogo = async (tipo) => {
+    setIsLoading(true);
+    try {
+      const response = await obtenerDetallesFactura(tipo);
+      if (response.success) {
+        setDisponiblesItems((prev) => ({ ...prev, [tipo]: response.data }));
+      }
+    } catch (error) {
+      console.error(`Error al cargar catálogo ${tipo}:`, error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  //CALCULA EL TOTAL GENERAL DE LA FACTURA
-  const calculateTotal = () => {
-    return items
-      .reduce((sum, it) => sum + parseFloat(calculateLineTotal(it)), 0)
-      .toFixed(2);
-  };
+  //====================GESTIÓN_DE_ITEMS====================
 
-  //====================MANEJADORES_DE_ITEMS====================
-
-  //AGREGA UN NUEVO ITEM A LA FACTURA
   const addItem = () => {
-    setItems((prev) => [
-      ...prev,
+    const newId = Date.now();
+    setItems([
+      ...items,
       {
-        id: Date.now(),
-        tipo: prev.length ? prev[prev.length - 1].tipo : "PRODUCTOS",
+        id: newId,
+        tipo: "PRODUCTOS",
         item: "",
-        nombre: "",
-        cantidad: "1",
-        precio: "0.00",
-        ajuste: "0.00",
+        cantidad: 1,
+        precio: 0.0,
+        ajuste: 0,
         estilistas: [],
       },
     ]);
   };
 
-  //ELIMINA UN ITEM DE LA FACTURA
-  const removeItem = (id) =>
-    setItems((prev) => prev.filter((it) => it.id !== id));
+  const removeItem = (id) => {
+    setItems(items.filter((item) => item.id !== id));
+  };
 
-  //ACTUALIZA UN CAMPO ESPECÍFICO DE UN ITEM
   const updateItem = (id, field, value) => {
-    setItems((prev) =>
-      prev.map((it) => (it.id === id ? { ...it, [field]: value } : it))
+    setItems(
+      items.map((item) => (item.id === id ? { ...item, [field]: value } : item))
     );
   };
 
-  //MANEJA EL CAMBIO DE TIPO DE ITEM PRODUCTOS SERVICIOS PROMOCIONES
-  const handleItemTypeChange = (id, nuevoTipo) => {
-    if ((disponiblesItems[nuevoTipo] || []).length === 0) {
-      buscarItemTipo(nuevoTipo);
-    }
-    setItems((prev) =>
-      prev.map((it) =>
-        it.id === id
-          ? {
-              ...it,
-              tipo: nuevoTipo,
-              item: "",
-              nombre: "",
-              precio: "0.00",
-              cantidad: "1",
-              ajuste: "0.00",
-              estilistas: [],
-            }
-          : it
-      )
+  const handleItemTypeChange = (id, newType) => {
+    setItems(
+      items.map((item) => {
+        if (item.id === id) {
+          return {
+            ...item,
+            tipo: newType,
+            item: "",
+            precio: 0.0,
+            cantidad: 1,
+            ajuste: 0,
+            estilistas: [],
+          };
+        }
+        return item;
+      })
     );
   };
 
-  //MANEJA LA SELECCIÓN DE UN ITEM ESPECÍFICO
-  const handleItemChange = (
-    id,
-    selectedId,
-    selectedItemData,
-    nameKey,
-    priceKey
-  ) => {
-    const newName = selectedItemData ? selectedItemData[nameKey] ?? "" : "";
-    const newPrice = selectedItemData
-      ? String(selectedItemData[priceKey] ?? "0.00")
-      : "0.00";
-    setItems((prev) =>
-      prev.map((it) =>
-        it.id === id
-          ? { ...it, item: selectedId, nombre: newName, precio: newPrice }
-          : it
-      )
+  const handleItemChange = (id, selectedId, selectedItemData, nameKey, priceKey) => {
+    setItems(
+      items.map((item) => {
+        if (item.id === id) {
+          return {
+            ...item,
+            item: selectedId,
+            precio: selectedItemData ? parseFloat(selectedItemData[priceKey]) : 0.0,
+          };
+        }
+        return item;
+      })
     );
   };
 
-  //CANCELA LA FACTURA Y REINICIA TODOS LOS CAMPOS
+  const calculateLineTotal = (item) => {
+    const cantidad = parseFloat(item.cantidad) || 0;
+    const precio = parseFloat(item.precio) || 0;
+    const ajuste = parseFloat(item.ajuste) || 0;
+    const totalLinea = cantidad * precio + ajuste;
+    return totalLinea.toFixed(2);
+  };
+
+  const calculateTotal = () => {
+    return items.reduce((sum, item) => sum + parseFloat(calculateLineTotal(item)), 0);
+  };
+
   const handleCancel = () => {
-    if (
-      window.confirm(
-        "¿Estás seguro de cancelar esta factura? Se perderán todos los datos."
-      )
-    ) {
-      //REINICIAR DETALLES
-      setItems([
-        {
-          id: Date.now(),
-          tipo: "PRODUCTOS",
-          item: "",
-          nombre: "",
-          cantidad: "1",
-          precio: "0.00",
-          ajuste: "0.00",
-          estilistas: [],
-        },
-      ]);
-
-      //REINICIAR ENCABEZADO
-      setIdentidad("");
-      setNombreCliente("");
-      setRTN("");
-    }
+    navigate("/facturas");
   };
-
-  //====================EFFECTS====================
-
-  //CARGA DATOS DEL USUARIO SUCURSAL ESTILISTAS Y CATÁLOGOS AL MONTAR EL COMPONENTE
-  useEffect(() => {
-    const cargarDatosIniciales = async () => {
-
-      //LLAMAR AL SERVICIO AXIOS PARA OBTENER USUARIO Y SUCURSAL
-      const responseUsuario = await obtenerUsuarioFactura();
-
-      //SI LA RESPUESTA ES EXITOSA ACTUALIZAR LOS ESTADOS
-      if (responseUsuario?.success && responseUsuario?.data) {
-        setVendedor(responseUsuario.data.usuario);
-        setSucursal(responseUsuario.data.nombre_sucursal);
-      }
-
-      //CARGAR ESTILISTAS
-      console.log("🔍 Cargando estilistas...");
-      const responseEstilistas = await obtenerEstilistasFactura();
-      console.log("📦 Respuesta estilistas:", responseEstilistas);
-
-      if (responseEstilistas?.success && responseEstilistas?.data) {
-        console.log("✅ Estilistas cargados:", responseEstilistas.data);
-        setEstilistas(responseEstilistas.data);
-      }
-
-      //CARGAR CATÁLOGOS DE PRODUCTOS SERVICIOS Y PROMOCIONES
-      buscarItemTipo("PRODUCTOS");
-      buscarItemTipo("SERVICIOS");
-      buscarItemTipo("PROMOCIONES");
-    };
-
-    cargarDatosIniciales();
-  }, []);
 
   //====================RENDER====================
   return (
     <div className="space-y-6 p-4 max-w-5xl mx-auto bg-white shadow-xl rounded-lg">
-
-      {/*SECCIÓN ENCABEZADO*/}
       <div className="border-dashed rounded-lg bg-blue-50">
         <EncabezadoFactura
           identidad={identidad}
@@ -232,10 +182,10 @@ const NuevaFactura = () => {
           setRTN={setRTN}
           vendedor={vendedor}
           sucursal={sucursal}
+          setIdCliente={setIdCliente} // ⭐ NUEVO
         />
       </div>
 
-      {/*SECCIÓN DETALLES*/}
       <div className="border-dashed border-green-300 rounded-lg bg-green-50">
         <DetallesFactura
           items={items}
@@ -249,9 +199,11 @@ const NuevaFactura = () => {
           onItemChange={handleItemChange}
           estilistas={estilistas}
           onCancel={handleCancel}
+          identidad={identidad} // ⭐ NUEVO
+          RTN={RTN} // ⭐ NUEVO
+          id_cliente={id_cliente} // ⭐ NUEVO
         />
 
-        {/*INDICADOR DE CARGA CATÁLOGOS*/}
         {isLoading && (
           <div className="mt-2 text-xs text-gray-500">Cargando catálogos…</div>
         )}
