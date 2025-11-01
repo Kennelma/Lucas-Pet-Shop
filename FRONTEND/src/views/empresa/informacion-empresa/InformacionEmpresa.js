@@ -232,20 +232,20 @@ export default function InformacionEmpresa() {
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <h4 className="font-semibold text-gray-900 mb-2">{empresa.nombre_empresa}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <FontAwesomeIcon icon={freeSolidSvgIcons.faMapMarkerAlt} className="w-3 h-3" />
-                    {empresa.direccion_empresa}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 col-span-4">
+                    <FontAwesomeIcon icon={freeSolidSvgIcons.faMapMarkerAlt} className="w-3 h-3 flex-shrink-0" />
+                    <span className="break-words">{empresa.direccion_empresa}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <FontAwesomeIcon icon={freeSolidSvgIcons.faPhone} className="w-3 h-3" />
-                    {empresa.telefono_empresa}
+                  <div className="flex items-center gap-2 col-span-3">
+                    <FontAwesomeIcon icon={freeSolidSvgIcons.faPhone} className="w-3 h-3 flex-shrink-0" />
+                    <span>{empresa.telefono_empresa}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <FontAwesomeIcon icon={freeSolidSvgIcons.faEnvelope} className="w-3 h-3" />
-                    {empresa.correo_empresa}
+                  <div className="flex items-center gap-2 col-span-4">
+                    <FontAwesomeIcon icon={freeSolidSvgIcons.faEnvelope} className="w-3 h-3 flex-shrink-0" />
+                    <span className="break-words">{empresa.correo_empresa}</span>
                   </div>
-                  <div className="flex items-center gap-2 justify-end">
+                  <div className="flex items-center gap-2 justify-end col-span-1">
                     <BotonEditarEmpresa 
                       empresa={empresa}
                       onEdit={handleEditarEmpresa}

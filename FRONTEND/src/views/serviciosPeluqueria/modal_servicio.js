@@ -193,9 +193,6 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
             />
           </span>
         </div>
-
-
-      
     </Dialog>
   );
 }

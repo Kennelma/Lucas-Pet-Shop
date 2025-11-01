@@ -82,7 +82,7 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave }) => {
   };
 
   const footer = (
-    <div className="flex justify-end gap-3 mt-4">
+    <div className="flex justify-end gap-3 mt-2">
       <Button
         label="Cancelar"
         icon="pi pi-times"
@@ -104,7 +104,7 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave }) => {
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">NUEVO ALIMENTO</div>}
       visible={isOpen}
-      style={{ width: '28rem', borderRadius: '1.5rem' }}
+      style={{ width: '28rem', borderRadius: '1.5rem', overflow: 'visible' }}
       modal
       closable={false}
       onHide={onClose}
@@ -113,9 +113,10 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave }) => {
       dismissableMask={false}
       draggable={false}
       resizable={false}
+      contentClassName="overflow-visible"
     >
       {/* Formulario */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 overflow-visible">
         {/* Nombre del Alimento */}
         <span>
           <label htmlFor="nombre" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE DEL ALIMENTO</label>

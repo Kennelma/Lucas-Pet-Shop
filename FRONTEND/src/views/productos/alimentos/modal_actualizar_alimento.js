@@ -32,7 +32,7 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
   const generarSKU = (nombre, id) => {
     if (!nombre) return '';
     const partes = nombre.trim().split(' ').map(p => p.substring(0, 3).toUpperCase());
-    return partes.join('-') + (id ? `-${id}` : '-XXX');
+    return partes.join('-');
   };
 
   useEffect(() => {
@@ -44,7 +44,7 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
         peso: editData.peso || '',
         destino: (editData.destino || '').toUpperCase(),
         stock_minimo: editData.stock_minimo || '',
-        sku: generarSKU(editData.nombre || '', editData.id_producto)
+        sku: generarSKU(editData.nombre)
       });
       setErrores({});
     }
@@ -54,7 +54,7 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
     const val = ['nombre', 'destino'].includes(field) ? value.toUpperCase() : value;
     setData(prev => {
       const newData = { ...prev, [field]: val };
-      if (field === 'nombre') newData.sku = generarSKU(val, editData.id_producto);
+      if (field === 'nombre') newData.sku = generarSKU(val);
       return newData;
     });
     setErrores(prev => ({ ...prev, [field]: '' }));
@@ -86,7 +86,7 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
         tipo_producto: 'ALIMENTOS',
         peso_alimento: data.peso,
         alimento_destinado: data.destino,
-        sku: generarSKU(data.nombre, editData.id_producto)
+        sku: generarSKU(data.nombre)
       };
 
       const res = await actualizarProducto(body);
@@ -111,7 +111,7 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
       : destinosBase;
 
   const footer = (
-    <div className="flex justify-end gap-3 mt-4">
+    <div className="flex justify-end gap-3 mt-2">
       <Button
         label="Cancelar"
         icon="pi pi-times"
@@ -133,95 +133,117 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">ACTUALIZAR ALIMENTO</div>}
       visible={isOpen}
-      style={{ width: '50rem', borderRadius: '1.5rem' }}
+      style={{ width: '28rem', borderRadius: '1.5rem', overflow: 'visible' }}
       modal
       closable={false}
       onHide={onClose}
       footer={footer}
+      position="center"
+      dismissableMask={false}
       draggable={false}
       resizable={false}
+      contentClassName="overflow-visible"
     >
-      <div className="flex flex-col gap-2 text-sm">
-        {/* Nombre */}
-        <label className="text-xs font-semibold">Nombre</label>
-        <InputText
-          value={data.nombre}
-          onChange={(e) => handleChange('nombre', e.target.value)}
-          className="w-full rounded-xl h-10 text-sm"
-        />
-        {errores.nombre && (<small className="text-red-500">{errores.nombre}</small>)}
+      {/* Formulario */}
+      <div className="flex flex-col gap-3 overflow-visible">
+        {/* Nombre del Alimento */}
+        <span>
+          <label htmlFor="nombre" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE DEL ALIMENTO</label>
+          <InputText
+            id="nombre"
+            name="nombre"
+            value={data.nombre}
+            onChange={(e) => handleChange('nombre', e.target.value)}
+            className="w-full rounded-xl h-9 text-sm"
+            placeholder="Ej: Royal Canin Adulto"
+          />
+          {errores.nombre && <p className="text-xs text-red-600 mt-1">{errores.nombre}</p>}
+        </span>
 
         {/* SKU */}
-        <label className="text-xs font-semibold">SKU</label>
-        <InputText
-          value={data.sku}
-          readOnly
-          className="w-full rounded-xl h-10 text-sm bg-gray-100"
-        />
+        <span>
+          <label htmlFor="sku" className="text-xs font-semibold text-gray-700 mb-1">SKU (GENERADO AUTOMÁTICAMENTE)</label>
+          <InputText
+            id="sku"
+            name="sku"
+            value={data.sku}
+            readOnly
+            className="w-full rounded-xl h-9 text-sm bg-gray-100"
+          />
+        </span>
 
-        {/* Destino y Peso */}
+        {/* Destinado a */}
+        <span>
+          <label htmlFor="destino" className="text-xs font-semibold text-gray-700 mb-1">DESTINADO A</label>
+          <Dropdown
+            id="destino"
+            name="destino"
+            value={data.destino}
+            options={destinos}
+            onChange={(e) => handleChange('destino', e.value)}
+            className="w-full rounded-xl h-9 text-sm"
+            placeholder="Seleccionar mascota"
+          />
+        </span>
+
+        {/* Peso y Precio en la misma fila */}
         <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="text-xs font-semibold">Destinado a</label>
-            <Dropdown
-              value={data.destino}
-              options={destinos}
-              onChange={(e) => handleChange('destino', e.value)}
-              className="w-full rounded-xl text-sm mt-1"
-              placeholder="Seleccionar"
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-semibold">Peso (kg)</label>
-            <InputNumber
+          <span>
+            <label htmlFor="peso" className="text-xs font-semibold text-gray-700 mb-1">PESO (KG)</label>
+            <InputText
+              id="peso"
+              name="peso"
               value={data.peso}
-              onValueChange={(e) => handleChange('peso', e.value)}
-              className="w-full rounded-xl text-sm mt-1"
-              inputClassName="h-10 text-sm"
-              suffix=" kg"
+              onChange={e => handleChange('peso', e.target.value)}
+              className="w-full rounded-xl h-9 text-sm"
+              placeholder="Peso en kg"
+              keyfilter="num"
             />
-            {errores.peso && (<small className="text-red-500">{errores.peso}</small>)}
-          </div>
+            {errores.peso && <p className="text-xs text-red-600 mt-1">{errores.peso}</p>}
+          </span>
+          <span>
+            <label htmlFor="precio" className="text-xs font-semibold text-gray-700 mb-1">PRECIO (L)</label>
+            <InputText
+              id="precio"
+              name="precio"
+              value={data.precio}
+              onChange={e => handleChange('precio', e.target.value)}
+              className="w-full rounded-xl h-9 text-sm"
+              placeholder="0.00"
+              keyfilter="num"
+            />
+            {errores.precio && <p className="text-xs text-red-600 mt-1">{errores.precio}</p>}
+          </span>
         </div>
 
-        {/* Precio, Stock, Stock mínimo */}
-        <div className="grid grid-cols-3 gap-2">
-          <div>
-            <label className="text-xs font-semibold">Precio</label>
-            <InputNumber
-              value={data.precio}
-              onValueChange={(e) => handleChange('precio', e.value)}
-              mode="currency"
-              currency="HNL"
-              locale="es-HN"
-              className="w-full rounded-xl text-sm mt-1"
-              inputClassName="h-10 text-sm"
-            />
-            {errores.precio && (<small className="text-red-500">{errores.precio}</small>)}
-          </div>
-
-          <div>
-            <label className="text-xs font-semibold">Stock</label>
-            <InputNumber
+        {/* Stock Disponible y Stock Mínimo en la misma fila */}
+        <div className="grid grid-cols-2 gap-2">
+          <span>
+            <label htmlFor="cantidad" className="text-xs font-semibold text-gray-700 mb-1">STOCK DISPONIBLE</label>
+            <InputText
+              id="cantidad"
+              name="cantidad"
               value={data.cantidad}
-              onValueChange={(e) => handleChange('cantidad', e.value)}
-              className="w-full rounded-xl text-sm mt-1"
-              inputClassName="h-10 text-sm"
+              onChange={e => handleChange('cantidad', e.target.value)}
+              className="w-full rounded-xl h-9 text-sm"
+              placeholder="Cantidad disponible"
+              keyfilter="int"
             />
-            {errores.cantidad && (<small className="text-red-500">{errores.cantidad}</small>)}
-          </div>
-
-          <div>
-            <label className="text-xs font-semibold">Stock mínimo(Para alertas)</label>
-            <InputNumber
+            {errores.cantidad && <p className="text-xs text-red-600 mt-1">{errores.cantidad}</p>}
+          </span>
+          <span>
+            <label htmlFor="stock_minimo" className="text-xs font-semibold text-gray-700 mb-1">STOCK MÍNIMO</label>
+            <InputText
+              id="stock_minimo"
+              name="stock_minimo"
               value={data.stock_minimo}
-              onValueChange={(e) => handleChange('stock_minimo', e.value)}
-              className="w-full rounded-xl text-sm mt-1"
-              inputClassName="h-10 text-sm"
+              onChange={e => handleChange('stock_minimo', e.target.value)}
+              className="w-full rounded-xl h-9 text-sm"
+              placeholder="Stock mínimo"
+              keyfilter="int"
             />
-            {errores.stock_minimo && (<small className="text-red-500">{errores.stock_minimo}</small>)}
-          </div>
+            {errores.stock_minimo && <p className="text-xs text-red-600 mt-1">{errores.stock_minimo}</p>}
+          </span>
         </div>
       </div>
     </Dialog>
