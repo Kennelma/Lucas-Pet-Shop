@@ -27,16 +27,16 @@ export const verProductosDisponibles = async () => {
       verProductos('MEDICAMENTOS'),
       verProductos('ANIMALES')  // ⬅️ Agregar este
     ]);
-    
+
     // Combinar todos y filtrar solo los activos con stock
     const todosProductos = [...alimentos, ...accesorios, ...medicamentos, ...animales]; // ⬅️ Agregar animales aquí también
-    
+
     // Filtrar solo productos activos y con stock disponible
-    const productosDisponibles = todosProductos.filter(p => 
-      (p.activo === 1 || p.activo === "1") && 
+    const productosDisponibles = todosProductos.filter(p =>
+      (p.activo === 1 || p.activo === "1") &&
       parseInt(p.stock || 0) > 0
     );
-    
+
     return productosDisponibles;
   } catch (err) {
     console.error('Error al traer productos disponibles:', err);
@@ -71,10 +71,10 @@ export const actualizarProducto = async (datosProducto) => {
 };
 
 //SERVICIO PARA ELIMINAR PRODUCTO*/
-export const eliminarProducto = async (id_producto) => {
+export const eliminarProducto = async (datos) => {
   try {
     const res = await axiosInstance.delete(`${API_URL}/eliminar`, {
-      data: { id_producto }
+      data: datos
     });
     return res.data;
   } catch (err) {

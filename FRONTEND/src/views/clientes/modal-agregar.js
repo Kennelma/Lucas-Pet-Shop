@@ -69,7 +69,6 @@ export default function FormularioCliente({
                     life: 3000
                 });
 
-                // ✅ PASAR LOS DATOS DEL CLIENTE AL CALLBACK
                 onClienteAgregado(nuevoCliente);
 
                 onClose();

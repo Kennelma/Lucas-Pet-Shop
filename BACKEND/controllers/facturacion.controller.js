@@ -87,6 +87,65 @@ exports.crearFactura = async (req, res) => {
                 nombre_item = producto[0].nombre_producto;
                 id_producto = producto[0].id_producto_pk;
 
+                //====================VALIDAR_SI_ES_MEDICAMENTO_CON_LOTES====================
+                const [esMedicamento] = await conn.query(
+                    `SELECT id_medicamento_pk
+                    FROM tbl_medicamentos_info
+                    WHERE id_producto_fk = ?`,
+                    [item_id]
+                );
+
+                if (esMedicamento && esMedicamento.length > 0) {
+
+                    //ES UN MEDICAMENTO, VALIDAR LOTES CON FIFO
+                    const id_medicamento = esMedicamento[0].id_medicamento_pk;
+
+                    //OBTENER LOTES DISPONIBLES ORDENADOS POR FECHA DE VENCIMIENTO (FIFO)
+                    const [lotes] = await conn.query(
+                        `SELECT
+                            l.id_lote_medicamentos_pk,
+                            l.codigo_lote,
+                            l.stock_lote,
+                            l.fecha_vencimiento,
+                            e.nombre_estado
+                        FROM tbl_lotes_medicamentos l
+                        INNER JOIN cat_estados e ON l.estado_lote_fk = e.id_estado_pk
+                        WHERE l.id_medicamento_fk = ?
+                        AND l.stock_lote > 0
+                        AND e.nombre_estado != 'CADUCADO'
+                        ORDER BY l.fecha_vencimiento ASC`,
+                        [id_medicamento]
+                    );
+
+                    if (!lotes || lotes.length === 0) {
+                        throw new Error(`No hay lotes disponibles (no vencidos) para ${nombre_item}`);
+                    }
+
+                    //VALIDAR QUE HAY SUFICIENTE STOCK EN LOTES NO VENCIDOS
+                    const stockDisponible = lotes.reduce((sum, lote) => sum + lote.stock_lote, 0);
+                    if (stockDisponible < cantidad) {
+                        throw new Error(`Stock insuficiente en lotes no vencidos para ${nombre_item}. Disponible: ${stockDisponible}`);
+                    }
+
+                    //GUARDAR INFO DE LOTES PARA DESCONTAR DESPUÉS
+                    item.lotesADescontar = [];
+                    let cantidadRestante = cantidad;
+
+                    for (const lote of lotes) {
+                        if (cantidadRestante <= 0) break;
+
+                        const cantidadDelLote = Math.min(cantidadRestante, lote.stock_lote);
+                        item.lotesADescontar.push({
+                            id_lote: lote.id_lote_medicamentos_pk,
+                            codigo_lote: lote.codigo_lote,
+                            cantidad: cantidadDelLote
+                        });
+
+                        cantidadRestante -= cantidadDelLote;
+                        console.log(`   📦 Lote ${lote.codigo_lote} - Descontar: ${cantidadDelLote} unidades (Vence: ${lote.fecha_vencimiento.toISOString().split('T')[0]})`);
+                    }
+                }
+
             } else if (tipo === 'SERVICIOS') {
 
                 const [servicio] = await conn.query(
@@ -128,7 +187,7 @@ exports.crearFactura = async (req, res) => {
                     throw new Error(`Promoción con ID ${item_id} no encontrada o inactiva`);
                 }
 
-                // VALIDAR ESTILISTAS
+                //VALIDAR ESTILISTAS
                 if (!estilistas || estilistas.length === 0) {
                     throw new Error(`La promoción ${promocion[0].nombre_promocion} requiere al menos un estilista`);
                 }
@@ -158,7 +217,8 @@ exports.crearFactura = async (req, res) => {
                 id_producto,
                 id_servicio,
                 id_promocion,
-                estilistas: estilistas || []
+                estilistas: estilistas || [],
+                lotesADescontar: item.lotesADescontar || null  //LOTES FIFO PARA MEDICAMENTOS
             });
 
             console.log(`✅ ${nombre_item} | ${cantidad} x L.${precio_unitario} + L.${ajuste_valor} = L.${total_linea.toFixed(2)}`);
@@ -215,7 +275,7 @@ exports.crearFactura = async (req, res) => {
                 id_cliente_fk
             ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
             [
-                numero_factura,  
+                numero_factura,
                 fechaEmision,
                 RTN || null,
                 subtotal.toFixed(2),
@@ -289,13 +349,29 @@ exports.crearFactura = async (req, res) => {
 
             // DESCONTAR INVENTARIO SI ES PRODUCTO
             if (detalle.id_producto) {
+
+                //SI TIENE LOTES (ES MEDICAMENTO), DESCONTAR DE LOS LOTES CON FIFO
+                if (detalle.lotesADescontar && detalle.lotesADescontar.length > 0) {
+
+                    for (const lote of detalle.lotesADescontar) {
+                        await conn.query(
+                            `UPDATE tbl_lotes_medicamentos
+                             SET stock_lote = stock_lote - ?
+                             WHERE id_lote_medicamentos_pk = ?`,
+                            [lote.cantidad, lote.id_lote]
+                        );
+                        console.log(`   📦 Lote ${lote.codigo_lote} descontado: -${lote.cantidad} unidades`);
+                    }
+                }
+
+                //DESCONTAR DEL STOCK GENERAL DEL PRODUCTO
                 await conn.query(
                     `UPDATE tbl_productos
                      SET stock = stock - ?
                      WHERE id_producto_pk = ?`,
                     [detalle.cantidad, detalle.id_producto]
                 );
-                console.log(`   📦 Stock descontado: ${detalle.nombre_item} (-${detalle.cantidad})`);
+                console.log(`   📦 Stock general descontado: ${detalle.nombre_item} (-${detalle.cantidad})`);
             }
         }
 
@@ -603,7 +679,6 @@ exports.historialFacturas = async (req, res) => {
             LEFT JOIN tbl_clientes cl ON f.id_cliente_fk = cl.id_cliente_pk`
         );
 
-        console.log("Historial de facturas:", facturas);
         res.status(200).json({
             success: true,
             data: facturas

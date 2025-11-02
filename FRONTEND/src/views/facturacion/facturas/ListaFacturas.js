@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Eye, Printer, Download, Filter, Calendar } from 'lucide-react';
 import { obtenerHistorialFacturas } from '../../../AXIOS.SERVICES/factura-axios';
-import ModalPago from "../pagos/ModalPago";
+import ModalPago from "../modal_pago";
 
 const ListaFacturas = () => {
   //====================ESTADOS====================
@@ -338,6 +338,7 @@ const ListaFacturas = () => {
       {facturaSeleccionada && (
         <ModalPago
           show={showModalPago}
+          numero_factura={facturaSeleccionada.numero_factura}
           total={parseFloat(facturaSeleccionada.saldo) || 0}
           onClose={handleCerrarModalPago}
           onSuccess={handlePagoExitoso}

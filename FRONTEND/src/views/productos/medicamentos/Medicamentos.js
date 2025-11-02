@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { useMedicamentos } from "./useMedicamentos";
 import MedicamentoTable from "./MedicamentoTable";
@@ -25,6 +25,21 @@ const Medicamentos = () => {
   const [medicamentoSeleccionado, setMedicamentoSeleccionado] = useState(null);
   const [loteSeleccionado, setLoteSeleccionado] = useState(null);
 
+  //====================CONTROL_SCROLL_MODALES====================
+  useEffect(() => {
+    const anyModalOpen = modalVisible || modalLoteVisible || modalMovVisible || modalLotesVisible;
+
+    if (anyModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [modalVisible, modalLoteVisible, modalMovVisible, modalLotesVisible]);
+
   const medicamentosFiltrados = medicamentos.filter((m) =>
     m.nombre_producto.toLowerCase().includes(busqueda.toLowerCase()) ||
     m.presentacion_medicamento.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -44,16 +59,16 @@ const Medicamentos = () => {
   const calcularEstadoLote = (lote) => {
     const hoy = new Date();
     const vencimiento = new Date(lote.fecha_vencimiento);
-    
+
     if (vencimiento < hoy) {
       return { bgBadge: "bg-gray-600", texto: "CADUCADO" };
     }
-    
+
     const stock = parseInt(lote.stock_lote || 0);
     if (stock === 0) {
       return { bgBadge: "bg-red-500", texto: "AGOTADO" };
     }
-    
+
     return { bgBadge: "bg-green-500", texto: "DISPONIBLE" };
   };
 
@@ -83,7 +98,7 @@ const Medicamentos = () => {
 
   const handleEliminarMedicamento = async (medicamento) => {
     const lotesAsociados = lotes.filter(l => l.id_producto_fk === medicamento.id_producto_pk).length;
-    
+
     const result = await Swal.fire({
       title: "¿Eliminar medicamento?",
       html: `
@@ -117,13 +132,13 @@ const Medicamentos = () => {
   const handleCambiarEstado = async (medicamento) => {
     try {
       const nuevoEstado = !medicamento.activo;
-      
+
       const response = await cambiarEstadoProducto(medicamento.id_producto_pk, nuevoEstado);
-      
+
       if (response.Consulta) {
         // Actualizar el estado local inmediatamente sin recargar todos los datos
-        setMedicamentos(prev => 
-          prev.map(med => 
+        setMedicamentos(prev =>
+          prev.map(med =>
             med.id_producto_pk === medicamento.id_producto_pk
               ? { ...med, activo: nuevoEstado }
               : med
@@ -153,7 +168,7 @@ const Medicamentos = () => {
 
   const handleEliminarLote = async (lote) => {
     const estilo = calcularEstadoLote(lote);
-    
+
     const result = await Swal.fire({
       title: "¿Eliminar lote?",
       html: `
@@ -188,7 +203,7 @@ const Medicamentos = () => {
       if (success) {
         // Recargar datos después de eliminar
         await cargarDatos();
-        
+
         Swal.fire({ icon: "success", title: "¡Eliminado!", text: "El lote fue eliminado correctamente", timer: 1800, showConfirmButton: false,});
       }
     }
@@ -208,7 +223,7 @@ const Medicamentos = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       {/* Encabezado */}
-      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 mb-3" 
+      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 mb-3"
            style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         <h2 className="text-2xl font-black text-center uppercase text-gray-800">
           GESTIÓN DE MEDICAMENTOS
@@ -233,7 +248,7 @@ const Medicamentos = () => {
              MEDICAMENTOS
           </span>
         </label>
-        
+
         <label className="flex-1 text-center">
           <input type="radio" name="vista" checked={vistaActual === "kardex"} onChange={() => setVistaActual("kardex")} className="hidden" />
           <span className={`flex items-center justify-center rounded-lg py-2 px-4 cursor-pointer transition-all duration-150 ${
@@ -253,7 +268,7 @@ const Medicamentos = () => {
       )}
 
       {/* Contenido principal */}
-      <div className="bg-white rounded-xl p-6 mb-6" 
+      <div className="bg-white rounded-xl p-6 mb-6"
            style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         {vistaActual === "kardex" ? (
           <KardexTable kardexData={kardexFiltrado} />
@@ -286,7 +301,7 @@ const Medicamentos = () => {
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 448 512">
                   <path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/>
                 </svg>
-                Nuevo Medicamento
+                NUEVO MEDICAMENTO
               </button>
             </div>
 
@@ -329,30 +344,30 @@ const Medicamentos = () => {
       </div>
 
       {/* Modales */}
-      <ModalMedicamento 
+      <ModalMedicamento
         isOpen={modalVisible} onClose={() => {
           setModalVisible(false);
           setMedicamentoEditando(null);
         }}
         onSave={handleGuardarMedicamento} medicamentoEditando={medicamentoEditando} medicamentosExistentes={medicamentos}
       />
-      
-      <ModalLote 
+
+      <ModalLote
         isOpen={modalLoteVisible} onClose={() => {
           setModalLoteVisible(false);
           setMedicamentoSeleccionado(null);
         }}
         onSave={handleGuardarLote} medicamentoSeleccionado={medicamentoSeleccionado} lotesExistentes={lotes}
       />
-      
-      <ModalMovimiento 
+
+      <ModalMovimiento
         isOpen={modalMovVisible} onClose={() => {
           setModalMovVisible(false);
           setLoteSeleccionado(null);
         }}
         onSave={handleGuardarMovimiento} loteSeleccionado={loteSeleccionado}
       />
-      
+
       <ModalLotesMedicamento isOpen={modalLotesVisible} onClose={() => {
           setModalLotesVisible(false);
           setMedicamentoSeleccionado(null);

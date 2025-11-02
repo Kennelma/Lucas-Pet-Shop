@@ -22,7 +22,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
   const [shouldShowAbove, setShouldShowAbove] = useState(false);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
-  
+
   const checkPosition = () => {
     const showAbove = rowIndex >= 2 || rowIndex >= (totalRows - 3);
     setShouldShowAbove(showAbove);
@@ -46,7 +46,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
     document.addEventListener('mousedown', handleClickOutside);
     window.addEventListener('resize', handleResize);
     window.addEventListener('scroll', handleScroll, true);
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('resize', handleResize);
@@ -64,7 +64,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
     }
     setIsOpen(!isOpen);
   };
-  
+
   return (
     <div className="relative flex justify-center" ref={menuRef}>
       <button
@@ -75,10 +75,10 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
       >
         <i className="pi pi-ellipsis-h text-white text-xs"></i>
       </button>
-      
+
       {isOpen && (
         <div className={`absolute right-0 ${shouldShowAbove ? 'bottom-16' : 'top-12'} bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[140px]`}>
-          <div 
+          <div
             className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={(e) => {
               e.stopPropagation();
@@ -89,10 +89,10 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
             <i className="pi pi-pencil text-xs"></i>
             <span>Editar</span>
           </div>
-          
+
           <hr className="my-0 border-gray-200" />
-          
-          <div 
+
+          <div
             className="px-2 py-1.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={(e) => {
               e.stopPropagation();
@@ -121,6 +121,17 @@ const Accesorios = () => {
   useEffect(() => {
     cargarDatos();
   }, []);
+
+  useEffect(() => {
+    if (modalAbierto) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [modalAbierto]);
 
   // Switch para el estado activo
   const estadoTemplate = (rowData) => {
@@ -208,7 +219,7 @@ const Accesorios = () => {
 
     if (result.isConfirmed) {
       try {
-        const resp = await eliminarProducto(accesorio.id_producto);
+        const resp = await eliminarProducto({ id_producto: accesorio.id_producto });
         if (resp.Consulta) {
           Swal.fire({
             icon: "success",
@@ -316,7 +327,7 @@ const Accesorios = () => {
             onClick={() => abrirModal()}
           >
             <FontAwesomeIcon icon={faPlus} />
-            Nuevo Accesorio
+            NUEVO ACCESORIO
           </button>
         </div>
 
@@ -385,7 +396,7 @@ const Accesorios = () => {
               body={(rowData, column) => {
                 const rowIndex = accesorios.indexOf(rowData);
                 return (
-                  <ActionMenu 
+                  <ActionMenu
                     rowData={rowData}
                     rowIndex={rowIndex}
                     totalRows={accesorios.length}
