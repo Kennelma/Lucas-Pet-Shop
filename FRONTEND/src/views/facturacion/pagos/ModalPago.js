@@ -8,7 +8,7 @@ import { obtenerTodosMetodosPago, obtenerTiposPago, procesarPago } from '../../.
 //  2. MODO SIMPLE (LEGACY): <ModalPago numero_factura="FAC-001" total={500} />
 function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExitoso }) {
   //ESTADOS DEL COMPONENTE
-  const [vista, setVista] = useState('tipo');                    //VISTA ACTUAL: 'tipo' O 'metodos'
+  const [vista, setVista] = useState('tipo');                    //VISTA ACTUAL: 'tipo', 'monto-parcial' O 'metodos'
   const [tipoPago, setTipoPago] = useState(null);                //TIPO SELECCIONADO: {tipo_pago, id_tipo_pago_pk}
   const [metodosSeleccionados, setMetodosSeleccionados] = useState([]); //MÉTODOS ELEGIDOS: [{nombre, id}]
   const [metodosPago, setMetodosPago] = useState([]);            //MÉTODOS DISPONIBLES DESDE BD
@@ -16,6 +16,7 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
   const [montos, setMontos] = useState({});                      //MONTOS INGRESADOS: {id_metodo: monto}
   const [cargando, setCargando] = useState(false);               //INDICA SI ESTÁ CARGANDO DATOS INICIALES
   const [procesando, setProcesando] = useState(false);           //INDICA SI ESTÁ PROCESANDO EL PAGO
+  const [montoAbono, setMontoAbono] = useState('');              //MONTO A ABONAR EN PAGO PARCIAL
 
   //NORMALIZAR FACTURAS PARA SOPORTAR AMBOS MODOS (ANTIGUO Y NUEVO)
   const facturasNormalizadas = facturas || [{ numero_factura, total }];
@@ -67,17 +68,70 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
     const yaSeleccionado = metodosSeleccionados.find(m => m.id === metodo.id_metodo_pago_pk);
 
     if (yaSeleccionado) {
-      //DESELECCIONAR MÉTODO Y LIMPIAR SU MONTO
-      setMetodosSeleccionados(metodosSeleccionados.filter(m => m.id !== metodo.id_metodo_pago_pk));
+      //DESELECCIONAR MÉTODO Y LIMPIAR MONTOS
+      const nuevosMetodos = metodosSeleccionados.filter(m => m.id !== metodo.id_metodo_pago_pk);
+      setMetodosSeleccionados(nuevosMetodos);
+      
       const nuevosMontos = { ...montos };
       delete nuevosMontos[metodo.id_metodo_pago_pk];
+      
+      // Si queda solo un método, también limpiar su monto para que el usuario lo ingrese de nuevo
+      if (nuevosMetodos.length === 1) {
+        delete nuevosMontos[nuevosMetodos[0].id];
+      }
+      
       setMontos(nuevosMontos);
     } else {
       //SELECCIONAR MÉTODO (SI NO SE HA ALCANZADO EL LÍMITE DE 2)
       if (metodosSeleccionados.length < 2) {
-        setMetodosSeleccionados([...metodosSeleccionados, metodoObj]);
+        const nuevosMetodos = [...metodosSeleccionados, metodoObj];
+        setMetodosSeleccionados(nuevosMetodos);
+        
+        // Si ahora hay 2 métodos y no hay montos, establecer el monto base en el primer método
+        if (nuevosMetodos.length === 2 && Object.keys(montos).length === 0) {
+          const nuevosMontos = {};
+          // Usar monto de abono para pago parcial, o total para pago completo
+          const montoBase = tipoPago?.tipo_pago === 'PARCIAL' && montoAbono 
+            ? parseFloat(montoAbono) 
+            : totalCombinado;
+          nuevosMontos[nuevosMetodos[0].id] = montoBase.toFixed(2);
+          nuevosMontos[nuevosMetodos[1].id] = '0.00';
+          setMontos(nuevosMontos);
+        }
       }
     }
+  };
+
+  //MANEJAR CAMBIO EN LOS MONTOS CON CÁLCULO AUTOMÁTICO
+  const handleMontoChange = (idMetodo, valor) => {
+    const nuevosMontos = { ...montos };
+    
+    // Validar que el valor sea numérico válido
+    const valorNumerico = parseFloat(valor) || 0;
+    nuevosMontos[idMetodo] = valor; // Mantener el valor original para el input
+
+    //SI HAY 2 MÉTODOS SELECCIONADOS, CALCULAR EL SEGUNDO AUTOMÁTICAMENTE
+    if (metodosSeleccionados.length === 2) {
+      const primerMetodoId = metodosSeleccionados[0].id;
+      const segundoMetodoId = metodosSeleccionados[1].id;
+      
+      // Determinar el monto base a usar (total o abono parcial)
+      const montoBase = tipoPago?.tipo_pago === 'PARCIAL' && montoAbono 
+        ? parseFloat(montoAbono) 
+        : totalCombinado;
+      
+      if (idMetodo === primerMetodoId) {
+        //SE MODIFICÓ EL PRIMER MÉTODO, CALCULAR EL SEGUNDO
+        const montoRestante = Math.max(0, montoBase - valorNumerico);
+        nuevosMontos[segundoMetodoId] = montoRestante.toFixed(2);
+      } else if (idMetodo === segundoMetodoId) {
+        //SE MODIFICÓ EL SEGUNDO MÉTODO, CALCULAR EL PRIMERO (CASO ESPECIAL)
+        const montoRestante = Math.max(0, montoBase - valorNumerico);
+        nuevosMontos[primerMetodoId] = montoRestante.toFixed(2);
+      }
+    }
+
+    setMontos(nuevosMontos);
   };
 
   //PROCESAR EL PAGO Y ENVIAR AL BACKEND
@@ -100,16 +154,37 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
       return sum + (parseFloat(montos[metodo.id]) || 0);
     }, 0);
 
+    // Determinar el monto objetivo según el tipo de pago
+    const montoObjetivo = tipoPago?.tipo_pago === 'PARCIAL' && montoAbono 
+      ? parseFloat(montoAbono) 
+      : totalCombinado;
+
     //VALIDAR MONTO SEGÚN TIPO DE PAGO
     if (tipoPago?.tipo_pago === 'TOTAL' && totalIngresado < totalCombinado) {
       alert(`El monto ingresado (L.${totalIngresado.toFixed(2)}) es menor al saldo total (L.${totalCombinado.toFixed(2)}).\n\nSi el cliente paga menos, selecciona "PAGO PARCIAL".`);
       return;
     }
 
-    if (totalIngresado > totalCombinado) {
-      const diferencia = totalIngresado - totalCombinado;
-      if (diferencia > 1 && tipoPago?.tipo_pago === 'PARCIAL') {
+    if (tipoPago?.tipo_pago === 'PARCIAL') {
+      // Validar que no exceda el monto de abono especificado
+      if (totalIngresado > montoObjetivo + 0.05) {
+        alert(`El monto ingresado (L.${totalIngresado.toFixed(2)}) excede el abono especificado (L.${montoObjetivo.toFixed(2)})`);
+        return;
+      }
+      // Validar que no exceda el total de la factura
+      if (totalIngresado > totalCombinado) {
         alert(`El monto ingresado (L.${totalIngresado.toFixed(2)}) excede el saldo pendiente (L.${totalCombinado.toFixed(2)})`);
+        return;
+      }
+    }
+
+    // Para pagos con dos métodos, permitir una pequeña diferencia por redondeo
+    const diferenciaTolerada = metodosSeleccionados.length === 2 ? 0.05 : 1;
+    
+    if (totalIngresado > totalCombinado && tipoPago?.tipo_pago !== 'PARCIAL') {
+      const diferencia = totalIngresado - totalCombinado;
+      if (diferencia > diferenciaTolerada) {
+        alert(`El monto ingresado (L.${totalIngresado.toFixed(2)}) excede el total (L.${totalCombinado.toFixed(2)})`);
         return;
       }
     }
@@ -118,7 +193,7 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
     const datosPago = {
       facturas: facturasNormalizadas.map(f => ({
         numero_factura: f.numero_factura,
-        //SI ES UNA SOLA FACTURA: USA EL MONTO INGRESADO
+        //SI ES UNA SOLA FACTURA: USA EL MONTO INGRESADO (TOTAL O ABONO)
         //SI SON MÚLTIPLES: USA EL TOTAL DE CADA UNA (ASUME PAGO COMPLETO)
         monto_aplicar: facturasNormalizadas.length === 1
           ? totalIngresado
@@ -148,7 +223,7 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
           onPagoExitoso(response.data);
         }
 
-        onClose();
+        handleClose();
       } else {
         alert(`❌ Error: ${response.mensaje}`);
       }
@@ -160,12 +235,22 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
     }
   };
 
+  // Limpiar estados al cerrar el modal
+  const handleClose = () => {
+    setVista('tipo');
+    setTipoPago(null);
+    setMetodosSeleccionados([]);
+    setMontos({});
+    setMontoAbono('');
+    onClose();
+  };
+
   //SI EL MODAL NO ESTÁ VISIBLE, NO RENDERIZAR NADA
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md h-auto overflow-hidden">
 
         {vista === 'tipo' ? (
           //VISTA 1: SELECCIÓN DE TIPO DE PAGO (TOTAL O PARCIAL)
@@ -173,7 +258,7 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
             {/* ENCABEZADO DEL MODAL */}
             <div className="flex items-center justify-between px-4 py-3 border-b">
               <h3 className="text-lg font-semibold text-gray-900">PROCESAR PAGO</h3>
-              <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
+              <button onClick={handleClose} className="p-1 hover:bg-gray-100 rounded">
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
@@ -228,7 +313,13 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
                         key={tipo.id_tipo_pago_pk}
                         onClick={() => {
                           setTipoPago(tipo);
-                          setVista('metodos');
+                          // Si es pago parcial, ir a vista de monto, si no directo a métodos
+                          if (tipo.tipo_pago === 'PARCIAL') {
+                            setVista('monto-parcial');
+                            setMontoAbono(''); // Limpiar monto anterior
+                          } else {
+                            setVista('metodos');
+                          }
                         }}
                         className={`w-full p-4 border-2 rounded-lg transition-colors ${
                           isTOTAL
@@ -260,131 +351,103 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
               )}
             </div>
           </>
-        ) : (
-          //VISTA 2: SELECCIÓN DE MÉTODOS DE PAGO Y MONTOS
+        ) : vista === 'monto-parcial' ? (
+          //VISTA 2: ESPECIFICAR MONTO A ABONAR (SOLO PARA PAGO PARCIAL)
           <>
-            {/* ENCABEZADO CON BADGE DE TIPO DE PAGO */}
+            {/* ENCABEZADO */}
             <div className="flex items-center justify-between px-4 py-3 border-b">
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-semibold text-gray-900">MÉTODOS DE PAGO</h3>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                  tipoPago?.tipo_pago === 'PARCIAL' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
-                }`}>
-                  {tipoPago?.tipo_pago || 'Total'}
+                <h3 className="text-lg font-semibold text-gray-900">MONTO A ABONAR</h3>
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-orange-100 text-orange-700">
+                  PAGO PARCIAL
                 </span>
               </div>
-              <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
+              <button onClick={handleClose} className="p-1 hover:bg-gray-100 rounded">
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
 
-            <div className="p-4 space-y-3">
-              {/* RESUMEN DEL TOTAL A PAGAR */}
-              <div className="bg-linear-to-r from-blue-50 to-blue-100 rounded-lg p-3">
+            <div className="p-4 space-y-4">
+              {/* RESUMEN DEL TOTAL DE LA FACTURA */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-blue-900">Total a Pagar</span>
+                  <span className="text-sm font-medium text-blue-900">Total de la Factura</span>
                   <span className="text-xl font-bold text-blue-900">L {totalCombinado.toFixed(2)}</span>
                 </div>
                 {facturasNormalizadas.length > 1 && (
                   <div className="text-xs text-blue-700 mt-1">
-                    {facturasNormalizadas.length} facturas
+                    {facturasNormalizadas.length} facturas seleccionadas
                   </div>
                 )}
               </div>
 
-              {/* INSTRUCCIONES DE SELECCIÓN */}
-              <div className="text-center py-2">
-                <p className="text-sm font-medium text-gray-700">
-                  Seleccione uno o dos métodos de pago
-                </p>
-                {metodosSeleccionados.length > 0 && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    {metodosSeleccionados.length} método{metodosSeleccionados.length > 1 ? 's' : ''} seleccionado{metodosSeleccionados.length > 1 ? 's' : ''}
-                  </p>
+              {/* INPUT PARA MONTO A ABONAR */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  ¿Cuánto quiere abonar el cliente?
+                </label>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg font-bold">
+                    L
+                  </div>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    max={totalCombinado}
+                    value={montoAbono}
+                    onChange={(e) => setMontoAbono(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full pl-8 pr-4 py-3 text-2xl font-bold text-gray-900 border-2 border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  />
+                </div>
+                
+                {/* MOSTRAR SALDO RESTANTE */}
+                {montoAbono && parseFloat(montoAbono) > 0 && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-orange-700">Abono:</span>
+                      <span className="font-semibold text-orange-900">L {parseFloat(montoAbono).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-orange-700">Saldo restante:</span>
+                      <span className="font-semibold text-orange-900">
+                        L {Math.max(0, totalCombinado - parseFloat(montoAbono)).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
                 )}
               </div>
 
-              {/* GRID DE MÉTODOS DE PAGO - CARGADOS DINÁMICAMENTE DESDE BD */}
-              {cargando ? (
-                <div className="text-center py-4 text-gray-500">Cargando métodos...</div>
-              ) : (
+              {/* MONTOS SUGERIDOS */}
+              <div className="space-y-2">
+                <p className="text-sm text-gray-600">Montos sugeridos:</p>
                 <div className="grid grid-cols-3 gap-2">
-                  {metodosPago.map((metodo) => {
-                    const Icon = getIconoMetodo(metodo.metodo_pago);
-                    const isSelected = metodosSeleccionados.find(m => m.id === metodo.id_metodo_pago_pk);
-                    const isDisabled = !isSelected && metodosSeleccionados.length >= 2;
-
-                    return (
-                      <button
-                        key={metodo.id_metodo_pago_pk}
-                        onClick={() => handleToggleMetodo(metodo)}
-                        disabled={isDisabled}
-                        className={`p-3 rounded-lg border-2 transition-all ${
-                          isSelected
-                            ? 'border-purple-600 bg-purple-100'
-                            : isDisabled
-                            ? 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
-                            : 'border-gray-300 hover:border-gray-400 bg-white'
-                        }`}
-                      >
-                        <Icon className={`w-6 h-6 mx-auto mb-1 ${
-                          isSelected ? 'text-purple-700' : 'text-gray-600'
-                        }`} />
-                        <div className="text-xs font-medium text-center text-gray-700">
-                          {metodo.metodo_pago}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* INPUTS DE MONTO PARA CADA MÉTODO SELECCIONADO */}
-              {metodosSeleccionados.length > 0 && (
-                <div className="space-y-2">
-                  {metodosSeleccionados.map((metodo) => {
-                    const Icon = getIconoMetodo(metodo.nombre);
-                    return (
-                      <div key={metodo.id} className="bg-white border-2 border-green-500 rounded-lg p-3">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Icon className="w-5 h-5 text-green-600" />
-                          <span className="font-medium text-gray-900">{metodo.nombre}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-600">L</span>
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={montos[metodo.id] || ''}
-                            onChange={(e) => setMontos({ ...montos, [metodo.id]: e.target.value })}
-                            placeholder="0.00"
-                            className="flex-1 text-2xl font-bold text-gray-900 bg-transparent outline-none"
-                          />
-                        </div>
+                  {[
+                    totalCombinado * 0.25,
+                    totalCombinado * 0.5,
+                    totalCombinado * 0.75
+                  ].map((sugerencia, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setMontoAbono(sugerencia.toFixed(2))}
+                      className="p-2 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                    >
+                      L {sugerencia.toFixed(2)}
+                      <div className="text-xs text-gray-500">
+                        {['25%', '50%', '75%'][idx]}
                       </div>
-                    );
-                  })}
-
-                  {/* VALIDACIÓN DE MONTOS PARA PAGO PARCIAL CON 2 MÉTODOS */}
-                  {tipoPago?.tipo_pago === 'PARCIAL' && metodosSeleccionados.length === 2 && (
-                    <div className="text-xs text-gray-600 text-center">
-                      Total ingresado: L. {Object.values(montos).reduce((sum, val) => sum + (parseFloat(val) || 0), 0).toFixed(2)} / L. {totalCombinado.toFixed(2)}
-                    </div>
-                  )}
+                    </button>
+                  ))}
                 </div>
-              )}
+              </div>
 
-              {/* MENSAJE DE AYUDA SEGÚN TIPO DE PAGO */}
-              {metodosSeleccionados.length > 0 && (
-                <div className={`rounded-lg p-2 text-xs border ${
-                  tipoPago?.tipo_pago === 'TOTAL'
-                    ? 'bg-blue-50 border-blue-200 text-blue-800'
-                    : 'bg-orange-50 border-orange-200 text-orange-800'
-                }`}>
-                  {tipoPago?.tipo_pago === 'TOTAL'
-                    ? '💡 Con efectivo puede pagar de más (cambio automático)'
-                    : '⚠️ Asegúrate de ingresar solo el monto que el cliente paga ahora'}
+              {/* VALIDACIÓN DEL MONTO */}
+              {montoAbono && (parseFloat(montoAbono) <= 0 || parseFloat(montoAbono) > totalCombinado) && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-2">
+                  <p className="text-xs text-red-800 text-center">
+                    ⚠️ El monto debe ser mayor a L.0.00 y no exceder L.{totalCombinado.toFixed(2)}
+                  </p>
                 </div>
               )}
             </div>
@@ -394,6 +457,308 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
               <button
                 onClick={() => setVista('tipo')}
                 className="px-4 py-2 text-sm border border-gray-300 hover:bg-white text-gray-700 font-medium rounded"
+              >
+                Atrás
+              </button>
+              <button
+                onClick={() => {
+                  // Limpiar métodos y montos al cambiar de monto de abono
+                  setMetodosSeleccionados([]);
+                  setMontos({});
+                  setVista('metodos');
+                }}
+                disabled={!montoAbono || parseFloat(montoAbono) <= 0 || parseFloat(montoAbono) > totalCombinado}
+                className={`flex-1 py-2 px-4 text-sm font-medium rounded transition-colors ${
+                  !montoAbono || parseFloat(montoAbono) <= 0 || parseFloat(montoAbono) > totalCombinado
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-orange-500 hover:bg-orange-600 text-white'
+                }`}
+              >
+                CONTINUAR CON MÉTODOS DE PAGO
+              </button>
+            </div>
+          </>
+        ) : (
+          //VISTA 3: SELECCIÓN DE MÉTODOS DE PAGO Y MONTOS
+          <>
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-gray-900">MÉTODOS DE PAGO</h3>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  tipoPago?.tipo_pago === 'PARCIAL' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
+                }`}>
+                  {tipoPago?.tipo_pago || 'Total'}
+                </span>
+              </div>
+              <button onClick={handleClose} className="p-1 hover:bg-gray-100 rounded">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Content */}
+            {tipoPago?.tipo_pago === 'PARCIAL' ? (
+              // DISEÑO MUY COMPACTO PARA PAGO PARCIAL
+              <div className="p-3 space-y-2">
+              
+                {/* Resumen mínimo */}
+                {/* Total muy compacto */}
+                <div className="flex gap-2">
+                  {/* Bloque TOTAL */}
+                  <div className="bg-blue-50 border border-blue-200 rounded px-2 py-1 text-center space-y-0.5 w-full">
+                    <p className="text-xs text-gray-600 leading-none">
+                      {montoAbono ? 'MONTO A ABONAR' : 'TOTAL A PAGAR'}
+                    </p>
+                    <p className="text-sm font-bold text-blue-600 leading-none">
+                      L {(montoAbono ? parseFloat(montoAbono) : totalCombinado).toFixed(2)}
+                    </p>
+                  </div>
+
+                  {/* Bloque Ingresado/Restante */}
+                  {metodosSeleccionados.length === 2 && (
+                    <div className="bg-blue-50 border border-blue-200 rounded px-2 py-1 text-[11px] w-full flex flex-col justify-center space-y-0.5">
+                      <span>SALDO L. {Object.values(montos).reduce((sum, val) => sum + (parseFloat(val) || 0), 0).toFixed(2)}</span>
+                      <span className={`font-semibold ${Math.abs((montoAbono ? parseFloat(montoAbono) : totalCombinado) - Object.values(montos).reduce((sum, val) => sum + (parseFloat(val) || 0), 0)) < 0.01 ? 'text-green-700' : 'text-red-600'}`}>
+                        RESTANTE: L {Math.abs((montoAbono ? parseFloat(montoAbono) : totalCombinado) - Object.values(montos).reduce((sum, val) => sum + (parseFloat(val) || 0), 0)).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Métodos en línea horizontal */}
+                <div>
+                  <p className="text-xs font-medium text-gray-700 mb-1">Seleccione dos métodos</p>
+                  <div className="grid grid-cols-3 gap-1">
+                    {cargando ? (
+                      <div className="col-span-3 text-center py-4 text-gray-500">Cargando métodos...</div>
+                    ) : (
+                      metodosPago.map((metodo) => {
+                        const Icon = getIconoMetodo(metodo.metodo_pago);
+                        const isSelected = metodosSeleccionados.find(m => m.id === metodo.id_metodo_pago_pk);
+                        return (
+                          <button
+                            key={metodo.id_metodo_pago_pk}
+                            onClick={() => handleToggleMetodo(metodo)}
+                            className={`py-3 px-1.5 border rounded transition flex flex-col items-center justify-center space-y-1 ${
+                              isSelected
+                                ? 'border-purple-600 bg-purple-100'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <Icon className={`w-4 h-4 ${isSelected ? 'text-purple-700' : 'text-gray-400'}`} />
+                            <p className="text-xs text-gray-700 text-center leading-tight">{metodo.metodo_pago}</p>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                {/* Montos compactos */}
+                {metodosSeleccionados.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-gray-700 mb-1">Distribuya el monto</p>
+                    <div className="space-y-1">
+                      {metodosSeleccionados.map((metodo, index) => {
+                        const metodoPago = metodosPago.find((m) => m.id_metodo_pago_pk === metodo.id);
+                        const Icon = getIconoMetodo(metodoPago?.metodo_pago);
+                        const isReadOnly = metodosSeleccionados.length === 2 && index === 1;
+
+                        return (
+                          <div key={metodo.id} className="flex items-center gap-2">
+                            <Icon className="w-3 h-3 text-gray-500" />
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={montos[metodo.id] || ''}
+                              onChange={(e) => handleMontoChange(metodo.id, e.target.value)}
+                              placeholder="0.00"
+                              readOnly={isReadOnly}
+                              className={`flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-purple-600 focus:border-purple-600 ${
+                                isReadOnly ? 'bg-gray-100 cursor-not-allowed' : ''
+                              }`}
+                            />
+                            <span className="text-xs text-gray-500 w-20 text-right">
+                              {metodoPago?.metodo_pago === 'TRANSFERENCIA' ? 'Transfer.' : metodoPago?.metodo_pago}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              // DISEÑO PARA PAGO TOTAL
+              <div className="p-3 space-y-2">
+                {/* Total compacto */}
+                <div className="bg-blue-50 border border-blue-200 rounded p-2 text-center">
+                  <p className="text-xs text-gray-600">TOTAL</p>
+                  <p className="text-base font-bold text-blue-600">L {totalCombinado.toFixed(2)}</p>
+                </div>
+
+                {/* Métodos compactos */}
+                <div>
+                  <p className="text-xs font-medium text-gray-700 mb-1">Seleccione método</p>
+                  <div className="grid grid-cols-3 gap-1">
+                    {cargando ? (
+                      <div className="col-span-3 text-center py-4 text-gray-500">Cargando métodos...</div>
+                    ) : (
+                      metodosPago.map((metodo) => {
+                        const Icon = getIconoMetodo(metodo.metodo_pago);
+                        const isSelected = metodosSeleccionados.find(m => m.id === metodo.id_metodo_pago_pk);
+                        return (
+                          <button
+                            key={metodo.id_metodo_pago_pk}
+                            onClick={() => handleToggleMetodo(metodo)}
+                            className={`py-3 px-1.5 border rounded transition flex flex-col items-center justify-center space-y-1 ${
+                              isSelected
+                                ? 'border-purple-600 bg-purple-100'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <Icon className={`w-4 h-4 ${isSelected ? 'text-purple-700' : 'text-gray-400'}`} />
+                            <p className="text-xs text-gray-700 text-center leading-tight">{metodo.metodo_pago}</p>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                {/* Monto compacto */}
+                {metodosSeleccionados.length > 0 && (
+                  <div>
+                    {metodosSeleccionados.length === 1 ? (
+                      // UN SOLO MÉTODO
+                      metodosSeleccionados.map((metodo) => {
+                        const metodoPago = metodosPago.find((m) => m.id_metodo_pago_pk === metodo.id);
+                        const Icon = getIconoMetodo(metodoPago?.metodo_pago);
+                        const isEfectivo = metodoPago?.metodo_pago === 'EFECTIVO';
+
+                        return (
+                          <div key={metodo.id}>
+                            {isEfectivo ? (
+                              // Diseño para efectivo
+                              <div>
+                                <p className="text-xs font-medium text-gray-700 mb-1">Monto a pagar</p>
+                                <div className="space-y-1">
+                                  {/* Input del efectivo */}
+                                  <div className="flex items-center gap-2">
+                                    <Icon className="w-3 h-3 text-gray-500" />
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      value={montos[metodo.id] || ''}
+                                      onChange={(e) => handleMontoChange(metodo.id, e.target.value)}
+                                      placeholder="0.00"
+                                      className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-purple-600 focus:border-purple-600"
+                                    />
+                                    <span className="text-xs text-gray-500 w-20 text-right">Efectivo</span>
+                                  </div>
+                                  
+                                  {/* Campo del cambio */}
+                                  <div className="flex items-center gap-2">
+                                    <Icon className="w-3 h-3 text-gray-500" />
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      value={montos[metodo.id] ? Math.max(0, parseFloat(montos[metodo.id]) - totalCombinado).toFixed(2) : '0.00'}
+                                      readOnly={true}
+                                      className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded bg-gray-100 cursor-not-allowed"
+                                    />
+                                    <span className="text-xs text-gray-500 w-20 text-right">Cambio</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              // Diseño normal para otros métodos
+                              <div>
+                                <p className="text-xs font-medium text-gray-700 mb-1">Monto a pagar</p>
+                                <div className="flex items-center gap-2">
+                                  <Icon className="w-3 h-3 text-gray-500" />
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={totalCombinado.toFixed(2)}
+                                    readOnly={true}
+                                    className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded bg-gray-100 cursor-not-allowed"
+                                  />
+                                  <span className="text-xs text-gray-500 w-20 text-right">
+                                    {metodoPago?.metodo_pago === 'TRANSFERENCIA' ? 'Transfer.' : metodoPago?.metodo_pago}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    ) : (
+                      // DOS MÉTODOS - Diseño compacto como pago parcial
+                      <div>
+                        <p className="text-xs font-medium text-gray-700 mb-1">Distribuya el monto</p>
+                        <div className="space-y-1">
+                          {metodosSeleccionados.map((metodo, index) => {
+                            const metodoPago = metodosPago.find((m) => m.id_metodo_pago_pk === metodo.id);
+                            const Icon = getIconoMetodo(metodoPago?.metodo_pago);
+                            const isReadOnly = metodosSeleccionados.length === 2 && index === 1;
+
+                            return (
+                              <div key={metodo.id} className="flex items-center gap-2">
+                                <Icon className="w-3 h-3 text-gray-500" />
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={montos[metodo.id] || ''}
+                                  onChange={(e) => handleMontoChange(metodo.id, e.target.value)}
+                                  placeholder="0.00"
+                                  readOnly={isReadOnly}
+                                  className={`flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-purple-600 focus:border-purple-600 ${
+                                    isReadOnly ? 'bg-gray-100 cursor-not-allowed' : ''
+                                  }`}
+                                />
+                                <span className="text-xs text-gray-500 w-20 text-right">
+                                  {metodoPago?.metodo_pago === 'TRANSFERENCIA' ? 'Transfer.' : metodoPago?.metodo_pago}
+                                </span>
+                              </div>
+                            );
+                          })}
+                          
+                          {/* Bloques compactos SALDO/RESTANTE para dos métodos */}
+                          <div className="grid grid-cols-2 gap-2 mt-2">
+                            <div className="bg-green-50 border border-green-200 px-2 py-1 rounded">
+                              <span className="text-xs text-green-700 font-medium">
+                                SALDO L. {Object.values(montos).reduce((sum, val) => sum + (parseFloat(val) || 0), 0).toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="bg-red-50 border border-red-200 px-2 py-1 rounded">
+                              <span className="text-xs text-red-700 font-medium">
+                                RESTANTE: L {Math.abs(totalCombinado - Object.values(montos).reduce((sum, val) => sum + (parseFloat(val) || 0), 0)).toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Footer compacto */}
+            <div className="flex gap-2 p-3">
+              <button
+                onClick={() => {
+                  // Regresar a la vista anterior según el tipo de pago
+                  if (tipoPago?.tipo_pago === 'PARCIAL') {
+                    setVista('monto-parcial');
+                  } else {
+                    setVista('tipo');
+                  }
+                }}
+                className="px-3 py-1.5 text-sm border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded"
                 disabled={procesando}
               >
                 Atrás
@@ -401,17 +766,17 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
               <button
                 onClick={handleProcesarPago}
                 disabled={procesando || metodosSeleccionados.length === 0}
-                className={`flex-1 py-2 px-4 text-sm font-medium rounded transition-colors ${
+                className={`flex-1 py-1.5 px-3 text-sm font-medium rounded ${
                   procesando || metodosSeleccionados.length === 0
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-green-500 hover:bg-green-600 text-white'
                 }`}
               >
-                {procesando ? 'PROCESANDO...' : 'PROCESAR PAGO E IMPRIMIR'}
+                {procesando ? 'PROCESANDO...' : (tipoPago?.tipo_pago === 'TOTAL' ? 'PROCESAR PAGO E IMPRIMIR' : 'PROCESAR PAGOS E IMPRIMIR')}
               </button>
             </div>
           </>
-        )}
+        )}  
       </div>
     </div>
   );
