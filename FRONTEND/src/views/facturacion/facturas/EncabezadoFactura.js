@@ -16,6 +16,7 @@ const EncabezadoFactura = ({
   onFechaChange,
   vendedor = "",
   sucursal = "",
+  setIdCliente = () => {}, // ⭐ NUEVO
 }) => {
   //====================ESTADOS====================
   const [internalFecha, setInternalFecha] = useState('');
@@ -62,22 +63,20 @@ const EncabezadoFactura = ({
   useEffect(() => {
     const soloDigitos = identidadBusqueda.replace(/\D/g, '');
 
-    //SI BORRA LA IDENTIDAD VUELVE A CONSUMIDOR FINAL
     if (soloDigitos.length === 0 && identidad === '') {
       setNombreCliente('CONSUMIDOR FINAL');
       setRTN('');
+      setIdCliente(null); // ⭐ NUEVO
       setClienteEncontrado(true);
       setYaConsultado(false);
       return;
     }
 
-    //SI NO TIENE 13 DÍGITOS RESETEA LA BÚSQUEDA
     if (soloDigitos.length < 13) {
       setYaConsultado(false);
       return;
     }
 
-    //BUSCA CUANDO TENGA 13 DÍGITOS COMPLETOS Y NO SE HAYA CONSULTADO
     if (soloDigitos.length === 13 && !yaConsultado) {
       const timer = setTimeout(async () => {
         setBuscando(true);
@@ -87,51 +86,26 @@ const EncabezadoFactura = ({
           const cliente = response?.data?.[0];
 
           if (cliente) {
-            //CLIENTE ENCONTRADO LLENAR DATOS
             setIdentidad(cliente.identidad_cliente);
             setNombreCliente(`${cliente.nombre_cliente} ${cliente.apellido_cliente}`.trim());
             setRTN('');
+            setIdCliente(cliente.id_cliente_pk); // ⭐ NUEVO
             setClienteEncontrado(true);
             setYaConsultado(true);
           } else {
-            //CLIENTE NO ENCONTRADO PREGUNTAR SI DESEA AGREGARLO
+            setIdentidad('');
+            setNombreCliente('');
+            setRTN('');
+            setIdCliente(null); // ⭐ NUEVO
+            setClienteEncontrado(false);
             setYaConsultado(true);
-            setBuscando(false);
-
-            const resultado = await Swal.fire({
-              icon: 'question',
-              title: 'Cliente no encontrado',
-              html: `<p>No se encontró un cliente con identidad <strong>"${identidadBusqueda}"</strong>.</p><p>¿Desea agregar este cliente al sistema?</p>`,
-              showCancelButton: true,
-              confirmButtonText: 'Sí, agregar',
-              cancelButtonText: 'No, continuar sin cliente',
-              confirmButtonColor: '#3085d6',
-              cancelButtonColor: '#6c757d',
-            });
-
-            if (resultado.isConfirmed) {
-              //ABRIR MODAL PARA AGREGAR CLIENTE
-              setIdentidadTemp(identidadBusqueda);
-              setShowModalCliente(true);
-            } else {
-              //VOLVER A CONSUMIDOR FINAL
-              setClienteEncontrado(true);
-              setNombreCliente('CONSUMIDOR FINAL');
-              setRTN('');
-              setIdentidad('');
-              setIdentidadBusqueda('');
-            }
-            return;
+            setIdentidadTemp(identidadBusqueda);
+            setShowModalCliente(true);
           }
         } catch (error) {
           console.error('Error al buscar cliente:', error);
+          setClienteEncontrado(false);
           setYaConsultado(true);
-
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudo buscar el cliente. Intente nuevamente.',
-          });
         } finally {
           setBuscando(false);
         }
@@ -139,12 +113,11 @@ const EncabezadoFactura = ({
 
       return () => clearTimeout(timer);
     }
-  }, [identidadBusqueda, yaConsultado, identidad, setIdentidad, setNombreCliente, setRTN]);
+  }, [identidadBusqueda, yaConsultado, identidad, setIdentidad, setNombreCliente, setRTN, setIdCliente]); // ⭐ Agregar setIdCliente
 
   //====================MANEJADORES_DE_EVENTOS====================
 
   //MANEJA CUANDO SE AGREGA UN NUEVO CLIENTE DESDE EL MODAL
-  
   const handleClienteAgregado = (nuevoCliente) => {
     if (nuevoCliente) {
       const identidadCliente = nuevoCliente.identidad_cliente || identidadTemp;
@@ -153,16 +126,9 @@ const EncabezadoFactura = ({
       setIdentidad(identidadCliente);
       setNombreCliente(nombreCompleto);
       setRTN('');
+      setIdCliente(nuevoCliente.id_cliente_pk); // ⭐ NUEVO
       setClienteEncontrado(true);
       setYaConsultado(true);
-
-      Swal.fire({
-        icon: 'success',
-        title: '¡Cliente Agregado!',
-        text: 'El cliente se agregó correctamente a la factura',
-        timer: 1500,
-        showConfirmButton: false,
-      });
     }
 
     setShowModalCliente(false);

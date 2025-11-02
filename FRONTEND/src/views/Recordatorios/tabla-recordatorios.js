@@ -2,7 +2,9 @@ import React, { useState, useRef } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell, faPenToSquare, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
+import { faBell, faPenToSquare, faCalendarAlt, faTrash } from '@fortawesome/free-solid-svg-icons';
+import Swal from 'sweetalert2';
+import { eliminarRecordatorio as eliminarRecordatorioAPI } from '../../AXIOS.SERVICES/reminder';
 
 
 // Función para eliminar recordatorio
@@ -24,15 +26,20 @@ const eliminarRecordatorio = async (recordatorio, cargarDatos) => {
     });
 
     if (result.isConfirmed) {
-      Swal.fire({
-        icon: 'success',
-        title: 'Eliminado',
-        text: 'El recordatorio ha sido eliminado exitosamente',
-        timer: 2000,
-        showConfirmButton: false
-      });
-      
-      await cargarDatos();
+      const response = await eliminarRecordatorioAPI(recordatorio.id_recordatorio_pk);
+
+      if (response.Consulta) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Eliminado',
+          text: 'El recordatorio ha sido eliminado exitosamente',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        await cargarDatos();
+      } else {
+        throw new Error(response.error || 'Error al eliminar');
+      }
     }
   } catch (error) {
     console.error('Error al eliminar recordatorio:', error);
@@ -49,7 +56,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
   const [shouldShowAbove, setShouldShowAbove] = useState(false);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
-  
+
   const checkPosition = () => {
     const showAbove = rowIndex >= 2 || rowIndex >= (totalRows - 3);
     setShouldShowAbove(showAbove);
@@ -73,7 +80,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
     document.addEventListener('mousedown', handleClickOutside);
     window.addEventListener('resize', handleResize);
     window.addEventListener('scroll', handleScroll, true);
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('resize', handleResize);
@@ -91,7 +98,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
     }
     setIsOpen(!isOpen);
   };
-  
+
   return (
     <div className="relative flex justify-center" ref={menuRef}>
       <button
@@ -102,10 +109,10 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
       >
         <i className="pi pi-ellipsis-h text-white text-xs"></i>
       </button>
-      
+
       {isOpen && (
         <div className={`absolute right-0 ${shouldShowAbove ? 'bottom-16' : 'top-12'} bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[140px]`}>
-          <div 
+          <div
             className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={(e) => {
               e.stopPropagation();
@@ -116,10 +123,10 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
             <i className="pi pi-pencil text-xs"></i>
             <span>Editar</span>
           </div>
-          
+
           <hr className="my-0 border-gray-200" />
-          
-          <div 
+
+          <div
             className="px-2 py-1.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={async (e) => {
               e.stopPropagation();
@@ -136,15 +143,15 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
   );
 };
 
-const TablaRecordatorios = ({ 
-  recordatorios, 
-  loading, 
-  globalFilter, 
-  tiposItems, 
-  frecuencias, 
-  estadosProgramacion, 
-  onEdit, 
-  onDelete 
+const TablaRecordatorios = ({
+  recordatorios,
+  loading,
+  globalFilter,
+  tiposItems,
+  frecuencias,
+  estadosProgramacion,
+  onEdit,
+  onDelete
 }) => {
 
   const estadoTemplate = (rowData) => {
@@ -160,7 +167,7 @@ const TablaRecordatorios = ({
     };
 
     const estadoInfo = getEstadoInfo(rowData.id_estado_programacion_fk);
-    
+
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${estadoInfo.clase}`}>
         {estadoInfo.nombre}
@@ -203,23 +210,23 @@ const TablaRecordatorios = ({
     if (!rowData.proximo_envio) {
       return <span className="text-sm text-gray-400">—</span>;
     }
-    
+
     const fechaProximo = new Date(rowData.proximo_envio);
     const hoy = new Date();
     const esHoy = fechaProximo.toDateString() === hoy.toDateString();
     const esPasado = fechaProximo < hoy;
-    
+
     return (
       <div className="flex items-center gap-2">
-        <FontAwesomeIcon 
-          icon={faCalendarAlt} 
+        <FontAwesomeIcon
+          icon={faCalendarAlt}
           className={`text-sm ${
-            esHoy ? 'text-orange-500' : 
+            esHoy ? 'text-orange-500' :
             esPasado ? 'text-red-500' : 'text-green-500'
-          }`} 
+          }`}
         />
         <span className={`text-sm ${
-          esHoy ? 'text-orange-600 font-semibold' : 
+          esHoy ? 'text-orange-600 font-semibold' :
           esPasado ? 'text-red-600' : 'text-gray-700'
         }`}>
           {fechaProximo.toLocaleDateString('es-ES')}
@@ -251,7 +258,16 @@ const TablaRecordatorios = ({
         <FontAwesomeIcon icon={faPenToSquare} size="lg" />
       </button>
 
-      <BotonEliminar recordatorio={rowData} onReload={onDelete} />
+      <button
+        className="text-red-600 hover:text-red-800 p-2 rounded transition-colors"
+        onClick={(e) => {
+          e.stopPropagation();
+          eliminarRecordatorio(rowData, onDelete);
+        }}
+        title="Eliminar"
+      >
+        <FontAwesomeIcon icon={faTrash} size="lg" />
+      </button>
     </div>
   );
 

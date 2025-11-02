@@ -23,10 +23,6 @@ const Login = React.lazy(() => import('./views/pages/login/Login'))
 const Register = React.lazy(() => import('./views/pages/register/Register'))
 const Page404 = React.lazy(() => import('./views/pages/page404/Page404'))
 const Page500 = React.lazy(() => import('./views/pages/page500/Page500'))
-import ConexionWhatsApp from './views/whatsApp/ConexionWhatsApp';
-
-// En tus rutas:
-<Route path="/whatsapp/conexion" element={<ConexionWhatsApp />} />
 
 const App = () => {
 
@@ -63,9 +59,6 @@ const App = () => {
 
           {/**RUTA RAIZ REDIRIGE AL LOGIN */}
           <Route path="/" element={<Navigate to="/login" replace />} />
-          import ConexionWhatsApp from './views/whatsapp/ConexionWhatsApp';
-
-          <Route path="/whatsapp/conexion" element={<ConexionWhatsApp />} />
 
 
           {/*RUTAS PUBLICAS*/}
