@@ -56,9 +56,9 @@ router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFactura)
 router.get  ('/facturacion/verFacturas', facturas.historialFacturas);
 
 //========== RUTAS DE PAGOS ==========
-router.post('/pagos/procesarPago', verificarToken, pagos.procesarPago);
-router.get ('/pagos/ver', verificarToken, pagos.verPagosFactura);
-router.get ('/pagos/catalogoMetodosPago', verificarToken, pagos.catalogoMetodosPago);
+router.get ('/pagos/tipoPago', pagos.tipoPago);
+router.get ('/pagos/metodosPago', pagos.metodosPago);
+
 
 
 //========== RUTAS DE REPORTES ==========

@@ -239,26 +239,20 @@ exports.crearFactura = async (req, res) => {
         console.log(`   TOTAL: L.${total.toFixed(2)}`);
         console.log(`   Saldo pendiente: L.${saldo.toFixed(2)}`);
 
-        // ⭐ GENERAR NÚMERO DE FACTURA ANTES DEL INSERT
-        const [ultimaFactura] = await conn.query(
-            `SELECT IFNULL(MAX(id_factura_pk), 0) + 1 as siguiente_id FROM tbl_facturas`
-        );
-
-        const siguiente_id = ultimaFactura[0].siguiente_id;
-
-        const [sucursalData] = await conn.query(
-            `SELECT LPAD(id_sucursal_pk, 3, '0') as codigo
-             FROM tbl_sucursales
-             WHERE id_sucursal_pk = ?`,
-            [id_sucursal]
-        );
-
-        const codigo_sucursal = sucursalData[0].codigo;
-        const numero_factura = `FAC-${codigo_sucursal}-${String(siguiente_id).padStart(8, '0')}`;
+        //SE GENERA EL NÚMERO DE FACTURA (Formato: FAC-2025-001)
+        const [[{ numero_factura }]] = await conn.query(`
+            SELECT CONCAT(
+                'FAC-', YEAR(CURDATE()), '-',
+                LPAD(COALESCE(MAX(SUBSTRING_INDEX(numero_factura, '-', -1)), 0) + 1, 3, '0')
+            ) AS numero_factura
+            FROM tbl_facturas
+            WHERE numero_factura LIKE CONCAT('FAC-', YEAR(CURDATE()), '-%')
+            FOR UPDATE
+        `);
 
         console.log(`📄 Número de factura generado: ${numero_factura}`);
 
-        // 7) INSERTAR FACTURA CON EL NÚMERO YA GENERADO
+        // INSERTAR FACTURA CON EL NÚMERO YA GENERADO
         const [factura] = await conn.query(
             `INSERT INTO tbl_facturas (
                 numero_factura,

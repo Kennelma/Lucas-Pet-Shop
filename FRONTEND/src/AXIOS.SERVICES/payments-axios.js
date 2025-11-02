@@ -40,18 +40,43 @@ export const obtenerPagosFactura = async (numero_factura) => {
   }
 };
 
-//====================CATALOGO_METODOS_PAGO====================
-export const obtenerMetodosPago = async () => {
+
+
+
+
+
+
+//====================CATALOGO_METODOS_PAGO================
+export const obtenerMetodoPago = async (metodoPago) => {
   try {
-    const { data } = await axiosInstance.get(`${API_URL}/catalogoMetodosPago`);
+    const { data } = await axiosInstance.get(`${API_URL}/metodosPago`, {
+      params: { metodoPago }
+    });
     return data;
   } catch (error) {
-    console.error("Error al obtener métodos de pago:", error);
+    console.error("Error al obtener método de pago:", error);
     return {
       success: false,
-      mensaje: error?.response?.data?.mensaje || "Error al obtener métodos de pago",
+      mensaje: error?.response?.data?.mensaje || "Error al obtener método de pago",
       data: []
     };
   }
 };
 
+
+//====================CATALOGO_TIPOS_PAGO====================
+export const obtenerTiposPago = async (tipoPago) => {
+  try {
+    const { data } = await axiosInstance.get(`${API_URL}/tipoPago`, {
+      params: { tipoPago }
+    });
+    return data;
+  } catch (error) {
+    console.error("Error al obtener tipos de pago:", error);
+    return {
+      success: false,
+      mensaje: error?.response?.data?.mensaje || "Error al obtener tipos de pago",
+      data: []
+    };
+  }
+};

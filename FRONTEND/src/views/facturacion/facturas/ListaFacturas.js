@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Eye, Printer, Download, Filter, Calendar } from 'lucide-react';
+import { Search, Eye, Printer, Download, Filter, Calendar, CreditCard } from 'lucide-react';
+import { Paginator } from 'primereact/paginator';
 import { obtenerHistorialFacturas } from '../../../AXIOS.SERVICES/factura-axios';
-import ModalPago from "../modal_pago";
+import ModalPago from "../pagos/ModalPago";
 
 const ListaFacturas = () => {
   //====================ESTADOS====================
@@ -12,6 +13,8 @@ const ListaFacturas = () => {
   const [loading, setLoading] = useState(true);
   const [showModalPago, setShowModalPago] = useState(false);
   const [facturaSeleccionada, setFacturaSeleccionada] = useState(null);
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(5);
 
   //====================CARGAR_FACTURAS_AL_MONTAR_COMPONENTE====================
   useEffect(() => {
@@ -65,6 +68,7 @@ const ListaFacturas = () => {
     } else {
       setSearchTerm(value);
     }
+    setFirst(0); // Reset pagination
   };
 
   //====================OBTENER_BADGE_ESTADO====================
@@ -73,7 +77,6 @@ const ListaFacturas = () => {
     const badges = {
       PAGADA: 'bg-green-100 text-green-800 border-green-200',
       PENDIENTE: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      VENCIDA: 'bg-red-100 text-red-800 border-red-200',
       ANULADA: 'bg-gray-100 text-gray-800 border-gray-200'
     };
     return badges[estadoUpper] || badges.PENDIENTE;
@@ -92,6 +95,14 @@ const ListaFacturas = () => {
     const matchFecha = !filterFecha || fechaFactura === filterFecha;
     return matchSearch && matchEstado && matchFecha;
   });
+
+  //====================PAGINACION====================
+  const facturasPaginadas = facturasFiltradas.slice(first, first + rows);
+
+  const onPageChange = (event) => {
+    setFirst(event.first);
+    setRows(event.rows);
+  };
 
   //====================MANEJAR_MODAL_PAGO====================
   const handleAbrirModalPago = (factura) => {
@@ -142,13 +153,16 @@ const ListaFacturas = () => {
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <select
                 value={filterEstado}
-                onChange={(e) => setFilterEstado(e.target.value)}
+                onChange={(e) => {
+                  setFilterEstado(e.target.value);
+                  setFirst(0);
+                }}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
               >
                 <option value="TODAS">Todos los estados</option>
                 <option value="PAGADA">Pagadas</option>
+                <option value="PARCIAL">Parciales</option>
                 <option value="PENDIENTE">Pendientes</option>
-                <option value="VENCIDA">Vencidas</option>
                 <option value="ANULADA">Anuladas</option>
               </select>
             </div>
@@ -161,7 +175,10 @@ const ListaFacturas = () => {
               <input
                 type="date"
                 value={filterFecha}
-                onChange={(e) => setFilterFecha(e.target.value)}
+                onChange={(e) => {
+                  setFilterFecha(e.target.value);
+                  setFirst(0);
+                }}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -170,137 +187,143 @@ const ListaFacturas = () => {
       </div>
 
       {/*RESUMEN_DE_ESTADISTICAS*/}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-500">
-          <p className="text-gray-600 text-sm mb-1">Total Facturas</p>
-          <p className="text-2xl font-bold text-gray-800">{facturas.length}</p>
+      <div className="flex gap-2 mb-4 max-w-3xl">
+        <div className="bg-blue-500 rounded shadow-sm p-1.5 w-40">
+          <div className="flex items-center justify-between">
+            <p className="text-white text-xs font-medium">TOTAL FACTURAS</p>
+            <p className="text-base font-bold text-white">{facturas.length}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-green-500">
-          <p className="text-gray-600 text-sm mb-1">Pagadas</p>
-          <p className="text-2xl font-bold text-green-600">
-            {facturas.filter(f => f.nombre_estado?.toUpperCase() === 'PAGADA').length}
-          </p>
+        <div className="bg-green-500 rounded shadow-sm p-1.5 w-40">
+          <div className="flex items-center justify-between">
+            <p className="text-white text-xs font-medium">PAGADAS</p>
+            <p className="text-base font-bold text-white">
+              {facturas.filter(f => f.nombre_estado?.toUpperCase() === 'PAGADA').length}
+            </p>
+          </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-yellow-500">
-          <p className="text-gray-600 text-sm mb-1">Pendientes</p>
-          <p className="text-2xl font-bold text-yellow-600">
-            {facturas.filter(f => f.nombre_estado?.toUpperCase() === 'PENDIENTE').length}
-          </p>
+        <div className="bg-orange-500 rounded shadow-sm p-1.5 w-40">
+          <div className="flex items-center justify-between">
+            <p className="text-white text-xs font-medium">PARCIAL</p>
+            <p className="text-base font-bold text-white">
+              {facturas.filter(f => f.nombre_estado?.toUpperCase() === 'PARCIAL').length}
+            </p>
+          </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-red-500">
-          <p className="text-gray-600 text-sm mb-1">Vencidas</p>
-          <p className="text-2xl font-bold text-red-600">
-            {facturas.filter(f => f.nombre_estado?.toUpperCase() === 'VENCIDA').length}
-          </p>
+        <div className="bg-yellow-500 rounded shadow-sm p-1.5 w-40">
+          <div className="flex items-center justify-between">
+            <p className="text-white text-xs font-medium">PENDIENTES</p>
+            <p className="text-base font-bold text-white">
+              {facturas.filter(f => f.nombre_estado?.toUpperCase() === 'PENDIENTE').length}
+            </p>
+          </div>
         </div>
       </div>
 
       {/*TABLA_DE_FACTURAS*/}
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+        <table className="w-full table-auto">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase">N° FACTURA</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">FECHA</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase">CLIENTE</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">VENDEDOR</th>
+              <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase">TOTAL</th>
+              <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase">SALDO</th>
+              <th className="px-2 py-2 text-center text-xs font-medium text-gray-700 uppercase">ESTADO</th>
+              <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 uppercase">ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {loading ? (
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Número Factura</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Fecha</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Cliente</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Vendedor</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Total</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Saldo</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Estado</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Acciones</th>
+                <td colSpan="8" className="px-3 py-8 text-center">
+                  <div className="flex justify-center items-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                    <span className="ml-2 text-gray-600 text-sm">Cargando facturas...</span>
+                  </div>
+                </td>
               </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {loading ? (
-                <tr>
-                  <td colSpan="8" className="px-6 py-12 text-center">
-                    <div className="flex justify-center items-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                      <span className="ml-3 text-gray-600">Cargando facturas...</span>
+            ) : (
+              facturasPaginadas.map((factura, index) => (
+                <tr key={index} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-2 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{factura.numero_factura}</div>
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <div className="text-sm text-gray-600">
+                      {factura.fecha_emision ? new Date(factura.fecha_emision).toLocaleDateString('es-HN', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      }) : '-'}
+                    </div>
+                  </td>
+                  <td className="px-4 py-2">
+                    {factura.nombre_cliente ? (
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {`${factura.nombre_cliente} ${factura.apellido_cliente || ''}`}
+                        </div>
+                        {factura.identidad_cliente && (
+                          <div className="text-xs text-gray-500">{factura.identidad_cliente}</div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-sm font-medium text-gray-900">Consumidor Final</div>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="text-sm text-gray-600">{factura.usuario}</div>
+                    <div className="text-xs text-gray-500">{factura.nombre_sucursal}</div>
+                  </td>
+                  <td className="px-3 py-2 text-right whitespace-nowrap">
+                    <div className="text-sm font-semibold text-gray-900">{formatCurrency(factura.total)}</div>
+                  </td>
+                  <td className="px-3 py-2 text-right whitespace-nowrap">
+                    <div className={`text-sm font-semibold ${factura.saldo > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      {formatCurrency(factura.saldo)}
+                    </div>
+                  </td>
+                  <td className="px-2 py-2 text-center">
+                    <span className={`px-2 py-1 inline-flex text-xs font-semibold rounded ${getEstadoBadge(factura.nombre_estado)}`}>
+                      {factura.nombre_estado?.toUpperCase() || 'PENDIENTE'}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      <button
+                        onClick={() => console.log('Ver factura', factura.numero_factura)}
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        title="Ver detalles"
+                      >
+                        <Eye size={16} />
+                      </button>
+                      {factura.nombre_estado?.toUpperCase() === 'PENDIENTE' ? (
+                        <button
+                          onClick={() => handleAbrirModalPago(factura)}
+                          className="px-2 py-1 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 transition-colors"
+                          title="Continuar pago"
+                        >
+                          Pagar
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => console.log('Imprimir factura', factura.numero_factura)}
+                          className="p-1.5 text-gray-600 hover:bg-gray-50 rounded transition-colors"
+                          title="Imprimir"
+                        >
+                          <Printer size={16} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
-              ) : (
-                facturasFiltradas.map((factura, index) => (
-                  <tr key={index} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{factura.numero_factura}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-600">
-                        {factura.fecha_emision ? new Date(factura.fecha_emision).toLocaleDateString('es-HN', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        }) : '-'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {factura.nombre_cliente ? (
-                        <>
-                          <div className="text-sm font-medium text-gray-900">
-                            {`${factura.nombre_cliente} ${factura.apellido_cliente || ''}`}
-                          </div>
-                          {factura.identidad_cliente && (
-                            <div className="text-xs text-gray-500">{factura.identidad_cliente}</div>
-                          )}
-                        </>
-                      ) : (
-                        <div className="text-sm font-medium text-gray-900">Consumidor Final</div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-600">{factura.usuario}</div>
-                      <div className="text-xs text-gray-500">{factura.nombre_sucursal}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="text-sm font-semibold text-gray-900">{formatCurrency(factura.total)}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className={`text-sm font-semibold ${factura.saldo > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                        {formatCurrency(factura.saldo)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${getEstadoBadge(factura.nombre_estado)}`}>
-                        {factura.nombre_estado?.toUpperCase() || 'PENDIENTE'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => console.log('Ver factura', factura.numero_factura)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Ver detalles"
-                        >
-                          <Eye size={18} />
-                        </button>
-                        {factura.nombre_estado?.toUpperCase() === 'PENDIENTE' ? (
-                          <button
-                            onClick={() => handleAbrirModalPago(factura)}
-                            className="px-3 py-2 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors"
-                            title="Continuar pago"
-                          >
-                            Continuar Pago
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => console.log('Imprimir factura', factura.numero_factura)}
-                            className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
-                            title="Imprimir"
-                          >
-                            <Printer size={18} />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
 
         {/*SIN_RESULTADOS*/}
         {facturasFiltradas.length === 0 && !loading && (
@@ -317,20 +340,14 @@ const ListaFacturas = () => {
           <div className="text-sm text-gray-600">
             Mostrando <span className="font-semibold">{facturasFiltradas.length}</span> de <span className="font-semibold">{facturas.length}</span> facturas
           </div>
-          <div className="flex gap-2">
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
-              Anterior
-            </button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-              1
-            </button>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
-              2
-            </button>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
-              Siguiente
-            </button>
-          </div>
+          <Paginator
+            first={first}
+            rows={rows}
+            totalRecords={facturasFiltradas.length}
+            onPageChange={onPageChange}
+            template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+            className="p-paginator-sm"
+          />
         </div>
       )}
 

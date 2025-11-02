@@ -276,7 +276,7 @@ const DetallesFactura = ({
             {/*ENCABEZADO DE LA TABLA*/}
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-center font-medium text-gray-700" style={{ paddingTop: '12px', paddingBottom: '12px', paddingLeft: '12px', paddingRight: '12px', fontSize: '14px', width: '128px' }}>TIPO</th>
+                <th className="text-center font-medium text-gray-700" style={{ paddingTop: '12px', paddingBottom: '12px', paddingLeft: '12px', paddingRight: '12px', fontSize: '14px', width: '160px' }}>TIPO</th>
                 <th className="text-center font-medium text-gray-700" style={{ paddingTop: '12px', paddingBottom: '12px', paddingLeft: '12px', paddingRight: '12px', fontSize: '14px', width: '288px' }}>ITEM</th>
                 <th className="text-center font-medium text-gray-700" style={{ paddingTop: '12px', paddingBottom: '12px', paddingLeft: '12px', paddingRight: '12px', fontSize: '14px', width: '96px' }}>CANTIDAD</th>
                 <th className="text-center font-medium text-gray-700" style={{ paddingTop: '12px', paddingBottom: '12px', paddingLeft: '12px', paddingRight: '12px', fontSize: '14px', width: '96px' }}>PRECIO</th>
