@@ -267,16 +267,11 @@ return (
 />
 
 {/*MODAL_CONEXION_WHATSAPP*/}
-<Dialog
-  visible={modalWhatsApp}
-  onHide={() => setModalWhatsApp(false)}
-  style={{ width: '40rem' }}
-  header="Conexión de WhatsApp"
-  modal
-  draggable={false}
->
-  <ConexionWhatsApp onCerrarSesion={handleCerrarSesionWhatsApp} />
-</Dialog>
+<ConexionWhatsApp 
+  isOpen={modalWhatsApp}
+  onClose={() => setModalWhatsApp(false)}
+  onCerrarSesion={handleCerrarSesionWhatsApp} 
+/>
 </div>
 );
 };
