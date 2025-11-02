@@ -1,17 +1,15 @@
 //====================IMPORTACIONES====================
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { Dialog } from 'primereact/dialog';
 import {
   verRecordatorios,
   insertarRecordatorio,
   actualizarRecordatorio,
   verCatalogo
 } from '../../AXIOS.SERVICES/reminder';
-import { cerrarSesionWhatsApp } from '../../AXIOS.SERVICES/whatsapp-axios';
 import TablaRecordatorios from './tabla-recordatorios';
 import ModalAgregar, { BotonAgregar } from './modal-agregar';
-import ConexionWhatsApp from './ConexionWhatsApp';
+import ConexionWhatsApp from './conexionWhatsApp';
 
 //====================COMPONENTE_PRINCIPAL====================
 const Recordatorios = () => {
@@ -156,40 +154,6 @@ const guardarRecordatorio = async () => {
   }
 };
 
-//====================CERRAR_SESION_WHATSAPP====================
-const handleCerrarSesionWhatsApp = async () => {
-  const result = await Swal.fire({
-    title: '¿Cerrar sesión de WhatsApp?',
-    text: 'Tendrás que escanear el código QR nuevamente para reconectar',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#dc2626',
-    cancelButtonColor: '#6b7280',
-    confirmButtonText: 'Sí, cerrar sesión',
-    cancelButtonText: 'Cancelar'
-  });
-
-  if (result.isConfirmed) {
-    const response = await cerrarSesionWhatsApp();
-
-    if (response.success) {
-      Swal.fire({
-        icon: 'success',
-        title: 'Sesión cerrada',
-        text: 'WhatsApp desconectado correctamente',
-        timer: 2000,
-        showConfirmButton: false
-      });
-    } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se pudo cerrar la sesión'
-      });
-    }
-  }
-};
-
 //====================RENDERIZADO====================
 return (
   <div className="min-h-screen p-6 bg-gray-50">
@@ -270,7 +234,6 @@ return (
 <ConexionWhatsApp 
   isOpen={modalWhatsApp}
   onClose={() => setModalWhatsApp(false)}
-  onCerrarSesion={handleCerrarSesionWhatsApp} 
 />
 </div>
 );
