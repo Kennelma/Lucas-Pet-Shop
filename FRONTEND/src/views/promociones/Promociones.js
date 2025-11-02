@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { 
-  verServicios, 
-  insertarServicio, 
-  actualizarServicio, 
-  eliminarServicio 
+import {
+  verServicios,
+  insertarServicio,
+  actualizarServicio,
+  eliminarServicio
 } from "../../AXIOS.SERVICES/services-axios.js";
 import Swal from 'sweetalert2';
 
@@ -20,6 +20,17 @@ const Promociones = () => {
   useEffect(() => {
     cargarDatos();
   }, []);
+
+  useEffect(() => {
+    if (modalAbierto) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [modalAbierto]);
 
   const cargarDatos = async () => {
     setLoading(true);
@@ -57,7 +68,7 @@ const Promociones = () => {
   const manejarSubmit = async (datosPromocion) => {
     try {
       let resultado;
-      
+
       if (promocionSeleccionada) {
         // Actualizar promoción existente
         resultado = await actualizarServicio({
@@ -83,7 +94,7 @@ const Promociones = () => {
         });
         cerrarModal();
         cargarDatos(); // Recargar datos
-        
+
         // Notificar a otros componentes sobre el cambio
         window.dispatchEvent(new CustomEvent('promocionesUpdated'));
       } else {
@@ -102,7 +113,7 @@ const Promociones = () => {
   const actualizarEstadoPromocion = async (promocion) => {
     try {
       const nuevoEstado = !promocion.activo;
-      
+
       // Actualizar en el backend
       const resultado = await actualizarServicio({
         id: promocion.id_promocion_pk,
@@ -116,9 +127,9 @@ const Promociones = () => {
 
       if (resultado.Consulta) {
         // Actualizar estado local
-        setPromociones(prev => 
-          prev.map(p => 
-            p.id_promocion_pk === promocion.id_promocion_pk 
+        setPromociones(prev =>
+          prev.map(p =>
+            p.id_promocion_pk === promocion.id_promocion_pk
               ? { ...p, activo: nuevoEstado }
               : p
           )
@@ -131,7 +142,7 @@ const Promociones = () => {
           timer: 1500,
           showConfirmButton: false
         });
-        
+
         // Notificar a otros componentes sobre el cambio de estado
         window.dispatchEvent(new CustomEvent('promocionesUpdated'));
       } else {
@@ -171,7 +182,7 @@ const Promociones = () => {
 
       if (result.isConfirmed) {
         const resultado = await eliminarServicio(
-          promocion.id_promocion_pk || promocion.id, 
+          promocion.id_promocion_pk || promocion.id,
           "PROMOCIONES"
         );
 
@@ -184,7 +195,7 @@ const Promociones = () => {
             showConfirmButton: false
           });
           cargarDatos(); // Recargar datos
-          
+
           // Notificar a otros componentes sobre la eliminación
           window.dispatchEvent(new CustomEvent('promocionesUpdated'));
         } else {
@@ -203,7 +214,7 @@ const Promociones = () => {
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
-      
+
       {loading ? (
         <div className="flex items-center justify-center min-h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Eye, Printer, Download, Filter, Calendar, CreditCard } from 'lucide-react';
+import { Search, Eye, Printer, Download, Filter, Calendar, CreditCard, CheckSquare, Square } from 'lucide-react';
 import { Paginator } from 'primereact/paginator';
 import { obtenerHistorialFacturas } from '../../../AXIOS.SERVICES/factura-axios';
 import ModalPago from "../pagos/ModalPago";
@@ -13,6 +13,7 @@ const ListaFacturas = () => {
   const [loading, setLoading] = useState(true);
   const [showModalPago, setShowModalPago] = useState(false);
   const [facturaSeleccionada, setFacturaSeleccionada] = useState(null);
+  const [facturasSeleccionadas, setFacturasSeleccionadas] = useState([]); // NUEVO: array de facturas seleccionadas
   const [first, setFirst] = useState(0);
   const [rows, setRows] = useState(5);
 
@@ -76,6 +77,7 @@ const ListaFacturas = () => {
     const estadoUpper = estado?.toUpperCase();
     const badges = {
       PAGADA: 'bg-green-100 text-green-800 border-green-200',
+      PARCIAL: 'bg-orange-100 text-orange-800 border-orange-200',
       PENDIENTE: 'bg-yellow-100 text-yellow-800 border-yellow-200',
       ANULADA: 'bg-gray-100 text-gray-800 border-gray-200'
     };
@@ -107,20 +109,48 @@ const ListaFacturas = () => {
   //====================MANEJAR_MODAL_PAGO====================
   const handleAbrirModalPago = (factura) => {
     setFacturaSeleccionada(factura);
+    setFacturasSeleccionadas([]); // Limpiar selección múltiple
     setShowModalPago(true);
   };
 
   const handleCerrarModalPago = () => {
     setShowModalPago(false);
     setFacturaSeleccionada(null);
+    setFacturasSeleccionadas([]);
   };
 
   const handlePagoExitoso = (tipoPago, saldoRestante) => {
     console.log('Pago procesado:', { tipoPago, saldoRestante, factura: facturaSeleccionada });
     setShowModalPago(false);
     setFacturaSeleccionada(null);
+    setFacturasSeleccionadas([]);
     cargarFacturas();
   };
+
+  //====================MANEJAR_SELECCION_MULTIPLE====================
+  const handleToggleSeleccion = (factura) => {
+    const yaSeleccionada = facturasSeleccionadas.find(f => f.numero_factura === factura.numero_factura);
+
+    if (yaSeleccionada) {
+      setFacturasSeleccionadas(facturasSeleccionadas.filter(f => f.numero_factura !== factura.numero_factura));
+    } else {
+      setFacturasSeleccionadas([...facturasSeleccionadas, {
+        numero_factura: factura.numero_factura,
+        total: parseFloat(factura.saldo)
+      }]);
+    }
+  };
+
+  const handlePagarSeleccionadas = () => {
+    if (facturasSeleccionadas.length === 0) {
+      alert('Selecciona al menos una factura pendiente');
+      return;
+    }
+    setFacturaSeleccionada(null); // Limpiar selección individual
+    setShowModalPago(true);
+  };
+
+  const totalSeleccionado = facturasSeleccionadas.reduce((sum, f) => sum + f.total, 0);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -186,6 +216,40 @@ const ListaFacturas = () => {
         </div>
       </div>
 
+      {/*BARRA_DE_SELECCION_MULTIPLE*/}
+      {facturasSeleccionadas.length > 0 && (
+        <div className="bg-linear-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-4 mb-4 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CheckSquare size={24} />
+              <div>
+                <div className="font-semibold text-lg">
+                  {facturasSeleccionadas.length} factura{facturasSeleccionadas.length > 1 ? 's' : ''} seleccionada{facturasSeleccionadas.length > 1 ? 's' : ''}
+                </div>
+                <div className="text-sm opacity-90">
+                  Total: L {totalSeleccionado.toFixed(2)}
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setFacturasSeleccionadas([])}
+                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handlePagarSeleccionadas}
+                className="px-4 py-2 bg-white text-purple-600 hover:bg-gray-100 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"
+              >
+                <CreditCard size={16} />
+                Pagar Seleccionadas
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/*RESUMEN_DE_ESTADISTICAS*/}
       <div className="flex gap-2 mb-4 max-w-3xl">
         <div className="bg-blue-500 rounded shadow-sm p-1.5 w-40">
@@ -225,6 +289,19 @@ const ListaFacturas = () => {
         <table className="w-full table-auto">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
+              <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 uppercase">
+                {facturasSeleccionadas.length > 0 ? (
+                  <button
+                    onClick={() => setFacturasSeleccionadas([])}
+                    className="text-purple-600 hover:text-purple-800"
+                    title="Desmarcar todas"
+                  >
+                    <CheckSquare size={18} />
+                  </button>
+                ) : (
+                  <Square size={18} className="text-gray-400" />
+                )}
+              </th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase">N° FACTURA</th>
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">FECHA</th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase">CLIENTE</th>
@@ -238,7 +315,7 @@ const ListaFacturas = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan="8" className="px-3 py-8 text-center">
+                <td colSpan="9" className="px-3 py-8 text-center">
                   <div className="flex justify-center items-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
                     <span className="ml-2 text-gray-600 text-sm">Cargando facturas...</span>
@@ -246,11 +323,33 @@ const ListaFacturas = () => {
                 </td>
               </tr>
             ) : (
-              facturasPaginadas.map((factura, index) => (
-                <tr key={index} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-2 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{factura.numero_factura}</div>
-                  </td>
+              facturasPaginadas.map((factura, index) => {
+                const estadoUpper = factura.nombre_estado?.toUpperCase();
+                const esPendienteOParcial = estadoUpper === 'PENDIENTE' || estadoUpper === 'PARCIAL';
+                const estaSeleccionada = facturasSeleccionadas.find(f => f.numero_factura === factura.numero_factura);
+
+                return (
+                  <tr key={index} className={`hover:bg-gray-50 transition-colors ${estaSeleccionada ? 'bg-purple-50' : ''}`}>
+                    {/* CHECKBOX DE SELECCION */}
+                    <td className="px-3 py-2 text-center">
+                      {esPendienteOParcial ? (
+                        <button
+                          onClick={() => handleToggleSeleccion(factura)}
+                          className="text-gray-600 hover:text-purple-600 transition-colors"
+                        >
+                          {estaSeleccionada ? (
+                            <CheckSquare size={18} className="text-purple-600" />
+                          ) : (
+                            <Square size={18} />
+                          )}
+                        </button>
+                      ) : (
+                        <Square size={18} className="text-gray-300 cursor-not-allowed" />
+                      )}
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{factura.numero_factura}</div>
+                    </td>
                   <td className="px-3 py-2 whitespace-nowrap">
                     <div className="text-sm text-gray-600">
                       {factura.fecha_emision ? new Date(factura.fecha_emision).toLocaleDateString('es-HN', {
@@ -300,13 +399,17 @@ const ListaFacturas = () => {
                       >
                         <Eye size={16} />
                       </button>
-                      {factura.nombre_estado?.toUpperCase() === 'PENDIENTE' ? (
+                      {esPendienteOParcial ? (
                         <button
                           onClick={() => handleAbrirModalPago(factura)}
-                          className="px-2 py-1 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 transition-colors"
-                          title="Continuar pago"
+                          className={`px-2 py-1 text-white text-xs font-medium rounded transition-colors ${
+                            estadoUpper === 'PARCIAL'
+                              ? 'bg-orange-600 hover:bg-orange-700'
+                              : 'bg-green-600 hover:bg-green-700'
+                          }`}
+                          title={estadoUpper === 'PARCIAL' ? 'Continuar pago parcial' : 'Realizar pago'}
                         >
-                          Pagar
+                          {estadoUpper === 'PARCIAL' ? 'Continuar' : 'Pagar'}
                         </button>
                       ) : (
                         <button
@@ -320,7 +423,8 @@ const ListaFacturas = () => {
                     </div>
                   </td>
                 </tr>
-              ))
+              );
+            })
             )}
           </tbody>
         </table>
@@ -352,14 +456,14 @@ const ListaFacturas = () => {
       )}
 
       {/*MODAL_DE_PAGO*/}
-      {facturaSeleccionada && (
-        <ModalPago
-          show={showModalPago}
-          total={parseFloat(facturaSeleccionada.saldo) || 0}
-          onClose={handleCerrarModalPago}
-          onSuccess={handlePagoExitoso}
-        />
-      )}
+      <ModalPago
+        show={showModalPago}
+        numero_factura={facturaSeleccionada?.numero_factura}
+        total={facturaSeleccionada ? parseFloat(facturaSeleccionada.saldo) || 0 : 0}
+        facturas={facturasSeleccionadas.length > 0 ? facturasSeleccionadas : null}
+        onClose={handleCerrarModalPago}
+        onPagoExitoso={handlePagoExitoso}
+      />
     </div>
   );
 };
