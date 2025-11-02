@@ -250,39 +250,6 @@ exports.verPagosFactura = async (req, res) => {
 
 }
 
-//====================CATALOGO_METODOS_PAGO====================
-exports.catalogoMetodosPago = async (req, res) => {
-
-    const conn = await mysqlConnection.getConnection();
-
-    try {
-
-        const [metodos] = await conn.query(
-            `SELECT
-                id_metodo_pago_pk,
-                metodo_pago
-            FROM cat_metodo_pago
-            ORDER BY metodo_pago`
-        );
-
-        return res.status(200).json({
-            success: true,
-            data: metodos
-        });
-
-    } catch (err) {
-        console.error('❌ ERROR AL CONSULTAR MÉTODOS DE PAGO:', err.message);
-        res.status(500).json({
-            success: false,
-            mensaje: 'Error al consultar métodos de pago',
-            error: err.message
-        });
-    } finally {
-        conn.release();
-    }
-
-}
-
 
 
 //OBTIENE EL ID DEL TIPO DE PAGO SEGÚN NOMBRE (TOTAL/PARCIAL)

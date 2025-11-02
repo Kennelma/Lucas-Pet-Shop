@@ -1,199 +1,76 @@
-import React, { useState, useEffect } from 'react';
-import { X, Banknote, CreditCard, Building2 } from 'lucide-react';
-import { procesarPago, obtenerCatalogoMetodosPago } from '../../../AXIOS.SERVICES/payments-axios';
-import SeleccionTipoPago from './SeleccionTipoPago';
-import ResumenPago from './ResumenPago';
-import SeleccionMetodos from './SeleccionMetodos';
-import IngresoMontos from './IngresoMontos';
+import React, { useState } from 'react';
+import { X, Banknote, CreditCard, Building2, CheckCircle2 } from 'lucide-react';
 
-function ModalPago({ show, numero_factura, total, onClose, onSuccess }) {
-  const [paymentStep, setPaymentStep] = useState('type');
-  const [paymentType, setPaymentType] = useState(null);
-  const [selectedPaymentMethods, setSelectedPaymentMethods] = useState([]);
-  const [paymentAmounts, setPaymentAmounts] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [paymentMethods, setPaymentMethods] = useState([]);
-
-  const iconMap = {
-    'EFECTIVO': Banknote,
-    'TARJETA': CreditCard,
-    'TRANSFERENCIA': Building2,
-  };
-
-  useEffect(() => {
-    if (show) {
-      setPaymentStep('type');
-      setPaymentType(null);
-      setSelectedPaymentMethods([]);
-      setPaymentAmounts({});
-      cargarMetodosPago();
-    }
-  }, [show]);
-
-  const cargarMetodosPago = async () => {
-    try {
-      const response = await obtenerCatalogoMetodosPago();
-      if (response.success && response.data.length > 0) {
-        const metodosConIconos = response.data.map(metodo => ({
-          id: metodo.id_metodo_pago_pk,
-          nombre: metodo.metodo_pago,
-          name: metodo.metodo_pago.charAt(0) + metodo.metodo_pago.slice(1).toLowerCase(),
-          icon: iconMap[metodo.metodo_pago] || Banknote
-        }));
-        setPaymentMethods(metodosConIconos);
-      }
-    } catch (error) {
-      console.error('Error al cargar métodos de pago:', error);
-    }
-  };
-
-  const selectPaymentType = (tipoData) => {
-    setPaymentType(tipoData);
-    setPaymentStep('methods');
-  };
-
-  const togglePaymentMethod = (methodId) => {
-    if (paymentType.tipo === 'total') {
-      setSelectedPaymentMethods([methodId]);
-      setPaymentAmounts({ [methodId]: total.toFixed(2) });
-    } else {
-      if (selectedPaymentMethods.includes(methodId)) {
-        const newSelected = selectedPaymentMethods.filter(id => id !== methodId);
-        const newAmounts = { ...paymentAmounts };
-        delete newAmounts[methodId];
-
-        if (newSelected.length === 1) {
-          newAmounts[newSelected[0]] = '';
-        }
-
-        setSelectedPaymentMethods(newSelected);
-        setPaymentAmounts(newAmounts);
-      } else {
-        if (selectedPaymentMethods.length < 2) {
-          const newSelected = [...selectedPaymentMethods, methodId];
-          const newAmounts = { ...paymentAmounts };
-
-          if (newSelected.length === 1) {
-            newAmounts[methodId] = '';
-          } else {
-            const otherMethod = newSelected.find(id => id !== methodId);
-            const otherAmount = parseFloat(paymentAmounts[otherMethod]) || 0;
-            newAmounts[methodId] = Math.max(0, total - otherAmount).toFixed(2);
-          }
-
-          setSelectedPaymentMethods(newSelected);
-          setPaymentAmounts(newAmounts);
-        }
-      }
-    }
-  };
-
-  const getTotalPaid = () =>
-    Object.values(paymentAmounts).reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
-
-  const handlePaymentAmountChange = (methodId, value) => {
-    const newAmounts = { ...paymentAmounts, [methodId]: value };
-
-    if (paymentType?.tipo === 'parcial' && selectedPaymentMethods.length === 2) {
-      const otherMethod = selectedPaymentMethods.find(id => id !== methodId);
-      if (otherMethod) {
-        newAmounts[otherMethod] = Math.max(0, total - (parseFloat(value) || 0)).toFixed(2);
-      }
-    }
-
-    setPaymentAmounts(newAmounts);
-  };
-
-  const handlePaymentAmountBlur = (methodId, value) => {
-    if (value && !isNaN(parseFloat(value))) {
-      handlePaymentAmountChange(methodId, parseFloat(value).toFixed(2));
-    }
-  };
-
-  const canProcessPayment = () => {
-    if (!selectedPaymentMethods.length) return false;
-
-    const totalPaid = getTotalPaid();
-
-    if (paymentType?.tipo === 'total') {
-      return selectedPaymentMethods[0] === 'EFECTIVO'
-        ? totalPaid >= total
-        : Math.abs(totalPaid - total) < 0.01;
-    }
-
-    return Math.abs(totalPaid - total) < 0.01;
-  };
-
-  const handleProcessPayment = async () => {
-    if (!canProcessPayment()) {
-      alert('Verifique los montos ingresados');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const datosPago = {
-        numero_factura,
-        tipo_pago: paymentType.id,
-        metodos: selectedPaymentMethods.map(methodId => {
-          const metodo = paymentMethods.find(m => m.id === methodId);
-          return {
-            metodo: metodo.nombre,
-            monto: parseFloat(paymentAmounts[methodId])
-          };
-        })
-      };
-
-      const response = await procesarPago(datosPago);
-
-      if (response.success) {
-        alert(response.mensaje);
-        onSuccess(paymentType.tipo, total - getTotalPaid());
-        onClose();
-      } else {
-        alert(response.mensaje || 'Error al procesar el pago');
-      }
-    } catch (error) {
-      console.error('Error al procesar pago:', error);
-      alert('Error al procesar el pago');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleBack = () => {
-    setPaymentStep('type');
-    setPaymentType(null);
-    setSelectedPaymentMethods([]);
-    setPaymentAmounts({});
-  };
+function ModalPago({ show, numero_factura, total, onClose }) {
+  const [vista, setVista] = useState('tipo'); // 'tipo' o 'metodos'
+  const [tipoPago, setTipoPago] = useState('total'); // 'total' o 'parcial'
 
   if (!show) return null;
-
-  const esParcial = paymentType?.tipo === 'parcial';
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
-        {paymentStep === 'type' ? (
+
+        {vista === 'tipo' ? (
+          // VISTA 1: SELECCIÓN DE TIPO DE PAGO
           <>
-            <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center justify-between px-4 py-3 border-b">
               <h3 className="text-lg font-semibold text-gray-900">PROCESAR PAGO</h3>
               <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
-            <SeleccionTipoPago total={total} onSelectTipo={selectPaymentType} />
+
+            <div className="p-4 space-y-3">
+              {/* Info de factura */}
+              <div className="bg-gray-50 rounded-lg p-3 space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Factura:</span>
+                  <span className="font-medium text-gray-900">{numero_factura}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Total:</span>
+                  <span className="text-2xl font-bold text-gray-900">L {total.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Botones de tipo de pago */}
+              <div className="space-y-2">
+                <button
+                  onClick={() => setVista('metodos')}
+                  className="w-full p-4 border-2 border-blue-500 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="text-left">
+                      <div className="font-semibold text-blue-900">PAGO TOTAL</div>
+                      <div className="text-sm text-blue-700">Un solo método de pago</div>
+                    </div>
+                    <CheckCircle2 className="w-6 h-6 text-blue-500" />
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => { setTipoPago('parcial'); setVista('metodos'); }}
+                  className="w-full p-4 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="text-left">
+                    <div className="font-semibold text-gray-900">PAGO PARCIAL</div>
+                    <div className="text-sm text-gray-600">Hasta dos métodos de pago</div>
+                  </div>
+                </button>
+              </div>
+            </div>
           </>
         ) : (
+          // VISTA 2: SELECCIÓN DE MÉTODOS Y MONTOS
           <>
-            <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center justify-between px-4 py-3 border-b">
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-semibold text-gray-900">MÉTODOS DE PAGO</h3>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                  esParcial ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
+                  tipoPago === 'parcial' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
                 }`}>
-                  {esParcial ? 'Parcial' : 'Total'}
+                  {tipoPago === 'parcial' ? 'Parcial' : 'Total'}
                 </span>
               </div>
               <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
@@ -201,51 +78,67 @@ function ModalPago({ show, numero_factura, total, onClose, onSuccess }) {
               </button>
             </div>
 
-            <div className="p-3 space-y-2">
-              <ResumenPago
-                total={total}
-                tipoPago={paymentType.tipo}
-                totalPagado={getTotalPaid()}
-                restante={total - getTotalPaid()}
-                esCompacto={esParcial}
-              />
+            <div className="p-4 space-y-3">
+              {/* Resumen de pago */}
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-blue-900">Total de Factura</span>
+                  <span className="text-xl font-bold text-blue-900">L {total.toFixed(2)}</span>
+                </div>
+              </div>
 
-              <SeleccionMetodos
-                metodos={paymentMethods}
-                metodosSeleccionados={selectedPaymentMethods}
-                onToggleMetodo={togglePaymentMethod}
-                tipoPago={paymentType.tipo}
-                maxMetodos={esParcial ? 2 : 1}
-              />
+              {/* Métodos de pago */}
+              <div className="grid grid-cols-3 gap-2">
+                <button className="p-3 rounded-lg border-2 border-gray-300 hover:border-gray-400 bg-white transition-all">
+                  <Banknote className="w-6 h-6 mx-auto mb-1 text-gray-600" />
+                  <div className="text-xs font-medium text-center text-gray-700">EFECTIVO</div>
+                </button>
+                <button className="p-3 rounded-lg border-2 border-gray-300 hover:border-gray-400 bg-white transition-all">
+                  <CreditCard className="w-6 h-6 mx-auto mb-1 text-gray-600" />
+                  <div className="text-xs font-medium text-center text-gray-700">TARJETA</div>
+                </button>
+                <button className="p-3 rounded-lg border-2 border-gray-300 hover:border-gray-400 bg-white transition-all">
+                  <Building2 className="w-6 h-6 mx-auto mb-1 text-gray-600" />
+                  <div className="text-xs font-medium text-center text-gray-700">TRANSFERENCIA</div>
+                </button>
+              </div>
 
-              <IngresoMontos
-                metodos={paymentMethods}
-                metodosSeleccionados={selectedPaymentMethods}
-                paymentAmounts={paymentAmounts}
-                onAmountChange={handlePaymentAmountChange}
-                onAmountBlur={handlePaymentAmountBlur}
-                tipoPago={paymentType.tipo}
-                total={total}
-              />
+              {/* Input de monto */}
+              <div className="space-y-2">
+                <div className="bg-white border-2 border-green-500 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Banknote className="w-5 h-5 text-green-600" />
+                    <span className="font-medium text-gray-900">EFECTIVO</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600">L</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      defaultValue={total.toFixed(2)}
+                      className="flex-1 text-2xl font-bold text-gray-900 bg-transparent outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {tipoPago === 'total' && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 text-xs text-yellow-800">
+                  💡 <strong>Efectivo:</strong> Puede pagar de más, se calculará el cambio automáticamente
+                </div>
+              )}
             </div>
 
-            <div className="flex gap-2 p-3">
+            {/* Botones de acción */}
+            <div className="flex gap-2 p-4 border-t bg-gray-50">
               <button
-                onClick={handleBack}
-                className="px-3 py-1.5 text-sm border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded"
+                onClick={() => setVista('tipo')}
+                className="px-4 py-2 text-sm border border-gray-300 hover:bg-white text-gray-700 font-medium rounded"
               >
                 Atrás
               </button>
-              <button
-                onClick={handleProcessPayment}
-                disabled={!canProcessPayment() || loading}
-                className={`flex-1 py-1.5 px-3 text-sm font-medium rounded ${
-                  canProcessPayment() && !loading
-                    ? 'bg-green-500 hover:bg-green-600 text-white'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                {loading ? 'Procesando...' : 'PROCESAR PAGO E IMPRIMIR'}
+              <button className="flex-1 py-2 px-4 text-sm font-medium rounded bg-green-500 hover:bg-green-600 text-white">
+                PROCESAR PAGO E IMPRIMIR
               </button>
             </div>
           </>
@@ -256,3 +149,4 @@ function ModalPago({ show, numero_factura, total, onClose, onSuccess }) {
 }
 
 export default ModalPago;
+
