@@ -17,35 +17,6 @@ export const verProductos = async (tipo_producto) => {
 };
 
 
-// ✅ NUEVA FUNCIÓN PARA FACTURACIÓN - TRAE TODOS LOS PRODUCTOS ACTIVOS
-export const verProductosDisponibles = async () => {
-  try {
-    // Traer todos los tipos de productos (los 4 tipos)
-    const [alimentos, accesorios, medicamentos, animales] = await Promise.all([
-      verProductos('ALIMENTOS'),
-      verProductos('ACCESORIOS'),
-      verProductos('MEDICAMENTOS'),
-      verProductos('ANIMALES')  // ⬅️ Agregar este
-    ]);
-    
-    // Combinar todos y filtrar solo los activos con stock
-    const todosProductos = [...alimentos, ...accesorios, ...medicamentos, ...animales]; // ⬅️ Agregar animales aquí también
-    
-    // Filtrar solo productos activos y con stock disponible
-    const productosDisponibles = todosProductos.filter(p => 
-      (p.activo === 1 || p.activo === "1") && 
-      parseInt(p.stock || 0) > 0
-    );
-    
-    return productosDisponibles;
-  } catch (err) {
-    console.error('Error al traer productos disponibles:', err);
-    return [];
-  }
-};
-
-
-
 //SERVICIO PARA INSERTAR PRODUCTO
 export const insertarProducto = async (datosProducto) => {
   try {
@@ -71,10 +42,10 @@ export const actualizarProducto = async (datosProducto) => {
 };
 
 //SERVICIO PARA ELIMINAR PRODUCTO*/
-export const eliminarProducto = async (id_producto) => {
+export const eliminarProducto = async (id_producto, id_lote) => {
   try {
     const res = await axiosInstance.delete(`${API_URL}/eliminar`, {
-      data: { id_producto }
+      data:  id_producto, id_lote 
     });
     return res.data;
   } catch (err) {

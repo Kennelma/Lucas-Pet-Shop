@@ -12,7 +12,6 @@ const Promociones = React.lazy(() => import('./views/promociones/Promociones'))
 const Servicios = React.lazy(() => import('./views/serviciosPeluqueria/Servicios'))
 const Recordatorios = React.lazy(() => import('./views/Recordatorios/Recordatorios'))
 const Empresa = React.lazy(() => import('./views/empresa/Gestion-Empresa'))
-const Facturacion = React.lazy(() => import('./views/facturacion/InvoiceModule'))
 const Estilistas = React.lazy(() => import('./views/estilistas/Estilistas'))
 const Reportes = React.lazy(() => import('./views/reportes/Reportes'))
 
@@ -27,7 +26,6 @@ const routes = [
   { path: '/peluqueria_canina/servicios', name: 'Peluquería Canina / Servicios', element: Servicios },
   { path: '/recordatorios', name: 'Recordatorios', element: Recordatorios },
   { path: '/empresa', name: 'Empresa y Sucursales', element: Empresa },
-  { path: '/facturacion', name: 'InvoiceModule', element: Facturacion },
   {path: '/estilistas', name: 'Estilistas', element: Estilistas },
   {path: '/reportes', name: 'Reportes', element: Reportes },
 ]

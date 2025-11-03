@@ -2,21 +2,17 @@ import React, { useState, useEffect } from "react";
 
 const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medicamentosExistentes = [] }) => {
   const [paso, setPaso] = useState(1);
-  const [formData, setFormData] = useState({
-    nombre_producto: "",
-    precio_producto: "",
-    presentacion: "",
-    tipo: "",
-    cantidad_contenido: "",
-    unidad_medida: "",
-    sku: "",
-    codigo_lote: "",
-    fecha_vencimiento: "",
-    stock_lote: "",
-    activo: true
+  const [formData, setFormData] = useState({ nombre_producto: "", precio_producto: "", presentacion: "", tipo: "", 
+    cantidad_contenido: "", unidad_medida: "", sku: "", codigo_lote: "", fecha_vencimiento: "", stock_lote: "", activo: true
   });
 
   const [errores, setErrores] = useState({});
+
+  // Función para normalizar texto: Primera letra mayúscula, resto minúscula
+  const normalizarTexto = (texto) => {
+    if (!texto) return '';
+    return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
+  };
 
   const generarSKU = (nombre) => {
     if (!nombre) return '';
@@ -31,35 +27,23 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
   };
 
   useEffect(() => {
+    
     if (isOpen) {
       if (medicamentoEditando) {
-        setFormData({
-          nombre_producto: medicamentoEditando.nombre_producto,
-          precio_producto: medicamentoEditando.precio_producto,
-          presentacion: medicamentoEditando.presentacion_medicamento,
-          tipo: medicamentoEditando.tipo_medicamento,
-          cantidad_contenido: medicamentoEditando.cantidad_contenido,
-          unidad_medida: medicamentoEditando.unidad_medida,
-          sku: generarSKU(medicamentoEditando.nombre_producto),
-          activo: medicamentoEditando.activo,
-          codigo_lote: "",
-          fecha_vencimiento: "",
-          stock_lote: ""
-        });
+        
+        const nuevoFormData = { nombre_producto: medicamentoEditando.nombre_producto || "", precio_producto: medicamentoEditando.precio_producto || "",
+          presentacion: normalizarTexto(medicamentoEditando.presentacion_medicamento || medicamentoEditando.presentacion),
+          tipo: normalizarTexto(medicamentoEditando.tipo_medicamento || medicamentoEditando.tipo), cantidad_contenido: medicamentoEditando.cantidad_contenido || "",
+          unidad_medida: medicamentoEditando.unidad_medida || "", sku: generarSKU(medicamentoEditando.nombre_producto) || "",
+          activo: medicamentoEditando.activo !== undefined ? medicamentoEditando.activo : true,
+          codigo_lote: "", fecha_vencimiento: "", stock_lote: ""
+        };
+        
+        setFormData(nuevoFormData);
         setPaso(1);
       } else {
-        setFormData({
-          nombre_producto: "",
-          precio_producto: "",
-          presentacion: "",
-          tipo: "",
-          cantidad_contenido: "",
-          unidad_medida: "",
-          sku: "",
-          activo: true,
-          codigo_lote: "",
-          fecha_vencimiento: "",
-          stock_lote: ""
+        setFormData({ nombre_producto: "", precio_producto: "", presentacion: "", tipo: "", cantidad_contenido: "",
+          unidad_medida: "", sku: "", activo: true, codigo_lote: "", fecha_vencimiento: "", stock_lote: ""
         });
         setPaso(1);
       }
@@ -69,15 +53,12 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
 
   if (!isOpen) return null;
 
-  const handleChange = (field, value) => {
-    const camposTexto = ['nombre_producto'];
-    const valorFinal = camposTexto.includes(field) ? value.toUpperCase() : value;
+  const handleChange = (field, value) => { const camposTexto = ['nombre_producto']; const valorFinal = camposTexto.includes(field) ? value.toUpperCase() : value;
     
     setFormData(prev => {
       const newData = { ...prev, [field]: valorFinal };
       
-      if (field === 'nombre_producto') {
-        newData.sku = generarSKU(valorFinal);
+      if (field === 'nombre_producto') { newData.sku = generarSKU(valorFinal);
       }
       
       return newData;
@@ -95,18 +76,14 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
             (!medicamentoEditando || med.id_medicamento !== medicamentoEditando.id_medicamento)
           );
           
-          if (nombreExiste) {
-            newErrores[field] = 'Ya existe un medicamento con este nombre';
+          if (nombreExiste) { newErrores[field] = 'Ya existe un medicamento con este nombre';
           } else {
             newErrores[field] = '';
           }
         }
-      } else if (field === 'precio_producto') {
-        newErrores[field] = parseFloat(value) > 0 ? '' : 'El precio debe ser mayor a 0';
-      } else if (field === 'presentacion') {
-        newErrores[field] = value ? '' : 'La presentación es obligatoria';
-      } else if (field === 'tipo') {
-        newErrores[field] = value ? '' : 'El tipo es obligatorio';
+      } else if (field === 'precio_producto') { newErrores[field] = parseFloat(value) > 0 ? '' : 'El precio debe ser mayor a 0';
+      } else if (field === 'presentacion') { newErrores[field] = value ? '' : 'La presentación es obligatoria';
+      } else if (field === 'tipo') { newErrores[field] = value ? '' : 'El tipo es obligatorio';
       } else if (field === 'fecha_vencimiento') {
         if (!value) {
           newErrores[field] = 'La fecha de vencimiento es obligatoria';
@@ -131,16 +108,14 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
   const validarPaso1 = () => {
     let temp = {};
     
-    if (!formData.nombre_producto.trim()) {
-      temp.nombre_producto = 'El nombre del producto es obligatorio';
+    if (!formData.nombre_producto.trim()) { temp.nombre_producto = 'El nombre del producto es obligatorio';
     } else {
       const nombreExiste = medicamentosExistentes.some(med => 
         med.nombre_producto.toLowerCase() === formData.nombre_producto.trim().toLowerCase() &&
         (!medicamentoEditando || med.id_medicamento !== medicamentoEditando.id_medicamento)
       );
       
-      if (nombreExiste) {
-        temp.nombre_producto = 'Ya existe un medicamento con este nombre';
+      if (nombreExiste) { temp.nombre_producto = 'Ya existe un medicamento con este nombre';
       }
     }
     
@@ -161,8 +136,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
   const validarPaso2 = () => {
     let temp = {};
     
-    if (!formData.fecha_vencimiento) {
-      temp.fecha_vencimiento = 'La fecha de vencimiento es obligatoria';
+    if (!formData.fecha_vencimiento) { temp.fecha_vencimiento = 'La fecha de vencimiento es obligatoria';
     } else {
       const fechaSeleccionada = new Date(formData.fecha_vencimiento);
       const hoy = new Date();
@@ -180,8 +154,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
   };
 
   const handleSiguiente = () => {
-    if (validarPaso1()) {
-      const codigoAuto = generarCodigoLote(formData.nombre_producto);
+    if (validarPaso1()) { const codigoAuto = generarCodigoLote(formData.nombre_producto);
       setFormData(prev => ({ ...prev, codigo_lote: codigoAuto }));
       setPaso(2);
     }
@@ -189,21 +162,16 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
 
   const handleGuardar = () => {
     if (medicamentoEditando) {
-      if (validarPaso1()) {
-        onSave(formData);
+      if (validarPaso1()) { onSave(formData);
       }
     } else {
-      if (validarPaso2()) {
-        onSave(formData);
+      if (validarPaso2()) { onSave(formData);
       }
     }
   };
 
   return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4"
-      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-    >
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} >
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-10">
         <div className="flex justify-between items-center w-full mb-8">
           <div className="flex flex-col">
@@ -232,15 +200,11 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
         {paso === 1 && (
           <div className="grid grid-cols-2 gap-6 mb-10">
             <div className="relative col-span-2">
-              <input
-                type="text"
-                id="nombre_producto"
-                value={formData.nombre_producto}
+              <input type="text" id="nombre_producto" value={formData.nombre_producto}
                 onChange={(e) => handleChange('nombre_producto', e.target.value)}
                 className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"
               />
-              <label
-                htmlFor="nombre_producto"
+              <label htmlFor="nombre_producto"
                 className="absolute text-sm text-black-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
               >
                 Nombre del Producto
@@ -251,15 +215,10 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
             </div>
 
             <div className="relative col-span-2">
-              <input
-                type="text"
-                id="sku"
-                value={formData.sku}
-                readOnly
+              <input type="text" id="sku" value={formData.sku} readOnly
                 className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-gray-100 rounded-lg border border-gray-300 cursor-not-allowed"
               />
-              <label
-                htmlFor="sku"
+              <label htmlFor="sku"
                 className="absolute text-sm text-gray-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 start-1"
               >
                 SKU
@@ -267,31 +226,21 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
             </div>
 
             <div className="relative">
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                id="precio_producto"
-                value={formData.precio_producto}
+              <input type="number" step="0.01" min="0" id="precio_producto" value={formData.precio_producto}
                 onChange={(e) => handleChange('precio_producto', e.target.value)}
                 className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"
               />
-              <label
-                htmlFor="precio_producto"
+              <label htmlFor="precio_producto"
                 className="absolute text-sm text-black-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
               >
                 Precio (L)
               </label>
-              {errores.precio_producto && (
-                <p className="text-[10px] text-red-600 mt-1">{errores.precio_producto}</p>
+              {errores.precio_producto && ( <p className="text-[10px] text-red-600 mt-1">{errores.precio_producto}</p>
               )}
             </div>
 
             <div className="relative">
-              <select
-                id="presentacion"
-                value={formData.presentacion}
-                onChange={(e) => handleChange('presentacion', e.target.value)}
+              <select id="presentacion" value={formData.presentacion} onChange={(e) => handleChange('presentacion', e.target.value)}
                 className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"
               >
                 <option value="">Seleccione...</option>
@@ -307,8 +256,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                 <option value="Suplemento">Suplemento</option>
                 <option value="Otros">Otros</option>
               </select>
-              <label
-                htmlFor="presentacion"
+              <label htmlFor="presentacion"
                 className="absolute text-sm text-black-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 start-1"
               >
                 Presentación
@@ -319,10 +267,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
             </div>
 
             <div className="relative">
-              <select
-                id="tipo"
-                value={formData.tipo}
-                onChange={(e) => handleChange('tipo', e.target.value)}
+              <select id="tipo" value={formData.tipo} onChange={(e) => handleChange('tipo', e.target.value)}
                 className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"
               >
                 <option value="">Seleccione...</option>
@@ -343,27 +288,19 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                 <option value="Cicatrizante">Cicatrizante</option>
                 <option value="Otro">Otro</option>
               </select>
-              <label
-                htmlFor="tipo"
+              <label htmlFor="tipo"
                 className="absolute text-sm text-black-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 start-1"
               >
                 Tipo de Medicamento
               </label>
-              {errores.tipo && (
-                <p className="text-[10px] text-red-600 mt-1">{errores.tipo}</p>
-              )}
+              {errores.tipo && ( <p className="text-[10px] text-red-600 mt-1">{errores.tipo}</p> )}
             </div>
 
             <div className="relative">
-              <input
-                type="number"
-                id="cantidad_contenido"
-                value={formData.cantidad_contenido}
-                onChange={(e) => handleChange('cantidad_contenido', e.target.value)}
+              <input type="number" id="cantidad_contenido" value={formData.cantidad_contenido} onChange={(e) => handleChange('cantidad_contenido', e.target.value)}
                 className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"
               />
-              <label
-                htmlFor="cantidad_contenido"
+              <label htmlFor="cantidad_contenido"
                 className="absolute text-sm text-black-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
               >
                 Cantidad
@@ -371,10 +308,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
             </div>
 
             <div className="relative">
-              <select
-                id="unidad_medida"
-                value={formData.unidad_medida}
-                onChange={(e) => handleChange('unidad_medida', e.target.value)}
+              <select id="unidad_medida" value={formData.unidad_medida} onChange={(e) => handleChange('unidad_medida', e.target.value)}
                 className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"
               >
                 <option value="">Seleccione...</option>
@@ -387,8 +321,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                 <option value="GOTAS">GOTAS</option>
                 <option value="UNIDADES">UNIDADES</option>
               </select>
-              <label
-                htmlFor="unidad_medida"
+              <label htmlFor="unidad_medida"
                 className="absolute text-sm text-black-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 start-1"
               >
                 Unidad de Medida
@@ -398,10 +331,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
             {medicamentoEditando && (
               <div className="col-span-1 flex items-center justify-start">
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    className="sr-only peer" 
-                    checked={formData.activo}
+            type="className="sr-ochecked={formData.activo}
                     onChange={(e) => setFormData(prev => ({ ...prev, activo: e.target.checked }))}
                   />
                   <div className="group peer bg-gray-200 rounded-full duration-300 w-16 h-8 after:duration-300 after:bg-gray-400 peer-checked:after:bg-green-500 peer-checked:bg-green-200 after:rounded-full after:absolute after:h-6 after:w-6 after:top-1 after:left-1 after:flex after:justify-center after:items-center peer-checked:after:translate-x-8 peer-hover:after:scale-95 peer-focus:ring-4 peer-focus:ring-blue-300"></div>
@@ -426,15 +356,10 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
 
             <div className="grid grid-cols-2 gap-6">
               <div className="relative col-span-2">
-                <input
-                  type="text"
-                  id="codigo_lote"
-                  value={formData.codigo_lote}
-                  disabled
+                <input type="text" id="codigo_lote" value={formData.codigo_lote} disabled
                   className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-gray-100 rounded-lg border border-gray-300 cursor-not-allowed"
                 />
-                <label
-                  htmlFor="codigo_lote"
+                <label htmlFor="codigo_lote"
                   className="absolute text-sm text-gray-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 start-1"
                 >
                   Código de Lote (Generado Automáticamente)
@@ -442,11 +367,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
               </div>
 
               <div className="relative col-span-2">
-                <input
-                  type="date"
-                  id="fecha_vencimiento"
-                  value={formData.fecha_vencimiento}
-                  onChange={(e) => handleChange('fecha_vencimiento', e.target.value)}
+                <input type="date" id="fecha_vencimiento" value={formData.fecha_vencimiento} onChange={(e) => handleChange('fecha_vencimiento', e.target.value)}
                   min={(() => {
                     const tomorrow = new Date();
                     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -455,8 +376,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                   className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"
                   autoFocus
                 />
-                <label
-                  htmlFor="fecha_vencimiento"
+                <label htmlFor="fecha_vencimiento"
                   className="absolute text-sm text-black-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
                 >
                   Fecha de Vencimiento
@@ -467,16 +387,10 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
               </div>
 
               <div className="relative col-span-2">
-                <input
-                  type="number"
-                  min="5"
-                  id="stock_lote"
-                  value={formData.stock_lote}
-                  onChange={(e) => handleChange('stock_lote', e.target.value)}
+                <input type="number" min="5" id="stock_lote" value={formData.stock_lote} onChange={(e) => handleChange('stock_lote', e.target.value)}
                   className="block w-full text-sm h-[50px] px-4 text-slate-900 bg-white rounded-lg border border-black-200 appearance-none focus:border-transparent focus:outline focus:outline-2 focus:outline-black-500 focus:ring-0 hover:border-black-300 peer transition-all"
                 />
-                <label
-                  htmlFor="stock_lote"
+                <label htmlFor="stock_lote"
                   className="absolute text-sm text-black-600 duration-300 transform -translate-y-[1.2rem] scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-[1.2rem] start-1"
                 >
                   Cantidad Inicial del Lote
@@ -491,8 +405,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
 
         <div className="flex flex-row-reverse gap-4">
           {paso === 1 && !medicamentoEditando ? (
-            <button
-              onClick={handleSiguiente}
+            <button onClick={handleSiguiente}
               className="w-fit rounded-lg text-sm px-5 py-2 h-[50px] bg-green-500 hover:bg-green-600 focus:bg-green-700 text-white focus:ring-4 focus:ring-green-200 hover:ring-4 hover:ring-green-100 transition-all duration-300"
               type="button"
             >
@@ -504,8 +417,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
               </div>
             </button>
           ) : (
-            <button
-              onClick={handleGuardar}
+            <button onClick={handleGuardar}
               className="w-fit rounded-lg text-sm px-5 py-2 h-[50px] bg-green-500 hover:bg-green-600 focus:bg-green-700 text-white focus:ring-4 focus:ring-green-200 hover:ring-4 hover:ring-green-100 transition-all duration-300"
               type="button"
             >
@@ -519,8 +431,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
           )}
           
           {paso === 2 && !medicamentoEditando && (
-            <button
-              onClick={() => setPaso(1)}
+            <button onClick={() => setPaso(1)}
               className="w-fit rounded-lg text-sm px-5 py-2 h-[50px] bg-gray-200 hover:bg-gray-300 text-gray-700 transition-all duration-300"
               type="button"
             >
