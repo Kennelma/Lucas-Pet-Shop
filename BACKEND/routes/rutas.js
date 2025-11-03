@@ -54,6 +54,7 @@ router.get ('/facturacion/usuarioFacturacion', verificarToken, facturas.usuarioF
 router.get ('/facturacion/estilistasFacturacion', verificarToken, facturas.buscarEstilistas);
 router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFactura)
 router.get  ('/facturacion/verFacturas', facturas.historialFacturas);
+router.get  ('/facturacion/imprimirFactura', facturas.ImpresionDetallesFactura);
 
 //========== RUTAS DE PAGOS ==========
 router.post('/pagos/procesarPago', verificarToken, pagos.procesarPago);+

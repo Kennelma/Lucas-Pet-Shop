@@ -142,7 +142,6 @@ exports.crearFactura = async (req, res) => {
                         });
 
                         cantidadRestante -= cantidadDelLote;
-                        console.log(`   📦 Lote ${lote.codigo_lote} - Descontar: ${cantidadDelLote} unidades (Vence: ${lote.fecha_vencimiento.toISOString().split('T')[0]})`);
                     }
                 }
 
@@ -220,24 +219,20 @@ exports.crearFactura = async (req, res) => {
                 estilistas: estilistas || [],
                 lotesADescontar: item.lotesADescontar || null  //LOTES FIFO PARA MEDICAMENTOS
             });
-
-            console.log(`✅ ${nombre_item} | ${cantidad} x L.${precio_unitario} + L.${ajuste_valor} = L.${total_linea.toFixed(2)}`);
         }
 
         //SE CALCULA LOS TOTALES FINALES
         const total_con_ajustes = total_bruto + total_ajuste;
-        const subtotal = total_con_ajustes / impuesto_valor; // Base imponible
-        const impuesto = total_con_ajustes - subtotal; // ISV
+        const subtotal = Math.max(0, total_con_ajustes / impuesto_valor); // Base imponible (no negativo)
+        const impuesto = Math.max(0, total_con_ajustes - subtotal); // ISV (no negativo)
         const descuento = total_ajuste < 0 ? Math.abs(total_ajuste) : 0;
-        const total = total_con_ajustes;
+        const total = Math.max(0, total_con_ajustes); // Total no puede ser negativo
         const saldo = total; // Sin pagos aún
 
-        console.log('💵 TOTALES:');
-        console.log(`   Subtotal: L.${subtotal.toFixed(2)}`);
-        console.log(`   Impuesto (15%): L.${impuesto.toFixed(2)}`);
-        console.log(`   Descuento: L.${descuento.toFixed(2)}`);
-        console.log(`   TOTAL: L.${total.toFixed(2)}`);
-        console.log(`   Saldo pendiente: L.${saldo.toFixed(2)}`);
+        //VALIDAR QUE EL TOTAL NO SEA CERO O NEGATIVO
+        if (total <= 0) {
+            throw new Error('El total de la factura no puede ser cero o negativo. Verifica los ajustes aplicados.');
+        }
 
         //SE GENERA EL NÚMERO DE FACTURA (Formato: FAC-2025-001)
         const [[{ numero_factura }]] = await conn.query(`
@@ -250,7 +245,15 @@ exports.crearFactura = async (req, res) => {
             FOR UPDATE
         `);
 
-        console.log(`📄 Número de factura generado: ${numero_factura}`);
+        //VERIFICAR QUE EL NÚMERO NO EXISTA (POR SI HAY FORMATOS ANTIGUOS)
+        const [existente] = await conn.query(
+            `SELECT numero_factura FROM tbl_facturas WHERE numero_factura = ?`,
+            [numero_factura]
+        );
+
+        if (existente.length > 0) {
+            throw new Error(`El número de factura ${numero_factura} ya existe. Intente nuevamente.`);
+        }
 
         // INSERTAR FACTURA CON EL NÚMERO YA GENERADO
         const [factura] = await conn.query(
@@ -285,8 +288,6 @@ exports.crearFactura = async (req, res) => {
         );
 
         const id_factura = factura.insertId;
-
-        console.log(`✅ Factura ${numero_factura} creada - ID: ${id_factura}`);
 
         // 8) INSERTAR DETALLES Y ESTILISTAS
         for (const detalle of detallesValidados) {
@@ -336,8 +337,6 @@ exports.crearFactura = async (req, res) => {
                             estilista.cantidadMascotas || 0
                         ]
                     );
-
-                    console.log(`   👤 Estilista ID ${estilista.estilistaId} - ${estilista.cantidadMascotas} mascotas`);
                 }
             }
 
@@ -354,7 +353,6 @@ exports.crearFactura = async (req, res) => {
                              WHERE id_lote_medicamentos_pk = ?`,
                             [lote.cantidad, lote.id_lote]
                         );
-                        console.log(`   📦 Lote ${lote.codigo_lote} descontado: -${lote.cantidad} unidades`);
                     }
                 }
 
@@ -365,18 +363,17 @@ exports.crearFactura = async (req, res) => {
                      WHERE id_producto_pk = ?`,
                     [detalle.cantidad, detalle.id_producto]
                 );
-                console.log(`   📦 Stock general descontado: ${detalle.nombre_item} (-${detalle.cantidad})`);
             }
         }
 
         await conn.commit();
-        console.log('✅ TRANSACCIÓN COMPLETADA');
 
         return res.status(201).json({
             success: true,
             mensaje: 'Factura creada exitosamente',
             data: {
                 id_factura,
+                numero_factura,
                 fecha_emision: fechaEmision,
                 subtotal: subtotal.toFixed(2),
                 impuesto: impuesto.toFixed(2),
@@ -465,7 +462,7 @@ exports.detallesFactura = async (req, res) => {
                         nombre_producto,
                         precio_producto
                     FROM tbl_productos
-                    WHERE activo = TRUE`
+                    WHERE activo = TRUE AND stock > 0`
                 )
 
                 break;
@@ -478,7 +475,7 @@ exports.detallesFactura = async (req, res) => {
                         nombre_servicio_peluqueria,
                         precio_servicio
                     FROM tbl_servicios_peluqueria_canina
-                    WHERE activo = TRUE`
+                    WHERE activo = TRUE AND stock > 0`
                 )
 
                 break;
@@ -491,7 +488,7 @@ exports.detallesFactura = async (req, res) => {
                         nombre_promocion,
                         precio_promocion
                     FROM tbl_promociones
-                    WHERE activo = TRUE`
+                    WHERE activo = TRUE AND stock > 0`
                 )
                 break;
 
@@ -689,3 +686,109 @@ exports.historialFacturas = async (req, res) => {
     }
 
 }
+
+//====================OBTENER_DETALLE_FACTURA_PARA_PDF====================
+exports.ImpresionDetallesFactura = async (req, res) => {
+    const conn = await mysqlConnection.getConnection();
+
+    try {
+        const { numero_factura } = req.query;
+
+        //DATOS DE LA FACTURA
+        const [factura] = await conn.query(
+            `SELECT
+                f.id_factura_pk,
+                f.numero_factura,
+                f.fecha_emision,
+                f.RTN,
+                f.subtotal,
+                f.descuento,
+                f.impuesto,
+                f.total,
+                f.saldo,
+                c.nombre_estado as estado,
+                cl.nombre_cliente,
+                cl.apellido_cliente,
+                cl.telefono_cliente
+            FROM tbl_facturas f
+            INNER JOIN cat_estados c ON f.id_estado_fk = c.id_estado_pk
+            LEFT JOIN tbl_clientes cl ON f.id_cliente_fk = cl.id_cliente_pk
+            WHERE f.numero_factura = ?`,
+            [numero_factura]
+        );
+
+        if (!factura || factura.length === 0) {
+            return res.status(404).json({
+                success: false,
+                mensaje: 'Factura no encontrada'
+            });
+        }
+
+        //ITEMS DE LA FACTURA
+        const [items] = await conn.query(
+            `SELECT
+                df.nombre_item,
+                df.cantidad_item,
+                df.precio_item,
+                df.ajuste_precio,
+                df.total_linea,
+                CASE
+                    WHEN df.id_producto_fk IS NOT NULL THEN 'PRODUCTO'
+                    WHEN df.id_servicio_fk IS NOT NULL THEN 'SERVICIO'
+                    WHEN df.id_promocion_fk IS NOT NULL THEN 'PROMOCION'
+                    ELSE 'OTRO'
+                END AS tipo_item
+            FROM tbl_detalles_facturas df
+            WHERE df.id_factura_fk = ?
+            ORDER BY df.id_detalle_pk`,
+            [factura[0].id_factura_pk]
+        );
+
+        //INFORMACIÓN DE LA EMPRESA
+        const [empresa] = await conn.query(
+            `SELECT
+                nombre_empresa,
+                direccion_empresa,
+                telefono_empresa,
+                correo_empresa
+            FROM tbl_empresa
+            LIMIT 1`
+        );
+
+        //HISTORIAL DE PAGOS
+        const [pagos] = await conn.query(
+            `SELECT
+                p.fecha_pago,
+                p.monto_pagado,
+                mp.metodo_pago,
+                tp.tipo_pago
+            FROM tbl_pago_aplicacion pa
+            INNER JOIN tbl_pagos p ON pa.id_pago_fk = p.id_pago_pk
+            INNER JOIN cat_metodo_pago mp ON p.id_metodo_pago_fk = mp.id_metodo_pago_pk
+            INNER JOIN cat_tipo_pago tp ON p.id_tipo_pago_fk = tp.id_tipo_pago_pk
+            WHERE pa.id_factura_fk = ?
+            ORDER BY p.fecha_pago DESC`,
+            [factura[0].id_factura_pk]
+        );
+
+        res.status(200).json({
+            success: true,
+            data: {
+                factura: factura[0],
+                items: items,
+                empresa: empresa[0] || {},
+                pagos: pagos
+            }
+        });
+
+    } catch (error) {
+        console.error("Error al obtener detalle de factura:", error);
+        res.status(500).json({
+            success: false,
+            mensaje: 'Error al obtener detalle de factura',
+            error: error.message
+        });
+    } finally {
+        conn.release();
+    }
+};

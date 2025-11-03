@@ -99,3 +99,21 @@ export const obtenerHistorialFacturas = async () => {
     };
   }
 };
+
+
+
+export const obtenerDatosFacturaPDF = async (numero_factura) => {
+  try {
+    const { data } = await axiosInstance.get(`${API_URL}/imprimirFactura`, {
+      params: { numero_factura }
+    });
+    return data;
+  } catch (error) {
+    console.error("Error al obtener datos de factura:", error);
+    return {
+      success: false,
+      mensaje: error?.response?.data?.mensaje || "Error al obtener datos de la factura",
+      data: null
+    };
+  }
+};

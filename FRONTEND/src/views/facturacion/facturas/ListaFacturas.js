@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Eye, Printer, Download, Filter, Calendar, CreditCard, CheckSquare, Square } from 'lucide-react';
+import { Search, Eye, Printer, Download, Filter, Calendar, CreditCard, CheckSquare, Square, X } from 'lucide-react';
 import { Paginator } from 'primereact/paginator';
-import { obtenerHistorialFacturas } from '../../../AXIOS.SERVICES/factura-axios';
+import { obtenerHistorialFacturas, obtenerDatosFacturaPDF } from '../../../AXIOS.SERVICES/factura-axios';
+import { procesarPago } from '../../../AXIOS.SERVICES/payments-axios';
+import { generarPDFFactura, descargarPDFFactura } from './generarPDFFactura';
 import ModalPago from "../pagos/ModalPago";
 
 const ListaFacturas = () => {
@@ -16,6 +18,8 @@ const ListaFacturas = () => {
   const [facturasSeleccionadas, setFacturasSeleccionadas] = useState([]); // NUEVO: array de facturas seleccionadas
   const [first, setFirst] = useState(0);
   const [rows, setRows] = useState(5);
+  const [showPDFPreview, setShowPDFPreview] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState(null);
 
   //====================CARGAR_FACTURAS_AL_MONTAR_COMPONENTE====================
   useEffect(() => {
@@ -69,7 +73,7 @@ const ListaFacturas = () => {
     } else {
       setSearchTerm(value);
     }
-    setFirst(0); // Reset pagination
+    setFirst(0);
   };
 
   //====================OBTENER_BADGE_ESTADO====================
@@ -119,12 +123,34 @@ const ListaFacturas = () => {
     setFacturasSeleccionadas([]);
   };
 
-  const handlePagoExitoso = (tipoPago, saldoRestante) => {
-    console.log('Pago procesado:', { tipoPago, saldoRestante, factura: facturaSeleccionada });
-    setShowModalPago(false);
-    setFacturaSeleccionada(null);
-    setFacturasSeleccionadas([]);
-    cargarFacturas();
+  const handlePagoExitoso = async (datosPago) => {
+    try {
+      // MOSTRAR EN CONSOLA QUÉ SE VA A ENVIAR
+      console.log('📤 DATOS A ENVIAR AL BACKEND:', JSON.stringify(datosPago, null, 2));
+
+      // LLAMAR AL SERVICIO PARA PROCESAR EL PAGO
+      const response = await procesarPago(datosPago);
+
+      console.log('📥 RESPUESTA DEL BACKEND:', response);
+
+      if (response.success) {
+        // MOSTRAR MENSAJE DE ÉXITO
+        alert(response.mensaje || 'Pago procesado exitosamente');
+
+        // CERRAR MODAL Y LIMPIAR SELECCIONES
+        setShowModalPago(false);
+        setFacturaSeleccionada(null);
+        setFacturasSeleccionadas([]);
+
+        // RECARGAR FACTURAS PARA VER CAMBIOS
+        cargarFacturas();
+      } else {
+        alert(response.mensaje || 'Error al procesar el pago');
+      }
+    } catch (error) {
+      console.error('❌ ERROR AL PROCESAR PAGO:', error);
+      alert('Error al procesar el pago: ' + (error.response?.data?.mensaje || error.message));
+    }
   };
 
   //====================MANEJAR_SELECCION_MULTIPLE====================
@@ -148,6 +174,54 @@ const ListaFacturas = () => {
     }
     setFacturaSeleccionada(null); // Limpiar selección individual
     setShowModalPago(true);
+  };
+
+  //====================IMPRIMIR_PDF====================
+  const handleImprimirFactura = async (factura) => {
+    try {
+      const response = await obtenerDatosFacturaPDF(factura.numero_factura);
+      if (response.success) {
+        // Generar el PDF
+        const doc = generarPDFFactura(response.data);
+
+        // Convertir a blob y crear URL
+        const pdfBlob = doc.output('blob');
+        const url = URL.createObjectURL(pdfBlob);
+
+        // Mostrar en modal
+        setPdfUrl(url);
+        setShowPDFPreview(true);
+      } else {
+        alert('Error al obtener datos de la factura');
+      }
+    } catch (error) {
+      console.error('Error al imprimir PDF:', error);
+      alert('Error al generar PDF');
+    }
+  };
+
+  //====================CERRAR_PREVIEW====================
+  const handleCerrarPreview = () => {
+    if (pdfUrl) {
+      URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(null);
+    }
+    setShowPDFPreview(false);
+  };
+
+  //====================DESCARGAR_PDF====================
+  const handleDescargarFactura = async (factura) => {
+    try {
+      const response = await obtenerDatosFacturaPDF(factura.numero_factura);
+      if (response.success) {
+        descargarPDFFactura(response.data);
+      } else {
+        alert('Error al obtener datos de la factura');
+      }
+    } catch (error) {
+      console.error('Error al descargar PDF:', error);
+      alert('Error al generar PDF');
+    }
   };
 
   const totalSeleccionado = facturasSeleccionadas.reduce((sum, f) => sum + f.total, 0);
@@ -399,26 +473,41 @@ const ListaFacturas = () => {
                       >
                         <Eye size={16} />
                       </button>
-                      {esPendienteOParcial ? (
-                        <button
-                          onClick={() => handleAbrirModalPago(factura)}
-                          className={`px-2 py-1 text-white text-xs font-medium rounded transition-colors ${
-                            estadoUpper === 'PARCIAL'
-                              ? 'bg-orange-600 hover:bg-orange-700'
-                              : 'bg-green-600 hover:bg-green-700'
-                          }`}
-                          title={estadoUpper === 'PARCIAL' ? 'Continuar pago parcial' : 'Realizar pago'}
-                        >
-                          {estadoUpper === 'PARCIAL' ? 'Continuar' : 'Pagar'}
-                        </button>
+
+                      {estadoUpper === 'PAGADA' ? (
+                        <>
+                          {/* BOTONES PARA FACTURAS PAGADAS */}
+                          <button
+                            onClick={() => handleImprimirFactura(factura)}
+                            className="p-1.5 text-gray-600 hover:bg-gray-50 rounded transition-colors"
+                            title="Imprimir"
+                          >
+                            <Printer size={16} />
+                          </button>
+
+                          <button
+                            onClick={() => handleDescargarFactura(factura)}
+                            className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors"
+                            title="Descargar PDF"
+                          >
+                            <Download size={16} />
+                          </button>
+                        </>
                       ) : (
-                        <button
-                          onClick={() => console.log('Imprimir factura', factura.numero_factura)}
-                          className="p-1.5 text-gray-600 hover:bg-gray-50 rounded transition-colors"
-                          title="Imprimir"
-                        >
-                          <Printer size={16} />
-                        </button>
+                        <>
+                          {/* BOTÓN PARA FACTURAS PENDIENTES O PARCIALES */}
+                          <button
+                            onClick={() => handleAbrirModalPago(factura)}
+                            className={`px-3 py-1.5 text-white text-xs font-medium rounded transition-colors ${
+                              estadoUpper === 'PARCIAL'
+                                ? 'bg-orange-600 hover:bg-orange-700'
+                                : 'bg-blue-600 hover:bg-blue-700'
+                            }`}
+                            title={estadoUpper === 'PARCIAL' ? 'Continuar pago parcial' : 'Realizar pago'}
+                          >
+                            {estadoUpper === 'PARCIAL' ? 'Continuar Pago' : 'Pagar Factura'}
+                          </button>
+                        </>
                       )}
                     </div>
                   </td>
@@ -458,12 +547,48 @@ const ListaFacturas = () => {
       {/*MODAL_DE_PAGO*/}
       <ModalPago
         show={showModalPago}
-        numero_factura={facturaSeleccionada?.numero_factura}
+        factura={facturaSeleccionada}
         total={facturaSeleccionada ? parseFloat(facturaSeleccionada.saldo) || 0 : 0}
-        facturas={facturasSeleccionadas.length > 0 ? facturasSeleccionadas : null}
         onClose={handleCerrarModalPago}
-        onPagoExitoso={handlePagoExitoso}
+        onPagoConfirmado={handlePagoExitoso}
       />
+
+      {/*MODAL_PREVIEW_PDF*/}
+      {showPDFPreview && pdfUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-2xl w-11/12 h-5/6 flex flex-col">
+            {/* HEADER DEL MODAL */}
+            <div className="flex items-center justify-between p-4 border-b bg-blue-600 text-white rounded-t-lg">
+              <h3 className="text-xl font-bold">Preview de Factura</h3>
+              <button
+                onClick={handleCerrarPreview}
+                className="hover:bg-blue-700 p-2 rounded-full transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* CONTENIDO - IFRAME CON EL PDF */}
+            <div className="flex-1 p-4 overflow-hidden">
+              <iframe
+                src={pdfUrl}
+                className="w-full h-full border-2 border-gray-300 rounded"
+                title="Preview de Factura"
+              />
+            </div>
+
+            {/* FOOTER DEL MODAL */}
+            <div className="flex justify-end gap-3 p-4 border-t bg-gray-50 rounded-b-lg">
+              <button
+                onClick={handleCerrarPreview}
+                className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

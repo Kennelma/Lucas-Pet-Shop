@@ -11,7 +11,7 @@ import { verificarEstado } from '../../AXIOS.SERVICES/whatsapp-axios';
 import TablaRecordatorios from './tabla-recordatorios';
 import ModalAgregar, { BotonAgregar } from './modal-agregar';
 
-import ConexionWhatsApp from './conexionWhatsApp';
+//import ConexionWhatsApp from './conexionWhatsApp';
 //====================COMPONENTE_PRINCIPAL====================
 const Recordatorios = () => {
 //====================ESTADOS====================

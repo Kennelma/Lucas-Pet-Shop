@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { Plus, Trash2, UserPlus } from "lucide-react";
 import Select from 'react-select';
 import ModalPago from "../pagos/ModalPago";
-import { crearFactura } from "../../../AXIOS.SERVICES/factura-axios"; // ⭐ IMPORTAR
+import { crearFactura } from "../../../AXIOS.SERVICES/factura-axios";
+import { procesarPago } from "../../../AXIOS.SERVICES/payments-axios";
 
 //====================CONFIGURACIÓN_DE_CLAVES====================
 //MAPEO DE CLAVES PARA PRODUCTOS SERVICIOS Y PROMOCIONES
@@ -235,12 +236,27 @@ const DetallesFactura = ({
     setPaymentData(null);
   };
 
-  const handlePaymentSuccess = (paymentType, saldoPendiente) => {
-    console.log('Tipo de pago:', paymentType);
-    console.log('Saldo pendiente:', saldoPendiente);
-    alert(`Pago ${paymentType} procesado correctamente!\nSaldo pendiente: L ${saldoPendiente.toFixed(2)}`);
-    setShowPaymentModal(false);
-    setPaymentData(null);
+  const handlePaymentSuccess = async (datosPago) => {
+    try {
+      console.log('💳 Procesando pago:', datosPago);
+
+      // LLAMAR AL SERVICIO PARA PROCESAR EL PAGO
+      const response = await procesarPago(datosPago);
+
+      if (response.success) {
+        alert(response.mensaje || 'Pago procesado exitosamente');
+        setShowPaymentModal(false);
+        setPaymentData(null);
+
+        // Opcional: Redirigir a la lista de facturas o recargar
+        window.location.href = '/facturas'; // O usar navigate si tienes react-router
+      } else {
+        alert(response.mensaje || 'Error al procesar el pago');
+      }
+    } catch (error) {
+      console.error('Error al procesar pago:', error);
+      alert('Error al procesar el pago: ' + (error.response?.data?.mensaje || error.message));
+    }
   };
 
   //====================MANEJADORES_DE_EVENTOS====================
@@ -527,10 +543,10 @@ const DetallesFactura = ({
 
       <ModalPago
         show={showPaymentModal}
-        numero_factura={paymentData?.numero_factura}
         total={paymentData?.total || 0}
         onClose={handleClosePaymentModal}
-        onPagoExitoso={handlePaymentSuccess}
+        onPagoConfirmado={handlePaymentSuccess}
+        factura={paymentData}
       />
     </>
   );
