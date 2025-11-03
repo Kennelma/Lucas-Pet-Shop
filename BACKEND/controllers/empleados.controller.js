@@ -101,6 +101,7 @@ exports.actualizar = async (req, res) => {
             Consulta: true,
             mensaje: 'Estilista actualizado con éxito',
             id_estilista
+         
             
         });
         

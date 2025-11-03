@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 
-import { 
+import {
   verServicios,
   insertarServicio,
   actualizarServicio,
@@ -15,7 +15,7 @@ import ServiciosFavoritos from './ServiciosFavoritos';
 const Servicios = () => {
   const [servicios, setServicios] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [modalServicioAbierto, setModalServicioAbierto] = useState(false);
   const [servicioEditando, setServicioEditando] = useState(null);
 
@@ -23,13 +23,24 @@ const Servicios = () => {
     cargarDatos();
   }, []);
 
+  useEffect(() => {
+    if (modalServicioAbierto) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [modalServicioAbierto]);
+
   const cargarDatos = async () => {
     setLoading(true);
     try {
       const serviciosData = await verServicios('PELUQUERIA');
       // Normalizar datos numéricos para ordenamiento correcto
       const serviciosNormalizados = (serviciosData || []).map(servicio => {
-        
+
         return {
           ...servicio,
           precio_servicio: parseFloat(servicio.precio_servicio || 0),
@@ -37,7 +48,7 @@ const Servicios = () => {
           activo: servicio.activo !== undefined ? Boolean(servicio.activo) : true
         };
       }) || [];
-      
+
       setServicios(serviciosNormalizados);
     } catch (error) {
       console.error('Error cargando datos:', error);
@@ -64,7 +75,7 @@ const Servicios = () => {
   const handleSubmitServicio = async (datosServicio) => {
     try {
       let resultado;
-      
+
       if (servicioEditando) {
         // Actualizar servicio existente
         resultado = await actualizarServicio({
@@ -106,7 +117,7 @@ const Servicios = () => {
   const actualizarEstadoServicio = async (servicio) => {
     try {
       const nuevoEstado = !servicio.activo;
-      
+
       // Actualizar en el backend
       const resultado = await actualizarServicio({
         id: servicio.id_servicio_peluqueria_pk,
@@ -121,9 +132,9 @@ const Servicios = () => {
 
       if (resultado.Consulta) {
         // Actualizar estado local
-        setServicios(prev => 
-          prev.map(s => 
-            s.id_servicio_peluqueria_pk === servicio.id_servicio_peluqueria_pk 
+        setServicios(prev =>
+          prev.map(s =>
+            s.id_servicio_peluqueria_pk === servicio.id_servicio_peluqueria_pk
               ? { ...s, activo: nuevoEstado }
               : s
           )
@@ -214,7 +225,7 @@ const Servicios = () => {
 
           {/* Dashboard de Servicios Favoritos */}
           <ServiciosFavoritos servicios={servicios} />
-          
+
           {/* Tabla de Servicios */}
           <ServiciosSeccion
             servicios={servicios}

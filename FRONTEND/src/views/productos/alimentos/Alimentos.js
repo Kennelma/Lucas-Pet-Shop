@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Swal from 'sweetalert2';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
@@ -9,8 +9,101 @@ import { faPenToSquare, faTrash, faPlus } from '@fortawesome/free-solid-svg-icon
 
 import ModalNuevoAlimento from './modal_nuevo_alimento';
 import ModalActualizarAlimento from './modal_actualizar_alimento';
+import AlimentosMasVendidos from './AlimentosMasVendidos';
 
 import { verProductos, eliminarProducto, actualizarProducto } from '../../../AXIOS.SERVICES/products-axios';
+
+const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [shouldShowAbove, setShouldShowAbove] = useState(false);
+  const menuRef = useRef(null);
+  const buttonRef = useRef(null);
+
+  const checkPosition = () => {
+    const showAbove = rowIndex >= 2 || rowIndex >= (totalRows - 3);
+    setShouldShowAbove(showAbove);
+  };
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleResize = () => {
+      setIsOpen(false);
+    };
+
+    const handleScroll = () => {
+      setIsOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleScroll, true);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, []);
+
+  const handleToggleMenu = (e) => {
+    e.stopPropagation();
+    if (!isOpen) {
+      checkPosition();
+      requestAnimationFrame(() => {
+        checkPosition();
+      });
+    }
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <div className="relative flex justify-center" ref={menuRef}>
+      <button
+        ref={buttonRef}
+        className="w-8 h-8 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center transition-colors"
+        onClick={handleToggleMenu}
+        title="Más opciones"
+      >
+        <i className="pi pi-ellipsis-h text-white text-xs"></i>
+      </button>
+
+      {isOpen && (
+        <div className={`absolute right-0 ${shouldShowAbove ? 'bottom-16' : 'top-12'} bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[140px]`}>
+          <div
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+              onEditar(rowData);
+            }}
+          >
+            <i className="pi pi-pencil text-xs"></i>
+            <span>Editar</span>
+          </div>
+
+          <hr className="my-0 border-gray-200" />
+
+          <div
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+              onEliminar(rowData);
+            }}
+          >
+            <i className="pi pi-trash text-xs"></i>
+            <span>Eliminar</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Alimentos = () => {
   const [alimentos, setAlimentos] = useState([]);
@@ -24,6 +117,19 @@ const Alimentos = () => {
   useEffect(() => {
     cargarDatos();
   }, []);
+
+  //====================CONTROL_SCROLL_MODAL====================
+  useEffect(() => {
+    if (modalAbierto) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [modalAbierto]);
 
   // Switch para el estado activo
   const estadoTemplate = (rowData) => {
@@ -111,7 +217,7 @@ const Alimentos = () => {
 
     if (result.isConfirmed) {
       try {
-        const resp = await eliminarProducto(alimento.id_producto);
+        const resp = await eliminarProducto({ id_producto: alimento.id_producto });
         if (resp.Consulta) {
           Swal.fire({
             icon: 'success',
@@ -183,14 +289,18 @@ const Alimentos = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       {/* Título */}
-      <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+      <div className="bg-gradient-to-r from-purple-50  rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
             INVENTARIO DE ALIMENTOS
           </h2>
         </div>
         <p className="text-center text-gray-600 italic">Administra alimentos balanceados, snacks y nutrición para mascotas</p>
+
       </div>
+
+      {/* Componente de Alimentos Más Vendidos */}
+      <AlimentosMasVendidos alimentos={alimentos} />
 
       <div className="bg-white rounded-xl p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         {/* Header */}
@@ -212,11 +322,11 @@ const Alimentos = () => {
             )}
           </div>
           <button
-            className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition-colors flex items-center gap-2"
+            className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600 transition-colors flex items-center gap-2"
             onClick={() => abrirModal()}
           >
             <FontAwesomeIcon icon={faPlus} />
-            Nuevo Alimento
+            NUEVO ALIMENTO
           </button>
         </div>
 
@@ -243,16 +353,16 @@ const Alimentos = () => {
           selectionMode="single"
           rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
         >
-          <Column 
-            field="id_producto" 
-            header="ID" 
+          <Column
+            field="id_producto"
+            header="ID"
             body={(rowData) => filtroAlimentos.length - filtroAlimentos.indexOf(rowData)}
-            sortable 
+            sortable
             className="text-sm"
           />
           <Column field="nombre" header="NOMBRE" sortable className="text-sm" />
           <Column field="sku" header="SKU" sortable className="text-sm" />
-          <Column field="destino" header="DESTINADO" sortable className="text-sm" />
+          <Column field="destino" header="DESTINADO" sortable className="text-sm text-center" />
           <Column
             field="peso"
             header="PESO"
@@ -289,28 +399,18 @@ const Alimentos = () => {
           />
           <Column
             header="ACCIONES"
-            body={(rowData) => (
-              <div className="flex items-center space-x-2 w-full">
-                <button
-                  className="text-blue-500 hover:text-blue-700 p-2 rounded transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    abrirModal(rowData);
-                  }}
-                >
-                  <FontAwesomeIcon icon={faPenToSquare} size="lg" />
-                </button>
-                <button
-                  className="text-red-500 hover:text-red-700 p-2 rounded transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleEliminar(rowData);
-                  }}
-                >
-                  <FontAwesomeIcon icon={faTrash} size="lg" />
-                </button>
-              </div>
-            )}
+            body={(rowData, column) => {
+              const rowIndex = alimentos.indexOf(rowData);
+              return (
+                <ActionMenu
+                  rowData={rowData}
+                  rowIndex={rowIndex}
+                  totalRows={alimentos.length}
+                  onEditar={abrirModal}
+                  onEliminar={handleEliminar}
+                />
+              );
+            }}
             className="py-2 pr-9 pl-1 border-b text-sm"
           />
         </DataTable>

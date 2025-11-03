@@ -15,9 +15,8 @@ export const verRecordatorios = async () => {
     return [];
   }
 };
-
 // ───────────────────────────────────────────────
-// SERVICIO PARA INSERTAR RECORDATORIO
+// SERVICIO PARA INSERTAR RECORDATORIO - CORREGIDO
 // ───────────────────────────────────────────────
 export const insertarRecordatorio = async (datosRecordatorio) => {
   try {
@@ -30,7 +29,7 @@ export const insertarRecordatorio = async (datosRecordatorio) => {
 };
 
 // ───────────────────────────────────────────────
-// SERVICIO PARA ACTUALIZAR RECORDATORIO
+// SERVICIO PARA ACTUALIZAR RECORDATORIO - CORREGIDO
 // ───────────────────────────────────────────────
 export const actualizarRecordatorio = async (datosRecordatorio) => {
   try {
@@ -41,9 +40,8 @@ export const actualizarRecordatorio = async (datosRecordatorio) => {
     return { Consulta: false, error: err.message };
   }
 };
-
 // ───────────────────────────────────────────────
-// SERVICIO PARA ELIMINAR RECORDATORIO
+// SERVICIO PARA ELIMINAR RECORDATORIO - CORREGIDO
 // ───────────────────────────────────────────────
 export const eliminarRecordatorio = async (id) => {
   try {
@@ -60,19 +58,15 @@ export const eliminarRecordatorio = async (id) => {
 /*SERVICIO PARA VER CATALOGOS POR TIPO*/
 export const verCatalogo = async (tipo_catalogo) => {
   try {
-
-    const res = await axiosInstance.get(`${API_URL}/verCatalogos`, {
+    const res = await axiosInstance.get(`${API_URL}/catalogo`, {
       params: { tipo_catalogo },
     });
-    
-    console.log(`Respuesta ${tipo_catalogo}:`, res.data);
     return {
       Consulta: res.data.Consulta,
       servicios: res.data.Catalogo || []
     };
-
   } catch (err) {
-    console.error(`Error al traer catálogo ${tipo_catalogo}:`, err);
-    return { Consulta: false, error: err.message, servicios: [] }; 
+    console.error(`❌ Error al traer catálogo ${tipo_catalogo}:`, err);
+    return { Consulta: false, error: err.message, servicios: [] };
   }
 };

@@ -1,181 +1,208 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
 
-const KardexTable = ({ kardexData }) => {
-  const [filterValue, setFilterValue] = useState("");
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [page, setPage] = useState(1);
+const KardexTable = ({ kardexData, globalFilter, setGlobalFilter }) => {
 
-  const filteredItems = useMemo(() => {
-    if (!filterValue) return kardexData;
-    const lower = filterValue.toLowerCase();
-    return kardexData.filter((item) =>
-      item.nombre_producto.toLowerCase().includes(lower) ||
-      item.codigo_lote?.toLowerCase().includes(lower)
-    );
-  }, [kardexData, filterValue]);
-
-  const pages = Math.ceil(filteredItems.length / rowsPerPage);
-  const start = (page - 1) * rowsPerPage;
-  const items = filteredItems.slice(start, start + rowsPerPage);
-
-  if (kardexData.length === 0) {
+  // Template para mostrar el medicamento
+  const medicamentoTemplate = (rowData) => {
     return (
-      <div className="text-center p-8 bg-gray-50 rounded-lg">
-        <p className="text-gray-500">📦 No se encontraron movimientos</p>
+      <div>
+        <div className="text-sm ">
+          {rowData.nombre_producto}
+        </div>
       </div>
     );
-  }
+  };
+
+  // Template para mostrar el código de lote
+  const loteTemplate = (rowData) => {
+    return (
+      <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded text-gray-600 whitespace-nowrap overflow-hidden text-ellipsis inline-block max-w-full">
+        {rowData.codigo_lote || "N/A"}
+      </span>
+    );
+  };
+
+  // Template para mostrar la cantidad
+  const cantidadTemplate = (rowData) => {
+    return (
+      <span className="text-sm font-poppins">
+        {rowData.cantidad_movimiento}
+      </span>
+    );
+  };
+
+  // Template para mostrar el costo unitario
+  const costoTemplate = (rowData) => {
+    return (
+      <span className="text-sm">
+        L. {parseFloat(rowData.costo_unitario || 0).toFixed(2)}
+      </span>
+    );
+  };
+
+  // Template para mostrar la fecha en una línea con plecas
+  const fechaTemplate = (rowData) => {
+    const fecha = new Date(rowData.fecha_movimiento);
+    const dia = fecha.getDate().toString().padStart(2, '0');
+    const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+    const año = fecha.getFullYear();
+    
+    return (
+      <span className="text-sm text-gray-600">
+        {dia}/{mes}/{año}
+      </span>
+    );
+  };
+
+  // Template para mostrar el tipo de movimiento
+  const tipoTemplate = (rowData) => {
+    return (
+      <span className={`inline-flex px-2 py-1 text-xs font-poppins rounded-full ${
+        rowData.tipo_movimiento === "ENTRADA"
+          ? "bg-green-100 text-green-800"
+          : "bg-red-100 text-red-800"
+      }`}>
+        {rowData.tipo_movimiento}
+      </span>
+    );
+  };
+
+  // Template para mostrar el origen
+  const origenTemplate = (rowData) => {
+    return (
+      <span className="inline-flex px-2 py-1 text-xs font-poppins rounded-full bg-blue-100 text-blue-800">
+        {rowData.origen_movimiento}
+      </span>
+    );
+  };
+
+  // Template para mostrar el usuario
+  const usuarioTemplate = (rowData) => {
+    return (
+      <span className="text-sm text-gray-600">
+        {rowData.nombre_usuario_movimiento}
+      </span>
+    );
+  };
 
   return (
-    <div className="w-full">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="relative w-80">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Buscar medicamento o lote..."
-            value={filterValue}
-            onChange={(e) => {
-              setFilterValue(e.target.value);
-              setPage(1);
-            }}
-            className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+    <>
+      {kardexData.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 mx-auto mb-4 text-gray-400">
+            <svg fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          </div>
+          <h3 className="text-lg font-poppins text-gray-700 mb-2">No hay movimientos</h3>
+          <p className="text-gray-500 mb-6">No se encontraron movimientos de inventario para mostrar.</p>
         </div>
-        <span className="text-sm text-gray-500">
-          Filas por página: 
-          <select
-            value={rowsPerPage}
-            onChange={(e) => {
-              setRowsPerPage(Number(e.target.value));
-              setPage(1);
-            }}
-            className="ml-2 border-0 bg-transparent text-gray-700 focus:outline-none cursor-pointer"
-          >
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="15">15</option>
-          </select>
-        </span>
-      </div>
-
-      {/* Table */}
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-slate-100 border-b border-slate-200">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Medicamento
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Código Lote
-              </th>
-              <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Cantidad
-              </th>
-              <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Costo Unit.
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Fecha
-              </th>
-              <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Tipo
-              </th>
-              <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Origen
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Usuario
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {items.map((mov, idx) => (
-              <tr key={mov.id_movimiento_pk || idx} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                  {mov.nombre_producto}
-                </td>
-                <td className="px-4 py-3">
-                  <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded text-gray-600">
-                    {mov.codigo_lote || "N/A"}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
-                  {mov.cantidad_movimiento}
-                </td>
-                <td className="px-4 py-3 text-center text-sm text-gray-700">
-                  L. {parseFloat(mov.costo_unitario || 0).toFixed(2)}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
-                  {new Date(mov.fecha_movimiento).toLocaleDateString('es-HN', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric'
-                  })}
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    mov.tipo_movimiento === "ENTRADA"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                  }`}>
-                    {mov.tipo_movimiento}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                    {mov.origen_movimiento}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
-                  {mov.nombre_usuario_movimiento}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Paginación */}
-                <div className="flex justify-center items-center gap-4 mt-6 pt-4 border-t border-gray-200">
-                  <button
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-                  
-                  <div className="flex items-center gap-2">
-                    {[...Array(pages)].map((_, i) => (
-                      <button
-                        key={i + 1}
-                        onClick={() => setPage(i + 1)}
-                        className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                          page === i + 1
-                            ? "bg-blue-600 text-white"
-                            : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-                        }`}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={() => setPage(p => Math.min(pages, p + 1))}
-                    disabled={page === pages}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
-
-    </div>
+      ) : (
+        <DataTable
+          value={kardexData}
+          loading={false}
+          loadingIcon={() => (
+            <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
+              <span>Cargando movimientos...</span>
+            </div>
+          )}
+          globalFilter={globalFilter}
+          globalFilterFields={['nombre_producto', 'codigo_lote', 'tipo_movimiento', 'origen_movimiento']}
+          showGridlines
+          paginator
+          rows={5}
+          rowsPerPageOptions={[5, 10, 15, 20]}
+          paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+          tableStyle={{ minWidth: '50rem' }}
+          className="mt-4"
+          size="small"
+          selectionMode="single"
+          rowClassName={(rowData) => `hover:bg-gray-50 cursor-pointer`}
+        >
+          
+          <Column 
+            field="id_movimiento_pk" 
+            header="ID" 
+            body={(rowData) => kardexData.length - kardexData.indexOf(rowData)}
+            sortable 
+            className="text-sm"
+          />
+          
+          <Column 
+            field="nombre_producto" 
+            header="MEDICAMENTO" 
+            body={medicamentoTemplate}
+            sortable 
+            className="text-sm"
+          />
+          
+          <Column 
+            field="codigo_lote" 
+            header="LOTE" 
+            body={loteTemplate}
+            sortable 
+            className="text-sm"
+          />
+          
+          <Column 
+            field="cantidad_movimiento" 
+            header="CANT." 
+            body={cantidadTemplate}
+            sortable 
+            className="text-sm text-center"
+            bodyClassName="text-center"
+          />
+          
+          <Column 
+            field="costo_unitario"
+            header="COSTO UNIT." 
+            body={costoTemplate}
+            sortable 
+            className="text-sm text-center"
+            bodyClassName="text-center"
+          />
+          
+          <Column 
+            field="fecha_movimiento"
+            header="FECHA DE MOVIMIENTO" 
+            body={fechaTemplate}
+            sortable 
+            className="text-sm"
+            bodyClassName="text"
+          />
+          
+          <Column 
+            field="tipo_movimiento"
+            header="TIPO" 
+            body={tipoTemplate}
+            sortable 
+            className="text-sm text-center"
+            bodyClassName="text-center"
+          />
+          
+          <Column 
+            field="origen_movimiento"
+            header="ORIGEN" 
+            body={origenTemplate}
+            sortable 
+            className="text-sm text-center"
+            bodyClassName="text-center"
+          />
+          
+          <Column 
+            field="nombre_usuario_movimiento"
+            header="USUARIO" 
+            body={usuarioTemplate}
+            sortable 
+            className="text-sm"
+          />
+          
+        </DataTable>
+      )}
+    </>
   );
 };
 

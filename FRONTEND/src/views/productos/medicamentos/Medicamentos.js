@@ -1,23 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { useMedicamentos } from "./useMedicamentos";
-import MedicamentosBajoStock from "./MedicamentosBajoStock";
-import MedicamentoCard from "./MedicamentoCard";
+import MedicamentoTable from "./MedicamentoTable";
 import KardexTable from "./KardexTable";
+import MedicamentosMasVendidos from "./MedicamentosMasVendidos";
 import ModalMedicamento from "./ModalMedicamento";
 import ModalLote from "./ModalLote";
 import ModalMovimiento from "./ModalMovimiento";
 import ModalLotesMedicamento from "./ModalLotesMedicamento";
+import { cambiarEstadoProducto } from "../../../AXIOS.SERVICES/products-axios";
 
 const Medicamentos = () => {
-  const { medicamentos, lotes, kardexData, loading, mensaje, calcularStockTotal, guardarMedicamento, guardarLote, guardarMovimiento,
+  const { medicamentos, setMedicamentos, lotes, kardexData, loading, mensaje, calcularStockTotal, guardarMedicamento, guardarLote, guardarMovimiento,
     eliminarMedicamento, eliminarLote, cargarDatos
   } = useMedicamentos();
 
   const [vistaActual, setVistaActual] = useState("medicamentos");
   const [busqueda, setBusqueda] = useState("");
-  const [rowsPerPage, setRowsPerPage] = useState(8);
-  const [page, setPage] = useState(1);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalLoteVisible, setModalLoteVisible] = useState(false);
   const [modalMovVisible, setModalMovVisible] = useState(false);
@@ -26,17 +25,27 @@ const Medicamentos = () => {
   const [medicamentoSeleccionado, setMedicamentoSeleccionado] = useState(null);
   const [loteSeleccionado, setLoteSeleccionado] = useState(null);
 
+  //====================CONTROL_SCROLL_MODALES====================
+  useEffect(() => {
+    const anyModalOpen = modalVisible || modalLoteVisible || modalMovVisible || modalLotesVisible;
+
+    if (anyModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [modalVisible, modalLoteVisible, modalMovVisible, modalLotesVisible]);
+
   const medicamentosFiltrados = medicamentos.filter((m) =>
     m.nombre_producto.toLowerCase().includes(busqueda.toLowerCase()) ||
     m.presentacion_medicamento.toLowerCase().includes(busqueda.toLowerCase()) ||
     m.tipo_medicamento.toLowerCase().includes(busqueda.toLowerCase()) ||
     m.sku.toLowerCase().includes(busqueda.toLowerCase())
   );
-
-  // Paginación para medicamentos
-  const pages = Math.ceil(medicamentosFiltrados.length / rowsPerPage);
-  const start = (page - 1) * rowsPerPage;
-  const medicamentosPaginados = medicamentosFiltrados.slice(start, start + rowsPerPage);
 
   const kardexFiltrado = kardexData.filter(mov => {
     const searchLower = busqueda.toLowerCase();
@@ -50,16 +59,16 @@ const Medicamentos = () => {
   const calcularEstadoLote = (lote) => {
     const hoy = new Date();
     const vencimiento = new Date(lote.fecha_vencimiento);
-    
+
     if (vencimiento < hoy) {
       return { bgBadge: "bg-gray-600", texto: "CADUCADO" };
     }
-    
+
     const stock = parseInt(lote.stock_lote || 0);
     if (stock === 0) {
       return { bgBadge: "bg-red-500", texto: "AGOTADO" };
     }
-    
+
     return { bgBadge: "bg-green-500", texto: "DISPONIBLE" };
   };
 
@@ -89,7 +98,7 @@ const Medicamentos = () => {
 
   const handleEliminarMedicamento = async (medicamento) => {
     const lotesAsociados = lotes.filter(l => l.id_producto_fk === medicamento.id_producto_pk).length;
-    
+
     const result = await Swal.fire({
       title: "¿Eliminar medicamento?",
       html: `
@@ -120,9 +129,46 @@ const Medicamentos = () => {
     }
   };
 
+  const handleCambiarEstado = async (medicamento) => {
+    try {
+      const nuevoEstado = !medicamento.activo;
+
+      const response = await cambiarEstadoProducto(medicamento.id_producto_pk, nuevoEstado);
+
+      if (response.Consulta) {
+        // Actualizar el estado local inmediatamente sin recargar todos los datos
+        setMedicamentos(prev =>
+          prev.map(med =>
+            med.id_producto_pk === medicamento.id_producto_pk
+              ? { ...med, activo: nuevoEstado }
+              : med
+          )
+        );
+
+        Swal.fire({
+          icon: "success",
+          title: nuevoEstado ? "¡Medicamento Activado!" : "¡Medicamento Desactivado!",
+          text: "Estado actualizado correctamente",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } else {
+        throw new Error(response.error || "Error al cambiar estado");
+      }
+    } catch (error) {
+      console.error("Error al cambiar estado:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo cambiar el estado del medicamento",
+        confirmButtonText: "Entendido"
+      });
+    }
+  };
+
   const handleEliminarLote = async (lote) => {
     const estilo = calcularEstadoLote(lote);
-    
+
     const result = await Swal.fire({
       title: "¿Eliminar lote?",
       html: `
@@ -157,7 +203,7 @@ const Medicamentos = () => {
       if (success) {
         // Recargar datos después de eliminar
         await cargarDatos();
-        
+
         Swal.fire({ icon: "success", title: "¡Eliminado!", text: "El lote fue eliminado correctamente", timer: 1800, showConfirmButton: false,});
       }
     }
@@ -177,7 +223,7 @@ const Medicamentos = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       {/* Encabezado */}
-      <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-3" 
+      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 mb-3"
            style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         <h2 className="text-2xl font-black text-center uppercase text-gray-800">
           GESTIÓN DE MEDICAMENTOS
@@ -187,8 +233,7 @@ const Medicamentos = () => {
         </p>
       </div>
 
-      {/* Alertas de Stock Bajo */}
-      <MedicamentosBajoStock medicamentos={medicamentos} />
+
 
       {/* Tabs de navegación*/}
       <div className="flex flex-wrap rounded-lg bg-gray-200 p-1 w-80 text-sm shadow-sm mb-6">
@@ -203,7 +248,7 @@ const Medicamentos = () => {
              MEDICAMENTOS
           </span>
         </label>
-        
+
         <label className="flex-1 text-center">
           <input type="radio" name="vista" checked={vistaActual === "kardex"} onChange={() => setVistaActual("kardex")} className="hidden" />
           <span className={`flex items-center justify-center rounded-lg py-2 px-4 cursor-pointer transition-all duration-150 ${
@@ -217,52 +262,47 @@ const Medicamentos = () => {
         </label>
       </div>
 
+      {/* Sección Más Vendidos - SOLO PARA MEDICAMENTOS */}
+      {vistaActual === "medicamentos" && (
+        <MedicamentosMasVendidos medicamentos={medicamentos} />
+      )}
+
       {/* Contenido principal */}
-      <div className="bg-white rounded-xl p-6 mb-6" 
+      <div className="bg-white rounded-xl p-6 mb-6"
            style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         {vistaActual === "kardex" ? (
           <KardexTable kardexData={kardexFiltrado} />
         ) : (
           <>
             {/* Barra de búsqueda y controles - SOLO PARA MEDICAMENTOS */}
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-6">
               <div className="relative w-80">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input type="text" value={busqueda} onChange={(e) => {
-                    setBusqueda(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                <input
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                  placeholder="Buscar medicamentos..."
+                  className="w-full px-4 py-2 border rounded-full"
                 />
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-500">
-                  Filas por página: 
-                  <select
-                    value={rowsPerPage}
-                    onChange={(e) => {
-                      setRowsPerPage(Number(e.target.value));
-                      setPage(1);
-                    }}
-                    className="ml-2 border-0 bg-transparent text-gray-700 focus:outline-none cursor-pointer"
+                {busqueda && (
+                  <button
+                    onClick={() => setBusqueda('')}
+                    className="absolute right-3 top-2 text-gray-500"
                   >
-                    <option value="4">4</option>
-                    <option value="8">8</option>
-                    <option value="12">12</option>
-                    <option value="16">16</option>
-                  </select>
-                </span>
-
-                <button
-                  onClick={() => setModalVisible(true)}
-                  className="px-6 py-2 text-white text-xs font-bold bg-gradient-to-br from-green-400 via-green-500 to-emerald-600 rounded-[3rem] transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_25px_rgba(74,222,128,0.8)] shadow-md"
-                >
-                  + MEDICAMENTO
-                </button>
+                    ×
+                  </button>
+                )}
               </div>
+
+              <button
+                className="bg-purple-500 text-white px-6 py-2 rounded-full hover:bg-purple-600 transition-colors flex items-center gap-2"
+                style={{ borderRadius: '12px' }}
+                onClick={() => setModalVisible(true)}
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 448 512">
+                  <path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/>
+                </svg>
+                NUEVO MEDICAMENTO
+              </button>
             </div>
 
             {medicamentosFiltrados.length === 0 ? (
@@ -271,92 +311,63 @@ const Medicamentos = () => {
                 <p className="text-sm text-gray-500 mt-2">Haz clic en "+ NUEVO MEDICAMENTO" </p>
               </div>
             ) : (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {medicamentosPaginados.map((med) => (
-                    <MedicamentoCard
-                      key={med.id_producto_pk}
-                      medicamento={med}
-                      stockTotal={calcularStockTotal(med.id_producto_pk)}
-                      lotesCount={lotes.filter(l => l.id_producto_fk === med.id_producto_pk).length}
-                      onEditar={() => {
-                        setMedicamentoEditando(med);
-                        setModalVisible(true);
-                      }}
-                      onAgregarLote={() => {
-                        setMedicamentoSeleccionado(med);
-                        setModalLoteVisible(true);
-                      }}
-                      onVerLotes={() => {
-                        setMedicamentoSeleccionado(med);
-                        setModalLotesVisible(true);
-                      }}
-                      onEliminar={() => handleEliminarMedicamento(med)}
-                    />
-                  ))}
-                </div>
-
-                {/* Paginación */}
-                <div className="flex justify-center items-center gap-4 mt-6 pt-4 border-t border-gray-200">
-                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-                  
-                  <div className="flex items-center gap-2">
-                    {[...Array(pages)].map((_, i) => (
-                      <button
-                        key={i + 1}
-                        onClick={() => setPage(i + 1)}
-                        className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                          page === i + 1
-                            ? "bg-blue-600 text-white"
-                            : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-                        }`}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
-                  </div>
-
-                  <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
-              </>
+              <MedicamentoTable
+                medicamentos={medicamentosFiltrados}
+                stockTotals={medicamentos.reduce((acc, med) => {
+                  acc[med.id_producto_pk] = calcularStockTotal(med.id_producto_pk);
+                  return acc;
+                }, {})}
+                lotesCounts={medicamentos.reduce((acc, med) => {
+                  acc[med.id_producto_pk] = lotes.filter(l => l.id_producto_fk === med.id_producto_pk).length;
+                  return acc;
+                }, {})}
+                globalFilter={busqueda}
+                setGlobalFilter={setBusqueda}
+                onEditar={(med) => {
+                  setMedicamentoEditando(med);
+                  setModalVisible(true);
+                }}
+                onAgregarLote={(med) => {
+                  setMedicamentoSeleccionado(med);
+                  setModalLoteVisible(true);
+                }}
+                onVerLotes={(med) => {
+                  setMedicamentoSeleccionado(med);
+                  setModalLotesVisible(true);
+                }}
+                onEliminar={handleEliminarMedicamento}
+                onCambiarEstado={handleCambiarEstado}
+              />
             )}
           </>
         )}
       </div>
 
       {/* Modales */}
-      <ModalMedicamento 
+      <ModalMedicamento
         isOpen={modalVisible} onClose={() => {
           setModalVisible(false);
           setMedicamentoEditando(null);
         }}
         onSave={handleGuardarMedicamento} medicamentoEditando={medicamentoEditando} medicamentosExistentes={medicamentos}
       />
-      
-      <ModalLote 
+
+      <ModalLote
         isOpen={modalLoteVisible} onClose={() => {
           setModalLoteVisible(false);
           setMedicamentoSeleccionado(null);
         }}
         onSave={handleGuardarLote} medicamentoSeleccionado={medicamentoSeleccionado} lotesExistentes={lotes}
       />
-      
-      <ModalMovimiento 
+
+      <ModalMovimiento
         isOpen={modalMovVisible} onClose={() => {
           setModalMovVisible(false);
           setLoteSeleccionado(null);
         }}
         onSave={handleGuardarMovimiento} loteSeleccionado={loteSeleccionado}
       />
-      
+
       <ModalLotesMedicamento isOpen={modalLotesVisible} onClose={() => {
           setModalLotesVisible(false);
           setMedicamentoSeleccionado(null);

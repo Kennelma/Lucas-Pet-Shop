@@ -1,35 +1,35 @@
-//Constante para el paquete Express
 const express = require('express');
 const cors = require("cors");
 
-//constante para los metodos de express.
-var  app = express();
+const path = require('path');
+const mysqlConnection = require('./config/conexion');
+const { connectWhatsApp } = require('./config/whatsapp');
 
-
-//IMPORTO LA CONEXION DEL ARCHIVO CORRRESPONDIENTE
-const mysqlConnection = require('./config/conexion'); 
-
-
-//PARA CARGAR LA JWT SECRET DESDE EL ARCHIVO .ENV
-const path = require('path'); 
-require('dotenv').config({ 
+require('dotenv').config({
     path: path.resolve(process.cwd(), '..', '.env'),
     debug: false,
     silent: true
-}); 
+});
+
+const app = express();
 
 //PARA QUE EL SERVIDOR PUEDA RECIBIR JSON Y XXWW-FORM-URLENCODED
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }))
-
-
-//Permitir todas las peticiones desde cualquier origen
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-//IMPORTACION DE LAS RUTAS
 app.use('/api', require('./routes/rutas'));
+
+//IMPORTACION DE WHATSAPP
+connectWhatsApp().catch(err => {
+    console.error('❌ Error al conectar WhatsApp:', err);
+    console.log('⚠️  El servidor funcionará, pero WhatsApp no estará disponible.');
+});
 
 const PORT = 4000;
 app.listen(PORT, function() {
     console.log('🚀 Servidor en puerto ' + PORT);
+    //console.log('📱 Escanea el QR de WhatsApp si aparece en la terminal');
 });
+
+module.exports = app;
