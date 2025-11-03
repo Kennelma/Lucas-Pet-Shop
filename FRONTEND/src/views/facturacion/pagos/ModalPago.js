@@ -7,6 +7,8 @@ import { obtenerTodosMetodosPago, obtenerTiposPago, procesarPago } from '../../.
 //  1. MODO MÚLTIPLE: <ModalPago facturas={[{numero_factura, total}, ...]} />
 //  2. MODO SIMPLE (LEGACY): <ModalPago numero_factura="FAC-001" total={500} />
 function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExitoso }) {
+  console.log('🎯 Props recibidas en ModalPago:', { numero_factura, total, facturas });
+
   //ESTADOS DEL COMPONENTE
   const [vista, setVista] = useState('tipo');                    //VISTA ACTUAL: 'tipo' O 'metodos'
   const [tipoPago, setTipoPago] = useState(null);                //TIPO SELECCIONADO: {tipo_pago, id_tipo_pago_pk}
@@ -118,18 +120,20 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
     const datosPago = {
       facturas: facturasNormalizadas.map(f => ({
         numero_factura: f.numero_factura,
-        //SI ES UNA SOLA FACTURA: USA EL MONTO INGRESADO
-        //SI SON MÚLTIPLES: USA EL TOTAL DE CADA UNA (ASUME PAGO COMPLETO)
+        //SI ES UNA SOLA FACTURA: USA EL SALDO (PARA EVITAR PROBLEMAS DE DECIMALES)
+        //SI SON MÚLTIPLES: USA EL SALDO DE CADA UNA
         monto_aplicar: facturasNormalizadas.length === 1
-          ? totalIngresado
-          : parseFloat(f.total)
+          ? parseFloat((f.saldo || f.total).toFixed(2))
+          : parseFloat((f.saldo || f.total).toFixed(2))
       })),
       tipo_pago: tipoPago.id_tipo_pago_pk,
       metodos: metodosSeleccionados.map(metodo => ({
         id_metodo_pago: metodo.id,
-        monto: parseFloat(montos[metodo.id])
+        monto: parseFloat(parseFloat(montos[metodo.id]).toFixed(2))
       }))
     };
+
+    console.log('📤 Enviando pago:', datosPago);
 
     setProcesando(true);
     try {

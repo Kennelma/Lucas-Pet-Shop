@@ -20,11 +20,11 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
     const cargarQR = async () => {
         setCargando(true);
         setQrExpired(false);
-        
+
         if (qrTimer) {
             clearTimeout(qrTimer);
         }
-        
+
         try {
             const response = await obtenerQR();
 
@@ -35,7 +35,7 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
                 } else if (response.qr) {
                     setQr(response.qr);
                     setConectado(false);
-                    
+
                     // Timer de expiración del QR
                     const timer = setTimeout(() => {
                         setQrExpired(true);
@@ -50,7 +50,7 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
         } catch (error) {
             console.error('Error al cargar QR:', error);
         }
-        
+
         setCargando(false);
     };
 
@@ -73,7 +73,7 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
         }
 
         setCargandoCodigo(true);
-        
+
         try {
             const cleanPhone = phoneNumber.replace(/\D/g, '');
             const response = await solicitarCodigoEmparejamiento(cleanPhone);
@@ -94,7 +94,7 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
     useEffect(() => {
         if (isOpen) {
             cargarQR();
-            
+
             const interval = setInterval(verificarConexion, 5000);
             return () => {
                 clearInterval(interval);
@@ -123,106 +123,105 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
     }, [qr, qrExpired]);
 
     const handleCerrarSesion = async () => {
-        const result = await Swal.fire({
-            title: '¿Cerrar sesión de WhatsApp?',
-            text: 'Tendrás que escanear el código QR nuevamente para reconectar',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc2626',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Sí, cerrar sesión',
-            cancelButtonText: 'Cancelar',
-            zIndex: 99999999,
-            backdrop: true,
-            allowOutsideClick: false
-        });
+        //CERRAR EL MODAL PRIMERO PARA EVITAR CONFLICTO DE Z-INDEX
+        onClose();
 
-        if (result.isConfirmed) {
-            try {
-                setCargando(true);
-                
-                const response = await cerrarSesionWhatsApp();
+        //ESPERAR UN MOMENTO PARA QUE SE CIERRE EL MODAL
+        setTimeout(async () => {
+            const result = await Swal.fire({
+                title: '¿Cerrar sesión de WhatsApp?',
+                text: 'Tendrás que escanear el código QR nuevamente para reconectar',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sí, cerrar sesión',
+                cancelButtonText: 'Cancelar'
+            });
 
-                if (response.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Sesión cerrada',
-                        text: 'WhatsApp desconectado correctamente',
-                        timer: 2000,
-                        showConfirmButton: false,
-                        zIndex: 99999999
-                    });
+            if (result.isConfirmed) {
+                try {
+                    setCargando(true);
 
-                    // Reiniciar estados
-                    setQr(null);
-                    setConectado(false);
-                    setQrExpired(false);
-                    setQrCountdown(60);
-                    setPairingCode('');
-                    setPhoneNumber('');
-                    
-                    if (qrTimer) {
-                        clearTimeout(qrTimer);
-                        setQrTimer(null);
+                    const response = await cerrarSesionWhatsApp();
+
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Sesión cerrada',
+                            text: 'WhatsApp desconectado correctamente',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+
+                        //REINICIAR ESTADOS
+                        setQr(null);
+                        setConectado(false);
+                        setQrExpired(false);
+                        setQrCountdown(60);
+                        setPairingCode('');
+                        setPhoneNumber('');
+
+                        if (qrTimer) {
+                            clearTimeout(qrTimer);
+                            setQrTimer(null);
+                        }
+
+                        setTimeout(cargarQR, 1000);
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo cerrar la sesión'
+                        });
                     }
-                    
-                    setTimeout(cargarQR, 1000);
-                } else {
+
+                } catch (error) {
+                    console.error('Error al cerrar sesión:', error);
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'No se pudo cerrar la sesión',
-                        zIndex: 99999999
+                        text: 'Ocurrió un error al cerrar la sesión'
                     });
+                } finally {
+                    setCargando(false);
                 }
-                
-            } catch (error) {
-                console.error('Error al cerrar sesión:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Ocurrió un error al cerrar la sesión',
-                    zIndex: 99999999
-                });
-            } finally {
-                setCargando(false);
             }
-        }
+        }, 200);
     };
 
     const footer = (
         <div className="flex justify-center gap-2">
-            {conectado ? (
+            {conectado && (
                 <Button
-                    label="Cerrar Sesión"
+                    label="Desconectar sesión de WhatsApp"
                     icon={<FaSignOutAlt className="mr-1" />}
                     className="p-button-danger text-xs px-3 py-1"
                     onClick={handleCerrarSesion}
                     disabled={cargando}
                 />
-            ) : (
-                <Button
-                    label="Cerrar"
-                    className="p-button-secondary text-xs px-3 py-1"
-                    onClick={onClose}
-                />
             )}
+            <Button
+                label="Cerrar"
+                className="p-button-secondary text-xs px-3 py-1"
+                onClick={onClose}
+            />
         </div>
     );
 
     return (
         <>
         <Dialog
-            
+
             visible={isOpen}
-            style={{ 
-                width: '32rem', 
+            style={{
+                width: '32rem',
                 borderRadius: '1.5rem',
                 maxHeight: '85vh',
                 overflow: 'hidden'
             }}
             breakpoints={{'960px': '75vw', '641px': '90vw'}}
-            contentStyle={{ 
+            contentStyle={{
                 overflow: 'hidden',
                 maxHeight: 'none',
                 padding: '0.5rem 1rem 1rem 1rem'
@@ -239,14 +238,14 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
             <div className="flex flex-col gap-1">
                 {conectado ? (
                     <div className="text-center py-2 relative">
-                       
+
                         <button
                             onClick={onClose}
                             className="absolute top-0 right-0 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
                         >
                             <FaTimes className="text-xs" />
                         </button>
-                        
+
                         <h2 className="text-lg font-bold text-green-600 mb-2 flex items-center justify-center gap-2">
                             <FaWhatsapp />
                             WhatsApp Conectado
@@ -259,15 +258,15 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
                             <p className="text-green-700 text-xs mb-2">
                                 Sistema listo para enviar recordatorios automáticos
                             </p>
-                            
-                            
+
+
                                 <p className="text-green-600 text-xs font-medium mb-1">
                                      Dispositivo activo en WhatsApp
                                 </p>
                                 <p className="text-green-600 text-xs">
-                                    Para desconectar completamente, usa "Cerrar Sesión" 
+                                    Para desconectar completamente, usa "Cerrar Sesión"
                                 </p>
-                            
+
                         </div>
                     </div>
                 ) : (
@@ -281,8 +280,8 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
                             `}
                         </style>
                         <TabView className="w-full centered-tabs">
-                            
-                            <TabPanel 
+
+                            <TabPanel
                             header={
                                 <div className="flex items-center gap-2 justify-center">
                                     <FaQrcode className="text-sm text" />
@@ -296,17 +295,17 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
                                         {/* QR Code */}
                                         <div className="text-center">
                                             <div className="bg-white p-4 rounded-xl border border-blue-100 mb-3 w-fit mx-auto relative shadow-lg">
-                                                <img 
-                                                    src={qr} 
-                                                    alt="Código QR de WhatsApp" 
+                                                <img
+                                                    src={qr}
+                                                    alt="Código QR de WhatsApp"
                                                     className={`w-48 h-48 transition-all duration-300 ${qrExpired ? 'blur-sm opacity-50' : ''}`}
-                                                    style={{ 
+                                                    style={{
                                                         imageRendering: 'crisp-edges',
                                                         maxWidth: '100%',
                                                         height: 'auto'
                                                     }}
                                                 />
-                                                
+
                                                 {/* Botón de recargar estilo WhatsApp - texto con ícono y blur */}
                                                 {qrExpired && (
                                                     <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm rounded-xl cursor-pointer" onClick={cargarQR}>
@@ -333,7 +332,7 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
                                             <div className="flex items-center mb-3">
                                                 <h4 className="text-sm font-bold text-gray-800">Pasos para iniciar sesión</h4>
                                             </div>
-                                                
+
                                                 <div className="space-y-2">
                                                     <div className="flex items-start">
                                                         <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">1</span>
@@ -353,8 +352,8 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
                                                     </div>
                                                 </div>
 
-                                                
-                                                
+
+
                                         </div>
                                     </div>
                                 ) : (
@@ -372,7 +371,7 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
                                 )}
                             </TabPanel>
 
-                            <TabPanel 
+                            <TabPanel
                                 header={
                                     <div className="flex items-center gap-2 justify-center">
                                         <FaPhone className="text-sm" />
@@ -436,7 +435,7 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
                                                 <FaWhatsapp className="text-lg text-green-500 mr-2" />
                                                 <h4 className="text-sm font-bold text-gray-800">Cómo conectar</h4>
                                             </div>
-                                            
+
                                             <div className="space-y-2">
                                                 <div className="flex items-start">
                                                     <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">1</span>
@@ -459,7 +458,7 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
                                                     <span className="text-gray-700 text-xs">Ingresa el código mostrado</span>
                                                 </div>
                                             </div>
-                                        
+
                                     </div>
                                 </div>
                             </TabPanel>

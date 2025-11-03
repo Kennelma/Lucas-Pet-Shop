@@ -203,7 +203,7 @@ const DetallesFactura = ({
         alert(`✅ Factura ${response.data.numero_factura} creada exitosamente!\nTotal: L ${response.data.total}\nSaldo: L ${response.data.saldo}`);
 
         // ⭐ Abrir modal de pago
-        setPaymentData({
+        const datos = {
           id_factura: response.data.id_factura,
           numero_factura: response.data.numero_factura,
           subtotal: parseFloat(response.data.subtotal),
@@ -211,7 +211,10 @@ const DetallesFactura = ({
           impuesto: parseFloat(response.data.impuesto),
           total: parseFloat(response.data.total),
           saldo: parseFloat(response.data.saldo)
-        });
+        };
+
+        console.log('💳 Datos de pago a enviar:', datos);
+        setPaymentData(datos);
         setShowPaymentModal(true);
 
       } else {
@@ -524,9 +527,10 @@ const DetallesFactura = ({
 
       <ModalPago
         show={showPaymentModal}
+        numero_factura={paymentData?.numero_factura}
         total={paymentData?.total || 0}
         onClose={handleClosePaymentModal}
-        onSuccess={handlePaymentSuccess}
+        onPagoExitoso={handlePaymentSuccess}
       />
     </>
   );
