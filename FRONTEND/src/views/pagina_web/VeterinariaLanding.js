@@ -149,7 +149,7 @@ const abrirModal = (servicio) => {
               </div>
               
               <button onClick={() => navigate('/login')}
-        className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 !rounded-full font-semibold hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl"
+        className="bg-gradient-to-r from-white to-indigo-600 text-black px-6 py-2 !rounded-full font-semibold hover:from-blue-100 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl"
       >
         Iniciar Sesión
       </button>
