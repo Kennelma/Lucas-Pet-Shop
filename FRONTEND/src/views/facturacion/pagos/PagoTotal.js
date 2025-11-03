@@ -210,7 +210,7 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
           (metodosSeleccionados.length === 1 && parseFloat(metodosSeleccionados[0].monto) !== total) ||
           (metodosSeleccionados.length > 1 && sumaMontos !== total)
         }
-        className={`w-full mt-4 py-3 font-medium rounded-xl transition ${
+        className={`w-full mt-4 mb-2 py-2 text-sm font-medium rounded-lg transition ${
           metodosSeleccionados.length > 0 && montosValidos &&
           ((metodosSeleccionados.length === 1 && parseFloat(metodosSeleccionados[0].monto) === total) ||
            (metodosSeleccionados.length > 1 && sumaMontos === total))

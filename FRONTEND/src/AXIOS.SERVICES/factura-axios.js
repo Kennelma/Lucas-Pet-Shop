@@ -26,7 +26,7 @@ export const crearFactura = async (datosFactura) => {
 export const obtenerDetallesFactura = async (tipo_item) => {
   try {
     const { data } = await axiosInstance.get(
-      `${API_URL}/detallesFactura`,
+      `${API_URL}/catalogoItems`,
       { params: { tipo_item } }
     );
     return data;

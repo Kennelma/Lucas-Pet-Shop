@@ -152,7 +152,7 @@ const EncabezadoFactura = ({
       <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
 
         {/*TÍTULO*/}
-        <h1 className="text-xl font-semibold text-gray-800 mb-3">Factura</h1>
+        <h1 className="text-lg font-semibold text-gray-800 mb-3 text-center font-poppins">Factura</h1>
 
         {/*SECCIÓN CLIENTE*/}
         <div className="grid grid-cols-3 gap-3 mb-4 border-b pb-4 border-gray-200">

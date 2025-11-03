@@ -445,7 +445,8 @@ exports.encabezadoFactura = async (req, res) => {
 
 };
 
-exports.detallesFactura = async (req, res) => {
+//ENDPOINTS PARA CARGAR CATÁLOGOS DE ITEMS
+exports.catalogoItems = async (req, res) => {
 
     const conn = await mysqlConnection.getConnection();
 
@@ -645,6 +646,7 @@ exports.buscarEstilistas = async (req, res) => {
 
 };
 
+//PARA MOSTRAR EL HISTORIAL DE FACTURAS EN LA TABLA
 exports.historialFacturas = async (req, res) => {
 
     const conn = await mysqlConnection.getConnection();
@@ -688,7 +690,7 @@ exports.historialFacturas = async (req, res) => {
 }
 
 //====================OBTENER_DETALLE_FACTURA_PARA_PDF====================
-exports.ImpresionDetallesFactura = async (req, res) => {
+exports.ImpresionFactura = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
 
     try {
@@ -717,13 +719,6 @@ exports.ImpresionDetallesFactura = async (req, res) => {
             [numero_factura]
         );
 
-        if (!factura || factura.length === 0) {
-            return res.status(404).json({
-                success: false,
-                mensaje: 'Factura no encontrada'
-            });
-        }
-
         //ITEMS DE LA FACTURA
         const [items] = await conn.query(
             `SELECT
@@ -744,6 +739,7 @@ exports.ImpresionDetallesFactura = async (req, res) => {
             [factura[0].id_factura_pk]
         );
 
+        //ESTA INFORMACION TIENE QUE VENIR DEL MIDDLEWARE DEL USUARIO (REVISAR)
         //INFORMACIÓN DE LA EMPRESA
         const [empresa] = await conn.query(
             `SELECT
@@ -792,3 +788,9 @@ exports.ImpresionDetallesFactura = async (req, res) => {
         conn.release();
     }
 };
+
+
+
+exports.detallesFactura = async (req, res) => {
+
+}

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Plus, Trash2, UserPlus } from "lucide-react";
 import Select from 'react-select';
+import Swal from "sweetalert2";
 import ModalPago from "../pagos/ModalPago";
 import { crearFactura } from "../../../AXIOS.SERVICES/factura-axios";
 import { procesarPago } from "../../../AXIOS.SERVICES/payments-axios";
@@ -25,8 +26,6 @@ const DetallesFactura = ({
   onItemChange,
   estilistas = [],
   onCancel,
-  // ⭐ RECIBIR DATOS DEL ENCABEZADO
-  identidad,
   RTN,
   id_cliente, // ⭐ NUEVO: Necesitas pasar esto desde NuevaFactura
 }) => {
@@ -112,7 +111,6 @@ const DetallesFactura = ({
       return;
     }
 
-    // ⭐ CONSTRUIR PAYLOAD PARA EL BACKEND
     setLoading(true);
 
     const datosFactura = {
@@ -135,11 +133,15 @@ const DetallesFactura = ({
     try {
       const response = await crearFactura(datosFactura); // ← Mismo servicio axios
 
-      console.log('📥 Respuesta:', response);
-
       if (response.success) {
-        alert(`✅ Factura ${response.data.numero_factura} guardada exitosamente!`);
-        onCancel(); // ← Redirige a /facturas
+        Swal.fire({
+          icon: 'success',
+          title: '¡Factura registrada!',
+          text: `${response.data.numero_factura} guardada exitosamente!`,
+          confirmButtonColor: '#3085d6',
+        }).then(() => {
+          onCancel(); // 
+        });
       }
     } catch (error) {
       console.error('❌ Error al crear factura:', error);
@@ -149,7 +151,7 @@ const DetallesFactura = ({
     }
   };
 
-  //====================⭐ FUNCIÓN PARA CREAR FACTURA Y ABRIR MODAL DE PAGOS====================
+  //====================FUNCIÓN PARA CREAR FACTURA Y ABRIR MODAL DE PAGOS====================
   const handleOpenPaymentModal = async () => {
     // VALIDACIONES
     if (items.length === 0) {
@@ -277,18 +279,20 @@ const DetallesFactura = ({
   return (
     <>
       <div className="bg-white rounded-lg shadow-sm" style={{ padding: '24px' }}>
+
         {/*ENCABEZADO CON BOTÓN AGREGAR ITEM*/}
-        <div className="flex justify-between items-center" style={{ marginBottom: '16px' }}>
-          <h1 className="text-xl font-semibold text-gray-800 mb-3">Detalles de la Factura</h1>
+        <div className="flex justify-end items-center" style={{ marginBottom: '16px' }}>
           <button
+            type="button"
             onClick={addItem}
-            className="flex items-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center bg-blue-600 text-white font-semibold text-sm shadow-sm hover:bg-blue-700 transition-colors rounded-full ml-auto"
             style={{ gap: '8px', padding: '8px 16px' }}
           >
-            <Plus size={20} />
-            Agregar Item
+            <Plus size={18} />
+            AGREGAR ITEM
           </button>
         </div>
+
         {/*TABLA DE ITEMS*/}
         <div className="overflow-x-auto">
           <table className="w-full table-fixed">
@@ -491,7 +495,7 @@ const DetallesFactura = ({
                 className={`${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white font-semibold rounded-lg transition-colors`}
                 style={{ padding: '12px 32px' }}
               >
-                {loading ? 'Guardando...' : 'Guardar Factura'}
+                {loading ? 'Guardando...' : 'GUARDAR SIN PAGAR'}
               </button>
               <button
                 onClick={handleOpenPaymentModal}
@@ -499,7 +503,7 @@ const DetallesFactura = ({
                 className={`${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'} text-white font-semibold rounded-lg transition-colors`}
                 style={{ padding: '12px 32px' }}
               >
-                {loading ? 'Guardando...' : 'Guardar y Continuar a Pagos'}
+                {loading ? 'Guardando...' : 'GUARDAR Y REALIZAR PAGO'}
               </button>
               <button
                 onClick={onCancel}
@@ -507,7 +511,7 @@ const DetallesFactura = ({
                 className="bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition-colors"
                 style={{ padding: '12px 32px' }}
               >
-                Cancelar
+                CANCELAR
               </button>
             </div>
 

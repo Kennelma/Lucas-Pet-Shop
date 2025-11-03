@@ -1,17 +1,18 @@
 const express = require('express');
 const cors = require("cors");
-
+const app = express();
 const path = require('path');
 const mysqlConnection = require('./config/conexion');
 const { connectWhatsApp } = require('./config/whatsapp');
 
+// SILENCIAR COMPLETAMENTE DOTENV
+const originalLog = console.log;
+console.log = () => {};
 require('dotenv').config({
-    path: path.resolve(process.cwd(), '..', '.env'),
-    debug: false,
-    silent: true
+    path: path.resolve(process.cwd(), '..', '.env')
 });
+console.log = originalLog;
 
-const app = express();
 
 //PARA QUE EL SERVIDOR PUEDA RECIBIR JSON Y XXWW-FORM-URLENCODED
 app.use(express.json());
