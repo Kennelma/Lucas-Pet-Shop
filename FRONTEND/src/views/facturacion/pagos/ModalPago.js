@@ -498,11 +498,11 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
 
             {/* Content */}
             {tipoPago?.tipo_pago === 'PARCIAL' ? (
-              // DISEÑO MUY COMPACTO PARA PAGO PARCIAL
+              // DISEÑO PARA PAGO PARCIAL
               <div className="p-3 space-y-2">
               
                 {/* Resumen mínimo */}
-                {/* Total muy compacto */}
+              
                 <div className="flex gap-2">
                   {/* Bloque TOTAL */}
                   <div className="bg-blue-50 border border-blue-200 rounded px-2 py-1 text-center space-y-0.5 w-full">
@@ -554,7 +554,7 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
                   </div>
                 </div>
 
-                {/* Montos compactos */}
+                {/* Montos  */}
                 {metodosSeleccionados.length > 0 && (
                   <div>
                     <p className="text-xs font-medium text-gray-700 mb-1">Distribuya el monto</p>
@@ -592,13 +592,13 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
             ) : (
               // DISEÑO PARA PAGO TOTAL
               <div className="p-3 space-y-2">
-                {/* Total compacto */}
+                {/* Total */}
                 <div className="bg-blue-50 border border-blue-200 rounded p-2 text-center">
                   <p className="text-xs text-gray-600">TOTAL</p>
                   <p className="text-base font-bold text-blue-600">L {totalCombinado.toFixed(2)}</p>
                 </div>
 
-                {/* Métodos compactos */}
+                {/* Métodos*/}
                 <div>
                   <p className="text-xs font-medium text-gray-700 mb-1">Seleccione método</p>
                   <div className="grid grid-cols-3 gap-1">
@@ -627,7 +627,7 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
                   </div>
                 </div>
 
-                {/* Monto compacto */}
+                {/* Monto  */}
                 {metodosSeleccionados.length > 0 && (
                   <div>
                     {metodosSeleccionados.length === 1 ? (
@@ -695,7 +695,7 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
                         );
                       })
                     ) : (
-                      // DOS MÉTODOS - Diseño compacto como pago parcial
+                      // DOS MÉTODOS - Diseño  como pago parcial
                       <div>
                         <p className="text-xs font-medium text-gray-700 mb-1">Distribuya el monto</p>
                         <div className="space-y-1">
@@ -747,7 +747,7 @@ function ModalPago({ show, numero_factura, total, facturas, onClose, onPagoExito
               </div>
             )}
 
-            {/* Footer compacto */}
+            {/* Footer  */}
             <div className="flex gap-2 p-3">
               <button
                 onClick={() => {
