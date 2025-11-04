@@ -140,7 +140,7 @@ const DetallesFactura = ({
           text: `${response.data.numero_factura} guardada exitosamente!`,
           confirmButtonColor: '#3085d6',
         }).then(() => {
-          onCancel(); // 
+          onCancel(); //
         });
       }
     } catch (error) {
@@ -241,19 +241,38 @@ const DetallesFactura = ({
   const handlePaymentSuccess = async (datosPago) => {
     try {
       console.log('💳 Procesando pago:', datosPago);
-
       // LLAMAR AL SERVICIO PARA PROCESAR EL PAGO
       const response = await procesarPago(datosPago);
 
       if (response.success) {
-        alert(response.mensaje || 'Pago procesado exitosamente');
         setShowPaymentModal(false);
         setPaymentData(null);
+        const saldoPendiente = response.data?.saldo ?? 0;
+        if (saldoPendiente > 0) {
+          await Swal.fire({
+            icon: 'success',
+            title: 'Pago procesado',
+            text: `${response.mensaje || 'Pago procesado exitosamente'}\nSaldo pendiente: L ${saldoPendiente.toFixed(2)}`,
+            confirmButtonColor: '#3085d6',
+          });
 
-        // Opcional: Redirigir a la lista de facturas o recargar
-        window.location.href = '/facturas'; // O usar navigate si tienes react-router
+        } else {
+          await Swal.fire({
+            icon: 'success',
+            title: 'Pago procesado',
+            text: response.mensaje || 'Pago procesado exitosamente',
+            confirmButtonColor: '#3085d6',
+          });
+          // Redirigir solo si el saldo es cero (pago total)
+          window.location.href = '/facturas';
+        }
       } else {
-        alert(response.mensaje || 'Error al procesar el pago');
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error al procesar el pago',
+          text: response.mensaje || 'Error al procesar el pago',
+          confirmButtonColor: '#d33',
+        });
       }
     } catch (error) {
       console.error('Error al procesar pago:', error);

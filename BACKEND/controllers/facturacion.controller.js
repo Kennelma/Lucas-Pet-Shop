@@ -153,7 +153,7 @@ exports.crearFactura = async (req, res) => {
                         nombre_servicio_peluqueria,
                         precio_servicio
                     FROM tbl_servicios_peluqueria_canina
-                    WHERE id_servicio_peluqueria_pk = ? AND activo = TRUE`,
+                    WHERE activo = TRUE`,
                     [item_id]
                 );
 
@@ -476,7 +476,7 @@ exports.catalogoItems = async (req, res) => {
                         nombre_servicio_peluqueria,
                         precio_servicio
                     FROM tbl_servicios_peluqueria_canina
-                    WHERE activo = TRUE AND stock > 0`
+                    WHERE activo = TRUE`
                 )
 
                 break;
