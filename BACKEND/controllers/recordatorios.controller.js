@@ -12,11 +12,12 @@ exports.verCatalogo = async (req, res) => {
 
         switch (req.query.tipo_catalogo) {
 
-            case 'FRECUENCIA': m   //ME TRAE TODAS LAS FRECUENCIAS
+            case 'FRECUENCIA':   //ME TRAE TODAS LAS FRECUENCIAS
                 [registros] = await conn.query(`
-                    SELECT *
-                    FROM cat_frecuencia_recordatorio
-                    ORDER BY id_frecuencia_record_pk DESC`);
+                    SELECT
+                        id_frecuencia_record_pk,
+                        frecuencia_recordatorio
+                    FROM cat_frecuencia_recordatorio`);
                 break;
 
 
@@ -96,6 +97,9 @@ exports.crear = async (req, res) => {
         conn.release();
     }
 };
+
+
+
 
 //VER LISTA DE RECORDATORIOS
 exports.ver = async (req, res) => {

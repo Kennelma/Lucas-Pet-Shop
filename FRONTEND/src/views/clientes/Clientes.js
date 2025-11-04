@@ -6,9 +6,6 @@ import TablaClientes from "./tabla-clientes.js";
 
 const Clientes = () => {
 
-  //ESTADO QUE SIRVE PARA SELECCIONAR REGISTRO -> MOSTRAR EL PERFIL DEL MISMO (GLOBAL)
-  const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
-
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       {/* Título */}
@@ -20,8 +17,8 @@ const Clientes = () => {
         </div>
         <p className="text-center text-gray-600 italic">Administra la información y perfiles de clientes del negocio</p>
       </div>
-      
-      <TablaClientes setClienteSeleccionado={setClienteSeleccionado}/>
+
+      <TablaClientes/>
     </div>
   );
 };

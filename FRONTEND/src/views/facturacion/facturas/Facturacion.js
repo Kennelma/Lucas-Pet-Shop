@@ -54,7 +54,7 @@ export default function Facturacion() {
       {/* CONTENIDO DE LAS PESTAÑAS */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* 2. RENDERIZADO CONDICIONAL */}
-  {activeTab === "nueva" && <NuevaFactura setActiveTab={setActiveTab} />}
+      {activeTab === "nueva" && <NuevaFactura setActiveTab={setActiveTab} />}
 
         {activeTab === "facturas" && (
           <>

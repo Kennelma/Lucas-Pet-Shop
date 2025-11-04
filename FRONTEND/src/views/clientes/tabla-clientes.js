@@ -1,55 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Swal from "sweetalert2";
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
-import { Toast } from 'primereact/toast';
 
-// Tooltip component funcional con React y Tailwind
-const Tooltip = ({ children, content }) => {
-    const [show, setShow] = useState(false);
-    return (
-        <div
-            className="relative inline-block"
-            onMouseEnter={() => setShow(true)}
-            onMouseLeave={() => setShow(false)}
-            onFocus={() => setShow(true)}
-            onBlur={() => setShow(false)}
-        >
-            {React.cloneElement(children, {
-                tabIndex: 0, // para accesibilidad
-                onFocus: (e) => {
-                    setShow(true);
-                    if (children.props.onFocus) children.props.onFocus(e);
-                },
-                onBlur: (e) => {
-                    setShow(false);
-                    if (children.props.onBlur) children.props.onBlur(e);
-                }
-            })}
-            <div
-                className={`absolute z-10 left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-1 rounded bg-purple-200 text-black text-xs whitespace-nowrap transition-opacity duration-200 pointer-events-none ${show ? 'opacity-100' : 'opacity-0'}`}
-                role="tooltip"
-            >
-                {content}
-            </div>
-        </div>
-    );
-};
 
 import { verClientes, eliminarCliente } from "../../AXIOS.SERVICES/clients-axios.js";
 
 import FormularioCliente from "./modal-agregar.js";
-import FormularioActualizarCliente from "./modal-actualizar.js"; 
+import FormularioActualizarCliente from "./modal-actualizar.js";
 
 const ActionMenu = ({ rowData, onEditar, onVerPerfil, onEliminar, rowIndex, totalRows }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [shouldShowAbove, setShouldShowAbove] = useState(false);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
-  
+
   const checkPosition = () => {
     const showAbove = rowIndex >= 2 || rowIndex >= (totalRows - 3);
     setShouldShowAbove(showAbove);
@@ -73,7 +42,7 @@ const ActionMenu = ({ rowData, onEditar, onVerPerfil, onEliminar, rowIndex, tota
     document.addEventListener('mousedown', handleClickOutside);
     window.addEventListener('resize', handleResize);
     window.addEventListener('scroll', handleScroll, true);
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('resize', handleResize);
@@ -91,21 +60,20 @@ const ActionMenu = ({ rowData, onEditar, onVerPerfil, onEliminar, rowIndex, tota
     }
     setIsOpen(!isOpen);
   };
-  
+
   return (
     <div className="relative flex justify-center" ref={menuRef}>
       <button
         ref={buttonRef}
         className="w-8 h-8 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center transition-colors"
         onClick={handleToggleMenu}
-        title="Más opciones"
       >
         <i className="pi pi-ellipsis-h text-white text-xs"></i>
       </button>
-      
+
       {isOpen && (
         <div className={`absolute right-0 ${shouldShowAbove ? 'bottom-16' : 'top-12'} bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[140px]`}>
-          <div 
+          <div
             className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={(e) => {
               e.stopPropagation();
@@ -116,8 +84,8 @@ const ActionMenu = ({ rowData, onEditar, onVerPerfil, onEliminar, rowIndex, tota
             <i className="pi pi-pencil text-xs"></i>
             <span>Editar</span>
           </div>
-          
-          <div 
+
+          <div
             className="px-2 py-1.5 text-sm text-gray-700 hover:bg-cyan-50 hover:text-cyan-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={(e) => {
               e.stopPropagation();
@@ -128,10 +96,10 @@ const ActionMenu = ({ rowData, onEditar, onVerPerfil, onEliminar, rowIndex, tota
             <i className="pi pi-eye text-xs"></i>
             <span>Ver Perfil</span>
           </div>
-          
+
           <hr className="my-0 border-gray-200" />
-          
-          <div 
+
+          <div
             className="px-2 py-1.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={(e) => {
               e.stopPropagation();
@@ -148,15 +116,15 @@ const ActionMenu = ({ rowData, onEditar, onVerPerfil, onEliminar, rowIndex, tota
   );
 };
 
-const TablaClientes = ({ setClienteSeleccionado }) => {
-    
+const TablaClientes = () => {
+
     //ESTADOS A UTILIZAR
     const [clientes, setClientes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [openModal, setOpenModal] = useState(false);
-    const [openModalActualizar, setOpenModalActualizar] = useState(false); 
+    const [openModalActualizar, setOpenModalActualizar] = useState(false);
     const [clienteAEditar, setClienteAEditar] = useState(null);
-    
+
     //ESTADO PARA EL MODAL DE PERFIL
     const [openModalPerfil, setOpenModalPerfil] = useState(false);
     const [clientePerfil, setClientePerfil] = useState(null);
@@ -165,7 +133,6 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
     const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
     const [clienteAEliminar, setClienteAEliminar] = useState(null);
 
-    const toast = useRef(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -199,7 +166,7 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
         setClienteAEditar({ ...cliente, indexVisual: index + 1 }); //SE AGREGA EL ID VISUAL
         setOpenModalActualizar(true);
     };
-    
+
     //CONSTANTE PARA ABRIR EL MODAL DE PERFIL DEL CLIENTE
     const handleVerPerfil = (cliente) => {
         setClientePerfil(cliente);
@@ -212,29 +179,27 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
             const resultado = await eliminarCliente(clienteAEliminar.id_cliente_pk);
 
             if (resultado.Consulta) {
-
                 const data = await verClientes();
                 setClientes(data);
-                toast.current.show({ 
-                    severity: 'success',
-                    summary: 'Cliente eliminado',
-                    detail: `${clienteAEliminar.nombre_cliente} fue eliminado`,
-                    life: 3000
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Cliente eliminado correctamente',
+                    confirmButtonColor: '#3085d6',
                 });
             } else {
-                toast.current.show({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'No se pudo eliminar el cliente',
-                    life: 3000
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo eliminar el cliente',
+                    confirmButtonColor: '#d33',
                 });
             }
         } catch (error) {
-            toast.current.show({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'Ocurrió un error inesperado',
-                life: 3000
+            await Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error inesperado',
+                confirmButtonColor: '#d33',
             });
         }
         setConfirmDialogVisible(false);
@@ -243,7 +208,7 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
     const actionBotones = (rowData, column) => {
         const rowIndex = clientes.indexOf(rowData);
         return (
-            <ActionMenu 
+            <ActionMenu
                 rowData={rowData}
                 rowIndex={rowIndex}
                 totalRows={clientes.length}
@@ -259,7 +224,6 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
 
     return (
         <>
-            <Toast ref={toast} position="top-center" />
 
             <div className="bg-white rounded-xl p-6 max-w-5xl mx-auto font-poppins" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
                 <div className="flex justify-end items-center mb-4">
@@ -287,8 +251,6 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                         tableStyle={{ minWidth: '50rem' }}
                         className="font-poppins datatable-gridlines"
                         size="small"
-                        selectionMode="single"
-                        onRowClick={(e) => setClienteSeleccionado(e.data)}
                         rowClassName={() => 'hover:bg-gray-100 cursor-pointer'}
                     >
                         <Column field="id_cliente_pk" header="ID" body={(rowData) => clientes.length - clientes.indexOf(rowData)} sortable className="text-sm"/>
@@ -325,6 +287,12 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                 onClienteAgregado={async () => {
                     const data = await verClientes();
                     setClientes(data);
+                    await Swal.fire({
+                        icon: 'success',
+                        title: '¡Cliente registrado!',
+                        text: 'Cliente se ha registrado con éxito',
+                        confirmButtonColor: '#3085d6',
+                    });
                 }}
             />
 
@@ -337,6 +305,11 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                     onClienteActualizado={async () => {
                         const data = await verClientes();
                         setClientes(data);
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Cliente actualizado correctamente',
+                            confirmButtonColor: '#3085d6',
+                        });
                     }}
                 />
             )}
@@ -352,11 +325,11 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                     onHide={() => setOpenModalPerfil(false)}
                     footer={
                         <div className="flex justify-center mt-2">
-                            <Button 
-                                label="Cerrar" 
-                                icon="pi pi-times" 
-                                className="p-button-text p-button-rounded" 
-                                onClick={() => setOpenModalPerfil(false)} 
+                            <Button
+                                label="Cerrar"
+                                icon="pi pi-times"
+                                className="p-button-text p-button-rounded"
+                                onClick={() => setOpenModalPerfil(false)}
                             />
                         </div>
                     }
@@ -366,7 +339,7 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                     resizable={false}
                 >
                     <div className="mt-0">
-                        
+
                         {/* Información del cliente */}
                         <div className="flex flex-col gap-3">
                             <div>
@@ -390,15 +363,15 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
             >
                 <p>¿Estás seguro de eliminar al cliente <strong>{clienteAEliminar?.nombre_cliente}</strong>?</p>
                 <div className="flex justify-end gap-3 mt-4">
-                    <Button 
-                        label="Cancelar" 
-                        className="p-button-text" 
-                        onClick={() => setConfirmDialogVisible(false)} 
+                    <Button
+                        label="Cancelar"
+                        className="p-button-text"
+                        onClick={() => setConfirmDialogVisible(false)}
                     />
-                    <Button 
-                        label="Eliminar" 
-                        className="bg-green-800 hover:bg-green-900 text-white" 
-                        onClick={handleEliminar} 
+                    <Button
+                        label="Eliminar"
+                        className="bg-green-800 hover:bg-green-900 text-white"
+                        onClick={handleEliminar}
                     />
                 </div>
             </Dialog>

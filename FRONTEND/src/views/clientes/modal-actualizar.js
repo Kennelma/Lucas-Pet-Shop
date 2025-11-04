@@ -86,12 +86,6 @@ export default function FormularioActualizarCliente({ isOpen, onClose, cliente, 
 
                 onClienteActualizado();
                 handleCerrarModal();
-                toast.current.show({
-                    severity: 'success',
-                    summary: 'Actualizado',
-                    detail: `Cliente ${clienteData.nombre_cliente} (ID: ${clienteData.indexVisual}) actualizado con éxito`,
-                    life: 2000
-                });
             } else {
                 console.error("Error en la consulta:", res.error);
             }

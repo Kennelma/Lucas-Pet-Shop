@@ -1,39 +1,49 @@
-//====================IMPORTACIONES====================
-import { useState, useEffect } from 'react';
-import TablaRecordatorios from './tabla-recordatorios';
-import ModalAgregar from './modal-agregar';
-import ConexionWhatsApp from './ConexionWhatsApp';
+import { useState, useEffect } from "react";
+import TablaRecordatorios from "./tabla-recordatorios.js";
+import { verCatalogo } from '../../AXIOS.SERVICES/reminders';
 
-
-//====================COMPONENTE_PRINCIPAL====================
 const Recordatorios = () => {
-  //====================ESTADOS====================
-  const [recordatorios, setRecordatorios] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalWhatsApp, setModalWhatsApp] = useState(false);
+  const [tipoServicio, setTipoServicio] = useState([]);
+  const [frecuencias, setFrecuencias] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  //====================EFFECT_INICIAL====================
   useEffect(() => {
-    // cargarTodo();
+    const cargarCatalogos = async () => {
+      setLoading(true);
+      try {
+        const tipoServicio = await verCatalogo('TIPO_SERVICIO');
+        const frecuencias = await verCatalogo('FRECUENCIA');
+  setTipoServicio(tipoServicio?.servicios || []);
+  console.log('TipoServicio:', tipoServicio?.servicios);
+        setFrecuencias(frecuencias?.servicios || []);
+      } catch (err) {
+        console.error('Error cargando catálogos:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    cargarCatalogos();
   }, []);
 
-  //====================RENDERIZADO====================
   return (
-    <div>
+    <div className="min-h-screen p-6 bg-gray-50">
       {/* Título */}
-      <h2>Recordatorios</h2>
+      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+        <div className="flex justify-center items-center">
+          <h2 className="text-2xl font-black text-center uppercase text-gray-800">
+            GESTIÓN DE RECORDATORIOS
+          </h2>
+        </div>
+        <p className="text-center text-gray-600 italic">Administración de recordatorios del negocio</p>
+      </div>
 
-      {/* Tabla de recordatorios */}
-      <TablaRecordatorios recordatorios={recordatorios} />
-
-      {/* Modal para agregar/editar */}
-      <ModalAgregar visible={modalVisible} />
-
-      {/* Modal para conexión WhatsApp */}
-      <ConexionWhatsApp isOpen={modalWhatsApp} />
+      <TablaRecordatorios
+  tiposItems={tipoServicio}
+  frecuencias={frecuencias}
+  loading={loading}
+/>
     </div>
   );
 };
 
-//====================EXPORTACION====================
 export default Recordatorios;
