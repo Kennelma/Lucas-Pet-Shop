@@ -257,7 +257,7 @@ const Medicamentos = () => {
                 : "text-gray-600 hover:text-gray-800"
             }`}
           >
-             KARDEX
+             MOVIMIENTOS
           </span>
         </label>
       </div>
@@ -294,7 +294,7 @@ const Medicamentos = () => {
               </div>
 
               <button
-                className="bg-purple-500 text-white px-6 py-2 rounded-full hover:bg-purple-600 transition-colors flex items-center gap-2"
+                className="bg-purple-500 text-white px-6 py-2 rounded-full hover:bg-purple-600 transition-colors flex items-center gap-2 uppercase"
                 style={{ borderRadius: '12px' }}
                 onClick={() => setModalVisible(true)}
               >

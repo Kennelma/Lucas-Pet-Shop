@@ -121,7 +121,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
             }}
           >
             <i className="pi pi-pencil text-xs"></i>
-            <span>Editar</span>
+            <span className="uppercase">Editar</span>
           </div>
 
           <hr className="my-0 border-gray-200" />
@@ -135,7 +135,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
             }}
           >
             <FontAwesomeIcon icon={faTrash} className="text-xs" />
-            <span>Eliminar</span>
+            <span className="uppercase">Eliminar</span>
           </div>
         </div>
       )}

@@ -489,7 +489,7 @@ exports.catalogoItems = async (req, res) => {
                         nombre_promocion,
                         precio_promocion
                     FROM tbl_promociones
-                    WHERE activo = TRUE AND stock > 0`
+                    WHERE activo = TRUE`
                 )
                 break;
 

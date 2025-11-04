@@ -114,7 +114,7 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
                           id: tiposPago.find(tipo => tipo.tipo_pago === 'TOTAL').id_tipo_pago_pk,
                           nombre: 'TOTAL'
                         })}
-                        className="w-full text-left hover:bg-blue-100 rounded-xl p-1 transition-colors"
+                        className="w-full text-left hover:bg-blue-100 rounded-xl p-1 transition-colors uppercase"
                       >
                         <div className="font-semibold text-blue-900 text-base mb-1">
                           PAGO TOTAL
@@ -134,7 +134,7 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
                           id: tiposPago.find(tipo => tipo.tipo_pago === 'PARCIAL').id_tipo_pago_pk,
                           nombre: 'PARCIAL'
                         })}
-                        className="w-full text-left hover:bg-orange-100 rounded-xl p-1 transition-colors"
+                        className="w-full text-left hover:bg-orange-100 rounded-xl p-1 transition-colors uppercase"
                       >
                         <div className="font-semibold text-orange-900 text-base mb-1">
                           PAGO PARCIAL
