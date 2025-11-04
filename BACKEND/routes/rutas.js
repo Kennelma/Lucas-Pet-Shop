@@ -48,12 +48,13 @@ router.put('/empresa/actualizar', verificarToken, empresa.actualizar);
 
 
 //========== RUTAS DE FACTURACIÓN ==========
-router.get ('/facturacion/detallesFactura', verificarToken, facturas.detallesFactura);
+router.get ('/facturacion/catalogoItems', verificarToken, facturas.catalogoItems);
 router.get ('/facturacion/buscarCliente', verificarToken,facturas.buscarClientesPorIdentidad);
 router.get ('/facturacion/usuarioFacturacion', verificarToken, facturas.usuarioFactura);
 router.get ('/facturacion/estilistasFacturacion', verificarToken, facturas.buscarEstilistas);
 router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFactura)
 router.get  ('/facturacion/verFacturas', facturas.historialFacturas);
+router.get  ('/facturacion/imprimirFactura', facturas.ImpresionFactura);
 
 //========== RUTAS DE PAGOS ==========
 router.post('/pagos/procesarPago', verificarToken, pagos.procesarPago);+
