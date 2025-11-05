@@ -30,9 +30,19 @@ const EncabezadoFactura = ({
   //====================FUNCIONES_AUXILIARES====================
 
   //CONVIERTE UNA FECHA A FORMATO DATETIME-LOCAL
+  // Formato personalizado: '03 de noviembre, 2025 HH:mm'
+  const meses = [
+    'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+  ];
   const toDateTimeLocal = (date) => {
     const pad = (num) => String(num).padStart(2, '0');
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    const dia = pad(date.getDate());
+    const mesNombre = meses[date.getMonth()];
+    const anio = date.getFullYear();
+    const hora = pad(date.getHours());
+    const minuto = pad(date.getMinutes());
+  return `${dia} de ${mesNombre}, ${anio} — ${hora}:${minuto}`;
   };
 
   //====================EFFECTS====================
@@ -89,14 +99,14 @@ const EncabezadoFactura = ({
             setIdentidad(cliente.identidad_cliente);
             setNombreCliente(`${cliente.nombre_cliente} ${cliente.apellido_cliente}`.trim());
             setRTN('');
-            setIdCliente(cliente.id_cliente_pk); // ⭐ NUEVO
+            setIdCliente(cliente.id_cliente_pk);
             setClienteEncontrado(true);
             setYaConsultado(true);
           } else {
             setIdentidad('');
             setNombreCliente('');
             setRTN('');
-            setIdCliente(null); // ⭐ NUEVO
+            setIdCliente(null);
             setClienteEncontrado(false);
             setYaConsultado(true);
             setIdentidadTemp(identidadBusqueda);
@@ -258,7 +268,7 @@ const EncabezadoFactura = ({
               Fecha y hora
             </label>
             <input
-              type="datetime-local"
+              type="text"
               value={fechaActual}
               readOnly
               className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md bg-gray-100 text-gray-700 cursor-not-allowed"

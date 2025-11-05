@@ -88,7 +88,7 @@ router.post('/recordatorios/crear', verificarToken, recordatorios.crear);
 router.get('/recordatorios/ver', verificarToken, recordatorios.ver);
 router.put('/recordatorios/actualizar', verificarToken, recordatorios.actualizar);
 router.delete('/recordatorios/eliminar', verificarToken, recordatorios.eliminar);
-router.get('/recordatorios/catalogo', verificarToken, recordatorios.verCatalogo);
+router.get('/recordatorios/catalogo', recordatorios.verCatalogo);
 
 // ========== RUTAS DE WHATSAPP ==========
 router.get('/whatsapp/qr', whatsapp.obtenerQR);

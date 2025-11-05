@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import clienteImage from "../../views/clientes/icon-formulario-clientes.png";
 import { Dialog } from "primereact/dialog";
-import { Tooltip } from "primereact/tooltip";
 import { InputText } from "primereact/inputtext";
 import { InputMask } from "primereact/inputmask";
 import { Button } from "primereact/button";
-import { Toast } from "primereact/toast";
+// ...existing code...
 import { insertarCliente } from "../../AXIOS.SERVICES/clients-axios.js";
 
 export default function FormularioCliente({
@@ -14,7 +13,7 @@ export default function FormularioCliente({
   onClienteAgregado,
   identidadInicial = '' // ← Nueva prop
 }) {
-    const toast = useRef(null);
+    // ...existing code...
 
     const [nuevoCliente, setNuevoCliente] = useState({
         nombre_cliente: "",
@@ -62,12 +61,7 @@ export default function FormularioCliente({
         try {
             const res = await insertarCliente(nuevoCliente);
             if (res.Consulta !== false) {
-                toast.current.show({
-                    severity: 'success',
-                    summary: 'Registrado',
-                    detail: `Cliente ${nuevoCliente.nombre_cliente} ${nuevoCliente.apellido_cliente} registrado correctamente`,
-                    life: 3000
-                });
+                // ...existing code...
 
                 onClienteAgregado(nuevoCliente);
 
@@ -141,7 +135,7 @@ export default function FormularioCliente({
 
     return (
         <>
-            <Toast ref={toast} position="top-center" />
+
             {/* Modal agregar cliente */}
             <Dialog
                 header={<div className="w-full text-center text-lg font-bold">NUEVO CLIENTE</div>}
@@ -162,7 +156,7 @@ export default function FormularioCliente({
                         <img
                             src={clienteImage}
                             alt="Cliente"
-                            className="w-25 h-30 object-cover rounded-xl border-[1px] border-white"
+                            className="w-25 h-30 object-cover rounded-xl border border-white"
                         />
                     </div>
 

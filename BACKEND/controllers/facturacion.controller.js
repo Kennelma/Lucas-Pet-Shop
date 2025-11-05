@@ -21,6 +21,7 @@ exports.crearFactura = async (req, res) => {
         const {
             RTN,
             id_cliente,
+            descuento,
             items  //ARRAY DE ITEMS
         } = req.body;
 
@@ -221,11 +222,13 @@ exports.crearFactura = async (req, res) => {
             });
         }
 
+        const descuento_valor = parseFloat(descuento || 0);
+
         //SE CALCULA LOS TOTALES FINALES
-        const total_con_ajustes = total_bruto + total_ajuste;
+        const total_con_ajustes = total_bruto + total_ajuste - descuento_valor;
         const subtotal = Math.max(0, total_con_ajustes / impuesto_valor); // Base imponible (no negativo)
         const impuesto = Math.max(0, total_con_ajustes - subtotal); // ISV (no negativo)
-        const descuento = total_ajuste < 0 ? Math.abs(total_ajuste) : 0;
+
         const total = Math.max(0, total_con_ajustes); // Total no puede ser negativo
         const saldo = total; // Sin pagos aún
 
@@ -277,7 +280,7 @@ exports.crearFactura = async (req, res) => {
                 RTN || null,
                 subtotal.toFixed(2),
                 impuesto.toFixed(2),
-                descuento.toFixed(2),
+                descuento_valor.toFixed(2),
                 total.toFixed(2),
                 saldo.toFixed(2),
                 id_sucursal,
