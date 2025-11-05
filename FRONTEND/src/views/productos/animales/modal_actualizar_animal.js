@@ -125,18 +125,20 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
   };
 
   const footer = (
-    <div className="flex justify-end gap-3 mt-2">
+    <div className="flex justify-end gap-3 mt-1">
       <Button
         label="Cancelar"
         icon="pi pi-times"
-        className="p-button-text p-button-rounded"
+        className="p-button-text p-button-rounded text-sm"
+        style={{ padding: '0.375rem 0.75rem' }}
         onClick={onClose}
         disabled={loading}
       />
       <Button
         label="Guardar"
         icon="pi pi-check"
-        className="p-button-success p-button-rounded"
+        className="p-button-success p-button-rounded text-sm"
+        style={{ padding: '0.375rem 0.75rem' }}
         onClick={handleSubmit}
         loading={loading}
       />
@@ -147,7 +149,7 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">ACTUALIZAR ANIMAL</div>}
       visible={isOpen}
-      style={{ width: '28rem', borderRadius: '1.5rem' }}
+      style={{ width: '30rem', maxHeight: '90vh', borderRadius: '1.5rem' }}
       modal
       closable={false}
       onHide={onClose}
@@ -156,8 +158,9 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
       dismissableMask={false}
       draggable={false}
       resizable={false}
+      contentStyle={{ overflowY: 'visible', padding: '1rem' }}
     >
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2.5">
         {/* Nombre */}
         <span>
           <label htmlFor="nombre" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE</label>

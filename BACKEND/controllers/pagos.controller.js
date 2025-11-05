@@ -1,42 +1,20 @@
-require('dotenv').config()
-
+require('dotenv').config();
 const mysqlConnection = require('../config/conexion');
 
-
-
-
-//OBTIENE EL ID DEL TIPO DE PAGO SEGÚN NOMBRE (TOTAL/PARCIAL)
+//OBTENER TIPOS DE PAGO (TOTAL/PARCIAL)
 exports.obtenerTipoPago = async (req, res) => {
-
     const conn = await mysqlConnection.getConnection();
-
     try {
-
-
         const [registros] = await conn.query(
-            `SELECT
-                id_tipo_pago_pk,
-                tipo_pago
-            FROM cat_tipo_pago`
+            `SELECT id_tipo_pago_pk, tipo_pago FROM cat_tipo_pago`
         );
 
-
-        if (registros.length > 0) {
-            res.status(200).json({
-                success: true,
-                message: "TIPOS DE PAGO ENCONTRADOS",
-                data: registros
-            });
-
-        } else {
-
-            res.status(404).json({
-                success: false,
-                message: "TIPOS DE PAGO NO ENCONTRADOS"
-            });
-        }
+        res.status(registros.length > 0 ? 200 : 404).json({
+            success: registros.length > 0,
+            message: registros.length > 0 ? "TIPOS DE PAGO ENCONTRADOS" : "TIPOS DE PAGO NO ENCONTRADOS",
+            data: registros.length > 0 ? registros : undefined
+        });
     } catch (err) {
-        console.error('ERROR AL CONSULTAR TIPOS DE PAGO:', err.message);
         res.status(500).json({
             success: false,
             mensaje: 'Error al consultar tipos de pago',
@@ -45,50 +23,29 @@ exports.obtenerTipoPago = async (req, res) => {
     } finally {
         conn.release();
     }
+};
 
-}
-
-
-//OBTIENE EL ID DEL METODO DE PAGO SEGÚN NOMBRE (EFECTIVO/TARJETA/TRANSFERENCIA)
+//OBTENER MÉTODOS DE PAGO (EFECTIVO/TARJETA/TRANSFERENCIA)
 exports.obtenerMetodosPago = async (req, res) => {
-
     const conn = await mysqlConnection.getConnection();
-
     try {
-
         const [registros] = await conn.query(
-            `SELECT
-                id_metodo_pago_pk,
-                metodo_pago
-            FROM cat_metodo_pago`
+            `SELECT id_metodo_pago_pk, metodo_pago FROM cat_metodo_pago`
         );
 
-        if (registros.length > 0) {
-            res.status(200).json({
-                success: true,
-                message: "MÉTODOS DE PAGO ENCONTRADOS",
-                data: registros
-            });
-
-        } else {
-
-            res.status(404).json({
-                success: false,
-                message: "MÉTODOS DE PAGO NO ENCONTRADOS"
-            });
-        }
-
+        res.status(registros.length > 0 ? 200 : 404).json({
+            success: registros.length > 0,
+            message: registros.length > 0 ? "MÉTODOS DE PAGO ENCONTRADOS" : "MÉTODOS DE PAGO NO ENCONTRADOS",
+            data: registros.length > 0 ? registros : undefined
+        });
     } catch (error) {
-
-            res.status(500).json({
-                success: false,
-                error: error.message
-            });
-
-        } finally {
-            conn.release();
-        }
-
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    } finally {
+        conn.release();
+    }
 };
 
 
@@ -98,152 +55,228 @@ exports.procesarPago = async (req, res) => {
     try {
         await conn.beginTransaction();
 
-        const { facturas, tipo_pago, metodos } = req.body;
+        const { numero_factura, id_tipo, monto, metodos } = req.body;
 
-        //VALIDAR DATOS REQUERIDOS
-        if (!facturas?.length || !tipo_pago || !metodos?.length) {
-            throw new Error('Datos incompletos para procesar el pago');
-        }
-
-        //OBTENER FACTURAS DE LA BASE DE DATOS
-        const numerosFacturas = facturas.map(f => f.numero_factura);
-        const placeholders = numerosFacturas.map(() => '?').join(',');
-
-        const [facturasExistentes] = await conn.query(
-            `SELECT id_factura_pk, numero_factura, total, saldo
-             FROM tbl_facturas
-             WHERE numero_factura IN (${placeholders})`,
-            numerosFacturas
+        //OBTENER FACTURA
+        const [facturas] = await conn.query(
+            `SELECT id_factura_pk, total, saldo
+            FROM tbl_facturas
+            WHERE numero_factura = ?`,
+            [numero_factura]
         );
 
-        //VALIDAR EXISTENCIA DE FACTURAS
-        if (facturasExistentes.length !== facturas.length) {
-            throw new Error('Algunas facturas no existen en el sistema');
-        }
+        //OBTENER EL NOMBRE DEL TIPO DE PAGO
+        const [tipoPago] = await conn.query(
+            `SELECT tipo_pago
+            FROM cat_tipo_pago
+            WHERE id_tipo_pago_pk = ?`,
+            [id_tipo]
+        );
 
-        //VALIDAR SALDOS Y MONTOS
-        for (const factura of facturas) {
-            const facturaExistente = facturasExistentes.find(f => f.numero_factura === factura.numero_factura);
-            const monto = parseFloat(factura.monto_aplicar);
-
-            if (parseFloat(facturaExistente.saldo) <= 0) {
-                throw new Error(`La factura ${factura.numero_factura} ya está pagada`);
-            }
-
-            if (monto <= 0 || monto > parseFloat(facturaExistente.saldo)) {
-                throw new Error(`Monto inválido para factura ${factura.numero_factura}`);
-            }
-        }
-
-        //VALIDAR QUE EL PAGO TOTAL CUBRA LAS APLICACIONES
-        const totalPago = metodos.reduce((sum, m) => sum + parseFloat(m.monto), 0);
-        const totalAplicar = facturas.reduce((sum, f) => sum + parseFloat(f.monto_aplicar), 0);
-
-        if (totalPago < totalAplicar) {
-            throw new Error('El monto del pago no cubre las aplicaciones');
-        }
-
-        //OBTENER ID DEL ESTADO APROBADO PARA PAGOS
+        //OBTENER EL ID DEL ESTADO APROBADO PARA PAGOS
         const [estadoPago] = await conn.query(
-            `SELECT id_estado_pk FROM cat_estados
-             WHERE dominio = 'PAGO' AND nombre_estado = 'APROBADO'`
+            `SELECT id_estado_pk
+            FROM cat_estados
+            WHERE dominio = 'PAGO' AND nombre_estado = 'APROBADO'`
         );
 
-        if (!estadoPago?.length) {
-            throw new Error('Estado de pago no configurado');
-        }
+        const fecha_pago = new Date();
+        const tipoPagoNombre = tipoPago[0].tipo_pago;
 
-        //CREAR REGISTROS DE PAGO POR CADA MÉTODO
-        for (const metodo of metodos) {
-            if (!metodo.id_metodo_pago || !metodo.monto) {
-                throw new Error('Método de pago incompleto');
-            }
+        switch (tipoPagoNombre) {
 
-            const [resultPago] = await conn.query(
-                `INSERT INTO tbl_pagos (fecha_pago, monto_pagado, id_metodo_pago_fk, id_tipo_pago_fk, id_estado_fk)
-                 VALUES (NOW(), ?, ?, ?, ?)`,
-                [parseFloat(metodo.monto), parseInt(metodo.id_metodo_pago), parseInt(tipo_pago), estadoPago[0].id_estado_pk]
-            );
+            case 'TOTAL':
 
-            //APLICAR EL PAGO A CADA FACTURA
-            for (const factura of facturas) {
-                const facturaExistente = facturasExistentes.find(f => f.numero_factura === factura.numero_factura);
+                if (metodos.length === 1) {
+                    //PAGO TOTAL CON UN SOLO MÉTODO
+                    const metodo = metodos[0];
 
-                await conn.query(
-                    `INSERT INTO tbl_pago_aplicacion (id_pago_fk, id_factura_fk, monto)
-                     VALUES (?, ?, ?)`,
-                    [resultPago.insertId, facturaExistente.id_factura_pk, parseFloat(factura.monto_aplicar)]
-                );
-            }
-        }
-
-        //ACTUALIZAR SALDO Y ESTADO DE CADA FACTURA
-        const facturasActualizadas = [];
-
-        for (const factura of facturas) {
-            const facturaExistente = facturasExistentes.find(f => f.numero_factura === factura.numero_factura);
-            const nuevoSaldo = parseFloat(facturaExistente.saldo) - parseFloat(factura.monto_aplicar);
-
-            //ACTUALIZAR SALDO
-            await conn.query(
-                `UPDATE tbl_facturas SET saldo = ? WHERE id_factura_pk = ?`,
-                [nuevoSaldo, facturaExistente.id_factura_pk]
-            );
-
-            //DETERMINAR Y ACTUALIZAR ESTADO
-            let nuevoEstado = 'PENDIENTE';
-
-            if (nuevoSaldo <= 0.01) {
-                const [estado] = await conn.query(
-                    `SELECT id_estado_pk FROM cat_estados WHERE dominio = 'FACTURA' AND nombre_estado = 'PAGADO'`
-                );
-
-                if (estado?.length) {
-                    await conn.query(
-                        `UPDATE tbl_facturas SET id_estado_fk = ? WHERE id_factura_pk = ?`,
-                        [estado[0].id_estado_pk, facturaExistente.id_factura_pk]
+                    const [pagos] = await conn.query(
+                        `INSERT INTO tbl_pagos (
+                            fecha_pago,
+                            monto_pagado,
+                            id_metodo_pago_fk,
+                            id_tipo_pago_fk,
+                            id_estado_fk
+                        ) VALUES (?, ?, ?, ?, ?)`,
+                        [
+                            fecha_pago,
+                            metodo.monto,
+                            metodo.id_metodo_pago_fk,
+                            id_tipo,
+                            estadoPago[0].id_estado_pk
+                        ]
                     );
-                    nuevoEstado = 'PAGADO';
+
+                    //APLICAR PAGO A LA FACTURA
+                    await conn.query(
+                        `INSERT INTO tbl_pago_aplicacion (
+                            id_pago_fk,
+                            id_factura_fk,
+                            monto
+                        ) VALUES (?, ?, ?)`,
+                        [
+                            pagos.insertId,
+                            facturas[0].id_factura_pk,
+                            monto
+                        ]
+                    );
+
+                    //ACTUALIZAR SALDO A 0
+                    await conn.query(
+                        `UPDATE tbl_facturas
+                        SET saldo = 0
+                        WHERE id_factura_pk = ?`,
+                        [facturas[0].id_factura_pk]
+                    );
+
+                    //ACTUALIZAR ESTADO A PAGADA
+                    await conn.query(
+                        `UPDATE tbl_facturas
+                        SET id_estado_fk = (
+                            SELECT id_estado_pk
+                            FROM cat_estados
+                            WHERE dominio = 'FACTURA' AND nombre_estado = 'PAGADA'
+                        )
+                        WHERE id_factura_pk = ?`,
+                        [facturas[0].id_factura_pk]
+                    );
+
+                } else {
+                    //PAGO TOTAL CON DOS MÉTODOS
+                    for (const metodo of metodos) {
+
+                        const [pagos] = await conn.query(
+                            `INSERT INTO tbl_pagos (
+                                fecha_pago,
+                                monto_pagado,
+                                id_metodo_pago_fk,
+                                id_tipo_pago_fk,
+                                id_estado_fk
+                            ) VALUES (?, ?, ?, ?, ?)`,
+                            [
+                                fecha_pago,
+                                metodo.monto,
+                                metodo.id_metodo_pago_fk,
+                                id_tipo,
+                                estadoPago[0].id_estado_pk
+                            ]
+                        );
+
+                        //APLICAR CADA PAGO A LA FACTURA
+                        await conn.query(
+                            `INSERT INTO tbl_pago_aplicacion (
+                                id_pago_fk,
+                                id_factura_fk,
+                                monto
+                            ) VALUES (?, ?, ?)`,
+                            [
+                                pagos.insertId,
+                                facturas[0].id_factura_pk,
+                                metodo.monto
+                            ]
+                        );
+                    }
+
+                    //ACTUALIZAR SALDO A 0
+                    await conn.query(
+                        `UPDATE tbl_facturas
+                        SET saldo = 0
+                        WHERE id_factura_pk = ?`,
+                        [facturas[0].id_factura_pk]
+                    );
+
+                    //ACTUALIZAR ESTADO A PAGADA
+                    await conn.query(
+                        `UPDATE tbl_facturas
+                        SET id_estado_fk = (
+                            SELECT id_estado_pk
+                            FROM cat_estados
+                            WHERE dominio = 'FACTURA' AND nombre_estado = 'PAGADA'
+                        )
+                        WHERE id_factura_pk = ?`,
+                        [facturas[0].id_factura_pk]
+                    );
                 }
-            } else if (nuevoSaldo < parseFloat(facturaExistente.total)) {
-                const [estado] = await conn.query(
-                    `SELECT id_estado_pk FROM cat_estados
+
+                break;
+
+            case 'PARCIAL':
+
+                //PAGO PARCIAL CON UN SOLO MÉTODO
+                const metodo = metodos[0];
+
+                const [pagos] = await conn.query(
+                    `INSERT INTO tbl_pagos (
+                        fecha_pago,
+                        monto_pagado,
+                        id_metodo_pago_fk,
+                        id_tipo_pago_fk,
+                        id_estado_fk
+                    ) VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        fecha_pago,
+                        metodo.monto,
+                        metodo.id_metodo_pago_fk,
+                        id_tipo,
+                        estadoPago[0].id_estado_pk
+                    ]
+                );
+
+                //APLICAR PAGO A LA FACTURA
+                await conn.query(
+                    `INSERT INTO tbl_pago_aplicacion (
+                        id_pago_fk,
+                        id_factura_fk,
+                        monto
+                    ) VALUES (?, ?, ?)`,
+                    [
+                        pagos.insertId,
+                        facturas[0].id_factura_pk,
+                        metodo.monto
+                    ]
+                );
+
+                //ACTUALIZAR SALDO
+                await conn.query(
+                    `UPDATE tbl_facturas
+                    SET saldo = saldo - ?
+                    WHERE id_factura_pk = ?`,
+                    [
+                        metodo.monto,
+                        facturas[0].id_factura_pk
+                    ]
+                );
+
+                //ACTUALIZAR ESTADO A PARCIAL
+                const [estadoParcial] = await conn.query(
+                    `SELECT id_estado_pk
+                     FROM cat_estados
                      WHERE dominio = 'FACTURA' AND nombre_estado = 'PARCIAL'`
                 );
 
-                if (estado?.length) {
-                    await conn.query(
-                        `UPDATE tbl_facturas SET id_estado_fk = ? WHERE id_factura_pk = ?`,
-                        [estado[0].id_estado_pk, facturaExistente.id_factura_pk]
-                    );
-                    nuevoEstado = 'PARCIAL';
-                }
-            }
+                await conn.query(
+                    `UPDATE tbl_facturas
+                    SET id_estado_fk = ?
+                    WHERE id_factura_pk = ?`,
+                    [estadoParcial[0]?.id_estado_pk, facturas[0].id_factura_pk]
+                );
 
-            facturasActualizadas.push({
-                numero_factura: factura.numero_factura,
-                monto_aplicado: parseFloat(factura.monto_aplicar).toFixed(2),
-                saldo_restante: nuevoSaldo.toFixed(2),
-                estado: nuevoEstado
-            });
+                break;
+
+            default:
+                break;
         }
 
         await conn.commit();
 
         return res.status(200).json({
             success: true,
-            mensaje: 'Pago procesado exitosamente',
-            data: {
-                facturas_procesadas: facturasActualizadas.length,
-                facturas: facturasActualizadas,
-                metodos_usados: metodos.length,
-                monto_total_pagado: totalPago.toFixed(2)
-            }
+            mensaje: 'Pago procesado exitosamente'
         });
 
     } catch (err) {
         await conn.rollback();
-        console.error('ERROR:', err.message);
         res.status(500).json({
             success: false,
             mensaje: 'Error al procesar el pago',
@@ -252,4 +285,4 @@ exports.procesarPago = async (req, res) => {
     } finally {
         conn.release();
     }
-}
+};

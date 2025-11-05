@@ -26,7 +26,7 @@ export const crearFactura = async (datosFactura) => {
 export const obtenerDetallesFactura = async (tipo_item) => {
   try {
     const { data } = await axiosInstance.get(
-      `${API_URL}/detallesFactura`,
+      `${API_URL}/catalogoItems`,
       { params: { tipo_item } }
     );
     return data;
@@ -96,6 +96,24 @@ export const obtenerHistorialFacturas = async () => {
       success: false,
       mensaje: error?.response?.data?.mensaje || "Error al obtener el historial de facturas",
       data: []
+    };
+  }
+};
+
+
+
+export const obtenerDatosFacturaPDF = async (numero_factura) => {
+  try {
+    const { data } = await axiosInstance.get(`${API_URL}/imprimirFactura`, {
+      params: { numero_factura }
+    });
+    return data;
+  } catch (error) {
+    console.error("Error al obtener datos de factura:", error);
+    return {
+      success: false,
+      mensaje: error?.response?.data?.mensaje || "Error al obtener datos de la factura",
+      data: null
     };
   }
 };

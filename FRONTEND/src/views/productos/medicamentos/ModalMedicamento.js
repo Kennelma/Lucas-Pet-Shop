@@ -276,7 +276,10 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">{medicamentoEditando ? 'EDITAR MEDICAMENTO' : 'NUEVO MEDICAMENTO'}</div>}
       visible={isOpen}
-      style={{ width: '28rem', borderRadius: '1.5rem' }}
+      style={medicamentoEditando ? 
+        { width: '30rem', maxHeight: '90vh', borderRadius: '1.5rem' } : 
+        { width: '28rem', borderRadius: '1.5rem' }
+      }
       modal
       closable={false}
       onHide={onClose}
@@ -285,6 +288,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
       dismissableMask={false}
       draggable={false}
       resizable={false}
+      contentStyle={medicamentoEditando ? { overflowY: 'visible', padding: '1rem' } : {}}
     >
       {/* Indicador de pasos */}
       {!medicamentoEditando && (
@@ -302,7 +306,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
       )}
 
       {/* Formulario */}
-      <div className="flex flex-col gap-3">
+      <div className={`flex flex-col ${medicamentoEditando ? 'gap-2.5' : 'gap-3'}`}>
         {/* PASO 1: Información del Medicamento */}
         {(paso === 1 || medicamentoEditando) && (
           <>
@@ -320,18 +324,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
               {errores.nombre_producto && <p className="text-xs text-red-600 mt-1">{errores.nombre_producto}</p>}
             </span>
 
-        {/* SKU */}
-        <span>
-          <label htmlFor="sku" className="text-xs font-semibold text-gray-700 mb-1">SKU (GENERADO AUTOMÁTICAMENTE)</label>
-          <InputText
-            id="sku"
-            name="sku"
-            value={formData.sku}
-            readOnly
-            className="w-full rounded-xl h-9 text-sm bg-gray-100"
-          />
-        </span>
-
+       
         {/* Precio y Stock Mínimo */}
         <div className="grid grid-cols-2 gap-2">
           <span>
