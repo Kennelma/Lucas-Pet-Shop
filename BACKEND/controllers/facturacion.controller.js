@@ -2,6 +2,58 @@ require('dotenv').config()
 
 const mysqlConnection = require('../config/conexion');
 
+//=========================================================
+// FUNCIÓN REUTILIZABLE PARA MANEJAR MOVIMIENTOS DE KARDEX
+//=========================================================
+async function insertarMovimientoKardex (conn, datosMovimiento) {
+  const {
+    cantidad_movimiento,
+    costo_unitario,
+    id_usuario,
+    id_medicamento,
+    id_lote,
+    tipo_movimiento,
+    origen_movimiento
+  } = datosMovimiento;
+
+  const [tipo] = await conn.query(
+    `SELECT id_estado_pk AS id
+     FROM cat_estados
+     WHERE dominio = 'TIPO' AND nombre_estado = ?`,
+    [tipo_movimiento]
+  );
+
+  const [origen] = await conn.query(
+    `SELECT id_estado_pk AS id
+     FROM cat_estados
+     WHERE dominio = 'ORIGEN' AND nombre_estado = ?`,
+    [origen_movimiento]
+  );
+
+  await conn.query(
+    `INSERT INTO tbl_movimientos_kardex (
+        cantidad_movimiento,
+        costo_unitario,
+        fecha_movimiento,
+        id_tipo_fk,
+        id_origen_fk,
+        id_usuario_fk,
+        id_medicamento_fk,
+        id_lote_fk
+     ) VALUES (?, ?, NOW(), ?, ?, ?, ?, ?)`,
+    [
+      cantidad_movimiento,
+      costo_unitario,
+      tipo[0].id,
+      origen[0].id,
+      id_usuario,
+      id_medicamento,
+      id_lote
+    ]
+  );
+}
+
+
 //====================CREAR_FACTURA====================
 exports.crearFactura = async (req, res) => {
 
@@ -46,6 +98,7 @@ exports.crearFactura = async (req, res) => {
         const impuesto_valor = 1 + (impuesto_porcentaje / 100); //1.15
 
         //SE VALIDA Y CALCULAR CADA ITEM
+        let id_medicamento = null;
         let total_bruto = 0;
         let total_ajuste = 0;
         const detallesValidados = [];
@@ -65,15 +118,20 @@ exports.crearFactura = async (req, res) => {
             if (tipo === 'PRODUCTOS') {
 
                 const [producto] = await conn.query(
-                    `SELECT
-                        id_producto_pk,
-                        nombre_producto,
-                        precio_producto,
-                        stock
-                    FROM tbl_productos
-                    WHERE id_producto_pk = ? AND activo = TRUE`,
-                    [item_id]
+                `SELECT
+                    p.id_producto_pk,
+                    p.nombre_producto,
+                    p.precio_producto,
+                    p.stock,
+                    p.tipo_producto_fk,
+                    t.nombre_tipo_producto
+                FROM tbl_productos p
+                INNER JOIN cat_tipo_productos t
+                        ON t.id_tipo_producto_pk = p.tipo_producto_fk
+                WHERE p.id_producto_pk = ? AND p.activo = TRUE`,
+                [item_id]
                 );
+
 
                 if (!producto || producto.length === 0) {
                     throw new Error(`Producto con ID ${item_id} no encontrado o inactivo`);
@@ -99,24 +157,27 @@ exports.crearFactura = async (req, res) => {
                 if (esMedicamento && esMedicamento.length > 0) {
 
                     //ES UN MEDICAMENTO, VALIDAR LOTES CON FIFO
-                    const id_medicamento = esMedicamento[0].id_medicamento_pk;
+                    id_medicamento = esMedicamento[0].id_medicamento_pk;
 
                     //OBTENER LOTES DISPONIBLES ORDENADOS POR FECHA DE VENCIMIENTO (FIFO)
                     const [lotes] = await conn.query(
-                        `SELECT
-                            l.id_lote_medicamentos_pk,
-                            l.codigo_lote,
-                            l.stock_lote,
-                            l.fecha_vencimiento,
-                            e.nombre_estado
-                        FROM tbl_lotes_medicamentos l
-                        INNER JOIN cat_estados e ON l.estado_lote_fk = e.id_estado_pk
-                        WHERE l.id_medicamento_fk = ?
+                    `SELECT
+                        l.id_lote_medicamentos_pk,
+                        l.codigo_lote,
+                        l.stock_lote,
+                        l.fecha_vencimiento,
+                        e.nombre_estado
+                    FROM tbl_lotes_medicamentos l
+                    INNER JOIN cat_estados e ON l.estado_lote_fk = e.id_estado_pk
+                    WHERE l.id_medicamento_fk = ?
                         AND l.stock_lote > 0
+                        AND l.fecha_vencimiento >= CURDATE()
                         AND e.nombre_estado != 'CADUCADO'
-                        ORDER BY l.fecha_vencimiento ASC`,
-                        [id_medicamento]
+                    ORDER BY l.fecha_vencimiento ASC
+                    FOR UPDATE`,
+                    [id_medicamento]
                     );
+
 
                     if (!lotes || lotes.length === 0) {
                         throw new Error(`No hay lotes disponibles (no vencidos) para ${nombre_item}`);
@@ -217,6 +278,7 @@ exports.crearFactura = async (req, res) => {
                 id_producto,
                 id_servicio,
                 id_promocion,
+                id_medicamento,
                 estilistas: estilistas || [],
                 lotesADescontar: item.lotesADescontar || null  //LOTES FIFO PARA MEDICAMENTOS
             });
@@ -226,11 +288,11 @@ exports.crearFactura = async (req, res) => {
 
         //SE CALCULA LOS TOTALES FINALES
         const total_con_ajustes = total_bruto + total_ajuste - descuento_valor;
-        const subtotal = Math.max(0, total_con_ajustes / impuesto_valor); // Base imponible (no negativo)
-        const impuesto = Math.max(0, total_con_ajustes - subtotal); // ISV (no negativo)
+        const subtotal = Math.max(0, total_con_ajustes / impuesto_valor); //BASE IMPONIBLE (no negativo)
+        const impuesto = Math.max(0, total_con_ajustes - subtotal); //IMPUESTO (no negativo)
 
-        const total = Math.max(0, total_con_ajustes); // Total no puede ser negativo
-        const saldo = total; // Sin pagos aún
+        const total = Math.max(0, total_con_ajustes); // TOTAL FINAL (no negativo)
+        const saldo = total; //INICIALMENTE EL SALDO ES IGUAL AL TOTAL
 
         //VALIDAR QUE EL TOTAL NO SEA CERO O NEGATIVO
         if (total <= 0) {
@@ -346,16 +408,43 @@ exports.crearFactura = async (req, res) => {
             // DESCONTAR INVENTARIO SI ES PRODUCTO
             if (detalle.id_producto) {
 
+
                 //SI TIENE LOTES (ES MEDICAMENTO), DESCONTAR DE LOS LOTES CON FIFO
                 if (detalle.lotesADescontar && detalle.lotesADescontar.length > 0) {
 
+                    //ACTUALIZO STOCK DE LOS LOTES SI ES QUE VENDO
                     for (const lote of detalle.lotesADescontar) {
+
+                        //VALIDAR QUE EL LOTE SIGUE SIENDO VÁLIDO Y TIENE STOCK
+                        const [valida] = await conn.query(
+                            `SELECT 1
+                            FROM tbl_lotes_medicamentos l
+                            INNER JOIN cat_estados e ON l.estado_lote_fk = e.id_estado_pk
+                            WHERE l.id_lote_medicamentos_pk = ?
+                                AND l.stock_lote >= ?
+                                AND l.fecha_vencimiento >= CURDATE()
+                                AND e.nombre_estado != 'CADUCADO'
+                            FOR UPDATE`,
+                            [lote.id_lote, lote.cantidad]
+                        );
+
                         await conn.query(
                             `UPDATE tbl_lotes_medicamentos
                              SET stock_lote = stock_lote - ?
                              WHERE id_lote_medicamentos_pk = ?`,
                             [lote.cantidad, lote.id_lote]
                         );
+
+                        // INSERTO EN EL KARDEX LA SALIDA DE LOTE VENDIDO (MEDICAMENTO)
+                        await insertarMovimientoKardex(conn, {
+                            cantidad_movimiento: lote.cantidad,
+                            costo_unitario: detalle.precio_unitario,
+                            id_usuario,
+                            id_medicamento: detalle.id_medicamento,
+                            id_lote: lote.id_lote,
+                            tipo_movimiento: 'SALIDA',
+                            origen_movimiento: 'VENTA'
+                        });
                     }
                 }
 
@@ -388,7 +477,7 @@ exports.crearFactura = async (req, res) => {
 
     } catch (err) {
         await conn.rollback();
-        console.error('❌ ERROR:', err.message);
+        console.error('ERROR:', err.message);
         res.status(500).json({
             success: false,
             mensaje: 'Error al crear la factura',
