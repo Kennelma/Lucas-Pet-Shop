@@ -340,7 +340,7 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
           !montosValidos ||
           (metodosSeleccionados.length > 1 && Math.abs(sumaMontos - total) > 0.01)
         }
-        className={`w-full mt-3 py-2 text-sm font-medium rounded transition ${
+        className={`w-full mt-3 py-2 text-sm font-medium rounded transition uppercase ${
           metodosSeleccionados.length > 0 && montosValidos &&
           (metodosSeleccionados.length === 1 || Math.abs(sumaMontos - total) < 0.01)
             ? 'bg-green-600 text-white hover:bg-green-700'

@@ -270,7 +270,7 @@ const ListaFacturas = () => {
       </div>
 
       {/*RESUMEN_DE_ESTADISTICAS*/}
-      <div className="flex gap-2 mb-4 max-w-3xl">
+      <div className="flex gap-2 mb-4 max-w-3xl mx-auto justify-center">
         <div className="bg-blue-500 rounded shadow-sm p-1.5 w-40">
           <div className="flex items-center justify-between">
             <p className="text-white text-xs font-medium">TOTAL FACTURAS</p>
@@ -290,7 +290,7 @@ const ListaFacturas = () => {
             <p className="text-white text-xs font-medium">PARCIAL</p>
             <p className="text-base font-bold text-white">
               {facturas.filter(f => f.nombre_estado?.toUpperCase() === 'PARCIAL').length}
-            </p>
+            </p>    
           </div>
         </div>
         <div className="bg-yellow-500 rounded shadow-sm p-1.5 w-40">

@@ -82,7 +82,7 @@ const ActionMenu = ({ rowData, onEditar, onVerPerfil, onEliminar, rowIndex, tota
             }}
           >
             <i className="pi pi-pencil text-xs"></i>
-            <span>Editar</span>
+            <span className="uppercase">Editar</span>
           </div>
 
           <div
@@ -94,7 +94,7 @@ const ActionMenu = ({ rowData, onEditar, onVerPerfil, onEliminar, rowIndex, tota
             }}
           >
             <i className="pi pi-eye text-xs"></i>
-            <span>Ver Perfil</span>
+            <span className="uppercase">Ver Perfil</span>
           </div>
 
           <hr className="my-0 border-gray-200" />
@@ -108,7 +108,7 @@ const ActionMenu = ({ rowData, onEditar, onVerPerfil, onEliminar, rowIndex, tota
             }}
           >
             <i className="pi pi-trash text-xs"></i>
-            <span>Eliminar</span>
+            <span className="uppercase">Eliminar</span>
           </div>
         </div>
       )}
@@ -227,7 +227,7 @@ const TablaClientes = () => {
 
             <div className="bg-white rounded-xl p-6 max-w-5xl mx-auto font-poppins" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
                 <div className="flex justify-end items-center mb-4">
-                    <button className="bg-purple-500 hover:bg-purple-700 text-white px-3 py-1 text-sm rounded transition-colors flex items-center gap-2"
+                    <button className="bg-purple-500 hover:bg-purple-700 text-white px-3 py-1 text-sm rounded transition-colors flex items-center gap-2 uppercase"
                         onClick={handleAgregarCliente}>
                         <FontAwesomeIcon icon={faUserPlus} />
                         AGREGAR NUEVO CLIENTE

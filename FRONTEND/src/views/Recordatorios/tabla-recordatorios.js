@@ -62,7 +62,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
             }}
           >
             <i className="pi pi-pencil text-xs"></i>
-            <span>Editar</span>
+            <span className="uppercase">Editar</span>
           </div>
           <hr className="my-0 border-gray-200" />
           <div

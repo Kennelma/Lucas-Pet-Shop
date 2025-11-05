@@ -53,10 +53,7 @@ const DetallesFactura = ({
 
   const formatCurrency = (value) => {
     const num = Number(value || 0);
-    return `L ${num.toLocaleString("es-HN", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
+    return `  L. ${num.toLocaleString("es-HN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   //====================GESTIÓN_DE_ESTILISTAS====================
@@ -64,10 +61,7 @@ const DetallesFactura = ({
   const addEstilista = (itemId) => {
     const item = items.find((it) => it.id === itemId);
     const currentEstilistas = item.estilistas || [];
-    updateItem(itemId, "estilistas", [
-      ...currentEstilistas,
-      { id: Date.now(), estilistaId: "", cantidadMascotas: 0 },
-    ]);
+    updateItem(itemId, "estilistas", [...currentEstilistas, { id: Date.now(), estilistaId: "", cantidadMascotas: 1 }]);
   };
 
   const removeEstilista = (itemId, estilistaIndex) => {
@@ -86,6 +80,27 @@ const DetallesFactura = ({
       index === estilistaIndex ? { ...est, [field]: value } : est
     );
     updateItem(itemId, "estilistas", newEstilistas);
+  };
+
+  //====================FUNCIÓN_PARA_APLICAR_DESCUENTO====================
+  const aplicarDescuento = () => {
+    const inputDescuento = document.getElementById('input-descuento-manual');
+    const valorDescuento = parseFloat(inputDescuento.value) || 0;
+    
+    if (valorDescuento < 0) {
+      alert('El descuento no puede ser negativo');
+      inputDescuento.value = '';
+      return;
+    }
+    
+    if (valorDescuento > TOTAL_CON_AJUSTE) {
+      alert('El descuento no puede ser mayor al total de la factura');
+      inputDescuento.value = '';
+      return;
+    }
+    
+    setDescuentoManual(valorDescuento);
+    inputDescuento.value = '';
   };
 
   //====================CÁLCULOS_DE_TOTALES====================
@@ -289,12 +304,10 @@ const DetallesFactura = ({
         const saldoPendiente = response.data?.saldo ?? 0;
         if (saldoPendiente > 0) {
           await Swal.fire({
-            icon: "success",
-            title: "Pago procesado",
-            text: `${
-              response.mensaje || "Pago procesado exitosamente"
-            }\nSaldo pendiente: L ${saldoPendiente.toFixed(2)}`,
-            confirmButtonColor: "#3085d6",
+            icon: 'success',
+            title: 'Pago procesado',
+            text: `${response.mensaje || 'Pago procesado exitosamente'}\nSaldo pendiente:  ${saldoPendiente.toFixed(2)}`,
+            confirmButtonColor: '#3085d6',
           });
         } else {
           await Swal.fire({
@@ -341,7 +354,7 @@ const DetallesFactura = ({
 
   //====================RENDER====================
   return (
-    <>
+    <div>
       <div
         className="bg-white rounded-lg shadow-sm"
         style={{ padding: "24px" }}
@@ -351,15 +364,17 @@ const DetallesFactura = ({
           className="flex justify-end items-center"
           style={{ marginBottom: "16px" }}
         >
-          <button
-            type="button"
-            onClick={addItem}
-            className="flex items-center bg-blue-600 text-white font-semibold text-sm shadow-sm hover:bg-blue-700 transition-colors rounded-full ml-auto"
-            style={{ gap: "8px", padding: "8px 16px" }}
-          >
-            <Plus size={18} />
-            AGREGAR ITEM
-          </button>
+          <div className="flex justify-end items-center mb-4">
+            <button
+              type="button"
+              onClick={addItem}
+              className="bg-purple-500 text-white px-6 py-2 rounded-full hover:bg-purple-600 transition-colors flex items-center gap-2 font-semibold text-sm shadow-lg hover:shadow-xl"
+              style={{ borderRadius: '12px' }}
+            >
+              <Plus size={18} />
+              AGREGAR ITEM
+            </button>
+          </div>
         </div>
 
         {/*TABLA DE ITEMS*/}
@@ -594,10 +609,16 @@ const DetallesFactura = ({
                       >
                         <input
                           type="number"
-                          value={item.cantidad ?? 0}
-                          onChange={(e) =>
-                            updateItem(item.id, "cantidad", e.target.value)
-                          }
+                          value={item.cantidad ?? 1}
+                          onChange={(e) => {
+                            const valor = parseFloat(e.target.value) || 0;
+                            if (valor >= 1) {
+                              updateItem(item.id, "cantidad", e.target.value);
+                            } else {
+                              updateItem(item.id, "cantidad", "1");
+                            }
+                          }}
+                          min="1"
                           className="w-full border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
                           style={{ padding: "4px 8px", fontSize: "14px" }}
                         />
@@ -635,9 +656,15 @@ const DetallesFactura = ({
                           type="number"
                           step="0.01"
                           value={item.ajuste ?? 0}
-                          onChange={(e) =>
-                            updateItem(item.id, "ajuste", e.target.value)
-                          }
+                          onChange={(e) => {
+                            const valor = parseFloat(e.target.value) || 0;
+                            if (valor >= 0) {
+                              updateItem(item.id, "ajuste", e.target.value);
+                            } else {
+                              updateItem(item.id, "ajuste", "0");
+                            }
+                          }}
+                          min="0"
                           className="w-full border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
                           style={{ padding: "4px 8px", fontSize: "14px" }}
                         />
@@ -671,8 +698,8 @@ const DetallesFactura = ({
                       >
                         <button
                           onClick={() => removeItem(item.id)}
-                          className="text-red-600 hover:bg-red-50 rounded transition-colors inline-flex"
-                          style={{ padding: "4px" }}
+                          className="text-red-600 hover:bg-red-50 rounded-xl transition-colors inline-flex"
+                          style={{ padding: '4px' }}
                           title="Eliminar item"
                         >
                           <Trash2 size={18} />
@@ -694,22 +721,10 @@ const DetallesFactura = ({
                         >
                           <div style={{ marginLeft: "16px" }}>
                             {itemEstilistas.map((est, index) => (
-                              <div
-                                key={est.id}
-                                className="flex items-center"
-                                style={{ gap: "16px", marginBottom: "8px" }}
-                              >
-                                <div
-                                  className="flex items-center"
-                                  style={{ gap: "8px" }}
-                                >
-                                  <label
-                                    className="font-medium text-gray-600"
-                                    style={{ fontSize: "14px" }}
-                                  >
-                                    Estilista:
-                                  </label>
-                                  <div style={{ width: "192px" }}>
+                              <div key={est.id} className="flex items-center" style={{ gap: '16px', marginBottom: '8px' }}>
+                                <div className="flex items-center" style={{ gap: '8px' }}>
+                                  <label className="font-medium text-gray-600" style={{ fontSize: '14px' }}>Estilista:</label>
+                                  <div style={{ width: '250px' }}>
                                     <Select
                                       value={
                                         estilistas
@@ -742,25 +757,10 @@ const DetallesFactura = ({
                                       menuPortalTarget={document.body}
                                       menuPosition="fixed"
                                       styles={{
-                                        control: (base) => ({
-                                          ...base,
-                                          minHeight: "34px",
-                                          height: "34px",
-                                          fontSize: "14px",
-                                          borderColor: "#d1d5db",
-                                        }),
-                                        option: (base) => ({
-                                          ...base,
-                                          fontSize: "14px",
-                                        }),
-                                        singleValue: (base) => ({
-                                          ...base,
-                                          fontSize: "14px",
-                                        }),
-                                        placeholder: (base) => ({
-                                          ...base,
-                                          fontSize: "14px",
-                                        }),
+                                        control: (base) => ({ ...base, minHeight: '34px', height: '34px', fontSize: '14px', borderColor: '#d1d5db' }),
+                                        option: (base) => ({ ...base, fontSize: '14px' }),
+                                        singleValue: (base) => ({ ...base, fontSize: '14px', whiteSpace: 'nowrap', overflow: 'visible', textOverflow: 'unset' }),
+                                        placeholder: (base) => ({ ...base, fontSize: '14px' })
                                       }}
                                     />
                                   </div>
@@ -777,15 +777,16 @@ const DetallesFactura = ({
                                   </label>
                                   <input
                                     type="number"
-                                    value={est.cantidadMascotas ?? 0}
-                                    onChange={(e) =>
-                                      updateEstilista(
-                                        item.id,
-                                        index,
-                                        "cantidadMascotas",
-                                        e.target.value
-                                      )
-                                    }
+                                    value={est.cantidadMascotas ?? 1}
+                                    onChange={(e) => {
+                                      const valor = parseInt(e.target.value) || 0;
+                                      if (valor >= 1) {
+                                        updateEstilista(item.id, index, "cantidadMascotas", e.target.value);
+                                      } else {
+                                        updateEstilista(item.id, index, "cantidadMascotas", "1");
+                                      }
+                                    }}
+                                    min="1"
                                     className="border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
                                     style={{
                                       width: "80px",
@@ -795,11 +796,9 @@ const DetallesFactura = ({
                                   />
                                 </div>
                                 <button
-                                  onClick={() =>
-                                    removeEstilista(item.id, index)
-                                  }
-                                  className="text-red-600 hover:bg-red-100 rounded transition-colors"
-                                  style={{ padding: "4px" }}
+                                  onClick={() => removeEstilista(item.id, index)}
+                                  className="text-red-600 hover:bg-red-100 rounded-xl transition-colors"
+                                  style={{ padding: '4px' }}
                                   title="Eliminar estilista"
                                 >
                                   <Trash2 size={16} />
@@ -808,13 +807,8 @@ const DetallesFactura = ({
                             ))}
                             <button
                               onClick={() => addEstilista(item.id)}
-                              className="flex items-center text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                              style={{
-                                gap: "4px",
-                                padding: "4px 12px",
-                                fontSize: "14px",
-                                marginTop: "8px",
-                              }}
+                              className="flex items-center text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                              style={{ gap: '4px', padding: '4px 12px', fontSize: '14px', marginTop: '8px' }}
                             >
                               <UserPlus size={16} />
                               Agregar Estilista
@@ -839,42 +833,33 @@ const DetallesFactura = ({
           )}
         </div>
 
+        
+
         {/*TOTALES Y BOTONES*/}
         {items.length > 0 && (
-          <div
-            className="flex justify-between items-center"
-            style={{ marginTop: "24px", gap: "24px" }}
-          >
-            <div className="flex flex-1 justify-center" style={{ gap: "12px" }}>
+          <div className="flex justify-between items-center" style={{ gap: '24px' }}>
+            <div className="flex flex-1 justify-center" style={{ gap: '12px' }}>
               <button
                 onClick={handleGuardarFacturaSinPago}
                 disabled={loading}
-                className={`${
-                  loading
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
-                } text-white font-semibold rounded-lg transition-colors`}
-                style={{ padding: "12px 32px" }}
+                className={`${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'} text-white px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl`}
+                style={{ borderRadius: '12px' }}
               >
                 {loading ? "Guardando..." : "GUARDAR SIN PAGAR"}
               </button>
               <button
                 onClick={handleOpenPaymentModal}
                 disabled={loading}
-                className={`${
-                  loading
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-green-600 hover:bg-green-700"
-                } text-white font-semibold rounded-lg transition-colors`}
-                style={{ padding: "12px 32px" }}
+                className={`${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'} text-white px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl`}
+                style={{ borderRadius: '12px' }}
               >
-                {loading ? "Guardando..." : "GUARDAR Y REALIZAR PAGO"}
+                {loading ? 'Guardando...' : 'CONTINUAR CON PAGO'}
               </button>
               <button
                 onClick={onCancel}
                 disabled={loading}
-                className="bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition-colors"
-                style={{ padding: "12px 32px" }}
+                className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl"
+                style={{ borderRadius: '12px' }}
               >
                 CANCELAR
               </button>
@@ -944,11 +929,8 @@ const DetallesFactura = ({
                   <span>TOTAL:</span>
                   <span>{formatCurrency(TOTAL_FINAL)}</span>
                 </div>
-                <div
-                  className="flex justify-between font-semibold text-blue-600"
-                  style={{ fontSize: "16px", paddingTop: "4px" }}
-                >
-                  <span>Saldo Pendiente:</span>
+                <div className="flex justify-between font-semibold text-blue-600" style={{ fontSize: '17px', paddingTop: '8px' }}>
+                  <span>Saldo Pendiente:&nbsp;&nbsp;&nbsp;&nbsp;</span>
                   <span>{formatCurrency(SALDO)}</span>
                 </div>
               </div>
@@ -964,7 +946,7 @@ const DetallesFactura = ({
         onPagoConfirmado={handlePaymentSuccess}
         factura={paymentData}
       />
-    </>
+    </div>
   );
 };
 

@@ -176,7 +176,7 @@ const PagoParcial = ({ total, idTipoPago, onBack, onConfirm }) => {
       <button
         onClick={handleConfirm}
         disabled={!isValid}
-        className={`w-full mt-3 py-2 text-sm font-medium rounded transition ${
+        className={`w-full mt-3 py-2 text-sm font-medium rounded transition uppercase ${
           isValid
             ? 'bg-orange-600 text-white hover:bg-orange-700'
             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
