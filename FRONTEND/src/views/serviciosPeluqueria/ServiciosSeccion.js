@@ -1,11 +1,11 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  ScissorsIcon, 
-  PlusIcon, 
-  PencilIcon, 
-  TrashIcon, 
-  CurrencyDollarIcon, 
+import {
+  ScissorsIcon,
+  PlusIcon,
+  PencilIcon,
+  TrashIcon,
+  CurrencyDollarIcon,
   ClockIcon
 } from '@heroicons/react/24/outline';
 import { DataTable } from 'primereact/datatable';
@@ -18,7 +18,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
   const [shouldShowAbove, setShouldShowAbove] = useState(false);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
-  
+
   const checkPosition = () => {
     const showAbove = rowIndex >= 2 || rowIndex >= (totalRows - 3);
     setShouldShowAbove(showAbove);
@@ -42,7 +42,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
     document.addEventListener('mousedown', handleClickOutside);
     window.addEventListener('resize', handleResize);
     window.addEventListener('scroll', handleScroll, true);
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('resize', handleResize);
@@ -60,7 +60,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
     }
     setIsOpen(!isOpen);
   };
-  
+
   return (
     <div className="relative flex justify-center" ref={menuRef}>
       <button
@@ -71,10 +71,10 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
       >
         <i className="pi pi-ellipsis-h text-white text-xs"></i>
       </button>
-      
+
       {isOpen && (
         <div className={`absolute right-0 ${shouldShowAbove ? 'bottom-16' : 'top-12'} bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[140px]`}>
-          <div 
+          <div
             className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={(e) => {
               e.stopPropagation();
@@ -85,10 +85,10 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
             <i className="pi pi-pencil text-xs"></i>
             <span>Editar</span>
           </div>
-          
+
           <hr className="my-0 border-gray-200" />
-          
-          <div 
+
+          <div
             className="px-2 py-1.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={(e) => {
               e.stopPropagation();
@@ -106,7 +106,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
 };
 
 const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, actualizarEstadoServicio }) => {
-  
+
   const [globalFilter, setGlobalFilter] = useState('');
 
   const handleEliminar = (servicio) => {
@@ -174,7 +174,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
           onClick={() => abrirModalServicio(null)}
         >
           <FontAwesomeIcon icon={faPlus} />
-          Nuevo Servicio
+          NUEVO SERVICIO
         </button>
       </div>
 
@@ -183,12 +183,12 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
           <ScissorsIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
           <h3 className="text-lg font-semibold text-gray-700 mb-2 uppercase">No hay servicios</h3>
           <p className="text-gray-500 mb-6">Crea tu primer servicio de peluquería para mascotas.</p>
-          <button 
+          <button
             className="bg-purple-500 text-white px-6 py-3 rounded hover:bg-purple-600 transition-colors inline-flex items-center gap-2"
             onClick={() => abrirModalServicio(null)}
           >
             <FontAwesomeIcon icon={faPlus} />
-            Nuevo Servicio
+            NUEVO SERVICIO
           </button>
         </div>
       ) : (
@@ -213,29 +213,29 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
             className="mt-4"
             size="small"
             selectionMode="single"
-            rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}        
+            rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
           >
-            <Column 
-              field="id_servicio_peluqueria_pk" 
-              header="ID" 
+            <Column
+              field="id_servicio_peluqueria_pk"
+              header="ID"
               body={(rowData) => servicios.length - servicios.indexOf(rowData)}
-              sortable 
+              sortable
               className="text-sm"
             />
             <Column field="nombre_servicio_peluqueria" header="SERVICIO" sortable className="text-sm"></Column>
             <Column field="descripcion_servicio" header="DESCRIPCIÓN" className="text-sm"></Column>
-            <Column 
+            <Column
               field="precio_servicio"
-              header="PRECIO" 
+              header="PRECIO"
               body={(rowData) => `L. ${parseFloat(rowData.precio_servicio || 0).toFixed(2)}`}
-              sortable 
+              sortable
               sortField="precio_servicio"
               dataType="numeric"
               className="text-sm"
             ></Column>
-            <Column 
+            <Column
               field="duracion_estimada"
-              header="DURACIÓN" 
+              header="DURACIÓN"
               body={(rowData) => `${rowData.duracion_estimada} Min`}
               sortable
               sortField="duracion_estimada"
@@ -243,9 +243,9 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
               className="text-sm"
             ></Column>
             <Column field="requisitos" header="REQUISITOS" className="text-sm"></Column>
-            <Column 
+            <Column
               field="activo"
-              header="ESTADO" 
+              header="ESTADO"
               body={estadoTemplate}
               sortable
               sortField="activo"

@@ -12,7 +12,8 @@ const servicios = require('../controllers/peluqueria.controller');
 const empresa = require('../controllers/empresa.controller');
 const recordatorios = require('../controllers/recordatorios.controller');
 const estilistas = require('../controllers/empleados.controller');
-const facturas = require('../controllers/facturacion.controller')
+const facturas = require('../controllers/facturacion.controller');
+const pagos = require('../controllers/pagos.controller');
 const whatsapp = require('../controllers/whatsapp.controller');
 
 //========== RUTAS DE AUTENTICACIÓN Y SEGURIDAD ==========
@@ -53,6 +54,12 @@ router.get ('/facturacion/usuarioFacturacion', verificarToken, facturas.usuarioF
 router.get ('/facturacion/estilistasFacturacion', verificarToken, facturas.buscarEstilistas);
 router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFactura)
 router.get  ('/facturacion/verFacturas', facturas.historialFacturas);
+
+//========== RUTAS DE PAGOS ==========
+router.post('/pagos/procesarPago', verificarToken, pagos.procesarPago);+
+router.get ('/pagos/tipoPago', pagos.obtenerTipoPago);
+router.get ('/pagos/metodosPago', pagos.obtenerMetodosPago);
+
 
 
 //========== RUTAS DE REPORTES ==========

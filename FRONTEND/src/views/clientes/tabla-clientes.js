@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { faUserPlus, faPenToSquare, faTrash, faEye } from "@fortawesome/free-solid-svg-icons";
+import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';

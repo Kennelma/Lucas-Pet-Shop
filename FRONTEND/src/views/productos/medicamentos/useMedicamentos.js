@@ -21,14 +21,14 @@ export const useMedicamentos = () => {
   const cargarDatos = async () => {
     setLoading(true);
     try {
-      
+
       // ✅ CARGAR TODO EN PARALELO
       const [productos, lotesData, kardexResponse] = await Promise.all([
         verProductos('MEDICAMENTOS'),
         verProductos('LOTES'),
         verProductos('KARDEX')
       ]);
-      
+
       // Normalizar medicamentos rápido
       const medicamentosNormalizados = (productos || []).map((item) => ({
         id_producto_pk: item.id_producto_pk,
@@ -43,7 +43,7 @@ export const useMedicamentos = () => {
         cantidad_contenido: parseInt(item.cantidad_contenido || 0),
         unidad_medida: item.unidad_medida || ""
       }));
-      
+
       // ✅ Guardar lotes SIN renumerar primero (más rápido)
       const lotesNormalizados = (lotesData || []).map((item) => ({
         id_lote_medicamentos_pk: item.id_lote_medicamentos_pk,
@@ -63,11 +63,11 @@ export const useMedicamentos = () => {
       setLotes(lotesNormalizados);
       setKardexData(kardexResponse || []);
       setLoading(false);
-      
+
       // ✅ RENUMERAR EN SEGUNDO PLANO (después de mostrar)
       setTimeout(() => {
         const lotesPorMedicamento = {};
-        
+
         lotesNormalizados.forEach(item => {
           const key = item.id_producto_fk;
           if (!lotesPorMedicamento[key]) {
@@ -75,33 +75,32 @@ export const useMedicamentos = () => {
           }
           lotesPorMedicamento[key].push(item);
         });
-        
+
         const lotesRenumerados = [];
-        
+
         for (const medicamentoId in lotesPorMedicamento) {
           const lotesDelMedicamento = lotesPorMedicamento[medicamentoId];
-          
-          lotesDelMedicamento.sort((a, b) => 
+
+          lotesDelMedicamento.sort((a, b) =>
             new Date(a.fecha_ingreso) - new Date(b.fecha_ingreso)
           );
-          
+
           lotesDelMedicamento.forEach((item, index) => {
             const match = item.codigo_lote.match(/LOTE-\d+-(.*)/);
             const sufijo = match ? match[1] : item.codigo_lote;
             const nuevoNumero = String(index + 1).padStart(2, '0');
-            
+
             lotesRenumerados.push({
               ...item,
               codigo_lote: `LOTE-${nuevoNumero}-${sufijo}`
             });
           });
         }
-        
+
         setLotes(lotesRenumerados);
       }, 100);
-      
+
     } catch (error) {
-      mostrarMensaje("❌ Error al cargar datos");
       setLoading(false);
     }
   };
@@ -116,7 +115,7 @@ export const useMedicamentos = () => {
   const generarCodigoLote = (medicamento) => {
     const prefijo = medicamento.presentacion_medicamento.substring(0, 4).toUpperCase();
     const lotesDelMedicamento = lotes.filter(l => l.id_producto_fk === medicamento.id_producto_pk);
-    
+
     // Extraer números de los códigos existentes
     const numerosExistentes = lotesDelMedicamento
       .map(l => {
@@ -124,12 +123,12 @@ export const useMedicamentos = () => {
         return match ? parseInt(match[1]) : 0;
       })
       .filter(n => n > 0);
-    
+
     // Encontrar el siguiente número disponible
-    const siguienteNumero = numerosExistentes.length > 0 
-      ? Math.max(...numerosExistentes) + 1 
+    const siguienteNumero = numerosExistentes.length > 0
+      ? Math.max(...numerosExistentes) + 1
       : 1;
-    
+
     return `LOTE-${String(siguienteNumero).padStart(2, '0')}-${prefijo}`;
   };
 
@@ -150,11 +149,9 @@ export const useMedicamentos = () => {
 
       const resultado = await actualizarProducto(datosActualizar);
       if (resultado.Consulta) {
-        mostrarMensaje("✅ Medicamento actualizado");
         await cargarDatos();
         return true;
       } else {
-        mostrarMensaje("❌ Error: " + (resultado.error || "Desconocido"));
         return false;
       }
     } else {
@@ -175,11 +172,9 @@ export const useMedicamentos = () => {
 
       const resultado = await insertarProducto(datosCompletos);
       if (resultado.Consulta) {
-        mostrarMensaje("✅ Medicamento y primer lote creados");
         await cargarDatos();
         return true;
       } else {
-        mostrarMensaje("❌ Error: " + (resultado.error || "Desconocido"));
         return false;
       }
     }
@@ -187,18 +182,15 @@ export const useMedicamentos = () => {
 
   const guardarLote = async (formData) => {
     if (!formData.codigo_lote || !formData.fecha_vencimiento || !formData.stock_lote) {
-      mostrarMensaje("⚠️ Complete todos los campos del lote");
       return false;
     }
 
     if (!formData.id_producto_fk) {
-      mostrarMensaje("❌ Error: No se identificó el medicamento");
       return false;
     }
 
     const stockLote = parseInt(formData.stock_lote);
     if (stockLote < 5) {
-      mostrarMensaje("⚠️ El stock del lote debe ser mínimo 5 unidades");
       return false;
     }
 
@@ -208,18 +200,15 @@ export const useMedicamentos = () => {
 
     const resultado = await insertarProducto(datosLote);
     if (resultado.Consulta) {
-      mostrarMensaje("✅ Lote agregado exitosamente");
       await cargarDatos();
       return true;
     } else {
-      mostrarMensaje("❌ Error: " + (resultado.error || "Desconocido"));
       return false;
     }
   };
 
   const guardarMovimiento = (formData) => {
     if (!formData.cantidad || !formData.id_lote_fk) {
-      mostrarMensaje("⚠️ Complete los campos del movimiento");
       return false;
     }
 
@@ -227,17 +216,16 @@ export const useMedicamentos = () => {
     const cantidad = parseInt(formData.cantidad);
 
     if (formData.tipo_movimiento === "SALIDA" && lote.stock_lote < cantidad) {
-      mostrarMensaje("⚠️ Stock insuficiente en el lote");
       return false;
     }
 
-    setLotes(prev => prev.map(l => 
+    setLotes(prev => prev.map(l =>
       l.id_lote_medicamentos_pk === formData.id_lote_fk
-        ? { 
-            ...l, 
-            stock_lote: formData.tipo_movimiento === "ENTRADA" 
-              ? l.stock_lote + cantidad 
-              : l.stock_lote - cantidad 
+        ? {
+            ...l,
+            stock_lote: formData.tipo_movimiento === "ENTRADA"
+              ? l.stock_lote + cantidad
+              : l.stock_lote - cantidad
           }
         : l
     ));
@@ -248,24 +236,20 @@ export const useMedicamentos = () => {
     };
 
     setMovimientos(prev => [...prev, movimiento]);
-    mostrarMensaje(`✅ Movimiento registrado`);
     return true;
   };
 
   const eliminarMedicamento = async (id_producto) => {
     try {
       const resultado = await eliminarProducto({ id_producto });
-      
+
       if (resultado.Consulta) {
-        mostrarMensaje("✅ Medicamento eliminado con éxito");
         await cargarDatos();
         return true;
       } else {
-        mostrarMensaje(`❌ ${resultado.error || 'Error al eliminar'}`);
         return false;
       }
     } catch (error) {
-      mostrarMensaje('❌ Error al eliminar medicamento');
       return false;
     }
   };
@@ -274,18 +258,15 @@ export const useMedicamentos = () => {
   const eliminarLote = async (id_lote) => {
     try {
       const resultado = await eliminarProducto({ id_lote });
-      
+
       if (resultado.Consulta) {
-        mostrarMensaje("✅ Lote eliminado con éxito");
-        await cargarDatos(); // Recargar datos actualizados
+        await cargarDatos();
         return true;
       } else {
-        mostrarMensaje(`❌ ${resultado.error || 'Error al eliminar lote'}`);
         return false;
       }
     } catch (error) {
       console.error('Error al eliminar lote:', error);
-      mostrarMensaje('❌ Error al eliminar lote');
       return false;
     }
   };

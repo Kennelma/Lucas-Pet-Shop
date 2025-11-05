@@ -76,7 +76,7 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
 
   const fechaVencimientoTemplate = (rowData) => {
     return (
-      <span className="text-xs text-gray-600 whitespace-nowrap">
+      <span className="text-xs text-gray-600 whitespace-nowrap uppercase">
         {new Date(rowData.fecha_vencimiento).toLocaleDateString('es-HN', { 
           day: '2-digit', 
           month: 'short', 
