@@ -27,6 +27,7 @@ import {
 
 import { AppBreadcrumb } from './index'
 import { AppHeaderDropdown } from './header/index'
+import CamNotificaciones from '../views/notificaciones/camNotificaciones'
 
 const AppHeader = () => {
   const headerRef = useRef()
@@ -53,11 +54,7 @@ const AppHeader = () => {
         </CHeaderToggler>
 
         <CHeaderNav className="ms-auto">
-          <CNavItem>
-            <CNavLink href="#">
-              <CIcon icon={cilBell} size="lg" />
-            </CNavLink>
-          </CNavItem>
+          <CamNotificaciones />
 
 
 

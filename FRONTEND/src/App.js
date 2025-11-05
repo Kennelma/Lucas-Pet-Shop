@@ -23,6 +23,7 @@ const Login = React.lazy(() => import('./views/pages/login/Login'))
 const Register = React.lazy(() => import('./views/pages/register/Register'))
 const Page404 = React.lazy(() => import('./views/pages/page404/Page404'))
 const Page500 = React.lazy(() => import('./views/pages/page500/Page500'))
+const VeterinariaLanding = React.lazy(() => import('./views/pagina_web/VeterinariaLanding'))
 
 const App = () => {
 
@@ -58,7 +59,7 @@ const App = () => {
         <Routes>
 
           {/**RUTA RAIZ REDIRIGE AL LOGIN */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<VeterinariaLanding />} />
 
 
           {/*RUTAS PUBLICAS*/}

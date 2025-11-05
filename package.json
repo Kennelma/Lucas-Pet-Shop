@@ -23,7 +23,7 @@
     "vite": "^7.1.4"
   },
   "dependencies": {
-    "@adiwajshing/baileys": "^3.5.3",
+    "@adiwajshing/baileys": "^3.2.0",
     "@coreui/chartjs": "^4.0.0",
     "@coreui/icons": "^3.0.1",
     "@coreui/icons-react": "^2.3.0",
@@ -46,6 +46,8 @@
     "express": "^5.1.0",
     "express-fileupload": "^1.5.2",
     "jsonwebtoken": "^9.0.2",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
     "jwt-decode": "^4.0.0",
     "keyv": "^4.5.4",
     "lucide-react": "^0.545.0",

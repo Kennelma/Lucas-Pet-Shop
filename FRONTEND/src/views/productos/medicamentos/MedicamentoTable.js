@@ -56,9 +56,26 @@ const ActionMenu = ({ rowData, onEditar, onVerLotes, onAgregarLote, onEliminar, 
     }
     setIsOpen(!isOpen);
   };
+
+  // Calcular posición para fixed positioning
+  const getMenuPosition = () => {
+    if (!buttonRef.current) return {};
+    
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+    const menuHeight = 200; // Altura aproximada del menú
+    const spaceBelow = window.innerHeight - buttonRect.bottom;
+    const showAbove = spaceBelow < menuHeight && buttonRect.top > menuHeight;
+    
+    return {
+      position: 'fixed',
+      left: `${buttonRect.right - 140}px`, // 140px es el ancho del menú
+      top: showAbove ? `${buttonRect.top - menuHeight}px` : `${buttonRect.bottom + 5}px`,
+      zIndex: '99999'
+    };
+  };
   
   return (
-    <div className="relative flex justify-center" ref={menuRef}>
+    <div className="relative flex justify-center overflow-visible" ref={menuRef} style={{ overflow: 'visible' }}>
       <button
         ref={buttonRef}
         className="w-8 h-8 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center transition-colors"
@@ -69,7 +86,8 @@ const ActionMenu = ({ rowData, onEditar, onVerLotes, onAgregarLote, onEliminar, 
       </button>
       
       {isOpen && (
-        <div className={`absolute right-0 ${shouldShowAbove ? 'bottom-16' : 'top-12'} bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[140px]`}>
+        <div className="bg-white border border-gray-200 rounded-lg shadow-xl min-w-[140px]"
+             style={getMenuPosition()}>
           <div 
             className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={(e) => {
@@ -79,7 +97,7 @@ const ActionMenu = ({ rowData, onEditar, onVerLotes, onAgregarLote, onEliminar, 
             }}
           >
             <i className="pi pi-pencil text-xs"></i>
-            <span>EDITAR</span>
+            <span className="uppercase">EDITAR</span>
           </div>
           
           <div 
@@ -91,7 +109,7 @@ const ActionMenu = ({ rowData, onEditar, onVerLotes, onAgregarLote, onEliminar, 
             }}
           >
             <i className="pi pi-eye text-xs"></i>
-            <span>VER LOTES</span>
+            <span className="uppercase">VER LOTES</span>
           </div>
           
           <div 
@@ -103,7 +121,7 @@ const ActionMenu = ({ rowData, onEditar, onVerLotes, onAgregarLote, onEliminar, 
             }}
           >
             <i className="pi pi-plus text-xs"></i>
-            <span>AGREGAR LOTE</span>
+            <span className="uppercase">AGREGAR LOTE</span>
           </div>
           
           <hr className="my-0 border-gray-200" />
@@ -117,7 +135,7 @@ const ActionMenu = ({ rowData, onEditar, onVerLotes, onAgregarLote, onEliminar, 
             }}
           >
             <i className="pi pi-trash text-xs"></i>
-            <span>ELIMINAR</span>
+            <span className="uppercase">ELIMINAR</span>
           </div>
         </div>
       )}

@@ -13,6 +13,8 @@ const Servicios = React.lazy(() => import('./views/serviciosPeluqueria/Servicios
 const Recordatorios = React.lazy(() => import('./views/Recordatorios/Recordatorios'))
 const Empresa = React.lazy(() => import('./views/empresa/Gestion-Empresa'))
 const Facturacion = React.lazy(() => import('./views/facturacion/facturas/Facturacion'))
+const Seguridad = React.lazy(() => import('./views/seguridad/Seguridad'))
+const Usuario = React.lazy(() => import('./views/usuario/Usuario'))
 
 const Estilistas = React.lazy(() => import('./views/estilistas/Estilistas'))
 const Reportes = React.lazy(() => import('./views/reportes/Reportes'))
@@ -28,9 +30,11 @@ const routes = [
   { path: '/peluqueria_canina/servicios', name: 'Peluquería Canina / Servicios', element: Servicios },
   { path: '/recordatorios', name: 'Recordatorios', element: Recordatorios },
   { path: '/empresa', name: 'Empresa y Sucursales', element: Empresa },
-  { path: '/facturacion', name: 'InvoiceModule', element: Facturacion },
+  { path: '/facturacion', name: 'Facturación', element: Facturacion },
   {path: '/estilistas', name: 'Estilistas', element: Estilistas },
   {path: '/reportes', name: 'Reportes', element: Reportes },
+  {path: '/perfil', name: 'Usuario', element: Usuario },
+  {path: '/seguridad', name: 'Seguridad', element: Seguridad },
 ]
 
 export default routes
