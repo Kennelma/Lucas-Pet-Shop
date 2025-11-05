@@ -22,7 +22,7 @@ export const obtenerTiposPago = async (tipoPago) => {
 
 
 //====================OBTENER TODOS LOS MÉTODOS DE PAGO================
-export const obtenerTodosMetodosPago = async () => {
+export const obtenerMetodosPagos = async () => {
   try {
     const { data } = await axiosInstance.get(`${API_URL}/metodosPago`);
     return data;

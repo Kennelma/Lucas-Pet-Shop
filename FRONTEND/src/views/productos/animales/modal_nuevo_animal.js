@@ -18,6 +18,9 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
   const [errores, setErrores] = useState({});
   const [loading, setLoading] = useState(false);
 
+  // Verificar si hay errores para mostrar scroll
+  const hayErrores = Object.keys(errores).some(key => errores[key]);
+
   const especies = [
     { label: 'PERRO', value: 'PERRO' },
     { label: 'GATO', value: 'GATO' },
@@ -97,18 +100,20 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
   };
 
   const footer = (
-    <div className="flex justify-end gap-3 mt-2">
+    <div className="flex justify-end gap-3 mt-1">
       <Button
         label="Cancelar"
         icon="pi pi-times"
-        className="p-button-text p-button-rounded"
+        className="p-button-text p-button-rounded text-sm"
+        style={{ padding: '0.375rem 0.75rem' }}
         onClick={onClose}
         disabled={loading}
       />
       <Button
         label="Guardar"
         icon="pi pi-check"
-        className="p-button-success p-button-rounded"
+        className="p-button-success p-button-rounded text-sm"
+        style={{ padding: '0.375rem 0.75rem' }}
         onClick={handleSubmit}
         loading={loading}
       />
@@ -119,7 +124,11 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">NUEVO ANIMAL</div>}
       visible={isOpen}
-      style={{ width: '28rem', borderRadius: '1.5rem' }}
+      style={{ 
+        width: '30rem', 
+        borderRadius: '1.5rem',
+        ...(hayErrores ? { maxHeight: '90vh' } : {})
+      }}
       modal
       closable={false}
       onHide={onClose}
@@ -128,9 +137,10 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
       dismissableMask={false}
       draggable={false}
       resizable={false}
+      contentStyle={hayErrores ? { overflowY: 'auto', maxHeight: 'calc(90vh - 120px)', padding: '1rem' } : { overflow: 'visible', padding: '1rem' }}
     >
       {/* Formulario */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2.5">
         {/* Nombre del Animal */}
         <span>
           <label htmlFor="nombre" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE DEL ANIMAL</label>

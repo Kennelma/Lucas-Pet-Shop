@@ -120,6 +120,22 @@ const _nav = [
     ],
   },
 
+    // PERFIL DE USUARIO
+    {
+      component: CNavGroup,
+      name: 'Perfil de usuario',
+      icon: <FontAwesomeIcon icon={faUser} className="nav-icon" />,
+      to: '/usuario',
+    },
+
+    // SEGURIDAD
+    {
+      component: CNavGroup,
+      name: 'Seguridad',
+      icon: <FontAwesomeIcon icon={faTags} className="nav-icon" />,
+      to: '/seguridad',
+    },
+
   //EMPRESA
   {
     component: CNavItem,
@@ -135,6 +151,16 @@ const _nav = [
     to: '/recordatorios',
     icon: <FontAwesomeIcon icon={faBell} className="nav-icon" />,
   },
+
+  //SEGURIDAD
+  {
+    component: CNavItem,
+    name: 'Seguridad',
+    to: '/seguridad',
+    icon: <FontAwesomeIcon icon={faBell} className="nav-icon" />,
+  },
+
+
 
   //ESTILISTAS Y BONIFICACIONES
   {
@@ -152,6 +178,15 @@ const _nav = [
     to: '/reportes',
     icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
 
+  },
+
+
+  //PERFIL DE USUARIO
+  {
+    component: CNavItem,
+    name: 'Perfil de Usuario',
+    to: '/perfil',
+    icon: <FontAwesomeIcon icon={faUser} className="nav-icon" />,
   },
 
 

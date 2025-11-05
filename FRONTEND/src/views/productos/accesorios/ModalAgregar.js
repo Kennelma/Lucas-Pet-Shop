@@ -19,6 +19,9 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
   const [errores, setErrores] = useState({});
   const [loading, setLoading] = useState(false);
 
+  // Verificar si hay errores para mostrar scroll
+  const hayErrores = Object.keys(errores).some(key => errores[key]);
+
   const categorias = [
     { label: 'COLLAR', value: 'COLLAR' },
     { label: 'CORREA', value: 'CORREA' },
@@ -183,7 +186,11 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">NUEVO ACCESORIO</div>}
       visible={isOpen}
-      style={{ width: '28rem', borderRadius: '1.5rem', overflow: 'visible' }}
+      style={{ 
+        width: '28rem', 
+        borderRadius: '1.5rem',
+        ...(hayErrores ? { maxHeight: '85vh' } : {})
+      }}
       modal
       closable={false}
       onHide={onClose}
@@ -192,7 +199,7 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
       dismissableMask={false}
       draggable={false}
       resizable={false}
-      contentClassName="overflow-visible"
+      contentStyle={hayErrores ? { overflowY: 'auto', maxHeight: 'calc(85vh - 120px)' } : { overflow: 'visible' }}
     >
       {/* Formulario */}
       <div className="flex flex-col gap-3 overflow-visible">
@@ -210,18 +217,6 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
           {errores.nombre && <p className="text-xs text-red-600 mt-1">{errores.nombre}</p>}
         </span>
 
-        {/* SKU (Auto-generado) */}
-        <span>
-          <label htmlFor="sku" className="text-xs font-semibold text-gray-700 mb-1">SKU (GENERADO AUTOMÁTICAMENTE)</label>
-          <InputText
-            id="sku"
-            name="sku"
-            value={data.sku}
-            readOnly
-            className="w-full rounded-xl h-9 text-sm bg-gray-100"
-            placeholder="Se generará automáticamente"
-          />
-        </span>
 
         {/* Categoría */}
         <span>

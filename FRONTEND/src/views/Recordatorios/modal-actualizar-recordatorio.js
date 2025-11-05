@@ -1,0 +1,88 @@
+import React, { useState, useEffect } from 'react';
+import { Dialog } from 'primereact/dialog';
+import { Button } from 'primereact/button';
+
+const ModalActualizarRecordatorio = ({
+  isOpen,
+  onClose,
+  onActualizar,
+  tipos = [],
+  frecuencias = [],
+  recordatorio = {} // { tipoItem, frecuencia, fechaProgramacion, mensaje }
+}) => {
+  const [tipoItem, setTipoItem] = useState('');
+  const [frecuencia, setFrecuencia] = useState('');
+  const [fechaProgramacion, setFechaProgramacion] = useState('');
+  const [mensaje, setMensaje] = useState('');
+
+  useEffect(() => {
+    if (isOpen && recordatorio) {
+      setTipoItem(recordatorio.tipoItem || '');
+      setFrecuencia(recordatorio.frecuencia || '');
+      setFechaProgramacion(recordatorio.fechaProgramacion || '');
+      setMensaje(recordatorio.mensaje || '');
+    }
+  }, [isOpen, recordatorio]);
+
+  const handleActualizar = () => {
+    onActualizar({ tipoItem, frecuencia, fechaProgramacion, mensaje });
+    onClose();
+  };
+
+  return (
+    <Dialog header="Actualizar Recordatorio" visible={isOpen} style={{ width: '30rem' }} onHide={onClose} modal>
+      <div className="flex flex-col gap-4">
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Recordatorio para clientes que han comprado: </label>
+          <select
+            className="w-full border rounded px-3 py-2 text-sm"
+            value={tipoItem}
+            onChange={e => setTipoItem(e.target.value)}
+          >
+            <option value="">Seleccionar tipo</option>
+            {tipos.map(t => (
+              <option key={t.id} value={t.id}>{t.nombre}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Frecuencia de envio del recordatorio: </label>
+          <select
+            className="w-full border rounded px-3 py-2 text-sm"
+            value={frecuencia}
+            onChange={e => setFrecuencia(e.target.value)}
+          >
+            <option value="">Seleccionar frecuencia</option>
+            {frecuencias.map(f => (
+              <option key={f.id} value={f.id}>{f.nombre}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Fecha Programación para enviar recordatorio: </label>
+          <input
+            type="date"
+            className="w-full border rounded px-3 py-2 text-sm"
+            value={fechaProgramacion}
+            onChange={e => setFechaProgramacion(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Mensaje</label>
+          <textarea
+            className="w-full border rounded px-3 py-2 text-sm"
+            value={mensaje}
+            onChange={e => setMensaje(e.target.value)}
+            rows={3}
+          />
+        </div>
+        <div className="flex justify-end gap-3 mt-4">
+          <Button label="Cancelar" className="p-button-text" onClick={onClose} />
+          <Button label="Actualizar" className="bg-blue-800 hover:bg-blue-900 text-white" onClick={handleActualizar} />
+        </div>
+      </div>
+    </Dialog>
+  );
+};
+
+export default ModalActualizarRecordatorio;

@@ -1,12 +1,70 @@
 
 const mysqlConnection = require('../config/conexion');
 
+
+exports.verCatalogo = async (req, res) => {
+
+    const conn = await mysqlConnection.getConnection();
+
+    try {
+
+        let filas; //VARIABLE DE APOYO
+
+        switch (req.query.tipo_catalogo) {
+
+            case 'FRECUENCIA':   //ME TRAE TODAS LAS FRECUENCIAS
+                [registros] = await conn.query(`
+                    SELECT
+                        id_frecuencia_record_pk,
+                        frecuencia_recordatorio
+                    FROM cat_frecuencia_recordatorio`);
+                break;
+
+
+            case 'TELEFONO': //ME TRAE TODOS LOS TELEFONOS DE LOS CLIENTES REGISTRADOS
+                [registros] = await conn.query(`
+                    SELECT
+                        telefono_cliente
+                    FROM tbl_clientes`);
+                break;
+
+
+            case 'TIPO_SERVICIO':
+
+                [registros] = await conn.query(
+                    `SELECT
+                        id_tipo_item_pk,
+                        nombre_tipo_item
+                    FROM cat_tipo_item`);
+                break;
+
+            default:
+               throw new Error('Tipo de catalogo no válido');
+        }
+
+        res.json({
+            Consulta: true,
+            Catalogo: filas || []
+        });
+
+    } catch (error) {
+        res.json({
+            Consulta: false,
+            error: error.message
+        });
+
+    } finally {
+
+        conn.release();
+    }
+};
+
 //CREAR RECORDATORIO
 exports.crear = async (req, res) => {
+
     const conn = await mysqlConnection.getConnection();
+
     await conn.beginTransaction();
-
-
 
     try {
 
@@ -18,7 +76,7 @@ exports.crear = async (req, res) => {
                 proximo_envio
             ) VALUES (?, ?, ?, ?)`,
             [
-                req.body.mensaje_recordatorio,
+                req.body.mensaje,
                 req.body.id_tipo_item_fk,
                 req.body.id_frecuencia_fk,
                 req.body.proximo_envio
@@ -39,6 +97,9 @@ exports.crear = async (req, res) => {
         conn.release();
     }
 };
+
+
+
 
 //VER LISTA DE RECORDATORIOS
 exports.ver = async (req, res) => {

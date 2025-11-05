@@ -27,6 +27,9 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave }) => {
   const [errores, setErrores] = useState({});
   const [loading, setLoading] = useState(false);
 
+  // Verificar si hay errores para mostrar scroll
+  const hayErrores = Object.keys(errores).some(key => errores[key]);
+
   const handleChange = (field, value) => {
     const val = ['nombre', 'destino'].includes(field) ? value.toUpperCase() : value;
     setData(prev => ({ ...prev, [field]: val }));
@@ -104,7 +107,11 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave }) => {
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">NUEVO ALIMENTO</div>}
       visible={isOpen}
-      style={{ width: '28rem', borderRadius: '1.5rem', overflow: 'visible' }}
+      style={{ 
+        width: '28rem', 
+        borderRadius: '1.5rem',
+        ...(hayErrores ? { maxHeight: '85vh' } : {})
+      }}
       modal
       closable={false}
       onHide={onClose}
@@ -113,7 +120,7 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave }) => {
       dismissableMask={false}
       draggable={false}
       resizable={false}
-      contentClassName="overflow-visible"
+      contentStyle={hayErrores ? { overflowY: 'auto', maxHeight: 'calc(85vh - 120px)' } : { overflow: 'visible' }}
     >
       {/* Formulario */}
       <div className="flex flex-col gap-3 overflow-visible">

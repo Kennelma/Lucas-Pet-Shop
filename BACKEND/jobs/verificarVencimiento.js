@@ -3,18 +3,16 @@ import cron from 'node-cron';
 const mysqlConnection = require('../config/conexion');
 
 cron.schedule('0 0 * * *', async () => {
-  console.log('⏰ Ejecutando verificación de vencimientos...');
 
   const conn = await pool.getConnection();
   try {
-    // Bloquear lotes vencidos
     await conn.query(`
       UPDATE tbl_lotes_medicamentos
       SET estado_lote_fk = 'VENCIDO'
       WHERE fecha_vencimiento <= CURDATE()
     `);
 
-    // Notificación por vencidos
+
     await conn.query(`
       INSERT INTO tbl_notificaciones (nombre_notificacion, plantilla_id_fk)
       SELECT CONCAT('Lote ', codigo_lote, ' vencido'), 4
@@ -25,7 +23,6 @@ cron.schedule('0 0 * * *', async () => {
         )
     `);
 
-    // Notificación por vencer (30 días)
     await conn.query(`
       INSERT INTO tbl_notificaciones (nombre_notificacion, plantilla_id_fk)
       SELECT CONCAT('Lote ', codigo_lote, ' por vencer (30 días)'), 1
@@ -37,7 +34,7 @@ cron.schedule('0 0 * * *', async () => {
         )
     `);
 
-    // Notificación por vencer (60 días)
+
     await conn.query(`
       INSERT INTO tbl_notificaciones (nombre_notificacion, plantilla_id_fk)
       SELECT CONCAT('Lote ', codigo_lote, ' por vencer (60 días)'), 2
@@ -49,7 +46,7 @@ cron.schedule('0 0 * * *', async () => {
         )
     `);
 
-    // Notificación por vencer (90 días)
+
     await conn.query(`
       INSERT INTO tbl_notificaciones (nombre_notificacion, plantilla_id_fk)
       SELECT CONCAT('Lote ', codigo_lote, ' por vencer (90 días)'), 3
@@ -63,7 +60,7 @@ cron.schedule('0 0 * * *', async () => {
 
     console.log('✅ Job completado correctamente.');
   } catch (err) {
-    console.error('❌ Error en job:', err);
+    console.error('Error en job:', err);
   } finally {
     conn.release();
   }

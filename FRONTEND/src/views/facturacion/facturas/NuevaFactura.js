@@ -9,7 +9,7 @@ import {
   obtenerEstilistasFactura
 } from "../../../AXIOS.SERVICES/factura-axios";
 
-const NuevaFactura = () => {
+const NuevaFactura = (props) => {
   //====================ESTADOS_DEL_CLIENTE====================
   const [identidad, setIdentidad] = useState("");
   const [nombreCliente, setNombreCliente] = useState("");
@@ -44,6 +44,7 @@ const NuevaFactura = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { setActiveTab } = props;
 
   //====================CARGA_INICIAL====================
   useEffect(() => {
@@ -166,7 +167,11 @@ const NuevaFactura = () => {
   };
 
   const handleCancel = () => {
-    navigate("/facturas");
+    if (setActiveTab) {
+      setActiveTab("facturas");
+    } else {
+      navigate("/facturas");
+    }
   };
 
   //====================RENDER====================

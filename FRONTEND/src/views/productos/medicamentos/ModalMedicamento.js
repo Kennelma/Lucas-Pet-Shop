@@ -21,6 +21,12 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
 
   const [errores, setErrores] = useState({});
 
+  // Función para normalizar texto: Primera letra mayúscula, resto minúscula
+  const normalizarTexto = (texto) => {
+    if (!texto) return '';
+    return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
+  };
+
   const generarSKU = (nombre) => {
     if (!nombre) return '';
     const partes = nombre.trim().split(' ').map(p => p.substring(0, 3).toUpperCase());
@@ -34,6 +40,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
   };
 
   useEffect(() => {
+    
     if (isOpen) {
       if (medicamentoEditando) {
         setFormData({
@@ -74,15 +81,12 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
 
 
 
-  const handleChange = (field, value) => {
-    const camposTexto = ['nombre_producto'];
-    const valorFinal = camposTexto.includes(field) ? value.toUpperCase() : value;
+  const handleChange = (field, value) => { const camposTexto = ['nombre_producto']; const valorFinal = camposTexto.includes(field) ? value.toUpperCase() : value;
     
     setFormData(prev => {
       const newData = { ...prev, [field]: valorFinal };
       
-      if (field === 'nombre_producto') {
-        newData.sku = generarSKU(valorFinal);
+      if (field === 'nombre_producto') { newData.sku = generarSKU(valorFinal);
       }
       
       return newData;
@@ -100,8 +104,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
             (!medicamentoEditando || med.id_medicamento !== medicamentoEditando.id_medicamento)
           );
           
-          if (nombreExiste) {
-            newErrores[field] = 'Ya existe un medicamento con este nombre';
+          if (nombreExiste) { newErrores[field] = 'Ya existe un medicamento con este nombre';
           } else {
             newErrores[field] = '';
           }
@@ -138,16 +141,14 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
   const validarPaso1 = () => {
     let temp = {};
     
-    if (!formData.nombre_producto.trim()) {
-      temp.nombre_producto = 'El nombre del producto es obligatorio';
+    if (!formData.nombre_producto.trim()) { temp.nombre_producto = 'El nombre del producto es obligatorio';
     } else {
       const nombreExiste = medicamentosExistentes.some(med => 
         med.nombre_producto.toLowerCase() === formData.nombre_producto.trim().toLowerCase() &&
         (!medicamentoEditando || med.id_medicamento !== medicamentoEditando.id_medicamento)
       );
       
-      if (nombreExiste) {
-        temp.nombre_producto = 'Ya existe un medicamento con este nombre';
+      if (nombreExiste) { temp.nombre_producto = 'Ya existe un medicamento con este nombre';
       }
     }
     
@@ -171,8 +172,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
   const validarPaso2 = () => {
     let temp = {};
     
-    if (!formData.fecha_vencimiento) {
-      temp.fecha_vencimiento = 'La fecha de vencimiento es obligatoria';
+    if (!formData.fecha_vencimiento) { temp.fecha_vencimiento = 'La fecha de vencimiento es obligatoria';
     } else {
       const fechaSeleccionada = new Date(formData.fecha_vencimiento);
       const hoy = new Date();
@@ -190,8 +190,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
   };
 
   const handleSiguiente = () => {
-    if (validarPaso1()) {
-      const codigoAuto = generarCodigoLote(formData.nombre_producto);
+    if (validarPaso1()) { const codigoAuto = generarCodigoLote(formData.nombre_producto);
       setFormData(prev => ({ ...prev, codigo_lote: codigoAuto }));
       setPaso(2);
     }
@@ -277,7 +276,10 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">{medicamentoEditando ? 'EDITAR MEDICAMENTO' : 'NUEVO MEDICAMENTO'}</div>}
       visible={isOpen}
-      style={{ width: '28rem', borderRadius: '1.5rem' }}
+      style={medicamentoEditando ? 
+        { width: '30rem', maxHeight: '90vh', borderRadius: '1.5rem' } : 
+        { width: '28rem', borderRadius: '1.5rem' }
+      }
       modal
       closable={false}
       onHide={onClose}
@@ -286,6 +288,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
       dismissableMask={false}
       draggable={false}
       resizable={false}
+      contentStyle={medicamentoEditando ? { overflowY: 'visible', padding: '1rem' } : {}}
     >
       {/* Indicador de pasos */}
       {!medicamentoEditando && (
@@ -303,7 +306,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
       )}
 
       {/* Formulario */}
-      <div className="flex flex-col gap-3">
+      <div className={`flex flex-col ${medicamentoEditando ? 'gap-2.5' : 'gap-3'}`}>
         {/* PASO 1: Información del Medicamento */}
         {(paso === 1 || medicamentoEditando) && (
           <>
@@ -321,18 +324,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
               {errores.nombre_producto && <p className="text-xs text-red-600 mt-1">{errores.nombre_producto}</p>}
             </span>
 
-        {/* SKU */}
-        <span>
-          <label htmlFor="sku" className="text-xs font-semibold text-gray-700 mb-1">SKU (GENERADO AUTOMÁTICAMENTE)</label>
-          <InputText
-            id="sku"
-            name="sku"
-            value={formData.sku}
-            readOnly
-            className="w-full rounded-xl h-9 text-sm bg-gray-100"
-          />
-        </span>
-
+       
         {/* Precio y Stock Mínimo */}
         <div className="grid grid-cols-2 gap-2">
           <span>
