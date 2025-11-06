@@ -39,7 +39,7 @@ const DetallesFactura = ({
   estilistas = [],
   onCancel,
   RTN,
-  id_cliente, // ⭐ NUEVO: Necesitas pasar esto desde NuevaFactura
+  id_cliente, 
 }) => {
   //====================ESTADOS====================
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -86,19 +86,19 @@ const DetallesFactura = ({
   const aplicarDescuento = () => {
     const inputDescuento = document.getElementById('input-descuento-manual');
     const valorDescuento = parseFloat(inputDescuento.value) || 0;
-    
+
     if (valorDescuento < 0) {
       alert('El descuento no puede ser negativo');
       inputDescuento.value = '';
       return;
     }
-    
+
     if (valorDescuento > TOTAL_CON_AJUSTE) {
       alert('El descuento no puede ser mayor al total de la factura');
       inputDescuento.value = '';
       return;
     }
-    
+
     setDescuentoManual(valorDescuento);
     inputDescuento.value = '';
   };
@@ -833,7 +833,7 @@ const DetallesFactura = ({
           )}
         </div>
 
-        
+
 
         {/*TOTALES Y BOTONES*/}
         {items.length > 0 && (
