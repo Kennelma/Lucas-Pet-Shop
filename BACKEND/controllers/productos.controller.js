@@ -456,6 +456,16 @@ exports.actualizar = async (req, res) => {
 
             case 'LOTES':
 
+
+                // 🎯 CONSOLE.LOG PARA LA TERMINAL
+                console.log('--- ACTUALIZACIÓN DE LOTE ---');
+                console.log('ID Lote a actualizar (Asumido PK):', req.body.id_lote_medicamentos_pk || req.body.id_lote);
+                console.log('Nuevos valores:', {
+                    fecha_vencimiento: req.body.fecha_vencimiento || 'No se actualiza',
+                    stock_lote: req.body.stock_lote || 'No se actualiza'
+                });
+                console.log('-----------------------------');
+                
                 await conn.query(
                 `UPDATE tbl_lotes_medicamentos
                 SET
@@ -465,7 +475,7 @@ exports.actualizar = async (req, res) => {
                 [
                     req.body.fecha_vencimiento || null,
                     req.body.stock_lote || null,
-                    req.body.id_lote_medicamentos_pk
+                    id_producto
                 ]);
                 break;
 
@@ -726,7 +736,9 @@ exports.eliminar = async (req, res) => {
         if (id_lote) {
 
             await conn.query(
-                `DELETE FROM tbl_lotes_medicamentos WHERE id_lote_medicamentos_pk = ?`,[id_lote]
+                `DELETE
+                FROM tbl_lotes_medicamentos
+                WHERE id_lote_medicamentos_pk = ?`,[id_lote]
             );
 
             await conn.commit();

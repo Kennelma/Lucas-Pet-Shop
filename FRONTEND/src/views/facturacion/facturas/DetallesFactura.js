@@ -39,7 +39,7 @@ const DetallesFactura = ({
   estilistas = [],
   onCancel,
   RTN,
-  id_cliente, // ⭐ NUEVO: Necesitas pasar esto desde NuevaFactura
+  id_cliente, 
 }) => {
   //====================ESTADOS====================
   const [showPaymentModal, setShowPaymentModal] = useState(false);
