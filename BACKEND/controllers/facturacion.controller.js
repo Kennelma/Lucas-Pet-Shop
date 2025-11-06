@@ -94,8 +94,13 @@ exports.crearFactura = async (req, res) => {
             WHERE nombre_parametro = 'IMPUESTO_ISV'`
         );
 
-        const impuesto_porcentaje = parseFloat(isv[0].valor_parametro); //15%
-        const impuesto_valor = 1 + (impuesto_porcentaje / 100); //1.15
+        const impuesto_porcentaje = parseFloat(isv[0]?.valor_parametro || 15); // ✅ Default 15%
+        const impuesto_valor = 1 + (impuesto_porcentaje / 100);
+
+        // ✅ VALIDAR QUE NO SEA 0
+        if (impuesto_valor <= 0 || isNaN(impuesto_valor)) {
+            throw new Error('Error al obtener el impuesto del sistema. Contacte al administrador.');
+        }
 
         //SE VALIDA Y CALCULAR CADA ITEM
         let id_medicamento = null;
@@ -110,9 +115,7 @@ exports.crearFactura = async (req, res) => {
 
             let precio_unitario = 0;
             let nombre_item = '';
-            let id_producto = null;
-            let id_servicio = null;
-            let id_promocion = null;
+            let id_producto = '';
 
             //OBTENER PRECIO REAL DESDE LA BD SEGÚN EL TIPO
             if (tipo === 'PRODUCTOS') {
@@ -123,12 +126,11 @@ exports.crearFactura = async (req, res) => {
                     p.nombre_producto,
                     p.precio_producto,
                     p.stock,
-                    p.tipo_producto_fk,
-                    t.nombre_tipo_producto
+                    p.tipo_item_fk
                 FROM tbl_productos p
-                INNER JOIN cat_tipo_productos t
-                        ON t.id_tipo_producto_pk = p.tipo_producto_fk
-                WHERE p.id_producto_pk = ? AND p.activo = TRUE`,
+                INNER JOIN cat_tipo_item t
+                        ON t.id_tipo_item_pk = p.tipo_item_fk
+                WHERE p.id_producto_pk = ? AND p.activo = TRUE AND p.stock > 0`,
                 [item_id]
                 );
 
@@ -143,8 +145,10 @@ exports.crearFactura = async (req, res) => {
                 }
 
                 precio_unitario = parseFloat(producto[0].precio_producto);
-                nombre_item = producto[0].nombre_producto;
                 id_producto = producto[0].id_producto_pk;
+                nombre_item = producto[0].nombre_producto;
+                id_tipo_item_fk = producto[0].tipo_item_fk;
+
 
                 //====================VALIDAR_SI_ES_MEDICAMENTO_CON_LOTES====================
                 const [esMedicamento] = await conn.query(
@@ -209,13 +213,15 @@ exports.crearFactura = async (req, res) => {
 
             } else if (tipo === 'SERVICIOS') {
 
+
                 const [servicio] = await conn.query(
                     `SELECT
                         id_servicio_peluqueria_pk,
                         nombre_servicio_peluqueria,
-                        precio_servicio
+                        precio_servicio,
+                        id_tipo_item_fk
                     FROM tbl_servicios_peluqueria_canina
-                    WHERE activo = TRUE`,
+                    WHERE id_servicio_peluqueria_pk = ? AND activo = TRUE`,
                     [item_id]
                 );
 
@@ -230,7 +236,7 @@ exports.crearFactura = async (req, res) => {
 
                 precio_unitario = parseFloat(servicio[0].precio_servicio);
                 nombre_item = servicio[0].nombre_servicio_peluqueria;
-                id_servicio = servicio[0].id_servicio_peluqueria_pk;
+                id_tipo_item_fk = servicio[0].id_tipo_item_fk;
 
             } else if (tipo === 'PROMOCIONES') {
 
@@ -238,7 +244,8 @@ exports.crearFactura = async (req, res) => {
                     `SELECT
                         id_promocion_pk,
                         nombre_promocion,
-                        precio_promocion
+                        precio_promocion,
+                        id_tipo_item_fk
                     FROM tbl_promociones
                     WHERE id_promocion_pk = ? AND activo = TRUE`,
                     [item_id]
@@ -255,7 +262,7 @@ exports.crearFactura = async (req, res) => {
 
                 precio_unitario = parseFloat(promocion[0].precio_promocion);
                 nombre_item = promocion[0].nombre_promocion;
-                id_promocion = promocion[0].id_promocion_pk;
+                id_tipo_item_fk = promocion[0].id_tipo_item_fk;
 
             } else {
                 throw new Error(`Tipo de item no válido: ${tipo}`);
@@ -276,8 +283,7 @@ exports.crearFactura = async (req, res) => {
                 ajuste: ajuste_valor,
                 total_linea,
                 id_producto,
-                id_servicio,
-                id_promocion,
+                id_tipo_item_fk,
                 id_medicamento,
                 estilistas: estilistas || [],
                 lotesADescontar: item.lotesADescontar || null  //LOTES FIFO PARA MEDICAMENTOS
@@ -288,16 +294,26 @@ exports.crearFactura = async (req, res) => {
 
         //SE CALCULA LOS TOTALES FINALES
         const total_con_ajustes = total_bruto + total_ajuste - descuento_valor;
+
+        //
+        if (isNaN(total_con_ajustes) || isNaN(impuesto_valor)) {
+            throw new Error('Error en el cálculo de totales. Valores inválidos detectados.');
+        }
+
         const subtotal = Math.max(0, total_con_ajustes / impuesto_valor); //BASE IMPONIBLE (no negativo)
         const impuesto = Math.max(0, total_con_ajustes - subtotal); //IMPUESTO (no negativo)
 
         const total = Math.max(0, total_con_ajustes); // TOTAL FINAL (no negativo)
         const saldo = total; //INICIALMENTE EL SALDO ES IGUAL AL TOTAL
 
-        //VALIDAR QUE EL TOTAL NO SEA CERO O NEGATIVO
-        if (total <= 0) {
-            throw new Error('El total de la factura no puede ser cero o negativo. Verifica los ajustes aplicados.');
+        // ✅ VALIDAR RESULTADOS
+        if (isNaN(subtotal) || isNaN(impuesto) || isNaN(total)) {
+            throw new Error('Error en cálculos finales. Por favor, revise los datos ingresados.');
         }
+
+        if (total <= 0) {
+            throw new Error('El total de la factura no puede ser cero o negativo.');
+}
 
         //SE GENERA EL NÚMERO DE FACTURA (Formato: FAC-2025-001)
         const [[{ numero_factura }]] = await conn.query(`
@@ -320,7 +336,7 @@ exports.crearFactura = async (req, res) => {
             throw new Error(`El número de factura ${numero_factura} ya existe. Intente nuevamente.`);
         }
 
-        // INSERTAR FACTURA CON EL NÚMERO YA GENERADO
+        //INSERTAR FACTURA CON EL NÚMERO YA GENERADO
         const [factura] = await conn.query(
             `INSERT INTO tbl_facturas (
                 numero_factura,
@@ -354,6 +370,8 @@ exports.crearFactura = async (req, res) => {
 
         const id_factura = factura.insertId;
 
+
+
         // 8) INSERTAR DETALLES Y ESTILISTAS
         for (const detalle of detallesValidados) {
 
@@ -366,10 +384,8 @@ exports.crearFactura = async (req, res) => {
                     ajuste_precio,
                     total_linea,
                     id_factura_fk,
-                    id_producto_fk,
-                    id_servicio_fk,
-                    id_promocion_fk
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    id_tipo_item_fk
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
                 [
                     detalle.nombre_item,
                     detalle.cantidad,
@@ -377,9 +393,7 @@ exports.crearFactura = async (req, res) => {
                     detalle.ajuste,
                     detalle.total_linea || null,
                     id_factura,
-                    detalle.id_producto || null,
-                    detalle.id_servicio || null,
-                    detalle.id_promocion || null
+                    detalle.id_tipo_item_fk
                 ]
             );
 
@@ -416,7 +430,7 @@ exports.crearFactura = async (req, res) => {
                     for (const lote of detalle.lotesADescontar) {
 
                         //VALIDAR QUE EL LOTE SIGUE SIENDO VÁLIDO Y TIENE STOCK
-                        const [valida] = await conn.query(
+                        await conn.query(
                             `SELECT 1
                             FROM tbl_lotes_medicamentos l
                             INNER JOIN cat_estados e ON l.estado_lote_fk = e.id_estado_pk
@@ -553,7 +567,8 @@ exports.catalogoItems = async (req, res) => {
                     `SELECT
                         id_producto_pk,
                         nombre_producto,
-                        precio_producto
+                        precio_producto,
+                        stock
                     FROM tbl_productos
                     WHERE activo = TRUE AND stock > 0`
                 )
@@ -819,13 +834,9 @@ exports.ImpresionFactura = async (req, res) => {
                 df.precio_item,
                 df.ajuste_precio,
                 df.total_linea,
-                CASE
-                    WHEN df.id_producto_fk IS NOT NULL THEN 'PRODUCTO'
-                    WHEN df.id_servicio_fk IS NOT NULL THEN 'SERVICIO'
-                    WHEN df.id_promocion_fk IS NOT NULL THEN 'PROMOCION'
-                    ELSE 'OTRO'
-                END AS tipo_item
+                ct.nombre_tipo_item AS tipo_item
             FROM tbl_detalles_facturas df
+            LEFT JOIN cat_tipo_item ct ON df.id_tipo_item_fk = ct.id_tipo_item_pk
             WHERE df.id_factura_fk = ?
             ORDER BY df.id_detalle_pk`,
             [factura[0].id_factura_pk]
@@ -882,7 +893,3 @@ exports.ImpresionFactura = async (req, res) => {
 };
 
 
-
-exports.detallesFactura = async (req, res) => {
-
-}

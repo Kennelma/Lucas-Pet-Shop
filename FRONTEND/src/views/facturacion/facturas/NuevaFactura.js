@@ -187,7 +187,7 @@ const NuevaFactura = (props) => {
           setRTN={setRTN}
           vendedor={vendedor}
           sucursal={sucursal}
-          setIdCliente={setIdCliente} // ⭐ NUEVO
+          setIdCliente={setIdCliente} 
         />
       </div>
 
