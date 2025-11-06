@@ -88,9 +88,10 @@ exports.crear = async (req, res) => {
         if (req.body.tipo_producto !== 'LOTES') {
             //OBTENGO EL ID DEL TIPO DE PRODUCTO (CATALOGO)
             const [tipoProducto] = await conn.query(
-                `SELECT id_tipo_producto_pk AS id_tipo
-                FROM cat_tipo_productos
-                WHERE nombre_tipo_producto = ?`,
+                `SELECT
+                    id_tipo_item_pk AS id_tipo
+                FROM cat_tipo_item
+                WHERE nombre_tipo_item = ?`,
                 [req.body.tipo_producto]
             );
 
@@ -100,7 +101,7 @@ exports.crear = async (req, res) => {
                     nombre_producto,
                     precio_producto,
                     stock,
-                    tipo_producto_fk
+                    tipo_item_fk
                 ) VALUES (?, ?, ?, ?)`,
                 [...insert_atributos_padre(req.body), tipoProducto[0].id_tipo]
             );
@@ -465,7 +466,7 @@ exports.actualizar = async (req, res) => {
                     stock_lote: req.body.stock_lote || 'No se actualiza'
                 });
                 console.log('-----------------------------');
-                
+
                 await conn.query(
                 `UPDATE tbl_lotes_medicamentos
                 SET
