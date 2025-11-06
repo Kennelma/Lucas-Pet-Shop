@@ -262,7 +262,6 @@ const DetallesFactura = ({
           `✅ Factura ${response.data.numero_factura} creada exitosamente!\nTotal: L ${response.data.total}\nSaldo: L ${response.data.saldo}`
         );
 
-        // ⭐ Abrir modal de pago
         const datos = {
           id_factura: response.data.id_factura,
           numero_factura: response.data.numero_factura,

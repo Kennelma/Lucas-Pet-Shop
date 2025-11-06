@@ -8,11 +8,25 @@ import ModalMedicamento from "./ModalMedicamento";
 import ModalLote from "./ModalLote";
 import ModalMovimiento from "./ModalMovimiento";
 import ModalLotesMedicamento from "./ModalLotesMedicamento";
+import ModalEditarLote from "./ModalEditarLote"; // ✅ NUEVO IMPORT
 import { cambiarEstadoProducto } from "../../../AXIOS.SERVICES/products-axios";
 
 const Medicamentos = () => {
-  const { medicamentos, setMedicamentos, lotes, kardexData, loading, mensaje, calcularStockTotal, guardarMedicamento, guardarLote, guardarMovimiento,
-    eliminarMedicamento, eliminarLote, cargarDatos
+  const { 
+    medicamentos, 
+    setMedicamentos, 
+    lotes, 
+    kardexData, 
+    loading, 
+    mensaje, 
+    calcularStockTotal, 
+    guardarMedicamento, 
+    guardarLote, 
+    guardarMovimiento,
+    eliminarMedicamento, 
+    eliminarLote,
+    editarLote, // ✅ NUEVO
+    cargarDatos
   } = useMedicamentos();
 
   const [vistaActual, setVistaActual] = useState("medicamentos");
@@ -21,13 +35,15 @@ const Medicamentos = () => {
   const [modalLoteVisible, setModalLoteVisible] = useState(false);
   const [modalMovVisible, setModalMovVisible] = useState(false);
   const [modalLotesVisible, setModalLotesVisible] = useState(false);
+  const [modalEditarLoteVisible, setModalEditarLoteVisible] = useState(false); // ✅ NUEVO
   const [medicamentoEditando, setMedicamentoEditando] = useState(null);
   const [medicamentoSeleccionado, setMedicamentoSeleccionado] = useState(null);
   const [loteSeleccionado, setLoteSeleccionado] = useState(null);
+  const [loteEditar, setLoteEditar] = useState(null); // ✅ NUEVO
 
   //====================CONTROL_SCROLL_MODALES====================
   useEffect(() => {
-    const anyModalOpen = modalVisible || modalLoteVisible || modalMovVisible || modalLotesVisible;
+    const anyModalOpen = modalVisible || modalLoteVisible || modalMovVisible || modalLotesVisible || modalEditarLoteVisible; // ✅ AGREGADO
 
     if (anyModalOpen) {
       document.body.style.overflow = 'hidden';
@@ -38,7 +54,7 @@ const Medicamentos = () => {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [modalVisible, modalLoteVisible, modalMovVisible, modalLotesVisible]);
+  }, [modalVisible, modalLoteVisible, modalMovVisible, modalLotesVisible, modalEditarLoteVisible]); // ✅ AGREGADO
 
   const medicamentosFiltrados = medicamentos.filter((m) =>
     m.nombre_producto.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -96,6 +112,35 @@ const Medicamentos = () => {
     }
   };
 
+  // ✅ NUEVA FUNCIÓN: Abrir modal de editar lote
+  const handleEditarLote = (lote) => {
+    setLoteEditar(lote);
+    setModalEditarLoteVisible(true);
+  };
+
+  // ✅ NUEVA FUNCIÓN: Guardar edición de lote
+  const handleGuardarEdicionLote = async (loteEditado) => {
+    const exito = await editarLote(loteEditado);
+    if (exito) {
+      Swal.fire({ 
+        icon: 'success', 
+        title: '¡Actualizado!', 
+        text: 'Lote actualizado correctamente',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      setModalEditarLoteVisible(false);
+      setLoteEditar(null);
+    } else {
+      Swal.fire({ 
+        icon: 'error', 
+        title: 'Error', 
+        text: 'No se pudo actualizar el lote',
+        confirmButtonText: 'Entendido'
+      });
+    }
+  };
+
   const handleEliminarMedicamento = async (medicamento) => {
     const lotesAsociados = lotes.filter(l => l.id_producto_fk === medicamento.id_producto_pk).length;
 
@@ -136,7 +181,6 @@ const Medicamentos = () => {
       const response = await cambiarEstadoProducto(medicamento.id_producto_pk, nuevoEstado);
 
       if (response.Consulta) {
-        // Actualizar el estado local inmediatamente sin recargar todos los datos
         setMedicamentos(prev =>
           prev.map(med =>
             med.id_producto_pk === medicamento.id_producto_pk
@@ -198,12 +242,9 @@ const Medicamentos = () => {
     });
 
     if (result.isConfirmed) {
-      // ✅ CORRECCIÓN: Enviar el campo correcto que espera el backend
       const success = await eliminarLote(lote.id_lote_medicamentos_pk);
       if (success) {
-        // Recargar datos después de eliminar
         await cargarDatos();
-
         Swal.fire({ icon: "success", title: "¡Eliminado!", text: "El lote fue eliminado correctamente", timer: 1800, showConfirmButton: false,});
       }
     }
@@ -232,8 +273,6 @@ const Medicamentos = () => {
           Administra medicamentos veterinarios, lotes y control de inventario
         </p>
       </div>
-
-
 
       {/* Tabs de navegación*/}
       <div className="flex flex-wrap rounded-lg bg-gray-200 p-1 w-80 text-sm shadow-sm mb-6">
@@ -345,34 +384,58 @@ const Medicamentos = () => {
 
       {/* Modales */}
       <ModalMedicamento
-        isOpen={modalVisible} onClose={() => {
+        isOpen={modalVisible} 
+        onClose={() => {
           setModalVisible(false);
           setMedicamentoEditando(null);
         }}
-        onSave={handleGuardarMedicamento} medicamentoEditando={medicamentoEditando} medicamentosExistentes={medicamentos}
+        onSave={handleGuardarMedicamento} 
+        medicamentoEditando={medicamentoEditando} 
+        medicamentosExistentes={medicamentos}
       />
 
       <ModalLote
-        isOpen={modalLoteVisible} onClose={() => {
+        isOpen={modalLoteVisible} 
+        onClose={() => {
           setModalLoteVisible(false);
           setMedicamentoSeleccionado(null);
         }}
-        onSave={handleGuardarLote} medicamentoSeleccionado={medicamentoSeleccionado} lotesExistentes={lotes}
+        onSave={handleGuardarLote} 
+        medicamentoSeleccionado={medicamentoSeleccionado} 
+        lotesExistentes={lotes}
       />
 
       <ModalMovimiento
-        isOpen={modalMovVisible} onClose={() => {
+        isOpen={modalMovVisible} 
+        onClose={() => {
           setModalMovVisible(false);
           setLoteSeleccionado(null);
         }}
-        onSave={handleGuardarMovimiento} loteSeleccionado={loteSeleccionado}
+        onSave={handleGuardarMovimiento} 
+        loteSeleccionado={loteSeleccionado}
       />
 
-      <ModalLotesMedicamento isOpen={modalLotesVisible} onClose={() => {
+      <ModalLotesMedicamento 
+        isOpen={modalLotesVisible} 
+        onClose={() => {
           setModalLotesVisible(false);
           setMedicamentoSeleccionado(null);
         }}
-        medicamentoSeleccionado={medicamentoSeleccionado} lotes={lotes} onEliminarLote={handleEliminarLote}
+        medicamentoSeleccionado={medicamentoSeleccionado} 
+        lotes={lotes} 
+        onEliminarLote={handleEliminarLote}
+        onEditarLote={handleEditarLote} // ✅ AGREGADO
+      />
+
+      {/* ✅ NUEVO MODAL: Modal Editar Lote */}
+      <ModalEditarLote
+        isOpen={modalEditarLoteVisible}
+        onClose={() => {
+          setModalEditarLoteVisible(false);
+          setLoteEditar(null);
+        }}
+        onSave={handleGuardarEdicionLote}
+        loteEditar={loteEditar}
       />
 
       {/* Notificación de mensajes */}
