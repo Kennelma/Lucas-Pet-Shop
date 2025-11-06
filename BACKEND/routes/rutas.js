@@ -15,6 +15,7 @@ const estilistas = require('../controllers/empleados.controller');
 const facturas = require('../controllers/facturacion.controller');
 const pagos = require('../controllers/pagos.controller');
 const whatsapp = require('../controllers/whatsapp.controller');
+const notificaciones = require('../controllers/notificaciones.controller');
 
 //========== RUTAS DE AUTENTICACIÓN Y SEGURIDAD ==========
 router.post('/login', auth.login);
@@ -25,7 +26,7 @@ router.post('/resetear-contrasena', auth.resetearConCodigo);
 router.post('/productos/insertar', verificarToken, productos.crear);
 router.put('/productos/actualizar', verificarToken, productos.actualizar);
 router.delete('/productos/eliminar', verificarToken, productos.eliminar);
-router.get('/productos/ver', verificarToken, productos.ver);
+router.get('/productos/ver',productos.ver);
 router.get('/productos/verCatalogo', verificarToken, productos.verCatalogo);
 
 //========== RUTAS DE SERVICIOS PELUQUERIA Y PROMOCIONES ==========
@@ -58,23 +59,17 @@ router.get  ('/facturacion/imprimirFactura', facturas.ImpresionFactura);
 
 //========== RUTAS DE PAGOS ==========
 router.post('/pagos/procesarPago', verificarToken, pagos.procesarPago);+
-router.get ('/pagos/tipoPago', pagos.obtenerTipoPago);
-router.get ('/pagos/metodosPago', pagos.obtenerMetodosPago);
+router.get ('/pagos/tipoPago', verificarToken, pagos.obtenerTipoPago);
+router.get ('/pagos/metodosPago', verificarToken, pagos.obtenerMetodosPago);
 
 
 
 //========== RUTAS DE REPORTES ==========
 
 
-
-
-
-
-
 //========== RUTAS DE NOTIFICACIONES ==========
-
-
-
+router.get('/notificaciones/ver', notificaciones.verNotificaciones);
+router.put('/notificaciones/marcarLeida', notificaciones.marcarNotificacionLeida);
 
 
 //========== RUTAS DE ESTILISTAS ==========

@@ -4,8 +4,8 @@ import { Dialog } from 'primereact/dialog';
 import { Button } from 'primereact/button';
 
 const ModalRecordatorio = ({ isOpen, onClose, onGuardar, tipoServicio = [], frecuencias = [] }) => {
-  console.log('Modal tipoServicio:', tipoServicio);
-  console.log('Modal frecuencias:', frecuencias);
+
+
   const [tipoItem, setTipoItem] = useState('');
   const [frecuencia, setFrecuencia] = useState('');
   const [fechaProgramacion, setFechaProgramacion] = useState('');
