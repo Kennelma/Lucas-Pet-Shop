@@ -131,6 +131,8 @@ cron.schedule('0 */5 * * * *', async () => { //CADA 5 MINUTOS
 
     await conn.commit();
 
+      console.log(`[CRON][LOTES] Ejecutado: ${updateResult.changedRows} lotes actualizados, ${notificaciones_creadas} notificaciones creadas`);
+
   } catch (error) {
 
     await conn.rollback();
@@ -140,4 +142,28 @@ cron.schedule('0 */5 * * * *', async () => { //CADA 5 MINUTOS
      conn.release();
   }
 
+}, { timezone: 'America/Tegucigalpa' });
+
+
+
+//JOB QUE SE EJECUTA  DIARIAMENTE (2 AM) PARA PURGAR NOTIFICACIONES LEÍDAS ANTERIORES A 30 DÍAS
+cron.schedule('0 0 * * *', async () => {  // Se ejecuta diariamente a medianoche
+
+    const conn = await mysqlConnection.getConnection();
+    await conn.beginTransaction();
+    try {
+        const [resultado] = await conn.query(`
+            DELETE FROM tbl_notificaciones
+            WHERE leido = TRUE
+        `);
+
+        console.log(`PURGA COMPLETADA: ${resultado.affectedRows} notificaciones eliminadas`);
+
+        await conn.commit();
+    } catch (error) {
+        await conn.rollback();
+        console.error('ERROR EN EL JOB DE PURGA:', error);
+    } finally {
+        conn.release();
+    }
 }, { timezone: 'America/Tegucigalpa' });

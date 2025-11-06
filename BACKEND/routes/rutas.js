@@ -26,7 +26,7 @@ router.post('/resetear-contrasena', auth.resetearConCodigo);
 router.post('/productos/insertar', verificarToken, productos.crear);
 router.put('/productos/actualizar', verificarToken, productos.actualizar);
 router.delete('/productos/eliminar', verificarToken, productos.eliminar);
-router.get('/productos/ver', verificarToken, productos.ver);
+router.get('/productos/ver',productos.ver);
 router.get('/productos/verCatalogo', verificarToken, productos.verCatalogo);
 
 //========== RUTAS DE SERVICIOS PELUQUERIA Y PROMOCIONES ==========
@@ -67,16 +67,9 @@ router.get ('/pagos/metodosPago', verificarToken, pagos.obtenerMetodosPago);
 //========== RUTAS DE REPORTES ==========
 
 
-
-
-
-
-
 //========== RUTAS DE NOTIFICACIONES ==========
-//outer.get('/notificaciones/lotes', notificaciones.mostrarNotificaciones);
-
-
-
+router.get('/notificaciones/ver', notificaciones.verNotificaciones);
+router.put('/notificaciones/marcarLeida', notificaciones.marcarNotificacionLeida);
 
 
 //========== RUTAS DE ESTILISTAS ==========

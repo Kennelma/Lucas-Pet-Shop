@@ -3,7 +3,7 @@ const mysqlConnection = require('../config/conexion');
 
 
 //JOB QUE REVISA PRODUCTOS BAJO STOCK Y CREA NOTIFICACIONES (TIEMPO COMPLETO)
-cron.schedule('* * * * *', async () => {
+cron.schedule('0 */5 * * * *', async () => {
 
     const conn = await mysqlConnection.getConnection();
 
@@ -60,16 +60,9 @@ cron.schedule('* * * * *', async () => {
                         LIMIT 1
                     )
                 `, [mensaje, fecha_creacion, tipo_notificacion_fk, tipo_notificacion_fk, nombre]);
-
-                if (resultado.affectedRows > 0) {
-                    console.log(`NOTIFICACIÓN CREADA PARA: ${nombre}`);
-                } else {
-                    console.log(`YA EXISTE NOTIFICACIÓN ACTIVA PARA: ${nombre}`);
-                }
             };
 
             await conn.commit();
-            console.log('NOTIFICACIONES DE PRODUCTOS BAJO STOCK CREADAS EXITOSAMENTE');
         }
 
     } catch (error) {

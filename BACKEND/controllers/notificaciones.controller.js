@@ -15,7 +15,7 @@ exports.verNotificaciones = async (req, res) => {
             n.mensaje_notificacion,
             tn.nombre_tipo_notificacion
         FROM tbl_notificaciones n
-        INNER JOIN tbl_tipo_notificaciones tn
+        INNER JOIN cat_tipo_notificacion tn
             ON n.tipo_notificacion_fk = tn.id_tipo_notificacion_pk
         WHERE n.leido = FALSE `);
 
