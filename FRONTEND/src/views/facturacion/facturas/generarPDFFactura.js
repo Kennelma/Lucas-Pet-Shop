@@ -21,7 +21,7 @@ export const generarPDFFactura = (datosFactura) => {
   const pageWidth = 80;
   const margin = 10;
   const contentWidth = pageWidth - (margin * 2);
-  let yPos = 30;
+  let yPos = 5;
 
   // Función auxiliar para agregar texto centrado
   const addCenteredText = (text, fontSize = 10, isBold = false, spacing = 1) => {
@@ -39,6 +39,11 @@ export const generarPDFFactura = (datosFactura) => {
     yPos += 4;
   };
 
+  const img = 'images/logo.png';
+  const width = 30;
+  const height = 30; // usa el mismo valor para mantener la proporción aproximada
+  doc.addImage(img, 'PNG', pageWidth / 2 - width / 2, yPos + 5, width, height);
+  yPos += 40;
   //====================ENCABEZADO - INFORMACIÓN DE LA EMPRESA====================
   addCenteredText(empresa.nombre_empresa || 'MI EMPRESA', 13, true, 2);
   yPos += 1;
@@ -46,7 +51,7 @@ export const generarPDFFactura = (datosFactura) => {
   doc.setFontSize(8);
   doc.setFont(undefined, 'normal');
   doc.text(empresa.direccion_empresa || '', pageWidth / 2, yPos, { align: 'center', maxWidth: contentWidth });
-  yPos += 5;
+  yPos += 10;
 
   doc.text(`Tel: ${empresa.telefono_empresa || ''}`, pageWidth / 2, yPos, { align: 'center' });
   yPos += 5;
@@ -58,10 +63,10 @@ export const generarPDFFactura = (datosFactura) => {
 
   doc.text(`RTN: ${empresa.rtn_empresa || 'PRUEBA'}`, pageWidth / 2, yPos, { align: 'center' });
 
-  addSeparator();
-
+ 
+  yPos += 8;
   //====================TÍTULO FACTURA====================
-  addCenteredText('TICKET DE VENTA', 12, true, 2);
+  addCenteredText('FACTURA DE VENTA', 12, true, 2);
 
   //====================INFORMACIÓN DE LA FACTURA====================
   doc.setFontSize(8);
@@ -74,32 +79,29 @@ export const generarPDFFactura = (datosFactura) => {
   doc.text(`Fecha: ${fecha}`, margin, yPos);
   yPos += 5;
 
-  doc.text(`Estado: ${factura.estado}`, margin, yPos);
-  yPos += 5;
 
   if (factura.RTN) {
     doc.text(`RTN Cliente: ${factura.RTN}`, margin, yPos);
     yPos += 5;
   }
 
-  addSeparator();
-
   //====================INFORMACIÓN DEL CLIENTE====================
   doc.setFontSize(9);
   doc.setFont(undefined, 'bold');
   doc.text('CLIENTE:', margin, yPos);
-  yPos += 5;
-  yPos += 4;
 
+  // 🔹 separa horizontalmente el nombre
   doc.setFont(undefined, 'normal');
   doc.setFontSize(8);
   const nombreCliente = `${factura.nombre_cliente || ''} ${factura.apellido_cliente || ''}`.trim();
-  doc.text(nombreCliente || 'Cliente General', margin, yPos, { maxWidth: contentWidth });
-  yPos += 5;
+  doc.text(nombreCliente || 'Cliente General', margin + 15, yPos); 
+
+  yPos += 2;
+
 
   if (factura.telefono_cliente) {
+    yPos +=2;
     doc.text(`Tel: ${factura.telefono_cliente}`, margin, yPos);
-    yPos += 5;
   }
 
   addSeparator();
@@ -107,7 +109,7 @@ export const generarPDFFactura = (datosFactura) => {
   //====================ITEMS - FORMATO TABLA CON COLUMNAS====================
   doc.setFontSize(9);
   doc.setFont(undefined, 'bold');
-  yPos += 6;
+  yPos += 1;
 
   // ENCABEZADOS DE COLUMNAS
   doc.setFontSize(7);
@@ -174,21 +176,18 @@ export const generarPDFFactura = (datosFactura) => {
   doc.text(`L ${parseFloat(factura.impuesto).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
   yPos += 4;
 
-  yPos += 2;
-  doc.line(margin, yPos, pageWidth - margin, yPos);
-
   // TOTAL en negrita pero mismo tamaño (7)
   doc.setFont(undefined, 'bold');
   doc.setFontSize(7);
   doc.text('TOTAL A PAGAR:', margin, yPos);
   doc.text(`L ${parseFloat(factura.total).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
+  yPos +=1;
+  doc.line(margin, yPos, pageWidth - margin, yPos);
+  
   yPos += 4;
 
   doc.setFont(undefined, 'normal');
-  yPos += 3;
-
-  doc.line(margin, yPos, pageWidth - margin, yPos);
-  yPos += 3;
+  
 
   //====================HISTORIAL DE PAGOS (SI EXISTEN)====================
 
