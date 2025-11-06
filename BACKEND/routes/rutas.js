@@ -66,7 +66,6 @@ router.get ('/pagos/metodosPago', verificarToken, pagos.obtenerMetodosPago);
 
 //========== RUTAS DE REPORTES ==========
 
-
 //========== RUTAS DE NOTIFICACIONES ==========
 router.get('/notificaciones/ver', notificaciones.verNotificaciones);
 router.put('/notificaciones/marcarLeida', notificaciones.marcarNotificacionLeida);

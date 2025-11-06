@@ -130,9 +130,7 @@ cron.schedule('0 */5 * * * *', async () => { //CADA 5 MINUTOS
     }
 
     await conn.commit();
-
-      console.log(`[CRON][LOTES] Ejecutado: ${updateResult.changedRows} lotes actualizados, ${notificaciones_creadas} notificaciones creadas`);
-
+    
   } catch (error) {
 
     await conn.rollback();

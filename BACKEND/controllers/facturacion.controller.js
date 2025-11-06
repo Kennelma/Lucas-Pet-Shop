@@ -125,10 +125,11 @@ exports.crearFactura = async (req, res) => {
                     p.stock,
                     p.tipo_producto_fk,
                     t.nombre_tipo_producto
+                    l.fecha_vencimiento
                 FROM tbl_productos p
                 INNER JOIN cat_tipo_productos t
                         ON t.id_tipo_producto_pk = p.tipo_producto_fk
-                WHERE p.id_producto_pk = ? AND p.activo = TRUE`,
+                WHERE p.id_producto_pk = ? AND p.activo = TRUE AND p.stock > 0 AND l.fecha_vencimiento >= CURDATE()`,
                 [item_id]
                 );
 
@@ -320,7 +321,7 @@ exports.crearFactura = async (req, res) => {
             throw new Error(`El número de factura ${numero_factura} ya existe. Intente nuevamente.`);
         }
 
-        // INSERTAR FACTURA CON EL NÚMERO YA GENERADO
+        //INSERTAR FACTURA CON EL NÚMERO YA GENERADO
         const [factura] = await conn.query(
             `INSERT INTO tbl_facturas (
                 numero_factura,
@@ -416,7 +417,7 @@ exports.crearFactura = async (req, res) => {
                     for (const lote of detalle.lotesADescontar) {
 
                         //VALIDAR QUE EL LOTE SIGUE SIENDO VÁLIDO Y TIENE STOCK
-                        const [valida] = await conn.query(
+                        await conn.query(
                             `SELECT 1
                             FROM tbl_lotes_medicamentos l
                             INNER JOIN cat_estados e ON l.estado_lote_fk = e.id_estado_pk
@@ -553,7 +554,8 @@ exports.catalogoItems = async (req, res) => {
                     `SELECT
                         id_producto_pk,
                         nombre_producto,
-                        precio_producto
+                        precio_producto,
+                        stock
                     FROM tbl_productos
                     WHERE activo = TRUE AND stock > 0`
                 )
@@ -882,7 +884,3 @@ exports.ImpresionFactura = async (req, res) => {
 };
 
 
-
-exports.detallesFactura = async (req, res) => {
-
-}
