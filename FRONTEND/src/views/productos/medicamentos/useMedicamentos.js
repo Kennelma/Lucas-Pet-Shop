@@ -255,16 +255,18 @@ export const useMedicamentos = () => {
     }
   };
 
-  const editarLote = async (loteEditado) => {
+  // ✅ FUNCIÓN CORREGIDA en useMedicamentos.js
+
+const editarLote = async (loteEditado) => {
   try {
     console.log('📥 Lote a editar:', loteEditado);
     
-    // ✅ Enviar solo los 3 campos necesarios
+    // ✅ CORRECCIÓN: Enviar tipo_producto='LOTES' y el ID correcto
     const datosActualizar = {
       tipo_producto: 'LOTES',
+      id_producto: loteEditado.id_lote_medicamentos_pk, // ✅ Este es el cambio clave
       fecha_vencimiento: loteEditado.fecha_vencimiento,
-      stock_lote: parseInt(loteEditado.stock_lote),
-      id_lote_medicamentos_pk: loteEditado.id_lote_medicamentos_pk
+      stock_lote: parseInt(loteEditado.stock_lote)
     };
 
     console.log('📤 Enviando:', datosActualizar);
