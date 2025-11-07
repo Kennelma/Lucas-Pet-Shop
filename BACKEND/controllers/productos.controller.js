@@ -726,6 +726,14 @@ exports.eliminar = async (req, res) => {
 
         if (id_lote) {
 
+            [lote] = await conn.query(`
+                SELECT
+                    id_medicamento_fk
+                    FROM tbl_lotes_medicamentos
+                WHERE id_lote_medicamentos_pk = ?`,
+                [id_lote]
+            );
+
             await conn.query(
                 `DELETE
                 FROM tbl_lotes_medicamentos
