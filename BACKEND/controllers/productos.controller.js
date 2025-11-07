@@ -613,6 +613,7 @@ exports.ver = async (req, res) => {
                         p.stock,
                         p.stock_minimo,
                         p.activo,
+                        p.tiene_impuesto,
                         ac.tipo_accesorio
                     FROM tbl_productos p
                     INNER JOIN tbl_accesorios_info ac ON p.id_producto_pk = ac.id_producto_fk
@@ -629,6 +630,7 @@ exports.ver = async (req, res) => {
                         p.stock,
                         p.stock_minimo,
                         p.activo,
+                        p.tiene_impuesto,
                         a.especie,
                         a.sexo
                     FROM tbl_productos p
@@ -647,6 +649,7 @@ exports.ver = async (req, res) => {
                         p.stock,
                         p.stock_minimo,
                         p.activo,
+                        p.tiene_impuesto,
                         al.alimento_destinado,
                         al.peso_alimento
                     FROM tbl_productos p
@@ -665,6 +668,7 @@ exports.ver = async (req, res) => {
                         p.stock,
                         p.stock_minimo,
                         p.activo,
+                        p.tiene_impuesto,
                         m.presentacion_medicamento,
                         m.tipo_medicamento,
                         m.cantidad_contenido,

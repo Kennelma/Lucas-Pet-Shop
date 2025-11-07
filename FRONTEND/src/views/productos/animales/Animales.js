@@ -155,7 +155,9 @@ const Animales = () => {
 
   const cargarDatos = async () => {
     setLoading(true);
+
     try {
+
       const productos = await verProductos("ANIMALES");
 
       const normalizados = (productos || []).map((item) => ({
@@ -168,6 +170,8 @@ const Animales = () => {
         especie: item.especie || "No especificada",
         sexo: item.sexo || "N/A",
         sku: item.sku || "",
+        tiene_impuesto: item.tiene_impuesto || 0,  
+        tasa_impuesto: item.tasa_impuesto
       }));
       setAnimales(normalizados);
     } catch (error) {
