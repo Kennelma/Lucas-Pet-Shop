@@ -9,6 +9,7 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilBell, cilCheckAlt, cilSettings } from '@coreui/icons'
+import { obtenerNotificaciones, marcarNotificacionLeida } from '../../AXIOS.SERVICES/notifications-axios'
 
 const CamNotificaciones = () => {
   const [notificaciones, setNotificaciones] = useState([])
@@ -41,10 +42,32 @@ const CamNotificaciones = () => {
     })
   }
 
-  // Función para obtener el icono según el tipo de plantilla
+  // Determinar plantilla_id_fk basado en el tipo de notificación
+  const determinarPlantilla = (nombre_tipo_notificacion, mensaje) => {
+    // Para LOTE_VENCIDO
+    if (nombre_tipo_notificacion === 'LOTE_VENCIDO') {
+      return 4 // Vencido
+    }
+    
+    // Para LOTE_PROXIMO_VENCER, extraer los días del mensaje
+    if (nombre_tipo_notificacion === 'LOTE_PROXIMO_VENCER') {
+      if (mensaje.includes('30 DÍAS') || mensaje.includes('30 días')) return 1
+      if (mensaje.includes('60 DÍAS') || mensaje.includes('60 días')) return 2
+      if (mensaje.includes('90 DÍAS') || mensaje.includes('90 días')) return 3
+    }
+
+    // Para STOCK_BAJOS
+    if (nombre_tipo_notificacion === 'STOCK_BAJOS') {
+      return 1 // Urgente (rojo)
+    }
+    
+    return 0 // Default
+  }
+
+  // Función para obtener el icono según el tipo
   const getIconoPorPlantilla = (plantillaId) => {
     switch(plantillaId) {
-      case 1: return '⚠️' // Por vencer 30 días
+      case 1: return '⚠️' // Por vencer 30 días / Stock bajo
       case 2: return '⏰' // Por vencer 60 días
       case 3: return '📅' // Por vencer 90 días
       case 4: return '🚫' // Vencido
@@ -52,12 +75,12 @@ const CamNotificaciones = () => {
     }
   }
 
-  // Función para obtener el color según el tipo de plantilla
+  // Función para obtener el color según el tipo
   const getColorPorPlantilla = (plantillaId) => {
     switch(plantillaId) {
-      case 1: return 'danger' // Por vencer 30 días - rojo
-      case 2: return 'warning' // Por vencer 60 días - amarillo
-      case 3: return 'info' // Por vencer 90 días - azul
+      case 1: return 'danger' // Urgente - rojo
+      case 2: return 'warning' // Importante - amarillo
+      case 3: return 'info' // Recordatorio - azul
       case 4: return 'dark' // Vencido - negro
       default: return 'secondary'
     }
@@ -66,9 +89,9 @@ const CamNotificaciones = () => {
   // Función para obtener el texto de la prioridad
   const getTextoPrioridad = (plantillaId) => {
     switch(plantillaId) {
-      case 1: return 'Urgente - 30 días'
-      case 2: return 'Importante - 60 días'
-      case 3: return 'Recordatorio - 90 días'
+      case 1: return 'Urgente'
+      case 2: return 'Importante'
+      case 3: return 'Recordatorio'
       case 4: return 'Vencido'
       default: return 'Notificación'
     }
@@ -77,7 +100,7 @@ const CamNotificaciones = () => {
   useEffect(() => {
     cargarNotificaciones()
     
-    // Recargar notificaciones cada 5 minutos
+    // Recargar notificaciones cada 5 minutos (300000 ms)
     const interval = setInterval(cargarNotificaciones, 300000)
     return () => clearInterval(interval)
   }, [])
@@ -96,99 +119,40 @@ const CamNotificaciones = () => {
 
   const cargarNotificaciones = async () => {
     try {
-      const response = await fetch('/api/notificaciones')
+      const response = await obtenerNotificaciones()
       
-      if (!response.ok) {
-        throw new Error('Error al cargar notificaciones')
+      if (!response.Consulta) {
+        throw new Error(response.mensaje || 'Error al cargar notificaciones')
       }
       
-      const data = await response.json()
+      // Adaptar notificaciones del backend al formato del frontend
+      const notificacionesAdaptadas = response.notificaciones.map(notif => {
+        // Determinar la plantilla basada en el tipo y mensaje
+        const plantilla_id_fk = determinarPlantilla(
+          notif.nombre_tipo_notificacion, 
+          notif.mensaje_notificacion
+        )
+        
+        return {
+          id_notificacion_pk: notif.id_notificacion_pk,
+          nombre_notificacion: notif.mensaje_notificacion, // El mensaje es el contenido
+          plantilla_id_fk: plantilla_id_fk,
+          leida: false, // Backend solo devuelve las no leídas
+          fecha_creacion: new Date().toISOString(), // Backend no devuelve fecha, usar actual
+          id_lote_fk: null // Backend no devuelve id_lote_fk en este query
+        }
+      })
       
-      // Agregar propiedad leida a cada notificación (puede venir del backend)
-      const notificacionesConLeida = data.map(notif => ({
-        ...notif,
-        leida: notif.leida || false
-      }))
-      
-      setNotificaciones(notificacionesConLeida)
-      setNoLeidas(notificacionesConLeida.filter(n => !n.leida).length)
+      setNotificaciones(notificacionesAdaptadas)
+      setNoLeidas(notificacionesAdaptadas.length)
       setError(null)
       setLoading(false)
     } catch (error) {
       console.error('Error al cargar notificaciones:', error)
       setError('No se pudieron cargar las notificaciones')
-      
-      // Datos de ejemplo solo para desarrollo
-      if (process.env.NODE_ENV === 'development') {
-        const notificacionesEjemplo = [
-          {
-            id_notificacion_pk: 1,
-            nombre_notificacion: 'Lote MED-2024-001 vencido',
-            plantilla_id_fk: 4,
-            leida: false,
-            fecha_creacion: new Date(Date.now() - 86400000).toISOString(), // 1 día atrás
-            id_lote_fk: 101
-          },
-          {
-            id_notificacion_pk: 2,
-            nombre_notificacion: 'Lote MED-2024-015 por vencer (30 días)',
-            plantilla_id_fk: 1,
-            leida: false,
-            fecha_creacion: new Date(Date.now() - 3600000).toISOString(), // 1 hora atrás
-            id_lote_fk: 102
-          },
-          {
-            id_notificacion_pk: 3,
-            nombre_notificacion: 'Lote MED-2024-032 por vencer (60 días)',
-            plantilla_id_fk: 2,
-            leida: false,
-            fecha_creacion: new Date(Date.now() - 1800000).toISOString(), // 30 min atrás
-            id_lote_fk: 103
-          },
-          {
-            id_notificacion_pk: 4,
-            nombre_notificacion: 'Lote MED-2024-048 por vencer (90 días)',
-            plantilla_id_fk: 3,
-            leida: true,
-            fecha_creacion: new Date(Date.now() - 172800000).toISOString(), // 2 días atrás
-            id_lote_fk: 104
-          }
-        ]
-        
-        setNotificaciones(notificacionesEjemplo)
-        setNoLeidas(notificacionesEjemplo.filter(n => !n.leida).length)
-      }
-      
+      setNotificaciones([])
+      setNoLeidas(0)
       setLoading(false)
-    }
-  }
-
-  const marcarTodasComoLeidas = async (e) => {
-    e.stopPropagation()
-    
-    // Optimistic update
-    const notificacionesAnteriores = [...notificaciones]
-    const noLeidasAnterior = noLeidas
-    
-    setNotificaciones(notificaciones.map(n => ({ ...n, leida: true })))
-    setNoLeidas(0)
-    
-    try {
-      const response = await fetch('/api/notificaciones/marcar-todas-leidas', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error('Error al marcar todas como leídas')
-      }
-    } catch (error) {
-      console.error('Error al marcar todas como leídas:', error)
-      // Revertir cambios
-      setNotificaciones(notificacionesAnteriores)
-      setNoLeidas(noLeidasAnterior)
     }
   }
 
@@ -204,16 +168,17 @@ const CamNotificaciones = () => {
       setNoLeidas(prev => Math.max(0, prev - 1))
       
       try {
-        const response = await fetch(`/api/notificaciones/${id_notificacion_pk}/marcar-leida`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
+        const response = await marcarNotificacionLeida(id_notificacion_pk)
         
-        if (!response.ok) {
-          throw new Error('Error al marcar como leída')
+        if (!response.Consulta) {
+          throw new Error(response.mensaje || 'Error al marcar como leída')
         }
+        
+        // Después de marcar como leída, remover de la lista
+        setTimeout(() => {
+          setNotificaciones(prev => prev.filter(n => n.id_notificacion_pk !== id_notificacion_pk))
+        }, 500)
+        
       } catch (error) {
         console.error('Error al marcar notificación como leída:', error)
         // Revertir en caso de error
@@ -228,39 +193,40 @@ const CamNotificaciones = () => {
   const manejarClickNotificacion = async (notif) => {
     await marcarComoLeida(notif.id_notificacion_pk)
     
-    // Navegar al detalle del lote si existe id_lote_fk
-    if (notif.id_lote_fk) {
-      navigate(`/lotes/${notif.id_lote_fk}`)
-    }
+    // Por ahora no navegar, ya que el backend no devuelve id_lote_fk
+    // Si necesitas navegación, deberás actualizar el query del backend
   }
 
-  const eliminarNotificacion = async (id_notificacion_pk, e) => {
+  const marcarTodasComoLeidas = async (e) => {
     e.stopPropagation()
     
-    if (!window.confirm('¿Está seguro de eliminar esta notificación?')) {
-      return
-    }
+    if (notificaciones.length === 0) return
     
     // Optimistic update
-    const notifEliminada = notificaciones.find(n => n.id_notificacion_pk === id_notificacion_pk)
     const notificacionesAnteriores = [...notificaciones]
     const noLeidasAnterior = noLeidas
     
-    setNotificaciones(notificaciones.filter(n => n.id_notificacion_pk !== id_notificacion_pk))
-    if (notifEliminada && !notifEliminada.leida) {
-      setNoLeidas(prev => Math.max(0, prev - 1))
-    }
+    setNotificaciones(notificaciones.map(n => ({ ...n, leida: true })))
+    setNoLeidas(0)
     
     try {
-      const response = await fetch(`/api/notificaciones/${id_notificacion_pk}`, {
-        method: 'DELETE'
-      })
+      // Marcar todas una por una
+      const promesas = notificaciones.map(n => marcarNotificacionLeida(n.id_notificacion_pk))
+      const resultados = await Promise.allSettled(promesas)
       
-      if (!response.ok) {
-        throw new Error('Error al eliminar notificación')
+      // Verificar si hubo errores
+      const errores = resultados.filter(r => r.status === 'rejected')
+      if (errores.length > 0) {
+        console.error('Algunos errores al marcar notificaciones:', errores)
       }
+      
+      // Después de marcar todas, limpiar la lista
+      setTimeout(() => {
+        setNotificaciones([])
+      }, 500)
+      
     } catch (error) {
-      console.error('Error al eliminar notificación:', error)
+      console.error('Error al marcar todas como leídas:', error)
       // Revertir cambios
       setNotificaciones(notificacionesAnteriores)
       setNoLeidas(noLeidasAnterior)
@@ -346,7 +312,7 @@ const CamNotificaciones = () => {
                 </div>
                 Cargando notificaciones...
               </div>
-            ) : error && notificaciones.length === 0 ? (
+            ) : error ? (
               <div className="text-center text-muted py-5">
                 <div className="mb-2" style={{ fontSize: '2rem' }}>⚠️</div>
                 <div className="fw-semibold">{error}</div>
@@ -392,18 +358,9 @@ const CamNotificaciones = () => {
                     {/* Contenido */}
                     <div className="flex-grow-1" style={{ minWidth: 0 }}>
                       <div className="d-flex justify-content-between align-items-start mb-1">
-                        <div className={`fw-semibold ${!notif.leida ? 'text-dark' : 'text-muted'}`} style={{ fontSize: '0.9rem' }}>
+                        <div className={`fw-semibold ${!notif.leida ? 'text-dark' : 'text-muted'}`} style={{ fontSize: '0.85rem', lineHeight: '1.3' }}>
                           {notif.nombre_notificacion}
                         </div>
-                        {/* Botón eliminar */}
-                        <button
-                          className="btn btn-sm btn-link text-danger p-0 ms-2"
-                          style={{ fontSize: '1.2rem', lineHeight: 1, textDecoration: 'none' }}
-                          onClick={(e) => eliminarNotificacion(notif.id_notificacion_pk, e)}
-                          title="Eliminar notificación"
-                        >
-                          ×
-                        </button>
                       </div>
                       
                       <div className="d-flex justify-content-between align-items-center mb-1">
