@@ -475,6 +475,36 @@ exports.actualizar = async (req, res) => {
                     req.body.stock_lote || null,
                     id_producto
                 ]);
+
+                //SE OBTIENE EL ID DEL PRODUCTO FK PARA ACTUALIZAR EL STOCK TOTAL
+                const [loteInfo] = await conn.query(
+                    `SELECT m.id_producto_fk
+                     FROM tbl_lotes_medicamentos l
+                     INNER JOIN tbl_medicamentos_info m ON l.id_medicamento_fk = m.id_medicamento_pk
+                     WHERE l.id_lote_medicamentos_pk = ?`,
+                    [id_producto]
+                );
+
+                const id_producto_fk = loteInfo[0]?.id_producto_fk;
+
+                if (id_producto_fk) {
+
+                    //SE SUMA LOS STOCKS DE LOS LOTES DEL MEDICAMENTO
+                    const [sumaStock] = await conn.query(
+                        `SELECT SUM(stock_lote) AS total_stock
+                         FROM tbl_lotes_medicamentos l
+                         INNER JOIN tbl_medicamentos_info m ON l.id_medicamento_fk = m.id_medicamento_pk
+                         WHERE m.id_producto_fk = ?`,
+                        [id_producto_fk]
+                    );
+                    const total_stock = sumaStock[0]?.total_stock || 0;
+
+                    //SE ACTUALIZA EL STOCK TOTAL EN LA TABLA DE PRODUCTOS
+                    await conn.query(
+                        `UPDATE tbl_productos SET stock = ? WHERE id_producto_pk = ?`,
+                        [total_stock, id_producto_fk]
+                    );
+                }
                 break;
 
             default:
