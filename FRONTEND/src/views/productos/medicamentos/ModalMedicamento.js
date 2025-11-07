@@ -16,10 +16,12 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
     fecha_vencimiento: "",
     stock_lote: "",
     stock_minimo: "5",
-    activo: true
+    activo: true,
+    tasaImpuesto: 15
   });
 
   const [errores, setErrores] = useState({});
+  const [aplicaImpuesto, setAplicaImpuesto] = useState(true);
 
   // Función para normalizar texto: Primera letra mayúscula, resto minúscula
   const normalizarTexto = (texto) => {
@@ -55,8 +57,10 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
           stock_minimo: medicamentoEditando.stock_minimo || "5",
           codigo_lote: "",
           fecha_vencimiento: "",
-          stock_lote: ""
+          stock_lote: "",
+          tasaImpuesto: medicamentoEditando.tasa_impuesto || 15
         });
+        setAplicaImpuesto(medicamentoEditando.aplica_impuesto !== undefined ? medicamentoEditando.aplica_impuesto : true);
         setPaso(1);
       } else {
         setFormData({
@@ -71,8 +75,10 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
           stock_minimo: "5",
           codigo_lote: "",
           fecha_vencimiento: "",
-          stock_lote: ""
+          stock_lote: "",
+          tasaImpuesto: 15
         });
+        setAplicaImpuesto(true);
         setPaso(1);
       }
       setErrores({});
@@ -276,10 +282,11 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">{medicamentoEditando ? 'EDITAR MEDICAMENTO' : 'NUEVO MEDICAMENTO'}</div>}
       visible={isOpen}
-      style={medicamentoEditando ? 
-        { width: '30rem', maxHeight: '90vh', borderRadius: '1.5rem' } : 
-        { width: '28rem', borderRadius: '1.5rem' }
-      }
+      style={{ 
+        width: '30rem', 
+        maxHeight: '90vh', 
+        borderRadius: '1.5rem' 
+      }}
       modal
       closable={false}
       onHide={onClose}
@@ -288,7 +295,11 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
       dismissableMask={false}
       draggable={false}
       resizable={false}
-      contentStyle={medicamentoEditando ? { overflowY: 'visible', padding: '1rem' } : {}}
+      contentStyle={{ 
+        overflowY: 'auto', 
+        maxHeight: 'calc(90vh - 140px)',
+        padding: '1rem' 
+      }}
     >
       {/* Indicador de pasos */}
       {!medicamentoEditando && (
@@ -452,6 +463,65 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                   <option value="UNIDADES">UNIDADES</option>
                 </select>
               </span>
+            </div>
+
+            {/* Sección de Impuestos */}
+            <div className="md:col-span-2 mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Configuración de Impuestos</h3>
+              
+              {/* Switch para aplicar impuesto */}
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    ¿Aplica Impuesto (ISV)?
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Desactive si el producto está exento de impuestos
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={aplicaImpuesto}
+                    onChange={() => setAplicaImpuesto(!aplicaImpuesto)}
+                    className="sr-only peer"
+                  />
+                  <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+                </label>
+              </div>
+
+              {/* Tasa de impuesto (solo si aplica) */}
+              {aplicaImpuesto && (
+                <div className="animate-fadeIn">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tasa de Impuesto (%)
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="number"
+                      name="tasaImpuesto"
+                      value={formData.tasaImpuesto}
+                      onChange={(e) => handleChange('tasaImpuesto', parseFloat(e.target.value) || 0)}
+                      className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="15"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                    />
+                    <span className="text-sm text-gray-600">
+                      Precio con impuesto: L {formData.precio_producto ? (parseFloat(formData.precio_producto) * (1 + parseFloat(formData.tasaImpuesto) / 100)).toFixed(2) : '0.00'}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {!aplicaImpuesto && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <p className="text-sm text-yellow-800">
+                    <strong>Producto exento de impuestos.</strong> El precio final será igual al precio base.
+                  </p>
+                </div>
+              )}
             </div>
           </>
         )}

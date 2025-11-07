@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import Swal from "sweetalert2";
-import { Button } from "primereact/button";
-import { InputText } from "primereact/inputtext";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 import ModalAgregar from "./ModalAgregar";
 import ModalEditar from "./ModalEditar";

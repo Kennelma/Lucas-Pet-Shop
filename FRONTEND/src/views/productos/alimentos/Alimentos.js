@@ -121,13 +121,20 @@ const Alimentos = () => {
   //====================CONTROL_SCROLL_MODAL====================
   useEffect(() => {
     if (modalAbierto) {
+      // Obtener el ancho de la scrollbar antes de ocultarla
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      
       document.body.style.overflow = 'hidden';
+      // Compensar el ancho de la scrollbar para evitar saltos
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
     } else {
       document.body.style.overflow = 'unset';
+      document.body.style.paddingRight = '0px';
     }
 
     return () => {
       document.body.style.overflow = 'unset';
+      document.body.style.paddingRight = '0px';
     };
   }, [modalAbierto]);
 
@@ -289,20 +296,30 @@ const Alimentos = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       {/* Título */}
-      <div className="bg-gradient-to-r from-purple-50  rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+      <div className="rounded-xl p-6 mb-3"
+        style={{
+          backgroundImage: 'url("/H4.jpg")',
+          backgroundColor: '#FFD4DE',
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'left center',
+          boxShadow: '0 0 8px #FFD4DE40, 0 0 0 1px #FFD4DE33'
+        }}
+      >
         <div className="flex justify-center items-center">
-          <h2 className="text-2xl font-black text-center uppercase text-gray-800">
-            INVENTARIO DE ALIMENTOS
+          <h2 className="text-2xl font-black text-center uppercase text-black">
+            GESTIÓN DE ALIMENTOS
           </h2>
         </div>
-        <p className="text-center text-gray-600 italic">Administra alimentos balanceados, snacks y nutrición para mascotas</p>
-
+        <p className="text-center text-black italic mt-2">
+          Administra alimentos balanceados, snacks y nutrición para mascotas
+        </p>
       </div>
 
       {/* Componente de Alimentos Más Vendidos */}
       <AlimentosMasVendidos alimentos={alimentos} />
 
-      <div className="bg-white rounded-xl p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+      <div className="bg-white rounded-xl p-6 mb-6" style={{boxShadow: '0 0 8px #FF9A9840, 0 0 0 1px #FF9A9833'}}>
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="relative w-80">
@@ -322,7 +339,7 @@ const Alimentos = () => {
             )}
           </div>
           <button
-            className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600 transition-colors flex items-center gap-2"
+            className="bg-rose-300 text-white px-6 py-2 rounded hover:bg-rose-600 transition-colors flex items-center gap-2"
             onClick={() => abrirModal()}
           >
             <FontAwesomeIcon icon={faPlus} />
@@ -331,28 +348,34 @@ const Alimentos = () => {
         </div>
 
         {/* Tabla */}
-        <DataTable
-          value={filtroAlimentos}
-          loading={loading}
-          loadingIcon={() => (
-            <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
-              <span>Cargando datos...</span>
-            </div>
-          )}
-          globalFilter={filtroGlobal}
-          globalFilterFields={['nombre', 'sku', 'destino']}
-          showGridlines
-          paginator
-          rows={5}
-          rowsPerPageOptions={[5, 10, 20, 25]}
-          paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-          tableStyle={{ minWidth: '50rem' }}
-          className="mt-4"
-          size="small"
-          selectionMode="single"
-          rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
-        >
+        <div style={{ width: '100%', overflowX: 'auto' }}>
+          <DataTable
+            value={filtroAlimentos}
+            loading={loading}
+            loadingIcon={() => (
+              <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
+                <span>Cargando datos...</span>
+              </div>
+            )}
+            globalFilter={filtroGlobal}
+            globalFilterFields={['nombre', 'sku', 'destino']}
+            showGridlines
+            paginator
+            rows={5}
+            rowsPerPageOptions={[5, 10, 20, 25]}
+            paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+            tableStyle={{ 
+              minWidth: '50rem',
+              width: '100%',
+              tableLayout: 'fixed'
+            }}
+            className="mt-4"
+            size="small"
+            selectionMode="single"
+            rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
+            style={{ width: '100%' }}
+          >
           <Column
             field="id_producto"
             header="ID"
@@ -414,6 +437,7 @@ const Alimentos = () => {
             className="py-2 pr-9 pl-1 border-b text-sm"
           />
         </DataTable>
+        </div>
       </div>
 
       {/* Modal */}
