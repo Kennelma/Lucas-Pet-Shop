@@ -4,6 +4,7 @@ import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
+import Swal from 'sweetalert2';
 import { insertarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
 const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
@@ -84,25 +85,25 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
       const res = await insertarProducto(body);
 
       if (res.Consulta) {
-        const nuevoAnimal = {
-          id_producto: res.id_producto_pk,
-          nombre: data.nombre,
-          precio: precioFinal,
-          stock: data.cantidad,
-          stock_minimo: 0,
-          activo: true,
-          tipo_producto: 'ANIMALES',
-          especie: data.especie,
-          sexo: data.sexo,
-          tiene_impuesto: aplicaImpuesto ? 1 : 0,
-          tasa_impuesto: aplicaImpuesto ? tasaImpuesto : 0
-        };
-
-        onSave(nuevoAnimal);
-        onClose();
-      } else {
-        alert(`Error al guardar: ${res.error}`);
-      }
+  // ✅ AGREGAR ESTAS LÍNEAS
+  Swal.fire({
+    icon: 'success',
+    title: '¡Agregado!',
+    text: `${data.nombre} fue agregado correctamente`,
+    timer: 1500,
+    showConfirmButton: false
+  });
+  
+  onSave();
+  onClose();
+} else {
+  // ✅ CAMBIAR alert por Swal
+  Swal.fire({
+    icon: 'error',
+    title: 'Error',
+    text: res.error || 'No se pudo agregar el animal'
+  });
+}
     } catch (err) {
       console.error(err);
       alert('Ocurrió un error al guardar el animal.');
