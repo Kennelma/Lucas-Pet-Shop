@@ -39,7 +39,7 @@ const DetallesFactura = ({
   estilistas = [],
   onCancel,
   RTN,
-  id_cliente, 
+  id_cliente,
 }) => {
   //====================ESTADOS====================
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -120,13 +120,13 @@ const DetallesFactura = ({
 
   const TOTAL_FINAL = Math.max(0, TOTAL_BRUTO + TOTAL_AJUSTE - DESCUENTO); //RESTA TODO DEL FINAL
 
-  const DIVISOR_ISV = 1.15;
+  //const DIVISOR_ISV = 1.15;
 
-  const SUBTOTAL_GRAVABLE = TOTAL_FINAL > 0 ? TOTAL_FINAL / DIVISOR_ISV : 0;
+  //const SUBTOTAL_GRAVABLE = TOTAL_FINAL > 0 ? TOTAL_FINAL / DIVISOR_ISV : 0;
 
-  const SUBTOTAL = SUBTOTAL_GRAVABLE;
+  const SUBTOTAL = TOTAL_FINAL;
 
-  const IMPUESTO = TOTAL_FINAL - SUBTOTAL;
+  //const IMPUESTO = TOTAL_FINAL - SUBTOTAL;
 
   const SALDO = TOTAL_FINAL;
 
@@ -433,7 +433,7 @@ const DetallesFactura = ({
                     width: "96px",
                   }}
                 >
-                  PRECIO
+                  PRECIO UNITARIO
                 </th>
                 <th
                   className="text-center font-medium text-gray-700"
@@ -893,9 +893,9 @@ const DetallesFactura = ({
                   className="flex justify-between text-gray-700"
                   style={{ fontSize: "14px", marginBottom: "8px" }}
                 >
-                  <span>Subtotal:</span>
-                  <span className="font-medium">
-                    {formatCurrency(SUBTOTAL)}
+                 <span className="font-medium">
+                  {/*
+                    {formatCurrency(SUBTOTAL)}8*/}
                   </span>
                 </div>
                 {DESCUENTO > 0 && (
@@ -913,10 +913,11 @@ const DetallesFactura = ({
                   className="flex justify-between text-gray-700"
                   style={{ fontSize: "14px", marginBottom: "8px" }}
                 >
+                  {/*
                   <span>Impuesto (15%):</span>
                   <span className="font-medium">
                     {formatCurrency(IMPUESTO)}
-                  </span>
+                  </span>* */}
                 </div>
                 <div
                   className="flex justify-between font-bold text-gray-900 border-t-2 border-gray-300"
