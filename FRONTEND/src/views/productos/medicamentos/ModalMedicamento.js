@@ -424,7 +424,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
             {/* Cantidad y Unidad de Medida */}
             <div className="grid grid-cols-2 gap-2">
               <span>
-                <label htmlFor="cantidad_contenido" className="text-xs font-semibold text-gray-700 mb-1">CANTIDAD</label>
+                <label htmlFor="cantidad_contenido" className="text-xs font-semibold text-gray-700 mb-1">CANTIDAD DE CONTENIDO</label>
                 <InputText
                   id="cantidad_contenido"
                   name="cantidad_contenido"
