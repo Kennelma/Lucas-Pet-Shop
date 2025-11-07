@@ -33,8 +33,10 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
 
   const [errores, setErrores] = useState({});
   const [loading, setLoading] = useState(false);
+  const [aplicaImpuesto, setAplicaImpuesto] = useState(false);
+  const [tasaImpuesto, setTasaImpuesto] = useState(15);
 
-  const generarSKU = (nombre, id) => {
+  const generarSKU = (nombre) => {
     if (!nombre) return '';
     const partes = nombre.trim().split(' ').map(p => p.substring(0, 3).toUpperCase());
     return partes.join('-');
@@ -51,14 +53,14 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
         stock_minimo: editData.stock_minimo || '',
         sku: generarSKU(editData.nombre)
       });
+      setAplicaImpuesto(editData.tiene_impuesto === 1);
+      setTasaImpuesto(editData.tasa_impuesto || 15);
       setErrores({});
     }
   }, [isOpen, editData]);
 
   const handleChange = (field, value) => {
-    const val = ['nombre', 'especie', 'sexo'].includes(field)
-      ? value.toUpperCase()
-      : value;
+    const val = ['nombre', 'especie', 'sexo'].includes(field) ? value.toUpperCase() : value;
 
     setData(prev => {
       const newData = { ...prev, [field]: val };
@@ -105,7 +107,9 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
         especie: data.especie,
         sexo: data.sexo,
         tipo_producto: 'ANIMALES',
-        sku: generarSKU(data.nombre)
+        sku: generarSKU(data.nombre),
+        tiene_impuesto: aplicaImpuesto ? 1 : 0,
+        tasa_impuesto: aplicaImpuesto ? tasaImpuesto : 0
       };
 
       const res = await actualizarProducto(body);
@@ -160,7 +164,7 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
       resizable={false}
       contentStyle={{ overflowY: 'visible', padding: '1rem' }}
     >
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-3">
         {/* Nombre */}
         <span>
           <label htmlFor="nombre" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE</label>
@@ -234,6 +238,45 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
           />
           {errores.precio && <p className="text-xs text-red-600 mt-1">{errores.precio}</p>}
         </span>
+
+        {/* Aplica impuesto */}
+        <div className="flex items-center gap-3">
+          <label className="text-sm font-medium text-gray-700">¿Aplica impuesto?</label>
+          <input
+            type="checkbox"
+            checked={aplicaImpuesto}
+            onChange={(e) => setAplicaImpuesto(e.target.checked)}
+            className="w-4 h-4 accent-blue-500"
+          />
+        </div>
+
+        {/* Tasa de impuesto (solo si aplica) */}
+        {aplicaImpuesto && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tasa de Impuesto (%)
+            </label>
+            <div className="flex items-center gap-4">
+              <input
+                type="number"
+                name="tasaImpuesto"
+                value={tasaImpuesto}
+                onChange={e => setTasaImpuesto(e.target.value)}
+                className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="15"
+                step="0.01"
+                min="0"
+                max="100"
+              />
+              <span className="text-sm text-gray-600">
+                Precio con impuesto: L{' '}
+                {data.precio
+                  ? (parseFloat(data.precio) * (1 + parseFloat(tasaImpuesto) / 100)).toFixed(2)
+                  : '0.00'}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Stock Disponible y Stock Mínimo */}
         <div className="grid grid-cols-2 gap-2">
