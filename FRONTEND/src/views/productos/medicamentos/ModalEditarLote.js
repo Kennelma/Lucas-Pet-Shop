@@ -2,56 +2,25 @@ import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 
-const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExistentes = [] }) => {
+const ModalEditarLote = ({ isOpen, onClose, onSave, loteEditar }) => {
   const [formData, setFormData] = useState({
-    codigo_lote: "",
     fecha_vencimiento: "",
-    stock_lote: "",
-    id_producto_fk: null
+    stock_lote: ""
   });
 
   const [errores, setErrores] = useState({});
 
-  // Genera código basándose en el MÁXIMO número existente + 1
-  const generarCodigoLote = (nombreMedicamento, lotesDelMedicamento) => {
-    const nombreSinEspacios = nombreMedicamento.replace(/\s+/g, '').toUpperCase();
-    const letras = nombreSinEspacios.substring(0, 4).padEnd(4, 'X');
-    
-    // Extraer todos los números de los códigos existentes
-    const numerosExistentes = lotesDelMedicamento
-      .map(lote => {
-        const match = lote.codigo_lote.match(/LOTE-(\d+)-/);
-        return match ? parseInt(match[1]) : 0;
-      })
-      .filter(n => n > 0);
-    
-    // Siempre incrementar desde el máximo (nunca reutilizar números)
-    const siguienteNumero = numerosExistentes.length > 0 
-      ? Math.max(...numerosExistentes) + 1 
-      : 1;
-    
-    const numeroFormateado = siguienteNumero.toString().padStart(2, '0');
-    
-    return `LOTE-${numeroFormateado}-${letras}`;
-  };
-
   useEffect(() => {
-    if (medicamentoSeleccionado && isOpen) {
-      const lotesDelMedicamento = lotesExistentes.filter( lote => lote.id_producto_fk === medicamentoSeleccionado.id_producto_pk );
-      
-      const codigoAuto = generarCodigoLote( medicamentoSeleccionado.nombre_producto, lotesDelMedicamento );
-      
+    if (loteEditar && isOpen) {
       setFormData({
-        codigo_lote: codigoAuto,
-        fecha_vencimiento: "",
-        stock_lote: "",
-        id_producto_fk: medicamentoSeleccionado.id_producto_pk
+        fecha_vencimiento: loteEditar.fecha_vencimiento?.split('T')[0] || "",
+        stock_lote: loteEditar.stock_lote || ""
       });
       setErrores({});
     }
-  }, [medicamentoSeleccionado, isOpen, lotesExistentes]);
+  }, [loteEditar, isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !loteEditar) return null;
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -73,7 +42,7 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExis
           }
         }
       } else if (field === 'stock_lote') {
-        newErrores[field] = parseInt(value) >= 5 ? '' : 'El stock del lote debe ser mínimo 5 unidades';
+        newErrores[field] = parseInt(value) >= 0 ? '' : 'El stock no puede ser negativo';
       }
       
       return newErrores;
@@ -93,8 +62,8 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExis
         temp.fecha_vencimiento = 'La fecha de vencimiento debe ser mayor a la fecha actual';
       }
     }
-    if (!formData.stock_lote || parseInt(formData.stock_lote) < 5) {
-      temp.stock_lote = 'El stock del lote debe ser mínimo 5 unidades';
+    if (!formData.stock_lote || parseInt(formData.stock_lote) < 0) {
+      temp.stock_lote = 'El stock no puede ser negativo';
     }
 
     setErrores(temp);
@@ -102,18 +71,20 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExis
   };
 
   const handleGuardar = () => {
-    if (validarFormulario()) {
-      console.log("✅ Datos del lote a guardar:", formData);
-      onSave(formData);
-    }
-  };
+  if (validarFormulario()) {
+    // ✅ Enviar solo los campos editables + el ID
+    onSave({
+      id_lote_medicamentos_pk: loteEditar.id_lote_medicamentos_pk,
+      fecha_vencimiento: formData.fecha_vencimiento,
+      stock_lote: parseInt(formData.stock_lote)
+    });
+  }
+};
 
   const handleCerrar = () => {
     setFormData({
-      codigo_lote: "",
       fecha_vencimiento: "",
-      stock_lote: "",
-      id_producto_fk: null
+      stock_lote: ""
     });
     setErrores({});
     onClose();
@@ -137,7 +108,7 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExis
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
-          Guardar Lote
+          Actualizar Lote
         </div>
       </button>
     </div>
@@ -145,7 +116,7 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExis
 
   return (
     <Dialog
-      header={<div className="w-full text-center text-lg font-bold">NUEVO LOTE</div>}
+      header={<div className="w-full text-center text-lg font-bold">EDITAR LOTE</div>}
       visible={isOpen}
       style={{ width: '28rem', borderRadius: '1.5rem' }}
       modal
@@ -157,24 +128,23 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExis
       draggable={false}
       resizable={false}
     >
-      {/* Banner del medicamento */}
-      {medicamentoSeleccionado && (
+      {/* Banner del lote */}
+      {loteEditar && (
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 mb-4">
           <p className="text-sm text-blue-600 font-semibold text-center">
-            <strong>{medicamentoSeleccionado.nombre_producto}</strong> - {medicamentoSeleccionado.presentacion_medicamento}
+            <strong>{loteEditar.codigo_lote}</strong>
           </p>
         </div>
       )}
 
       {/* Formulario */}
       <div className="flex flex-col gap-3">
-        {/* Código de Lote - AUTOMÁTICO Y NO EDITABLE */}
+        {/* Código de Lote - NO EDITABLE */}
         <span>
-          <label htmlFor="codigo_lote" className="text-xs font-semibold text-gray-700 mb-1">CÓDIGO DE LOTE (GENERADO AUTOMÁTICAMENTE)</label>
+          <label htmlFor="codigo_lote_display" className="text-xs font-semibold text-gray-700 mb-1">CÓDIGO DE LOTE</label>
           <InputText
-            id="codigo_lote"
-            name="codigo_lote"
-            value={formData.codigo_lote}
+            id="codigo_lote_display"
+            value={loteEditar?.codigo_lote || ""}
             readOnly
             className="w-full rounded-xl h-9 text-sm bg-gray-100 font-mono font-bold"
           />
@@ -202,16 +172,16 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExis
 
         {/* Stock del Lote */}
         <span>
-          <label htmlFor="stock_lote" className="text-xs font-semibold text-gray-700 mb-1">CANTIDAD INICIAL DEL LOTE</label>
+          <label htmlFor="stock_lote" className="text-xs font-semibold text-gray-700 mb-1">STOCK DEL LOTE</label>
           <InputText
             id="stock_lote"
             name="stock_lote"
             type="number"
-            min="5"
+            min="0"
             value={formData.stock_lote}
             onChange={(e) => handleChange('stock_lote', e.target.value)}
             className="w-full rounded-xl h-9 text-sm"
-            placeholder="Mínimo 5 unidades"
+            placeholder="0"
           />
           {errores.stock_lote && <p className="text-xs text-red-600 mt-1">{errores.stock_lote}</p>}
         </span>
@@ -220,4 +190,4 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExis
   );
 };
 
-export default ModalLote;
+export default ModalEditarLote;
