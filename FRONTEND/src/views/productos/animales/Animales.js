@@ -120,14 +120,12 @@ const Animales = () => {
     cargarDatos();
   }, []);
 
-  //====================CONTROL_SCROLL_MODAL====================
   useEffect(() => {
     if (modalAbierto) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
     }
-
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -157,7 +155,6 @@ const Animales = () => {
     setLoading(true);
     try {
       const productos = await verProductos("ANIMALES");
-
       const normalizados = (productos || []).map((item) => ({
         id_producto: item.id_producto_pk,
         nombre: item.nombre_producto,
@@ -171,6 +168,7 @@ const Animales = () => {
       }));
       setAnimales(normalizados);
     } catch (error) {
+      console.error("Error cargando animales:", error);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -243,7 +241,6 @@ const Animales = () => {
 
   const actualizarEstadoAnimal = async (animal, nuevoEstado) => {
     try {
-
       const payload = {
         id_producto: animal.id_producto,
         tipo_producto: "ANIMALES",
@@ -292,7 +289,6 @@ const Animales = () => {
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
-     {/* Título */}
       <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-gray-800">
@@ -302,11 +298,9 @@ const Animales = () => {
         <p className="text-center text-gray-600 italic">Administra el inventario de mascotas disponibles para venta</p>
       </div>
 
-      {/* Componente de Animales Más Vendidos */}
       <AnimalesMasVendidos animales={animales} />
 
       <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
-        {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="relative w-80">
             <input
@@ -333,7 +327,6 @@ const Animales = () => {
           </button>
         </div>
 
-        {/* Tabla */}
         <DataTable
           value={filtroAnimales}
           loading={loading}
@@ -413,8 +406,6 @@ const Animales = () => {
         </DataTable>
       </div>
 
-      {/* Modales */}
-      {/* Modales */}
       {modalAbierto &&
         (animalEditando ? (
           <ModalActualizarAnimal

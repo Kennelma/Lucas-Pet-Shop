@@ -120,7 +120,7 @@ cron.schedule('0 */5 * * * *', async () => { //CADA 5 MINUTOS
             SELECT 1
             FROM tbl_notificaciones
             WHERE tipo_notificacion_fk = ?
-              AND mensaje_notificacion LIKE CONCAT('%', ?, '%') -- usa el codigo_lote como llave
+              AND mensaje_notificacion LIKE CONCAT('%', ?, '%'),
               AND leido = FALSE
             LIMIT 1
           )
@@ -130,7 +130,7 @@ cron.schedule('0 */5 * * * *', async () => { //CADA 5 MINUTOS
     }
 
     await conn.commit();
-    
+
   } catch (error) {
 
     await conn.rollback();

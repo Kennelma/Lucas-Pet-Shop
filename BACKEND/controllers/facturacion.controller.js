@@ -306,7 +306,7 @@ exports.crearFactura = async (req, res) => {
         const total = Math.max(0, total_con_ajustes); // TOTAL FINAL (no negativo)
         const saldo = total; //INICIALMENTE EL SALDO ES IGUAL AL TOTAL
 
-        // ✅ VALIDAR RESULTADOS
+        //VALIDAR RESULTADOS
         if (isNaN(subtotal) || isNaN(impuesto) || isNaN(total)) {
             throw new Error('Error en cálculos finales. Por favor, revise los datos ingresados.');
         }

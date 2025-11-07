@@ -42,8 +42,14 @@ const ModalEditarLote = ({ isOpen, onClose, onSave, loteEditar }) => {
           }
         }
       } else if (field === 'stock_lote') {
-        newErrores[field] = parseInt(value) >= 0 ? '' : 'El stock no puede ser negativo';
-      }
+  const num = parseInt(value);
+  if (isNaN(num) || num < 5) {
+    newErrores[field] = 'El stock del lote debe ser mínimo 5 unidades';
+  } else {
+    newErrores[field] = '';
+  }
+}
+
       
       return newErrores;
     });
@@ -62,9 +68,10 @@ const ModalEditarLote = ({ isOpen, onClose, onSave, loteEditar }) => {
         temp.fecha_vencimiento = 'La fecha de vencimiento debe ser mayor a la fecha actual';
       }
     }
-    if (!formData.stock_lote || parseInt(formData.stock_lote) < 0) {
-      temp.stock_lote = 'El stock no puede ser negativo';
-    }
+    if (!formData.stock_lote || parseInt(formData.stock_lote) < 5) {
+  temp.stock_lote = 'El stock del lote debe ser mínimo 5 unidades';
+}
+
 
     setErrores(temp);
     return Object.keys(temp).length === 0;

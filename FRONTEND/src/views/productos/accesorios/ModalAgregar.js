@@ -235,7 +235,7 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
 
         {/* Precio */}
         <span>
-          <label htmlFor="precio" className="text-xs font-semibold text-gray-700 mb-1">PRECIO (L)</label>
+          <label htmlFor="precio" className="text-xs font-semibold text-gray-700 mb-1">PRECIO (SIN IMPUESTO)</label>
           <InputNumber
             id="precio"
             name="precio"

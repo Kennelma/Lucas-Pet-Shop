@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
+import Swal from 'sweetalert2';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
@@ -111,11 +112,26 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
       const res = await actualizarProducto(body);
 
       if (res.Consulta) {
-        onSave({ ...editData, ...data });
-        onClose();
-      } else {
-        alert(`Error al actualizar: ${res.error}`);
-      }
+  // ✅ PRIMERO la notificación
+  Swal.fire({
+    icon: 'success',
+    title: '¡Actualizado!',
+    text: `${data.nombre} fue actualizado correctamente`,
+    timer: 1500,
+    showConfirmButton: false
+  });
+  
+  // ✅ MANTÉN esto como estaba originalmente
+  onSave({ ...editData, ...data });
+  onClose();
+} else {
+  Swal.fire({
+    icon: 'error',
+    title: 'Error',
+    text: res.error || 'No se pudo actualizar el animal'
+  });
+}
+      
     } catch (err) {
       console.error(err);
       alert('Ocurrió un error al actualizar el animal.');

@@ -5,21 +5,21 @@ export const generarPDFFactura = (datosFactura) => {
 
   const { factura, items, empresa, pagos } = datosFactura;
 
-  // Calcular altura dinámica basada en items
-  const alturaBase = 150; // Altura mínima
-  const alturaPorItem = 5; // Espacio por cada item
+
+  const alturaBase = 150;
+  const alturaPorItem = 5;
   const alturaCalculada = alturaBase + (items.length * alturaPorItem) + (pagos ? pagos.length * 10 : 0);
-  const alturaFinal = Math.max(alturaCalculada, 200); // Mínimo 200mm
+  const alturaFinal = Math.max(alturaCalculada, 200);
 
   //SE CREA EL DOCUMENTO PDF
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
-    format: [80, alturaFinal] // 🔥 ALTURA DINÁMICA
+    format: [80, alturaFinal]
   });
 
   const pageWidth = 80;
-  const margin = 10;
+  const margin = 5;
   const contentWidth = pageWidth - (margin * 2);
   let yPos = 5;
 
@@ -63,7 +63,7 @@ export const generarPDFFactura = (datosFactura) => {
 
   doc.text(`RTN: ${empresa.rtn_empresa || 'PRUEBA'}`, pageWidth / 2, yPos, { align: 'center' });
 
- 
+
   yPos += 8;
   //====================TÍTULO FACTURA====================
   addCenteredText('FACTURA DE VENTA', 12, true, 2);
@@ -86,15 +86,14 @@ export const generarPDFFactura = (datosFactura) => {
   }
 
   //====================INFORMACIÓN DEL CLIENTE====================
-  doc.setFontSize(9);
+  doc.setFontSize(5);
   doc.setFont(undefined, 'bold');
   doc.text('CLIENTE:', margin, yPos);
 
-  // 🔹 separa horizontalmente el nombre
   doc.setFont(undefined, 'normal');
   doc.setFontSize(8);
   const nombreCliente = `${factura.nombre_cliente || ''} ${factura.apellido_cliente || ''}`.trim();
-  doc.text(nombreCliente || 'Cliente General', margin + 15, yPos); 
+  doc.text(nombreCliente || 'Consumidor General', margin + 15, yPos);
 
   yPos += 2;
 
@@ -106,26 +105,17 @@ export const generarPDFFactura = (datosFactura) => {
 
   addSeparator();
 
-  //====================ITEMS - FORMATO TABLA CON COLUMNAS====================
-  doc.setFontSize(9);
+  //====================ITEMS - FORMATO COMPACTO====================
+  doc.setFontSize(7);
   doc.setFont(undefined, 'bold');
   yPos += 1;
 
-  // ENCABEZADOS DE COLUMNAS
-  doc.setFontSize(7);
-  doc.setFont(undefined, 'bold');
-
-  //ANCHOS DE LA COLUMNA DE DETALLES FACTURA
-  const colCantidad = margin;
-  const colDescripcion = margin + 12;
-  const colPrecio = margin + 35;
-  const colAjuste = margin + 50;
-
-  // Imprimir encabezados
-  doc.text('UNIDS', colCantidad, yPos);
-  doc.text('DESCRIPCIÓN', colDescripcion, yPos);
-  doc.text('PRECIO', colPrecio, yPos);
-  doc.text('AJUSTE', colAjuste, yPos);
+  // Encabezado simple
+  doc.text('CANT', margin, yPos);
+  doc.text('DESCRIPCIÓN', margin + 10, yPos);
+  doc.text('P.UNIT', pageWidth - 32, yPos, { align: 'right' });
+  doc.text('AJUSTE', pageWidth - 18, yPos, { align: 'right' });
+  doc.text('SUBTOTAL', pageWidth - margin, yPos, { align: 'right' });
   yPos += 3;
 
   // Línea debajo de encabezados
@@ -133,29 +123,36 @@ export const generarPDFFactura = (datosFactura) => {
   doc.line(margin, yPos, pageWidth - margin, yPos);
   yPos += 4;
 
-  // ITEMS - UNA FILA POR PRODUCTO (SIN LÍMITE)
+  // ITEMS
   doc.setFont(undefined, 'normal');
-  doc.setFontSize(7);
+  doc.setFontSize(6.5);
 
   items.forEach((item) => {
     const cantidad = item.cantidad_item;
-    const nombre = item.nombre_item || 'Item'; // 🔥 NOMBRE COMPLETO, SIN RECORTAR
+    const nombre = item.nombre_item || 'Item';
     const precio = parseFloat(item.precio_item).toFixed(2);
     const ajuste = parseFloat(item.ajuste_precio || 0).toFixed(2);
+    const total = parseFloat(item.total_linea).toFixed(2);
 
-    // Imprimir cada columna en la misma línea
-    doc.text(cantidad.toString(), colCantidad, yPos);
+    // Primera línea: Cantidad + Descripción
+    const lineasNombre = doc.splitTextToSize(nombre, 38);
+    doc.text(`${cantidad}`, margin, yPos);
+    doc.text(lineasNombre[0], margin + 10, yPos);
 
-    // 🔥 DESCRIPCIÓN COMPLETA (puede ocupar varias líneas si es muy largo)
-    const lineasNombre = doc.splitTextToSize(nombre, 20); // Divide el texto si es muy largo
-    doc.text(lineasNombre, colDescripcion, yPos);
+    // Valores alineados a la derecha
+    doc.text(`L${precio}`, pageWidth - 32, yPos, { align: 'right' });
+    doc.text(`L${ajuste}`, pageWidth - 18, yPos, { align: 'right' });
+    doc.text(`L${total}`, pageWidth - margin, yPos, { align: 'right' });
 
-    doc.text(`L${precio}`, colPrecio, yPos);
-    doc.text(`L${ajuste}`, colAjuste, yPos);
+    yPos += 3.5;
 
-    // 🔥 AJUSTAR ESPACIO SI EL NOMBRE OCUPA VARIAS LÍNEAS
-    const alturaItem = lineasNombre.length * 3;
-    yPos += Math.max(alturaItem, 4); // Mínimo 4mm entre items
+    // Si la descripción es larga, agregar líneas adicionales
+    for (let i = 1; i < lineasNombre.length; i++) {
+      doc.text(lineasNombre[i], margin + 10, yPos);
+      yPos += 3;
+    }
+
+    yPos += 0.5; // Separación entre items
   });
 
   addSeparator();
@@ -164,17 +161,18 @@ export const generarPDFFactura = (datosFactura) => {
   doc.setFontSize(7);
   doc.setFont(undefined, 'normal');
 
-  doc.text('Subtotal:', margin, yPos);
+  {/*ddoc.text('Subtotal:', margin, yPos);
   doc.text(`L ${parseFloat(factura.subtotal).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
-  yPos += 3;
+  yPos += 3;*/}
 
   doc.text('Descuento:', margin, yPos);
   doc.text(`L ${parseFloat(factura.descuento).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
   yPos += 3;
 
-  doc.text('Impuesto (15%):', margin, yPos);
+  {/*doc.text('Impuesto (15%):', margin, yPos);
   doc.text(`L ${parseFloat(factura.impuesto).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
-  yPos += 4;
+  yPos += 4; */}
+
 
   // TOTAL en negrita pero mismo tamaño (7)
   doc.setFont(undefined, 'bold');
@@ -183,11 +181,11 @@ export const generarPDFFactura = (datosFactura) => {
   doc.text(`L ${parseFloat(factura.total).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
   yPos +=1;
   doc.line(margin, yPos, pageWidth - margin, yPos);
-  
+
   yPos += 4;
 
   doc.setFont(undefined, 'normal');
-  
+
 
   //====================HISTORIAL DE PAGOS (SI EXISTEN)====================
 
@@ -198,7 +196,7 @@ export const generarPDFFactura = (datosFactura) => {
   yPos += 4;
 
   doc.setFont(undefined, 'normal');
-  doc.setFontSize(6);  // 🔥 Más pequeño
+  doc.setFontSize(6);
 
   pagos.forEach(pago => {
     const fechaPago = new Date(pago.fecha_pago).toLocaleDateString('es-HN', {
