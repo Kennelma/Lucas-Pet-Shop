@@ -752,7 +752,7 @@ exports.eliminar = async (req, res) => {
             if (id_produ) {
                 await conn.query(
                     `UPDATE tbl_productos SET stock = stock - ? WHERE id_producto_pk = ?`,
-                    [stock, id_produ]
+                    [stockLote, idProducto]
                 );
             }
 
@@ -771,11 +771,6 @@ exports.eliminar = async (req, res) => {
         } else {
 
             const {id_producto } = req.body;
-
-            const [loteRelacionado] =  await conn.query(`
-            SELECT
-                stock_lote,
-                m.id_producto_fk`);
 
             await conn.query(`DELETE FROM tbl_productos WHERE id_producto_pk = ?`, [id_producto]);
 
