@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import TablaRecordatorios from "./tabla-recordatorios.js";
+//import TablaRecordatorios from './tabla-recordatorios.js';
 import { verCatalogo } from '../../AXIOS.SERVICES/reminders';
 
 const Recordatorios = () => {

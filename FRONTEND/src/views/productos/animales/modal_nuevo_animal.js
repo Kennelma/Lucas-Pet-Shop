@@ -7,6 +7,7 @@ import { Button } from 'primereact/button';
 import { insertarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
 const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
+
   const [data, setData] = useState({
     nombre: '',
     especie: '',
@@ -17,6 +18,8 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
 
   const [errores, setErrores] = useState({});
   const [loading, setLoading] = useState(false);
+  const [aplicaImpuesto, setAplicaImpuesto] = useState(false);
+  const [tasaImpuesto, setTasaImpuesto] = useState(15);
 
   // Verificar si hay errores para mostrar scroll
   const hayErrores = Object.keys(errores).some(key => errores[key]);
@@ -38,7 +41,7 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
   const handleChange = (field, value) => {
     const val = ['nombre', 'especie', 'sexo'].includes(field) ? value.toUpperCase() : value;
     setData(prev => ({ ...prev, [field]: val }));
-    
+
     // Limpiar error cuando el usuario empiece a escribir
     if (errores[field]) {
       setErrores(prev => ({ ...prev, [field]: '' }));
@@ -62,13 +65,20 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
 
     setLoading(true);
     try {
+      // Calcular precio final si aplica impuesto
+      const precioFinal = aplicaImpuesto
+        ? parseFloat(data.precio) * (1 + parseFloat(tasaImpuesto) / 100)
+        : parseFloat(data.precio);
+
       const body = {
         nombre_producto: data.nombre,
-        precio_producto: data.precio,
+        precio_producto: precioFinal,
         stock: data.cantidad,
         tipo_producto: 'ANIMALES',
         especie: data.especie,
-        sexo: data.sexo
+        sexo: data.sexo,
+        tiene_impuesto: aplicaImpuesto ? 1 : 0,
+        tasa_impuesto: aplicaImpuesto ? tasaImpuesto : 0
       };
 
       const res = await insertarProducto(body);
@@ -77,13 +87,15 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
         const nuevoAnimal = {
           id_producto: res.id_producto_pk,
           nombre: data.nombre,
-          precio: parseFloat(data.precio),
+          precio: precioFinal,
           stock: data.cantidad,
           stock_minimo: 0,
           activo: true,
           tipo_producto: 'ANIMALES',
           especie: data.especie,
-          sexo: data.sexo
+          sexo: data.sexo,
+          tiene_impuesto: aplicaImpuesto ? 1 : 0,
+          tasa_impuesto: aplicaImpuesto ? tasaImpuesto : 0
         };
 
         onSave(nuevoAnimal);
@@ -124,8 +136,8 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">NUEVO ANIMAL</div>}
       visible={isOpen}
-      style={{ 
-        width: '30rem', 
+      style={{
+        width: '30rem',
         borderRadius: '1.5rem',
         ...(hayErrores ? { maxHeight: '90vh' } : {})
       }}
@@ -217,6 +229,70 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
           />
           {errores.cantidad && <p className="text-xs text-red-600 mt-1">{errores.cantidad}</p>}
         </span>
+      </div>
+
+
+      {/* Sección de Impuestos */}
+      <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Configuración de Impuestos</h3>
+
+        {/* Switch para aplicar impuesto */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <label className="text-sm font-medium text-gray-700">
+              ¿Aplica Impuesto (ISV)?
+            </label>
+            <p className="text-xs text-gray-500 mt-1">
+              Desactive si el producto está exento de impuestos
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setAplicaImpuesto(!aplicaImpuesto)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              aplicaImpuesto ? 'bg-blue-600' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                aplicaImpuesto ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Tasa de impuesto (solo si aplica) */}
+        {aplicaImpuesto && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tasa de Impuesto (%)
+            </label>
+            <div className="flex items-center gap-4">
+              <input
+                type="number"
+                name="tasaImpuesto"
+                value={tasaImpuesto}
+                onChange={e => setTasaImpuesto(e.target.value)}
+                className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="15"
+                step="0.01"
+                min="0"
+                max="100"
+              />
+              <span className="text-sm text-gray-600">
+                Precio con impuesto: L {data.precio ? (parseFloat(data.precio) * (1 + parseFloat(tasaImpuesto) / 100)).toFixed(2) : '0.00'}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {!aplicaImpuesto && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <p className="text-sm text-yellow-800">
+              <strong>Producto exento de impuestos.</strong> El precio final será igual al precio base.
+            </p>
+          </div>
+        )}
       </div>
     </Dialog>
   );

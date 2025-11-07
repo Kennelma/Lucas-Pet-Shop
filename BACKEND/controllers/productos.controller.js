@@ -6,11 +6,10 @@ const mysqlConnection = require('../config/conexion');
 
 //ESTOS ATRIBUTOS SON COMUNES PARA TODOS LOS ENDPOINT
 function insert_atributos_padre (body) {
-
     return [
         body.nombre_producto,
         body.precio_producto,
-        body.stock
+        body.stock,
     ];
 }
 
@@ -95,15 +94,19 @@ exports.crear = async (req, res) => {
                 [req.body.tipo_producto]
             );
 
+            // Validar impuesto
+            const tieneImpuesto = req.body.tiene_impuesto == 1 ? 1 : 0;
+
             //SE LLENA LA TABLA PADRE PRIMERO
             const [productos] = await conn.query(
                 `INSERT INTO tbl_productos (
                     nombre_producto,
                     precio_producto,
                     stock,
-                    tipo_item_fk
-                ) VALUES (?, ?, ?, ?)`,
-                [...insert_atributos_padre(req.body), tipoProducto[0].id_tipo]
+                    tipo_item_fk,
+                    tiene_impuesto
+                ) VALUES (?, ?, ?, ?, ?)`,
+                [...insert_atributos_padre(req.body), tipoProducto[0].id_tipo, tieneImpuesto]
             );
 
             //OBTENGO EL ID DEL PRODUCTO INSERTADO
@@ -378,8 +381,11 @@ exports.actualizar = async (req, res) => {
 
         const { id_producto, tipo_producto } = req.body;
 
+        //VALIDAR IMPUESTO
+        const tieneImpuesto = req.body.tiene_impuesto == 1 ? 1 : 0;
+
         //SE ACTUALIZA PRIMERO LA TABLA PADRE
-        const [result] = await conn.query(
+        await conn.query(
             `UPDATE tbl_productos
             SET
                 nombre_producto = COALESCE(?, nombre_producto),
@@ -387,9 +393,10 @@ exports.actualizar = async (req, res) => {
                 sku             = COALESCE(?, sku),
                 stock           = COALESCE(?, stock),
                 stock_minimo    = COALESCE(?, stock_minimo),
-                activo          = COALESCE(?, activo)
+                activo          = COALESCE(?, activo),
+                tiene_impuesto = COALESCE(?, tiene_impuesto)
             WHERE id_producto_pk = ?`,
-            [...update_atributos_padre(req.body), id_producto]
+            [...update_atributos_padre(req.body), tieneImpuesto, id_producto]
         );
 
         switch (tipo_producto) {
@@ -726,24 +733,38 @@ exports.eliminar = async (req, res) => {
 
         if (id_lote) {
 
-            [lote] = await conn.query(`
-                SELECT
-                    id_medicamento_fk
-                    FROM tbl_lotes_medicamentos
-                WHERE id_lote_medicamentos_pk = ?`,
+            //SE OBTIENE EL STOCK DEL LOTE Y EL PRODUCTO RELACIONADO
+            const [lotes] = await conn.query(
+                `SELECT
+                    l.stock_lote,
+                    m.id_producto_fk
+                FROM tbl_lotes_medicamentos l
+                INNER JOIN tbl_medicamentos_info m ON l.id_medicamento_fk = m.id_medicamento_pk
+                WHERE l.id_lote_medicamentos_pk = ?`,
                 [id_lote]
             );
 
+            const stock = lotes[0]?.stock_lote || 0;
+
+            const id_produ = lotes[0]?.id_producto_fk;
+
+            // SE RESTA EL STOCK DEL PRODUCTO
+            if (id_produ) {
+                await conn.query(
+                    `UPDATE tbl_productos SET stock = stock - ? WHERE id_producto_pk = ?`,
+                    [stockLote, idProducto]
+                );
+            }
+
+            // 3. Borrar el lote
             await conn.query(
-                `DELETE
-                FROM tbl_lotes_medicamentos
-                WHERE id_lote_medicamentos_pk = ?`,[id_lote]
+                `DELETE FROM tbl_lotes_medicamentos WHERE id_lote_medicamentos_pk = ?`, [id_lote]
             );
 
             await conn.commit();
             return res.json({
                 Consulta: true,
-                mensaje: 'Lote eliminado con éxito',
+                mensaje: 'Lote eliminado y stock actualizado',
                 id_lote
             });
 
