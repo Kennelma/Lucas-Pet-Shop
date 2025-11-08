@@ -67,7 +67,7 @@ const VistaNormal = ({ totalIngresos, totalGastos, gananciaTotal }) => {
           <li>• 3. Estructura requerida: Array de 12 objetos con {`{ mes: 'Enero', monto: número }`}</li>
           <li>• 4. Ingresos: Totales de la tabla de facturas por cada mes</li>
           <li>• 5. Gastos: Totales de la tabla de gastos por cada mes</li>
-          <li>• 6. El gráfico muestra ingresos y gastos juntos para comparar fácilmente</li>
+          <li>• 6. El gráfico muestra ingresos y gastos en dos semestres para mejor visualización</li>
           <li>• 7. La tabla muestra el detalle mensual con las ganancias calculadas</li>
           <li>• 8. Usa el botón "Descargar PDF" para exportar el reporte completo</li>
         </ul>

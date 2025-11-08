@@ -5,13 +5,16 @@ const path = require('path');
 const mysqlConnection = require('./config/conexion');
 const { connectWhatsApp } = require('./config/whatsapp');
 
-// SILENCIAR COMPLETAMENTE DOTENV
-const originalLog = console.log;
-console.log = () => {};
+
+//IMPORTACIÓN DE VARIABLES DE ENTORNO
 require('dotenv').config({
     path: path.resolve(process.cwd(), '..', '.env')
 });
-console.log = originalLog;
+
+
+//IMPORTACIÓN DE JOBS
+require('./jobs/lotes-vencimiento');
+require('./jobs/productos-stock');
 
 
 //PARA QUE EL SERVIDOR PUEDA RECIBIR JSON Y XXWW-FORM-URLENCODED
@@ -21,15 +24,15 @@ app.use(cors());
 
 app.use('/api', require('./routes/rutas'));
 
+
 //IMPORTACION DE WHATSAPP
 connectWhatsApp().catch(err => {
-    console.error('❌ Error al conectar WhatsApp:', err);
-    console.log('⚠️  El servidor funcionará, pero WhatsApp no estará disponible.');
+    console.error('ERROR AL CONECTAR WHATSAPP:', err);
 });
 
 const PORT = 4000;
 app.listen(PORT, function() {
-    console.log('🚀 Servidor en puerto ' + PORT);
+    console.log('SERVIDOR EN PUERTO ' + PORT);
     //console.log('📱 Escanea el QR de WhatsApp si aparece en la terminal');
 });
 
