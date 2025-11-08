@@ -25,6 +25,9 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
   const [tasaImpuesto, setTasaImpuesto] = useState(15);
   const [precioBase, setPrecioBase] = useState(0);
 
+  // Verificar si hay errores para mostrar scroll
+  const hayErrores = Object.keys(errores).some(key => errores[key]);
+
   const categorias = [
     { label: 'COLLAR', value: 'COLLAR' },
     { label: 'CORREA', value: 'CORREA' },
@@ -65,7 +68,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
     if (isOpen && editData) {
       // Lógica de Impuesto al cargar
       const tieneImpuesto = Boolean(editData.tiene_impuesto);
-      const tasa = editData.tasa_impuesto || 15;
+      const tasa = 15; // Tasa fija del 15% como en alimentos
       const precioInicial = parseFloat(editData.precio_producto || editData.precio || 0); // Asumiendo que 'precio' o 'precio_producto' es el precio final
       let base = precioInicial;
 
@@ -183,8 +186,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
         sku: data.sku,
         activo: data.activo ? 1 : 0,
         // 💡 Campos de Impuesto
-        tiene_impuesto: aplicaImpuesto ? 1 : 0,
-        tasa_impuesto: aplicaImpuesto ? tasaImpuesto : 0
+        tiene_impuesto: aplicaImpuesto ? 1 : 0
       };
 
       const res = await actualizarProducto(body);
@@ -248,7 +250,11 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
       style={{
         width: '28rem',
         borderRadius: '1.5rem',
-        ...(aplicaImpuesto ? { maxHeight: '90vh' } : {})
+        maxHeight: '85vh',
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)'
       }}
       modal
       closable={false}
@@ -258,8 +264,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
       dismissableMask={false}
       draggable={false}
       resizable={false}
-      contentClassName="overflow-visible"
-      contentStyle={aplicaImpuesto ? { overflowY: 'auto', maxHeight: 'calc(90vh - 120px)' } : { overflow: 'visible' }}
+      contentStyle={{ overflowY: 'auto', maxHeight: 'calc(85vh - 120px)' }}
     >
       {/* Formulario */}
       <div className="flex flex-col gap-3 overflow-visible">
@@ -364,7 +369,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
                         max="100"
                     />
                     <span className="text-xs text-gray-600">
-                        Precio base: L **{precioBase}** (sin impuesto)
+                        Precio base: L {precioBase} (sin impuesto)
                     </span>
                 </div>
             </div>
@@ -374,7 +379,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
         {!aplicaImpuesto && parseFloat(data.precio) > 0 && (
           <div className="bg-yellow-100 border border-yellow-300 rounded-md p-2 mt-1">
             <p className="text-xs text-yellow-800">
-              El precio base es L {parseFloat(data.precio).toFixed(2)}. Si se aplica ISV (L {tasaImpuesto}%), el precio con ISV sería L **{calcularPrecioFinalConISV()}**.
+              El precio base es L {parseFloat(data.precio).toFixed(2)}. Si se aplica ISV (L {tasaImpuesto}%), el precio con ISV sería L {calcularPrecioFinalConISV()}.
             </p>
           </div>
         )}
@@ -394,6 +399,8 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
           />
           {errores.cantidad && <p className="text-xs text-red-600 mt-1">{errores.cantidad}</p>}
         </span>
+
+
       </div>
     </Dialog>
   );

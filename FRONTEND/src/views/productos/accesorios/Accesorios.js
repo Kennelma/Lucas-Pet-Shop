@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import Swal from "sweetalert2";
-import { Button } from "primereact/button";
-import { InputText } from "primereact/inputtext";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 import ModalAgregar from "./ModalAgregar";
 import ModalEditar from "./ModalEditar";
@@ -152,7 +150,7 @@ const Accesorios = () => {
       </div>
     );
   };
-
+// Función para cargar los datos de accesorios
   const cargarDatos = async () => {
     setLoading(true);
     try {
@@ -166,9 +164,9 @@ const Accesorios = () => {
         activo: item.activo === 1 || item.activo === "1" ? 1 : 0,
         categoria: item.tipo_accesorio || "No especificada",
         sku: item.sku || "",
-        // 💡 AGREGANDO CAMPOS DE IMPUESTO PARA EL MODAL DE EDICIÓN
-        tiene_impuesto: item.tiene_impuesto === 1 || item.tiene_impuesto === "1",
-        tasa_impuesto: parseFloat(item.tasa_impuesto || 0),
+        // 💡 AGREGANDO CAMPOS DE IMPUESTO 
+        tiene_impuesto: item.tiene_impuesto || 0,
+        tasa_impuesto: item.tasa_impuesto
       }));
       setAccesorios(normalizados);
     } catch (error) {
@@ -249,7 +247,7 @@ const Accesorios = () => {
         id_producto: accesorio.id_producto,
         tipo_producto: "ACCESORIOS",
         activo: nuevoEstado ? 1 : 0,
-        // Incluir la data existente para evitar sobrescribir otros campos si la API lo requiere
+        // Incluir la data existente 
         nombre_producto: accesorio.nombre,
         tipo_accesorio: accesorio.categoria,
         stock: accesorio.stock,
@@ -300,21 +298,33 @@ const Accesorios = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
-      {/* Título */}
-      <div className="bg-gradient-to-r from-purple-50  rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
-        <div className="flex justify-center items-center">
-          <h2 className="text-2xl font-black text-center uppercase text-gray-800">
-            INVENTARIO DE ACCESORIOS
-          </h2>
-        </div>
-        <p className="text-center text-gray-600 italic">Administra accesorios para mascotas disponibles</p>
-      </div>
-
-      {/* Componente de Accesorios Más Vendidos */}
+    
+      <div className="min-h-screen p-6 bg-gray-50">
+  {/* Título */}
+      <div className="rounded-xl p-6 mb-3"
+        style={{
+          backgroundImage: 'url("/H5.jpg")',
+          backgroundColor: '#C4D3AB',
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'left center',
+          boxShadow: '0 0 8px #C4D3AB40, 0 0 0 1px #C4D3AB33'
+        }}
+      >
+        <div className="flex justify-center items-center">
+          <h2 className="text-2xl font-black text-center uppercase text-black">
+            INVENTARIO DE ACCESORIOS
+          </h2>
+        </div>
+        <p className="text-center text-black italic mt-2">
+          Administra accesorios para mascotas disponibles
+        </p>
+      </div>
+      {/* Componente de Accesorios Más Vendidos */} 
       <AccesoriosMasVendidos accesorios={accesorios} />
 
-      <div className="bg-white rounded-xl p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+
+      <div className="bg-white rounded-xl p-6 mb-6" style={{boxShadow: '0 0 8px #9aeb1040, 0 0 0 1px #9ae91133'}}>
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="relative w-80">
@@ -334,7 +344,7 @@ const Accesorios = () => {
             )}
           </div>
           <button
-            className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600 transition-colors flex items-center gap-2 uppercase"
+            className="bg-emerald-600 text-white px-6 py-2 rounded hover:bg-emerald-800 transition-colors flex items-center gap-2 uppercase"
             onClick={() => abrirModal()}
           >
             <FontAwesomeIcon icon={faPlus} />
@@ -428,7 +438,7 @@ const Accesorios = () => {
             isOpen={modalAbierto}
             onClose={cerrarModal}
             onSave={handleGuardar}
-            editData={accesorioEditando} // Ahora editData incluye tiene_impuesto y tasa_impuesto
+                        editData={accesorioEditando} // Ahora editData incluye tiene_impuesto y tasa_impuesto
           />
         ) : (
           <ModalAgregar

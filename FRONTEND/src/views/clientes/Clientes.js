@@ -2,6 +2,7 @@ import { useState } from "react";
 
 //IMPORTACION DE LOS ARCHIVOS COMPLEMENTARIOS DEL MODULO DE CLIENTES
 import TablaClientes from "./tabla-clientes.js";
+import DecoracionClientes from "./decoracion-clientes.js";
 
 
 const Clientes = () => {
@@ -17,6 +18,9 @@ const Clientes = () => {
         </div>
         <p className="text-center text-gray-600 italic">Administra la información y perfiles de clientes del negocio</p>
       </div>
+
+      {/* Componente de Decoraciones */}
+      <DecoracionClientes />
 
       <TablaClientes/>
     </div>

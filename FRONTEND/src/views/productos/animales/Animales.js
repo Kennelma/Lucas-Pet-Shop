@@ -155,7 +155,7 @@ const Animales = () => {
     setLoading(true);
 
     try {
-
+     // Obtener productos de tipo "ANIMALES"
       const productos = await verProductos("ANIMALES");
       const normalizados = (productos || []).map((item) => ({
         id_producto: item.id_producto_pk,
@@ -242,7 +242,7 @@ const Animales = () => {
       }
     }
   };
-
+// Función para actualizar el estado activo/inactivo de un animal
   const actualizarEstadoAnimal = async (animal, nuevoEstado) => {
     try {
       const payload = {
@@ -293,20 +293,33 @@ const Animales = () => {
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
-      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+     {/* Título */}
+      <div className="rounded-xl p-6 mb-3"
+        style={{
+          backgroundImage: 'url("/H6.jpg")',
+          backgroundColor: '#AC6F90',
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'left center',
+          boxShadow: '0 0 8px '
+        }}
+      >
         <div className="flex justify-center items-center">
-          <h2 className="text-2xl font-black text-center uppercase text-gray-800">
+          <h2 className="text-2xl font-black text-center uppercase text-black">
             INVENTARIO DE ANIMALES
           </h2>
         </div>
-        <p className="text-center text-gray-600 italic">Administra el inventario de mascotas disponibles para venta</p>
+        <p className="text-center text-black italic mt-2">
+          Administra los animales disponibles en el sistema para su venta
+        </p>
       </div>
 
       <AnimalesMasVendidos animales={animales} />
 
-      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #AC6F9040, 0 0 0 1px #AC6F9033'}}>
+        {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <div className="relative w-80">
+          <div className="relative w-80"> 
             <input
               value={filtroGlobal}
               onChange={(e) => setFiltroGlobal(e.target.value)}
@@ -323,7 +336,7 @@ const Animales = () => {
             )}
           </div>
           <button
-            className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600 transition-colors flex items-center gap-2"
+            className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-00 transition-colors flex items-center gap-2"
             onClick={() => abrirModal()}
           >
             <FontAwesomeIcon icon={faPlus} />
@@ -410,6 +423,7 @@ const Animales = () => {
         </DataTable>
       </div>
 
+      {/* Modales */}
       {modalAbierto &&
         (animalEditando ? (
           <ModalActualizarAnimal
