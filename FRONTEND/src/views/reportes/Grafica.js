@@ -74,10 +74,10 @@ const Grafica = ({ ingresos, gastos, meses }) => {
     scales: {
       y: {
         beginAtZero: true,
-        min: 5000,
-        max: 100000,
+        min: 0,
+        max: 90000,
         ticks: {
-          stepSize: 1000, // Esto genera: 0, 10000, 20000, 30000... 100000
+          stepSize: 10000, // Esto genera: 0, 10000, 20000, 30000... 100000
           callback: function(value) {
             return 'L ' + value.toLocaleString();
           },
