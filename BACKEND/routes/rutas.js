@@ -67,7 +67,7 @@ router.get ('/pagos/metodosPago', verificarToken, pagos.obtenerMetodosPago);
 
 //========== RUTAS DE REPORTES ==========
 router.get('/reportes/ingresos', reportes.registroIngresos);
-router.get('/reportes/gastos', reportes.gastosMensuales);
+router.get('/reportes/gastos', reportes.registrosGastos);
 router.get('/reportes/resumen-diario', reportes.resumenDiario);
 router.get('/reportes/graficos', reportes.resumenGraficos);
 
