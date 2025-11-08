@@ -16,6 +16,7 @@ const facturas = require('../controllers/facturacion.controller');
 const pagos = require('../controllers/pagos.controller');
 const whatsapp = require('../controllers/whatsapp.controller');
 const notificaciones = require('../controllers/notificaciones.controller');
+const reportes = require('../controllers/reportes.controller');
 
 //========== RUTAS DE AUTENTICACIÓN Y SEGURIDAD ==========
 router.post('/login', auth.login);
@@ -65,6 +66,10 @@ router.get ('/pagos/metodosPago', verificarToken, pagos.obtenerMetodosPago);
 
 
 //========== RUTAS DE REPORTES ==========
+router.get('/reportes/ingresos', reportes.registroIngresos);
+router.get('/reportes/gastos', reportes.gastosMensuales);
+router.get('/reportes/resumen-diario', reportes.resumenDiario);
+router.get('/reportes/graficos', reportes.resumenGraficos);
 
 //========== RUTAS DE NOTIFICACIONES ==========
 router.get('/notificaciones/ver', notificaciones.verNotificaciones);
