@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import ConexionWhatsApp from './conexionWhatsApp';
+//
 import Swal from "sweetalert2";
 import ModalRecordatorio from "./modal-agregar-recordatorio";
 import { DataTable } from 'primereact/datatable';

@@ -11,7 +11,7 @@ const mysqlConnection = require('../config/conexion');
 
 exports.crear = async (req, res) => {
 
-    const conn = await mysqlConnection.getConnection(); 
+    const conn = await mysqlConnection.getConnection();
 
     await conn.beginTransaction(); //INICIO LA TRANSACCIÓN
 
@@ -19,41 +19,64 @@ exports.crear = async (req, res) => {
 
         switch (req.body.tipo_servicio) {
 
+
             case 'PELUQUERIA':
 
-                const [servicio] = await conn.query (
+                const [servicio] = await conn.query (`
+                    SELECT
+                        id_tipo_item_pk
+                    FROM cat_tipo_item
+                    WHERE nombre_tipo_item = 'SERVICIOS'`);
+
+                const id = servicio[0].id_tipo_item_pk;
+
+                await conn.query (
                     `INSERT INTO tbl_servicios_peluqueria_canina (
-                    nombre_servicio_peluqueria,
-                    descripcion_servicio,
-                    precio_servicio,
-                    duracion_estimada,
-                    requisitos) VALUES (?,?,?,?,?)`,
+                        nombre_servicio_peluqueria,
+                        descripcion_servicio,
+                        precio_servicio,
+                        duracion_estimada,
+                        requisitos,
+                        id_tipo_item_fk
+                    ) VALUES (?,?,?,?,?,?)`,
                     [
                         req.body.nombre_servicio_peluqueria,
-                        req.body.descripcion_servicio, 
-                        req.body.precio_servicio, 
-                        req.body.duracion_estimada, 
-                        req.body.requisitos 
+                        req.body.descripcion_servicio,
+                        req.body.precio_servicio,
+                        req.body.duracion_estimada,
+                        req.body.requisitos,
+                        id
                     ]);
                 break;
 
             case 'PROMOCIONES':
-                
-                const [promocion] = await conn.query (
+
+
+                const [promocion] = await conn.query (`
+                    SELECT
+                        id_tipo_item_pk
+                    FROM cat_tipo_item
+                    WHERE nombre_tipo_item = 'PROMOCIONES'`);
+
+                const id_item = promocion[0].id_tipo_item_pk;
+
+                await conn.query (
                     `INSERT INTO tbl_promociones (
-                    nombre_promocion,
-                    descripcion_promocion,
-                    precio_promocion,
-                    dias_promocion) 
-                    VALUES (?,?,?,?)`,
+                        nombre_promocion,
+                        descripcion_promocion,
+                        precio_promocion,
+                        dias_promocion,
+                        id_tipo_item_fk
+                    ) VALUES (?,?,?,?,?)`,
                     [
                         req.body.nombre_promocion,
-                        req.body.descripcion_promocion, 
-                        req.body.precio_promocion, 
-                        req.body.dias_promocion, 
+                        req.body.descripcion_promocion,
+                        req.body.precio_promocion,
+                        req.body.dias_promocion,
+                        id_item
                     ]);
                 break;
-        
+
             default:
                 throw new Error('Tipo de servicio no válido');
         }
@@ -63,7 +86,7 @@ exports.crear = async (req, res) => {
             Consulta: true,
             mensaje: 'Registro realizado con éxito',
         });
-        
+
     } catch (err) {
         await conn.rollback(); //REVIERTO LA CONSULTA SI HAY ERROR
         res.json ({
@@ -77,11 +100,11 @@ exports.crear = async (req, res) => {
 }
 
 // ─────────────────────────────────────────────────────────
-//     ENDPOINT DE ACTUALIZAR SERVICIOS Y PROMOCIONES 
+//     ENDPOINT DE ACTUALIZAR SERVICIOS Y PROMOCIONES
 // ─────────────────────────────────────────────────────────
 exports.actualizar = async (req, res) => {
 
-    const conn = await mysqlConnection.getConnection(); 
+    const conn = await mysqlConnection.getConnection();
 
     try {
 
@@ -92,7 +115,6 @@ exports.actualizar = async (req, res) => {
         switch (tipo_servicio) {
 
             case 'PELUQUERIA':
-                
 
                 await conn.query(`
                 UPDATE tbl_servicios_peluqueria_canina
@@ -104,19 +126,19 @@ exports.actualizar = async (req, res) => {
                     requisitos                 = COALESCE(?, requisitos),
                     activo                     = COALESCE(?, activo)
                 WHERE id_servicio_peluqueria_pk = ?`,
-                [   
+                [
                     req.body.nombre_servicio_peluqueria || null,
-                    req.body.descripcion_servicio || null, 
-                    req.body.precio_servicio || null, 
-                    req.body.duracion_estimada || null, 
+                    req.body.descripcion_servicio || null,
+                    req.body.precio_servicio || null,
+                    req.body.duracion_estimada || null,
                     req.body.requisitos || null,
                     req.body.activo !== undefined ?  req.body.activo : null,
                     id,
-                ]);                               
+                ]);
                 break;
 
             case 'PROMOCIONES':
-                
+
                 await conn.query(
                     `UPDATE tbl_promociones
                     SET
@@ -126,14 +148,14 @@ exports.actualizar = async (req, res) => {
                         dias_promocion       = COALESCE(?, dias_promocion),
                         activo               = COALESCE(?, activo)
                     WHERE id_promocion_pk = ?`,
-                [   
+                [
                     req.body.nombre_promocion || null,
-                    req.body.descripcion_promocion || null, 
-                    req.body.precio_promocion || null, 
+                    req.body.descripcion_promocion || null,
+                    req.body.precio_promocion || null,
                     req.body.dias_promocion || null,
                     req.body.activo !== undefined ?  req.body.activo : null,
                     id,
-                ]);                               
+                ]);
                 break;
 
             default:
@@ -167,13 +189,13 @@ exports.actualizar = async (req, res) => {
 
 
 // ─────────────────────────────────────────────────────────
-//     ENDPOINT PARA ELIMINAR SERVICIOS Y PROMOCIONES 
+//     ENDPOINT PARA ELIMINAR SERVICIOS Y PROMOCIONES
 // ─────────────────────────────────────────────────────────
 exports.eliminar = async (req, res) => {
 
 
     const conn = await mysqlConnection.getConnection();
-    
+
     try {
 
         await conn.beginTransaction();
@@ -188,19 +210,19 @@ exports.eliminar = async (req, res) => {
 
                 await conn.query(
                     `DELETE FROM tbl_servicios_peluqueria_canina
-                     WHERE id_servicio_peluqueria_pk = ?`, 
+                     WHERE id_servicio_peluqueria_pk = ?`,
                      [id]);
-                
+
                 break;
-        
+
             case 'PROMOCIONES':
-                
+
                 await conn.query(
                     `DELETE FROM tbl_promociones
-                    WHERE id_promocion_pk = ?`, 
+                    WHERE id_promocion_pk = ?`,
                     [id]);
                 break;
-                
+
             default:
                 throw new Error('Tipo de servicio no válido');
         }
@@ -212,7 +234,7 @@ exports.eliminar = async (req, res) => {
             id
         });
 
-        
+
     } catch (err) {
         await conn.rollback();
         res.json({
@@ -223,13 +245,13 @@ exports.eliminar = async (req, res) => {
         conn.release();
     }
 
-    
+
 }
 
 
 
 // ─────────────────────────────────────────────────────────
-//     ENDPOINT DE VER SERVICIOS Y PROMOCIONES 
+//     ENDPOINT DE VER SERVICIOS Y PROMOCIONES
 // ─────────────────────────────────────────────────────────
 exports.visualizar = async (req, res) => {
 
@@ -237,8 +259,8 @@ exports.visualizar = async (req, res) => {
 
     try {
 
-        let filas; //VARIABLE DE APOYO 
-        
+        let filas; //VARIABLE DE APOYO
+
         switch (req.query.tipo_servicio) {
 
             case 'PELUQUERIA':
@@ -268,9 +290,9 @@ exports.visualizar = async (req, res) => {
         });
 
     } finally {
-    
+
         conn.release();
-    }  
-    
+    }
+
 
 }

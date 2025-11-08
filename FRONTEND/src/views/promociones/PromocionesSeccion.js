@@ -4,19 +4,14 @@ import * as outline from '@heroicons/react/24/outline';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import ResumenPromocionesDelDia from "./ResumenPromocionesDelDia";
 
 const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [shouldShowAbove, setShouldShowAbove] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
-
-  const checkPosition = () => {
-    const showAbove = rowIndex >= 2 || rowIndex >= (totalRows - 3);
-    setShouldShowAbove(showAbove);
-  };
 
   React.useEffect(() => {
     const handleClickOutside = (event) => {
@@ -46,17 +41,18 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
 
   const handleToggleMenu = (e) => {
     e.stopPropagation();
-    if (!isOpen) {
-      checkPosition();
-      requestAnimationFrame(() => {
-        checkPosition();
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + 4,
+        left: rect.right - 140
       });
     }
     setIsOpen(!isOpen);
   };
 
   return (
-    <div className="relative flex justify-center" ref={menuRef}>
+    <div className="flex justify-center" ref={menuRef}>
       <button
         ref={buttonRef}
         className="w-8 h-8 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center transition-colors"
@@ -67,7 +63,15 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
       </button>
 
       {isOpen && (
-        <div className={`absolute right-0 ${shouldShowAbove ? 'bottom-16' : 'top-12'} bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[140px]`}>
+        <div 
+          className="bg-white border border-gray-200 rounded-lg shadow-lg min-w-[140px]"
+          style={{
+            position: 'fixed',
+            top: `${menuPosition.top}px`,
+            left: `${menuPosition.left}px`,
+            zIndex: 999999
+          }}
+        >
           <div
             className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={(e) => {
@@ -143,20 +147,31 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
   return (
     <>
       {/* Título */}
-      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+      <div className="rounded-xl p-6 mb-3"
+        style={{
+          backgroundImage: 'url("/descarga (1).jpg")',
+          backgroundColor: '#365DA0',
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'left center',
+          boxShadow: '0 0 8px #365DA040, 0 0 0 1px #365DA033'
+        }}
+      >
         <div className="flex justify-center items-center">
-          <h2 className="text-2xl font-black text-center uppercase text-gray-800">
+          <h2 className="text-2xl font-black text-center uppercase text-white">
             GESTIÓN DE PROMOCIONES
           </h2>
         </div>
-        <p className="text-center text-gray-600 italic">Administra ofertas, descuentos y promociones especiales</p>
+        <p className="text-center text-white italic mt-2">
+          Administra ofertas, descuentos y promociones especiales
+        </p>
       </div>
 
       {/* Resumen de promociones del día en tiempo real */}
       <ResumenPromocionesDelDia />
 
 
-      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #365DA040, 0 0 0 1px #365DA033'}}>
       {/* Barra de búsqueda + botón Nuevo */}
       <div className="flex justify-between items-center mb-6">
         <div className="relative w-80">
@@ -177,7 +192,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
         </div>
 
         <button
-          className="bg-purple-500 text-white px-6 py-2 rounded-full hover:bg-purple-600 transition-colors flex items-center gap-2"
+          className="bg-blue-400 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition-colors flex items-center gap-2"
           style={{ borderRadius: '12px' }}
           onClick={() => abrirModalPromocion(null)}
         >
@@ -202,29 +217,30 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
         </div>
       ) : (
         <>
-
-          <DataTable
-          value={promociones}
-          loading={false}
-          loadingIcon={() => (
-            <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
-              <span>Cargando datos...</span>
-            </div>
-          )}
-          globalFilter={globalFilter}
-          globalFilterFields={['id_promocion_pk', 'nombre_promocion', 'descripcion_promocion', 'precio_promocion', 'dias_promocion']}
-          showGridlines
-          paginator
-          rows={5}
-          rowsPerPageOptions={[5, 10, 20, 25]}
-          paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-          tableStyle={{ minWidth: '50rem' }}
-          className="mt-4"
-          size="small"
-          selectionMode="single"
-          rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
-        >
+          <div className="overflow-x-auto">
+            <div style={{ minWidth: '50rem', position: 'relative' }}>
+              <DataTable
+                value={promociones}
+                loading={false}
+                loadingIcon={() => (
+                  <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
+                    <span>Cargando datos...</span>
+                  </div>
+                )}
+                globalFilter={globalFilter}
+                globalFilterFields={['id_promocion_pk', 'nombre_promocion', 'descripcion_promocion', 'precio_promocion', 'dias_promocion']}
+                showGridlines
+                paginator
+                rows={5}
+                rowsPerPageOptions={[5, 10, 20, 25]}
+                paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+                tableStyle={{ minWidth: '50rem', width: '100%', tableLayout: 'fixed' }}
+                className="mt-4"
+                size="small"
+                selectionMode="single"
+                rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
+              >
 
           <Column field="id_promocion_pk" header="ID" body={(rowData) => promociones.length - promociones.indexOf(rowData)}  sortable className="text-sm"/>
           <Column field="nombre_promocion" header="NOMBRE" sortable className="text-sm"></Column>
@@ -266,7 +282,9 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
             className="text-sm"
           ></Column>
           <Column header="ACCIONES" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm"></Column>
-        </DataTable>
+              </DataTable>
+            </div>
+          </div>
         </>
       )}
       </div>

@@ -12,12 +12,12 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExis
 
   const [errores, setErrores] = useState({});
 
-  // Genera código basándose en el MÁXIMO número existente
+  // Genera código basándose en el MÁXIMO número existente + 1
   const generarCodigoLote = (nombreMedicamento, lotesDelMedicamento) => {
     const nombreSinEspacios = nombreMedicamento.replace(/\s+/g, '').toUpperCase();
     const letras = nombreSinEspacios.substring(0, 4).padEnd(4, 'X');
     
-    //Extraer todos los números de los códigos existentes
+    // Extraer todos los números de los códigos existentes
     const numerosExistentes = lotesDelMedicamento
       .map(lote => {
         const match = lote.codigo_lote.match(/LOTE-(\d+)-/);
@@ -25,7 +25,7 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExis
       })
       .filter(n => n > 0);
     
-    //Encontrar el siguiente número disponible (máximo + 1)
+    // Siempre incrementar desde el máximo (nunca reutilizar números)
     const siguienteNumero = numerosExistentes.length > 0 
       ? Math.max(...numerosExistentes) + 1 
       : 1;

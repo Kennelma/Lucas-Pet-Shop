@@ -21,15 +21,14 @@ export const useMedicamentos = () => {
   const cargarDatos = async () => {
     setLoading(true);
     try {
-
-      // ✅ CARGAR TODO EN PARALELO
+      // CARGAR TODO EN PARALELO
       const [productos, lotesData, kardexResponse] = await Promise.all([
         verProductos('MEDICAMENTOS'),
         verProductos('LOTES'),
         verProductos('KARDEX')
       ]);
 
-      // Normalizar medicamentos rápido
+      // Normalizar medicamentos
       const medicamentosNormalizados = (productos || []).map((item) => ({
         id_producto_pk: item.id_producto_pk,
         nombre_producto: item.nombre_producto,
@@ -44,7 +43,7 @@ export const useMedicamentos = () => {
         unidad_medida: item.unidad_medida || ""
       }));
 
-      // ✅ Guardar lotes SIN renumerar primero (más rápido)
+      // Normalizar lotes SIN RENUMERAR (mantener códigos originales)
       const lotesNormalizados = (lotesData || []).map((item) => ({
         id_lote_medicamentos_pk: item.id_lote_medicamentos_pk,
         codigo_lote: item.codigo_lote || "",
@@ -58,49 +57,14 @@ export const useMedicamentos = () => {
         nombre_medicamento: item.nombre_producto
       }));
 
-      // Actualizar estados inmediatamente
+      // Actualizar estados
       setMedicamentos(medicamentosNormalizados);
       setLotes(lotesNormalizados);
       setKardexData(kardexResponse || []);
       setLoading(false);
 
-      // ✅ RENUMERAR EN SEGUNDO PLANO (después de mostrar)
-      setTimeout(() => {
-        const lotesPorMedicamento = {};
-
-        lotesNormalizados.forEach(item => {
-          const key = item.id_producto_fk;
-          if (!lotesPorMedicamento[key]) {
-            lotesPorMedicamento[key] = [];
-          }
-          lotesPorMedicamento[key].push(item);
-        });
-
-        const lotesRenumerados = [];
-
-        for (const medicamentoId in lotesPorMedicamento) {
-          const lotesDelMedicamento = lotesPorMedicamento[medicamentoId];
-
-          lotesDelMedicamento.sort((a, b) =>
-            new Date(a.fecha_ingreso) - new Date(b.fecha_ingreso)
-          );
-
-          lotesDelMedicamento.forEach((item, index) => {
-            const match = item.codigo_lote.match(/LOTE-\d+-(.*)/);
-            const sufijo = match ? match[1] : item.codigo_lote;
-            const nuevoNumero = String(index + 1).padStart(2, '0');
-
-            lotesRenumerados.push({
-              ...item,
-              codigo_lote: `LOTE-${nuevoNumero}-${sufijo}`
-            });
-          });
-        }
-
-        setLotes(lotesRenumerados);
-      }, 100);
-
     } catch (error) {
+      console.error('Error al cargar datos:', error);
       setLoading(false);
     }
   };
@@ -111,7 +75,7 @@ export const useMedicamentos = () => {
     return total;
   };
 
-  // ====== FUNCIÓN: GENERAR CÓDIGO DE LOTE AUTOMÁTICO ======
+  // GENERAR CÓDIGO DE LOTE AUTOMÁTICO (nunca reutiliza números)
   const generarCodigoLote = (medicamento) => {
     const prefijo = medicamento.presentacion_medicamento.substring(0, 4).toUpperCase();
     const lotesDelMedicamento = lotes.filter(l => l.id_producto_fk === medicamento.id_producto_pk);
@@ -124,7 +88,7 @@ export const useMedicamentos = () => {
       })
       .filter(n => n > 0);
 
-    // Encontrar el siguiente número disponible
+    // Encontrar el siguiente número disponible (máximo + 1, nunca reutiliza)
     const siguienteNumero = numerosExistentes.length > 0
       ? Math.max(...numerosExistentes) + 1
       : 1;
@@ -159,6 +123,7 @@ export const useMedicamentos = () => {
         tipo_producto: 'MEDICAMENTOS',
         nombre_producto: formData.nombre_producto.toUpperCase().trim(),
         precio_producto: parseFloat(formData.precio_producto),
+        costo_unitario: parseFloat(formData.precio_producto),
         stock: parseInt(formData.stock_lote),
         stock_minimo: parseInt(formData.stock_minimo),
         presentacion_medicamento: formData.presentacion.toUpperCase().trim(),
@@ -194,8 +159,21 @@ export const useMedicamentos = () => {
       return false;
     }
 
-    const datosLote = { tipo_producto: 'LOTES', id_producto: formData.id_producto_fk, codigo_lote: formData.codigo_lote.toUpperCase().trim(),
-      fecha_ingreso: formData.fecha_ingreso, fecha_vencimiento: formData.fecha_vencimiento, stock_lote: stockLote
+    // Buscar el medicamento para obtener su precio
+    const medicamento = medicamentos.find(m => m.id_producto_pk === formData.id_producto_fk);
+    if (!medicamento) {
+      console.error('No se encontró el medicamento');
+      return false;
+    }
+
+    const datosLote = {
+      tipo_producto: 'LOTES',
+      id_producto: formData.id_producto_fk,
+      codigo_lote: formData.codigo_lote.toUpperCase().trim(),
+      fecha_ingreso: formData.fecha_ingreso,
+      fecha_vencimiento: formData.fecha_vencimiento,
+      stock_lote: stockLote,
+      costo_unitario: parseFloat(medicamento.precio_producto)
     };
 
     const resultado = await insertarProducto(datosLote);
@@ -230,9 +208,16 @@ export const useMedicamentos = () => {
         : l
     ));
 
-    const movimiento = { id_movimiento_pk: Date.now(), tipo_fk: formData.tipo_movimiento === "ENTRADA" ? 1 : 2,
-      fecha: new Date().toISOString().split('T')[0], tipo_movimiento: formData.tipo_movimiento, usuario: "admin",
-      id_medicamento_fk: lote.id_medicamento_fk, id_lote_fk: formData.id_lote_fk, cantidad: cantidad, motivo: formData.motivo
+    const movimiento = {
+      id_movimiento_pk: Date.now(),
+      tipo_fk: formData.tipo_movimiento === "ENTRADA" ? 1 : 2,
+      fecha: new Date().toISOString().split('T')[0],
+      tipo_movimiento: formData.tipo_movimiento,
+      usuario: "admin",
+      id_medicamento_fk: lote.id_medicamento_fk,
+      id_lote_fk: formData.id_lote_fk,
+      cantidad: cantidad,
+      motivo: formData.motivo
     };
 
     setMovimientos(prev => [...prev, movimiento]);
@@ -254,7 +239,6 @@ export const useMedicamentos = () => {
     }
   };
 
-  // ====== FUNCIÓN: ELIMINAR LOTE CON RENUMERACIÓN ======
   const eliminarLote = async (id_lote) => {
     try {
       const resultado = await eliminarProducto({ id_lote });
@@ -271,7 +255,52 @@ export const useMedicamentos = () => {
     }
   };
 
-  return {medicamentos, setMedicamentos, lotes, kardexData, loading, mensaje, calcularStockTotal, generarCodigoLote, guardarMedicamento,
-    guardarLote, guardarMovimiento, eliminarMedicamento, eliminarLote, cargarDatos
+  // ✅ FUNCIÓN CORREGIDA en useMedicamentos.js
+
+const editarLote = async (loteEditado) => {
+  try {
+    console.log('📥 Lote a editar:', loteEditado);
+    
+    // ✅ CORRECCIÓN: Enviar tipo_producto='LOTES' y el ID correcto
+    const datosActualizar = {
+      tipo_producto: 'LOTES',
+      id_producto: loteEditado.id_lote_medicamentos_pk, // ✅ Este es el cambio clave
+      fecha_vencimiento: loteEditado.fecha_vencimiento,
+      stock_lote: parseInt(loteEditado.stock_lote)
+    };
+
+    console.log('📤 Enviando:', datosActualizar);
+
+    const resultado = await actualizarProducto(datosActualizar);
+
+    console.log('📩 Respuesta:', resultado);
+
+    if (resultado.Consulta) {
+      await cargarDatos();
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('❌ Error:', error);
+    return false;
+  }
+};
+
+  return {
+    medicamentos,
+    setMedicamentos,
+    lotes,
+    kardexData,
+    loading,
+    mensaje,
+    calcularStockTotal,
+    generarCodigoLote,
+    guardarMedicamento,
+    guardarLote,
+    guardarMovimiento,
+    eliminarMedicamento,
+    eliminarLote,
+    editarLote,
+    cargarDatos
   };
 };
