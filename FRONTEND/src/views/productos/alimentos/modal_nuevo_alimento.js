@@ -33,7 +33,7 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave }) => {
   const handleChange = (field, value) => {
     const val = ['nombre', 'destino'].includes(field) ? value.toUpperCase() : value;
     setData(prev => ({ ...prev, [field]: val }));
-    
+
     // Limpiar error cuando el usuario empiece a escribir
     if (errores[field]) {
       setErrores(prev => ({ ...prev, [field]: '' }));
@@ -107,8 +107,8 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave }) => {
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">NUEVO ALIMENTO</div>}
       visible={isOpen}
-      style={{ 
-        width: '28rem', 
+      style={{
+        width: '28rem',
         borderRadius: '1.5rem',
         ...(hayErrores ? { maxHeight: '85vh' } : {})
       }}
