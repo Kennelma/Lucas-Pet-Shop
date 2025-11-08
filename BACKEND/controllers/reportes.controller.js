@@ -125,7 +125,9 @@ exports.registrosGastos = async (req, res) => {
   try {
     conn = await mysqlConnection.getConnection();
 
+    const id_usuario = req.usuario?.id_usuario_pk;
     const { anio, mes } = req.query;
+
     let query = `
       SELECT
         g.id_gasto_pk,
@@ -133,13 +135,13 @@ exports.registrosGastos = async (req, res) => {
         g.monto_gasto,
         g.fecha_registro_gasto,
         g.id_usuario_fk,
-        u.nombre_usuario
+        u.usuario
       FROM tbl_gastos g
-      INNER JOIN tbl_usuarios u ON u.id_usuario_pk = g.id_usuario_fk
-      WHERE 1=1
+      INNER JOIN tbl_usuarios u ON g.id_usuario_fk = u.id_usuario_pk
+      WHERE g.id_usuario_fk = ?
     `;
-    const params = [];
 
+    const params = [id_usuario];
 
     if (anio && mes) {
       const m = String(mes).padStart(2, '0');
@@ -148,9 +150,7 @@ exports.registrosGastos = async (req, res) => {
       const fin = `${anio}-${m}-${ultimoDia} 23:59:59`;
       query += ` AND g.fecha_registro_gasto BETWEEN ? AND ?`;
       params.push(inicio, fin);
-    }
-
-    else if (anio) {
+    } else if (anio) {
       const inicio = `${anio}-01-01 00:00:00`;
       const fin = `${anio}-12-31 23:59:59`;
       query += ` AND g.fecha_registro_gasto BETWEEN ? AND ?`;
@@ -165,7 +165,6 @@ exports.registrosGastos = async (req, res) => {
       ok: true,
       gastos,
     });
-
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'ERROR AL OBTENER LOS GASTOS.' });
@@ -173,6 +172,7 @@ exports.registrosGastos = async (req, res) => {
     if (conn) conn.release();
   }
 };
+
 
 
 
