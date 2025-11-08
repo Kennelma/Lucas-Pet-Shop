@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
+import Swal from 'sweetalert2';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
@@ -149,7 +150,7 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
           ...data,
           precio: Number(body.precio_producto.toFixed(2)),
           tiene_impuesto: aplicaImpuesto ? 1 : 0,
-          tasa_impuesto: aplicaImpuesto ? tasaImpuesto : 0
+          
         });
         onClose();
       } else alert(`Error al actualizar: ${res.error}`);
@@ -194,10 +195,14 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">ACTUALIZAR ANIMAL</div>}
       visible={isOpen}
-      style={{ width: '30rem', maxHeight: '90vh', borderRadius: '1.5rem' }}
+      style={{ width: '30rem', height: '85vh', borderRadius: '1.5rem' }}
       modal closable={false} onHide={onClose} footer={footer}
       position="center" dismissableMask={false} draggable={false} resizable={false}
-      contentStyle={{ overflowY: 'visible', padding: '1rem' }}
+      contentStyle={{ 
+        overflowY: 'auto', 
+        padding: '1rem',
+        height: 'calc(85vh - 120px)'
+      }}
     >
       <div className="flex flex-col gap-3">
 
@@ -255,16 +260,32 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
           </div>
         )}
 
-        {/* STOCK */}
+        {/* Stock Disponible y Stock Mínimo */}
         <div className="grid grid-cols-2 gap-2">
           <span>
             <label htmlFor="cantidad" className="text-xs font-semibold text-gray-700 mb-1">STOCK DISPONIBLE</label>
-            <InputNumber id="cantidad" value={data.cantidad} onValueChange={e => handleChange('cantidad', e.value)} mode="decimal" min={0} useGrouping={false} minFractionDigits={0} maxFractionDigits={0} className="w-full rounded-xl h-9 text-sm" inputClassName="h-9 text-sm" placeholder="Cantidad disponible" />
+            <InputText
+              id="cantidad"
+              name="cantidad"
+              value={data.cantidad}
+              onChange={e => handleChange('cantidad', e.target.value)}
+              className="w-full rounded-xl h-9 text-sm"
+              placeholder="Cantidad disponible"
+              keyfilter="int"
+            />
             {errores.cantidad && <p className="text-xs text-red-600 mt-1">{errores.cantidad}</p>}
           </span>
           <span>
             <label htmlFor="stock_minimo" className="text-xs font-semibold text-gray-700 mb-1">STOCK MÍNIMO (ALERTAS)</label>
-            <InputNumber id="stock_minimo" value={data.stock_minimo} onValueChange={e => handleChange('stock_minimo', e.value)} mode="decimal" min={0} useGrouping={false} minFractionDigits={0} maxFractionDigits={0} className="w-full rounded-xl h-9 text-sm" inputClassName="h-9 text-sm" placeholder="Stock mínimo" />
+            <InputText
+              id="stock_minimo"
+              name="stock_minimo"
+              value={data.stock_minimo}
+              onChange={e => handleChange('stock_minimo', e.target.value)}
+              className="w-full rounded-xl h-9 text-sm"
+              placeholder="Stock mínimo"
+              keyfilter="int"
+            />
             {errores.stock_minimo && <p className="text-xs text-red-600 mt-1">{errores.stock_minimo}</p>}
           </span>
         </div>

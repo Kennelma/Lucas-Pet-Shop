@@ -17,7 +17,8 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
     especie: '',
     sexo: '',
     precio: 0,
-    cantidad: 0
+    cantidad: 0,
+    tasaImpuesto: 15
   });
 
 // ESTADO DE ERRORES, LOADING, IMPUESTO Y PRECIO BASE
@@ -153,7 +154,6 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
         especie: data.especie,
         sexo: data.sexo,
         tiene_impuesto: aplicaImpuesto ? 1 : 0,
-        tasa_impuesto: aplicaImpuesto ? tasaImpuesto : 0
       };
 
   // LLAMA AL SERVICIO PARA INSERTAR EL PRODUCTO
@@ -172,7 +172,6 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
           especie: data.especie,
           sexo: data.sexo,
           tiene_impuesto: aplicaImpuesto ? 1 : 0,
-          tasa_impuesto: aplicaImpuesto ? tasaImpuesto : 0
         };
 
         onSave(nuevoAnimal);
@@ -218,11 +217,7 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">NUEVO ANIMAL</div>}
       visible={isOpen}
-      style={{
-        width: '30rem',
-        borderRadius: '1.5rem',
-        ...(hayErrores ? { maxHeight: '90vh' } : {})
-      }}
+      style={{ width: '30rem', height: '85vh', borderRadius: '1.5rem' }}
       modal
       closable={false}
       onHide={onClose}
@@ -231,7 +226,11 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
       dismissableMask={false}
       draggable={false}
       resizable={false}
-      contentStyle={hayErrores ? { overflowY: 'auto', maxHeight: 'calc(90vh - 120px)', padding: '1rem' } : { overflow: 'visible', padding: '1rem' }}
+      contentStyle={{ 
+        overflowY: 'auto', 
+        padding: '1rem',
+        height: 'calc(85vh - 120px)'
+      }}
     >
       <div className="flex flex-col gap-2.5">
   {/* CAMPO NOMBRE DEL ANIMAL */}
@@ -347,7 +346,7 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
         {!aplicaImpuesto && (
           <div className="bg-yellow-100 border border-yellow-300 rounded-md p-2 mt-3">
             <p className="text-xs text-yellow-800">
-              El precio base es L {parseFloat(data.precio).toFixed(2)}. Si se aplica ISV (L {tasaImpuesto}%), el precio con ISV sería L **{calcularPrecioFinalConISV()}**.
+              El precio base es L {parseFloat(data.precio).toFixed(2)}. Si se aplica ISV (L {tasaImpuesto}%), el precio con ISV sería L {calcularPrecioFinalConISV()}.
             </p>
           </div>
         )}
@@ -355,14 +354,14 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave }) => {
   {/* CAMPO STOCK DISPONIBLE */}
         <span>
           <label htmlFor="stock" className="text-xs font-semibold text-gray-700 mb-1">STOCK DISPONIBLE</label>
-          <InputNumber
+          <InputText
             id="stock"
             name="stock"
             value={data.cantidad}
-            onValueChange={(e) => handleChange('cantidad', e.value)}
+            onChange={(e) => handleChange('cantidad', e.target.value)}
             className="w-full rounded-xl h-9 text-sm"
-            inputClassName="h-9 text-sm"
             placeholder="Cantidad disponible"
+            keyfilter="int"
           />
           {errores.cantidad && <p className="text-xs text-red-600 mt-1">{errores.cantidad}</p>}
         </span>

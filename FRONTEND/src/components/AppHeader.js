@@ -27,6 +27,7 @@ import {
 
 import { AppBreadcrumb } from './index'
 import { AppHeaderDropdown } from './header/index'
+import CamNotificaciones from '../views/notificaciones/camNotificaciones'
 
 const AppHeader = () => {
   const headerRef = useRef()
@@ -53,8 +54,8 @@ const AppHeader = () => {
         </CHeaderToggler>
 
         <CHeaderNav className="ms-auto">
-
-
+          {/* Componente de notificaciones */}
+          <CamNotificaciones />
 
 
 

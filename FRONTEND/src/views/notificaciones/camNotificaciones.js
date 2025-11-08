@@ -9,6 +9,17 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilBell, cilCheckAlt, cilSettings } from '@coreui/icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { 
+  faClock, 
+  faCalendarCheck, 
+  faHourglassEnd,
+  faSkull,
+  faCalendarTimes,
+  faLevelDownAlt
+} from '@fortawesome/free-solid-svg-icons'
+import { obtenerNotificaciones, marcarNotificacionLeida } from '../../AXIOS.SERVICES/notifications-axios'
+import ModalNotificaciones from './ModalNotificaciones'
 
 const CamNotificaciones = () => {
   const [notificaciones, setNotificaciones] = useState([])
@@ -16,6 +27,7 @@ const CamNotificaciones = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [animarCampana, setAnimarCampana] = useState(false)
+  const [modalVisible, setModalVisible] = useState(false)
   const navigate = useNavigate()
 
   // Función para formatear fecha
@@ -41,24 +53,102 @@ const CamNotificaciones = () => {
     })
   }
 
-  // Función para obtener el icono según el tipo de plantilla
-  const getIconoPorPlantilla = (plantillaId) => {
-    switch(plantillaId) {
-      case 1: return '⚠️' // Por vencer 30 días
-      case 2: return '⏰' // Por vencer 60 días
-      case 3: return '📅' // Por vencer 90 días
-      case 4: return '🚫' // Vencido
-      default: return '📄'
+  // Función para formatear mensaje con HTML bonito
+  const formatearMensajeHTML = (mensaje, tipo) => {
+    if (tipo === 'STOCK_BAJOS') {
+      const match = mensaje.match(/EL PRODUCTO (.+?) TIENE UN STOCK = (\d+)/i)
+      if (match) {
+        const producto = match[1].trim()
+        const stock = match[2]
+        return (
+          <span className="d-block" style={{ lineHeight: '1.5' }}>
+            El producto <strong className="text-danger">{producto}</strong> tiene un stock de{' '}
+            <strong className="text-danger">{stock}</strong> unidades. Es necesario reabastecer.
+          </span>
+        )
+      }
+    } else if (tipo === 'LOTE_VENCIDO') {
+      const match = mensaje.match(/EL MEDICAMENTO (.+?), TIENE EL (.+?) VENCIDO/i)
+      if (match) {
+        const medicamento = match[1].trim()
+        const lote = match[2].trim()
+        return (
+          <span className="d-block" style={{ lineHeight: '1.5' }}>
+            El medicamento <strong className="text-dark">{medicamento}</strong> tiene el lote{' '}
+            <strong>{lote}</strong> vencido. Es necesario tomar acción.
+          </span>
+        )
+      }
+    } else if (tipo === 'LOTE_PROXIMO_VENCER') {
+      const match = mensaje.match(/EL MEDICAMENTO (.+?) CON EL (.+?), SE VENCE EN (\d+) DÍAS/i)
+      if (match) {
+        const medicamento = match[1].trim()
+        const lote = match[2].trim()
+        const dias = match[3]
+        
+        let colorDias = 'danger'
+        if (dias === '90') colorDias = 'info'
+        else if (dias === '60') colorDias = 'warning'
+        
+        return (
+          <span className="d-block" style={{ lineHeight: '1.5' }}>
+            El medicamento <strong className={`text-${colorDias}`}>{medicamento}</strong> con el lote{' '}
+            <strong>{lote}</strong> se vence en <strong className={`text-${colorDias}`}>{dias} días</strong>.
+          </span>
+        )
+      }
     }
+    
+    return mensaje
   }
 
-  // Función para obtener el color según el tipo de plantilla
+  // Determinar plantilla_id_fk basado en el tipo de notificación
+  const determinarPlantilla = (nombre_tipo_notificacion, mensaje) => {
+    if (nombre_tipo_notificacion === 'LOTE_VENCIDO') {
+      return 4
+    }
+    
+    if (nombre_tipo_notificacion === 'LOTE_PROXIMO_VENCER') {
+      if (mensaje.includes('30 DÍAS') || mensaje.includes('30 días')) return 1
+      if (mensaje.includes('60 DÍAS') || mensaje.includes('60 días')) return 2
+      if (mensaje.includes('90 DÍAS') || mensaje.includes('90 días')) return 3
+    }
+
+    if (nombre_tipo_notificacion === 'STOCK_BAJOS') {
+      return 1
+    }
+    
+    return 0
+  }
+
+  // Función para obtener icono FontAwesome
+  const getIconoFA = (plantillaId, tipo) => {
+    // Para BAJO STOCK
+    if (tipo === 'STOCK_BAJOS') return faLevelDownAlt
+    
+    // Para VENCIDO/CADUCADO
+    if (tipo === 'LOTE_VENCIDO') return faHourglassEnd
+    
+    // Para LOTES PRÓXIMOS A VENCER
+    if (tipo === 'LOTE_PROXIMO_VENCER') {
+      switch(plantillaId) {
+        case 1: return faSkull // Crítico/Urgente - 30 días
+        case 2: return faClock // Importante - 60 días
+        case 3: return faCalendarTimes // Recordatorio - 90 días
+        default: return faCalendarCheck
+      }
+    }
+    
+    return faCalendarCheck
+  }
+
+  // Función para obtener el color según el tipo
   const getColorPorPlantilla = (plantillaId) => {
     switch(plantillaId) {
-      case 1: return 'danger' // Por vencer 30 días - rojo
-      case 2: return 'warning' // Por vencer 60 días - amarillo
-      case 3: return 'info' // Por vencer 90 días - azul
-      case 4: return 'dark' // Vencido - negro
+      case 1: return 'danger'
+      case 2: return 'warning'
+      case 3: return 'info'
+      case 4: return 'dark'
       default: return 'secondary'
     }
   }
@@ -66,9 +156,9 @@ const CamNotificaciones = () => {
   // Función para obtener el texto de la prioridad
   const getTextoPrioridad = (plantillaId) => {
     switch(plantillaId) {
-      case 1: return 'Urgente - 30 días'
-      case 2: return 'Importante - 60 días'
-      case 3: return 'Recordatorio - 90 días'
+      case 1: return 'Urgente'
+      case 2: return 'Importante'
+      case 3: return 'Recordatorio'
       case 4: return 'Vencido'
       default: return 'Notificación'
     }
@@ -77,12 +167,10 @@ const CamNotificaciones = () => {
   useEffect(() => {
     cargarNotificaciones()
     
-    // Recargar notificaciones cada 5 minutos
     const interval = setInterval(cargarNotificaciones, 300000)
     return () => clearInterval(interval)
   }, [])
 
-  // Efecto para animar el ícono cuando hay nuevas notificaciones
   useEffect(() => {
     const prevCount = parseInt(localStorage.getItem('notif_count') || '0')
     
@@ -96,127 +184,64 @@ const CamNotificaciones = () => {
 
   const cargarNotificaciones = async () => {
     try {
-      const response = await fetch('/api/notificaciones')
+      const response = await obtenerNotificaciones()
       
-      if (!response.ok) {
-        throw new Error('Error al cargar notificaciones')
+      if (!response.Consulta) {
+        throw new Error(response.mensaje || 'Error al cargar notificaciones')
       }
       
-      const data = await response.json()
+      const notificacionesAdaptadas = response.notificaciones.map(notif => {
+        const plantilla_id_fk = determinarPlantilla(
+          notif.nombre_tipo_notificacion, 
+          notif.mensaje_notificacion
+        )
+        
+        return {
+          id_notificacion_pk: notif.id_notificacion_pk,
+          nombre_notificacion: notif.mensaje_notificacion,
+          plantilla_id_fk: plantilla_id_fk,
+          leida: false,
+          fecha_creacion: notif.fecha_creacion,
+          nombre_tipo_notificacion: notif.nombre_tipo_notificacion,
+          id_lote_fk: null
+        }
+      })
       
-      // Agregar propiedad leida a cada notificación (puede venir del backend)
-      const notificacionesConLeida = data.map(notif => ({
-        ...notif,
-        leida: notif.leida || false
-      }))
-      
-      setNotificaciones(notificacionesConLeida)
-      setNoLeidas(notificacionesConLeida.filter(n => !n.leida).length)
+      setNotificaciones(notificacionesAdaptadas)
+      setNoLeidas(notificacionesAdaptadas.length)
       setError(null)
       setLoading(false)
     } catch (error) {
       console.error('Error al cargar notificaciones:', error)
       setError('No se pudieron cargar las notificaciones')
-      
-      // Datos de ejemplo solo para desarrollo
-      if (process.env.NODE_ENV === 'development') {
-        const notificacionesEjemplo = [
-          {
-            id_notificacion_pk: 1,
-            nombre_notificacion: 'Lote MED-2024-001 vencido',
-            plantilla_id_fk: 4,
-            leida: false,
-            fecha_creacion: new Date(Date.now() - 86400000).toISOString(), // 1 día atrás
-            id_lote_fk: 101
-          },
-          {
-            id_notificacion_pk: 2,
-            nombre_notificacion: 'Lote MED-2024-015 por vencer (30 días)',
-            plantilla_id_fk: 1,
-            leida: false,
-            fecha_creacion: new Date(Date.now() - 3600000).toISOString(), // 1 hora atrás
-            id_lote_fk: 102
-          },
-          {
-            id_notificacion_pk: 3,
-            nombre_notificacion: 'Lote MED-2024-032 por vencer (60 días)',
-            plantilla_id_fk: 2,
-            leida: false,
-            fecha_creacion: new Date(Date.now() - 1800000).toISOString(), // 30 min atrás
-            id_lote_fk: 103
-          },
-          {
-            id_notificacion_pk: 4,
-            nombre_notificacion: 'Lote MED-2024-048 por vencer (90 días)',
-            plantilla_id_fk: 3,
-            leida: true,
-            fecha_creacion: new Date(Date.now() - 172800000).toISOString(), // 2 días atrás
-            id_lote_fk: 104
-          }
-        ]
-        
-        setNotificaciones(notificacionesEjemplo)
-        setNoLeidas(notificacionesEjemplo.filter(n => !n.leida).length)
-      }
-      
+      setNotificaciones([])
+      setNoLeidas(0)
       setLoading(false)
-    }
-  }
-
-  const marcarTodasComoLeidas = async (e) => {
-    e.stopPropagation()
-    
-    // Optimistic update
-    const notificacionesAnteriores = [...notificaciones]
-    const noLeidasAnterior = noLeidas
-    
-    setNotificaciones(notificaciones.map(n => ({ ...n, leida: true })))
-    setNoLeidas(0)
-    
-    try {
-      const response = await fetch('/api/notificaciones/marcar-todas-leidas', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error('Error al marcar todas como leídas')
-      }
-    } catch (error) {
-      console.error('Error al marcar todas como leídas:', error)
-      // Revertir cambios
-      setNotificaciones(notificacionesAnteriores)
-      setNoLeidas(noLeidasAnterior)
     }
   }
 
   const marcarComoLeida = async (id_notificacion_pk) => {
     const notifAnterior = notificaciones.find(n => n.id_notificacion_pk === id_notificacion_pk)
     
-    // Solo actualizar si no estaba leída
     if (notifAnterior && !notifAnterior.leida) {
-      // Optimistic update
       setNotificaciones(notificaciones.map(n => 
         n.id_notificacion_pk === id_notificacion_pk ? { ...n, leida: true } : n
       ))
       setNoLeidas(prev => Math.max(0, prev - 1))
       
       try {
-        const response = await fetch(`/api/notificaciones/${id_notificacion_pk}/marcar-leida`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
+        const response = await marcarNotificacionLeida(id_notificacion_pk)
         
-        if (!response.ok) {
-          throw new Error('Error al marcar como leída')
+        if (!response.Consulta) {
+          throw new Error(response.mensaje || 'Error al marcar como leída')
         }
+        
+        setTimeout(() => {
+          setNotificaciones(prev => prev.filter(n => n.id_notificacion_pk !== id_notificacion_pk))
+        }, 500)
+        
       } catch (error) {
         console.error('Error al marcar notificación como leída:', error)
-        // Revertir en caso de error
         setNotificaciones(notificaciones.map(n => 
           n.id_notificacion_pk === id_notificacion_pk ? { ...n, leida: false } : n
         ))
@@ -227,41 +252,34 @@ const CamNotificaciones = () => {
 
   const manejarClickNotificacion = async (notif) => {
     await marcarComoLeida(notif.id_notificacion_pk)
-    
-    // Navegar al detalle del lote si existe id_lote_fk
-    if (notif.id_lote_fk) {
-      navigate(`/lotes/${notif.id_lote_fk}`)
-    }
   }
 
-  const eliminarNotificacion = async (id_notificacion_pk, e) => {
+  const marcarTodasComoLeidas = async (e) => {
     e.stopPropagation()
     
-    if (!window.confirm('¿Está seguro de eliminar esta notificación?')) {
-      return
-    }
+    if (notificaciones.length === 0) return
     
-    // Optimistic update
-    const notifEliminada = notificaciones.find(n => n.id_notificacion_pk === id_notificacion_pk)
     const notificacionesAnteriores = [...notificaciones]
     const noLeidasAnterior = noLeidas
     
-    setNotificaciones(notificaciones.filter(n => n.id_notificacion_pk !== id_notificacion_pk))
-    if (notifEliminada && !notifEliminada.leida) {
-      setNoLeidas(prev => Math.max(0, prev - 1))
-    }
+    setNotificaciones(notificaciones.map(n => ({ ...n, leida: true })))
+    setNoLeidas(0)
     
     try {
-      const response = await fetch(`/api/notificaciones/${id_notificacion_pk}`, {
-        method: 'DELETE'
-      })
+      const promesas = notificaciones.map(n => marcarNotificacionLeida(n.id_notificacion_pk))
+      const resultados = await Promise.allSettled(promesas)
       
-      if (!response.ok) {
-        throw new Error('Error al eliminar notificación')
+      const errores = resultados.filter(r => r.status === 'rejected')
+      if (errores.length > 0) {
+        console.error('Algunos errores al marcar notificaciones:', errores)
       }
+      
+      setTimeout(() => {
+        setNotificaciones([])
+      }, 500)
+      
     } catch (error) {
-      console.error('Error al eliminar notificación:', error)
-      // Revertir cambios
+      console.error('Error al marcar todas como leídas:', error)
       setNotificaciones(notificacionesAnteriores)
       setNoLeidas(noLeidasAnterior)
     }
@@ -270,6 +288,11 @@ const CamNotificaciones = () => {
   const abrirConfiguracion = (e) => {
     e.stopPropagation()
     navigate('/configuracion/notificaciones')
+  }
+
+  const abrirModalNotificaciones = () => {
+    console.log('🔔 Abriendo modal, notificaciones:', notificaciones)
+    setModalVisible(true)
   }
 
   return (
@@ -286,6 +309,35 @@ const CamNotificaciones = () => {
         }
         .animate-shake { animation: shake 0.5s; }
         .animate-pulse-custom { animation: pulse 2s infinite; }
+        
+        .notif-item-mejorado {
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          border-left: 3px solid transparent;
+          position: relative;
+        }
+        
+        .notif-item-mejorado:hover {
+          background-color: #f0f4ff !important;
+          border-left-color: var(--cui-primary);
+          transform: translateX(3px);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .notif-icon-circle {
+          transition: all 0.2s ease;
+        }
+        
+        .notif-item-mejorado:hover .notif-icon-circle {
+          transform: scale(1.15) rotate(5deg);
+        }
+        
+        .badge-prioridad {
+          font-size: 0.7rem;
+          font-weight: 600;
+          padding: 0.3rem 0.6rem;
+          border-radius: 12px;
+          letter-spacing: 0.3px;
+        }
       `}</style>
       
       <CDropdown variant="nav-item" placement="bottom-end">
@@ -305,7 +357,7 @@ const CamNotificaciones = () => {
           </CNavLink>
         </CDropdownToggle>
         
-        <CDropdownMenu className="shadow-lg border-0" style={{ width: '420px', maxWidth: '90vw' }}>
+        <CDropdownMenu className="shadow-lg border-0" style={{ width: '460px', maxWidth: '90vw' }}>
           {/* Header */}
           <div className="bg-primary text-white px-3 py-2 d-flex justify-content-between align-items-center">
             <div>
@@ -338,7 +390,7 @@ const CamNotificaciones = () => {
           </div>
 
           {/* Lista de notificaciones */}
-          <div style={{ maxHeight: '450px', overflowY: 'auto' }}>
+          <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
             {loading ? (
               <div className="text-center text-muted py-4">
                 <div className="spinner-border spinner-border-sm me-2" role="status">
@@ -346,7 +398,7 @@ const CamNotificaciones = () => {
                 </div>
                 Cargando notificaciones...
               </div>
-            ) : error && notificaciones.length === 0 ? (
+            ) : error ? (
               <div className="text-center text-muted py-5">
                 <div className="mb-2" style={{ fontSize: '2rem' }}>⚠️</div>
                 <div className="fw-semibold">{error}</div>
@@ -359,77 +411,68 @@ const CamNotificaciones = () => {
               </div>
             ) : notificaciones.length === 0 ? (
               <div className="text-center text-muted py-5">
-                <div className="mb-2" style={{ fontSize: '2rem' }}>🔔</div>
-                <div>No hay notificaciones</div>
-                <small className="text-muted">Cuando haya lotes por vencer, aparecerán aquí</small>
+                <div className="mb-2" style={{ fontSize: '2.5rem' }}>🔔</div>
+                <div className="fw-semibold">No hay notificaciones</div>
+                <small className="text-muted d-block mt-1">
+                  Cuando haya lotes por vencer o stock bajo, aparecerán aquí
+                </small>
               </div>
             ) : (
               notificaciones.map((notif) => (
                 <div
                   key={notif.id_notificacion_pk}
-                  className={`px-3 py-3 border-bottom ${
-                    !notif.leida ? 'bg-light' : ''
-                  }`}
-                  style={{ 
-                    cursor: 'pointer', 
-                    transition: 'background-color 0.2s ease'
-                  }}
+                  className={`notif-item-mejorado px-3 py-3 border-bottom ${!notif.leida ? 'bg-light' : ''}`}
+                  style={{ cursor: 'pointer' }}
                   onClick={() => manejarClickNotificacion(notif)}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = !notif.leida ? '#f8f9fa' : 'transparent'}
                 >
                   <div className="d-flex gap-3 align-items-start">
-                    {/* Icono según tipo de plantilla */}
+                    {/* Icono */}
                     <div className="flex-shrink-0">
                       <div 
-                        className={`bg-${getColorPorPlantilla(notif.plantilla_id_fk)} bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center`}
-                        style={{ width: '45px', height: '45px', fontSize: '1.5rem' }}
+                        className={`notif-icon-circle bg-${getColorPorPlantilla(notif.plantilla_id_fk)} bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center`}
+                        style={{ width: '42px', height: '42px', minWidth: '42px' }}
                       >
-                        {getIconoPorPlantilla(notif.plantilla_id_fk)}
+                        <FontAwesomeIcon 
+                          icon={getIconoFA(notif.plantilla_id_fk, notif.nombre_tipo_notificacion)} 
+                          className={`text-${getColorPorPlantilla(notif.plantilla_id_fk)}`}
+                          style={{ fontSize: '1.1rem' }}
+                        />
                       </div>
                     </div>
 
                     {/* Contenido */}
                     <div className="flex-grow-1" style={{ minWidth: 0 }}>
-                      <div className="d-flex justify-content-between align-items-start mb-1">
-                        <div className={`fw-semibold ${!notif.leida ? 'text-dark' : 'text-muted'}`} style={{ fontSize: '0.9rem' }}>
-                          {notif.nombre_notificacion}
-                        </div>
-                        {/* Botón eliminar */}
-                        <button
-                          className="btn btn-sm btn-link text-danger p-0 ms-2"
-                          style={{ fontSize: '1.2rem', lineHeight: 1, textDecoration: 'none' }}
-                          onClick={(e) => eliminarNotificacion(notif.id_notificacion_pk, e)}
-                          title="Eliminar notificación"
-                        >
-                          ×
-                        </button>
+                      {/* Mensaje */}
+                      <div 
+                        className={`mb-2 ${!notif.leida ? 'text-dark' : 'text-muted'}`} 
+                        style={{ fontSize: '0.875rem' }}
+                      >
+                        {formatearMensajeHTML(notif.nombre_notificacion, notif.nombre_tipo_notificacion)}
                       </div>
                       
-                      <div className="d-flex justify-content-between align-items-center mb-1">
+                      {/* Footer: Badge + Fecha */}
+                      <div className="d-flex justify-content-between align-items-center">
                         <span 
-                          className={`badge bg-${getColorPorPlantilla(notif.plantilla_id_fk)} bg-opacity-10 text-${getColorPorPlantilla(notif.plantilla_id_fk)}`}
-                          style={{ fontSize: '0.7rem', fontWeight: 'normal' }}
+                          className={`badge badge-prioridad bg-${getColorPorPlantilla(notif.plantilla_id_fk)} bg-opacity-10 text-${getColorPorPlantilla(notif.plantilla_id_fk)}`}
                         >
                           {getTextoPrioridad(notif.plantilla_id_fk)}
                         </span>
                         
-                        {/* Indicador no leída */}
-                        {!notif.leida && (
-                          <span 
-                            className="bg-primary rounded-circle d-inline-block"
-                            style={{ width: '8px', height: '8px' }}
-                            title="No leída"
-                          ></span>
-                        )}
-                      </div>
-
-                      {/* Fecha de creación */}
-                      {notif.fecha_creacion && (
-                        <div className="text-muted" style={{ fontSize: '0.7rem' }}>
-                          {formatearFecha(notif.fecha_creacion)}
+                        <div className="d-flex align-items-center gap-2">
+                          {notif.fecha_creacion && (
+                            <span className="text-muted" style={{ fontSize: '0.75rem' }}>
+                              {formatearFecha(notif.fecha_creacion)}
+                            </span>
+                          )}
+                          
+                          {!notif.leida && (
+                            <span 
+                              className="bg-primary rounded-circle"
+                              style={{ width: '7px', height: '7px', display: 'inline-block' }}
+                            ></span>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -437,20 +480,28 @@ const CamNotificaciones = () => {
             )}
           </div>
 
-          {/* Footer - Ver todo */}
+          {/* Footer */}
           {notificaciones.length > 0 && (
             <div className="border-top text-center">
-              <CNavLink 
-                href="#/notificaciones" 
-                className="d-block py-2 text-primary fw-medium text-decoration-none"
-                style={{ fontSize: '0.9rem' }}
+              <button
+                onClick={abrirModalNotificaciones}
+                className="d-block w-100 py-2 text-primary fw-medium text-decoration-none border-0 bg-transparent"
+                style={{ fontSize: '0.9rem', cursor: 'pointer' }}
               >
                 Ver todas las notificaciones
-              </CNavLink>
+              </button>
             </div>
           )}
         </CDropdownMenu>
       </CDropdown>
+
+      {/* Modal de todas las notificaciones */}
+      <ModalNotificaciones
+        isOpen={modalVisible}
+        onClose={() => setModalVisible(false)}
+        notificaciones={notificaciones}
+        onMarcarLeida={marcarComoLeida}
+      />
     </CNavItem>
   )
 }

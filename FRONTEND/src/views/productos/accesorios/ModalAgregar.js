@@ -4,7 +4,7 @@ import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
-import { InputSwitch } from 'primereact/inputswitch'; // Importación necesaria
+import { InputSwitch } from 'primereact/inputswitch'; 
 import Swal from 'sweetalert2';
 import { insertarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
@@ -58,7 +58,7 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
     }
   }
 
-  // Función para calcular el precio final con ISV (usado en el mensaje de advertencia)
+  // Función para calcular el precio final con ISV 
   const calcularPrecioFinalConISV = () => {
     const pBase = parseFloat(precioBase) || 0;
     const pTasa = parseFloat(tasaImpuesto) || 0;
@@ -68,13 +68,14 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
 
   useEffect(() => {
     if (isOpen) {
-      // Resetear todos los estados al abrir el modal
+      
       setData({
         nombre: '',
         categoria: '',
         precio: 0,
         cantidad: 0,
-        sku: ''
+        sku: '',
+        tasaImpuesto: 15
       });
       setErrores({});
       setAplicaImpuesto(false);
@@ -89,7 +90,7 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
     setData(prev => {
       const newData = { ...prev, [field]: val };
 
-      // Actualización del SKU si cambia el nombre
+      // Actualización 
       if (field === 'nombre') newData.sku = generarSKU(val);
 
       // LÓGICA CLAVE: Actualización del precio y precioBase
@@ -189,8 +190,7 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
         sku: data.sku,
         activo: 1,
         // 💡 Campos de Impuesto
-        tiene_impuesto: aplicaImpuesto ? 1 : 0,
-        tasa_impuesto: aplicaImpuesto ? tasaImpuesto : 0
+        tiene_impuesto: aplicaImpuesto ? 1 : 0
       };
 
       console.log('🔍 ModalAgregarAccesorio - Enviando datos:', body);
@@ -271,7 +271,11 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
       style={{
         width: '28rem',
         borderRadius: '1.5rem',
-        ...(hayErrores || aplicaImpuesto ? { maxHeight: '85vh' } : {}) // Ajustar altura para impuesto
+        maxHeight: '85vh',
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)'
       }}
       modal
       closable={false}
@@ -281,7 +285,7 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
       dismissableMask={false}
       draggable={false}
       resizable={false}
-      contentStyle={(hayErrores || aplicaImpuesto) ? { overflowY: 'auto', maxHeight: 'calc(85vh - 120px)' } : { overflow: 'visible' }}
+      contentStyle={{ overflowY: 'auto', maxHeight: 'calc(85vh - 120px)' }}
     >
       {/* Formulario */}
       <div className="flex flex-col gap-3 overflow-visible">
@@ -375,7 +379,7 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
                         max="100"
                     />
                     <span className="text-xs text-gray-600">
-                        Precio base: L **{precioBase}** (sin impuesto)
+                        Precio base: L {precioBase} (sin impuesto)
                     </span>
                 </div>
             </div>
@@ -405,6 +409,8 @@ const ModalAgregar = ({ isOpen, onClose, onSave }) => {
           />
           {errores.cantidad && <p className="text-xs text-red-600 mt-1">{errores.cantidad}</p>}
         </span>
+
+
       </div>
     </Dialog>
   );
