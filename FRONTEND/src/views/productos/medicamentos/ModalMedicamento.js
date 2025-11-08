@@ -350,20 +350,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
             />
             {errores.precio_producto && <p className="text-xs text-red-600 mt-1">{errores.precio_producto}</p>}
           </span>
-          <span>
-            <label htmlFor="stock_minimo" className="text-xs font-semibold text-gray-700 mb-1">STOCK MÍNIMO</label>
-            <InputText
-              id="stock_minimo"
-              name="stock_minimo"
-              type="number"
-              min="1"
-              value={formData.stock_minimo}
-              onChange={e => handleChange('stock_minimo', e.target.value)}
-              className="w-full rounded-xl h-9 text-sm"
-              placeholder="5"
-            />
-            {errores.stock_minimo && <p className="text-xs text-red-600 mt-1">{errores.stock_minimo}</p>}
-          </span>
+          
         </div>
 
         {/* Presentación */}

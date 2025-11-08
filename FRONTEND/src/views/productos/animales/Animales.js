@@ -120,14 +120,12 @@ const Animales = () => {
     cargarDatos();
   }, []);
 
-  //====================CONTROL_SCROLL_MODAL====================
   useEffect(() => {
     if (modalAbierto) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
     }
-
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -159,7 +157,6 @@ const Animales = () => {
     try {
      // Obtener productos de tipo "ANIMALES"
       const productos = await verProductos("ANIMALES");
-
       const normalizados = (productos || []).map((item) => ({
         id_producto: item.id_producto_pk,
         nombre: item.nombre_producto,
@@ -175,6 +172,7 @@ const Animales = () => {
       }));
       setAnimales(normalizados);
     } catch (error) {
+      console.error("Error cargando animales:", error);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -247,7 +245,6 @@ const Animales = () => {
 // Función para actualizar el estado activo/inactivo de un animal
   const actualizarEstadoAnimal = async (animal, nuevoEstado) => {
     try {
-
       const payload = {
         id_producto: animal.id_producto,
         tipo_producto: "ANIMALES",
@@ -317,7 +314,6 @@ const Animales = () => {
         </p>
       </div>
 
-      {/* Componente de Animales Más Vendidos */}
       <AnimalesMasVendidos animales={animales} />
 
       <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #AC6F9040, 0 0 0 1px #AC6F9033'}}>
@@ -348,7 +344,6 @@ const Animales = () => {
           </button>
         </div>
 
-        {/* Tabla */}
         <DataTable
           value={filtroAnimales}
           loading={loading}
