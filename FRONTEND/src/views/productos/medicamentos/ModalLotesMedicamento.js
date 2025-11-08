@@ -4,7 +4,7 @@ import { Button } from "primereact/button";
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 
-const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes, onEliminarLote, onRecargarDatos }) => {
+const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes, onEliminarLote, onEditarLote, onRecargarDatos }) => {
   const [filtroEstado, setFiltroEstado] = useState("TODOS");
 
   if (!isOpen || !medicamentoSeleccionado) return null;
@@ -51,9 +51,6 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
     return true;
   });
 
-  
-
-  // Templates para DataTable
   const codigoLoteTemplate = (rowData) => {
     return (
       <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded-xl text-gray-600 font-bold">
@@ -97,7 +94,7 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
   const estadoTemplate = (rowData) => {
     const estilo = calcularEstadoLote(rowData);
     return (
-      <span className="text-xs   text-gray-600">
+      <span className="text-xs text-gray-600">
         {estilo.texto}
       </span>
     );
@@ -106,6 +103,21 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
   const accionesTemplate = (rowData) => {
     return (
       <div className="flex items-center gap-2 w-full justify-center">
+        {/* ✅ BOTÓN EDITAR */}
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white p-1.5 rounded"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEditarLote && onEditarLote(rowData);
+          }}
+          title="Editar"
+        >
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+          </svg>
+        </button>
+        
+        {/* BOTÓN ELIMINAR */}
         <button
           className="bg-red-500 hover:bg-red-700 text-white p-1.5 rounded"
           onClick={(e) => {
@@ -154,12 +166,8 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
       draggable={false}
       resizable={false}
     >
-      {/* Contenido del modal */}
       <div className="flex flex-col gap-3">
-
-        {/* Filtros de estado */}
         <div className="mb-3">
-         
           <div className="flex gap-1 justify-center">
             <button
               className={`px-1.5 py-1 font-medium rounded transition-all duration-200 ${
@@ -208,7 +216,6 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
           </div>
         </div>
 
-        {/* Tabla de lotes */}
         {lotesFiltrados.length === 0 ? (
           <div className="text-center py-6">
             <div className="w-16 h-16 mx-auto mb-4 text-gray-300">
@@ -240,10 +247,8 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
               rowClassName={(rowData) => `hover:bg-gray-50 cursor-pointer`}
             >
               <Column 
-                 
-                header="ID" 
-                body={(rowData) => lotesFiltrados.length - lotesFiltrados.indexOf(rowData)}
-                
+                header="#" 
+                body={(rowData, options) => options.rowIndex + 1}
                 style={{ width: '50px' }}
                 className="text-xs text-center"
               />
@@ -290,13 +295,12 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
               <Column 
                 header="ACCIONES" 
                 body={accionesTemplate}
-                style={{ width: '90px' }}
+                style={{ width: '110px' }}
                 className="text-center"
               />
             </DataTable>
           </div>
         )}
-
       </div>
     </Dialog>
   );

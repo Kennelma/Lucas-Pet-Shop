@@ -172,6 +172,8 @@ const Alimentos = () => {
         destino: item.alimento_destinado || 'No especificado',
         peso: parseFloat(item.peso_alimento || 0),
         sku: item.sku || '',
+        tiene_impuesto: item.tiene_impuesto || 0,
+        tasa_impuesto: item.tasa_impuesto
       }));
       setAlimentos(normalizados);
     } catch (error) {

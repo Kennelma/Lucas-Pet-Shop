@@ -39,7 +39,7 @@ const DetallesFactura = ({
   estilistas = [],
   onCancel,
   RTN,
-  id_cliente, // ⭐ NUEVO: Necesitas pasar esto desde NuevaFactura
+  id_cliente,
 }) => {
   //====================ESTADOS====================
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -86,19 +86,19 @@ const DetallesFactura = ({
   const aplicarDescuento = () => {
     const inputDescuento = document.getElementById('input-descuento-manual');
     const valorDescuento = parseFloat(inputDescuento.value) || 0;
-    
+
     if (valorDescuento < 0) {
       alert('El descuento no puede ser negativo');
       inputDescuento.value = '';
       return;
     }
-    
+
     if (valorDescuento > TOTAL_CON_AJUSTE) {
       alert('El descuento no puede ser mayor al total de la factura');
       inputDescuento.value = '';
       return;
     }
-    
+
     setDescuentoManual(valorDescuento);
     inputDescuento.value = '';
   };
@@ -120,13 +120,13 @@ const DetallesFactura = ({
 
   const TOTAL_FINAL = Math.max(0, TOTAL_BRUTO + TOTAL_AJUSTE - DESCUENTO); //RESTA TODO DEL FINAL
 
-  const DIVISOR_ISV = 1.15;
+  //const DIVISOR_ISV = 1.15;
 
-  const SUBTOTAL_GRAVABLE = TOTAL_FINAL > 0 ? TOTAL_FINAL / DIVISOR_ISV : 0;
+  //const SUBTOTAL_GRAVABLE = TOTAL_FINAL > 0 ? TOTAL_FINAL / DIVISOR_ISV : 0;
 
-  const SUBTOTAL = SUBTOTAL_GRAVABLE;
+  const SUBTOTAL = TOTAL_FINAL;
 
-  const IMPUESTO = TOTAL_FINAL - SUBTOTAL;
+  //const IMPUESTO = TOTAL_FINAL - SUBTOTAL;
 
   const SALDO = TOTAL_FINAL;
 
@@ -262,7 +262,6 @@ const DetallesFactura = ({
           `✅ Factura ${response.data.numero_factura} creada exitosamente!\nTotal: L ${response.data.total}\nSaldo: L ${response.data.saldo}`
         );
 
-        // ⭐ Abrir modal de pago
         const datos = {
           id_factura: response.data.id_factura,
           numero_factura: response.data.numero_factura,
@@ -434,7 +433,7 @@ const DetallesFactura = ({
                     width: "96px",
                   }}
                 >
-                  PRECIO
+                  PRECIO UNITARIO
                 </th>
                 <th
                   className="text-center font-medium text-gray-700"
@@ -834,7 +833,7 @@ const DetallesFactura = ({
           )}
         </div>
 
-        
+
 
         {/*TOTALES Y BOTONES*/}
         {items.length > 0 && (
@@ -894,9 +893,9 @@ const DetallesFactura = ({
                   className="flex justify-between text-gray-700"
                   style={{ fontSize: "14px", marginBottom: "8px" }}
                 >
-                  <span>Subtotal:</span>
-                  <span className="font-medium">
-                    {formatCurrency(SUBTOTAL)}
+                 <span className="font-medium">
+                  {/*
+                    {formatCurrency(SUBTOTAL)}8*/}
                   </span>
                 </div>
                 {DESCUENTO > 0 && (
@@ -914,10 +913,11 @@ const DetallesFactura = ({
                   className="flex justify-between text-gray-700"
                   style={{ fontSize: "14px", marginBottom: "8px" }}
                 >
+                  {/*
                   <span>Impuesto (15%):</span>
                   <span className="font-medium">
                     {formatCurrency(IMPUESTO)}
-                  </span>
+                  </span>* */}
                 </div>
                 <div
                   className="flex justify-between font-bold text-gray-900 border-t-2 border-gray-300"

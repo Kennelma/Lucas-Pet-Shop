@@ -125,7 +125,7 @@ const AnimalesMasVendidos = ({ animales = [] }) => {
           <FontAwesomeIcon icon={mostrarComponente ? faChevronUp : faChevronDown} size="sm" />
         </button>
       </div>
-      
+      {/* Contenido principal */}
       {mostrarComponente && (
         <div className="flex items-start gap-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 flex-1 items-stretch">

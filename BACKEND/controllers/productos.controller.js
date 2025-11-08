@@ -6,17 +6,16 @@ const mysqlConnection = require('../config/conexion');
 
 //ESTOS ATRIBUTOS SON COMUNES PARA TODOS LOS ENDPOINT
 function insert_atributos_padre (body) {
-
     return [
         body.nombre_producto,
         body.precio_producto,
-        body.stock
+        body.stock,
     ];
 }
 
 //FUNCIÓN REUTILIZABLE PARA MANEJAR MOVIMIENTOS DE KARDEX
 async function insertarMovimientoKardex (conn, datosMovimiento) {
-    
+
     const {
         cantidad_movimiento,
         costo_unitario,
@@ -28,7 +27,7 @@ async function insertarMovimientoKardex (conn, datosMovimiento) {
     } = datosMovimiento;
 
 
-    
+
     //OBTENER ID DEL TIPO DE MOVIMIENTO
     const [tipo] = await conn.query(
         `SELECT id_estado_pk AS id
@@ -36,7 +35,7 @@ async function insertarMovimientoKardex (conn, datosMovimiento) {
         WHERE dominio = 'TIPO' AND nombre_estado = ?`,
         [tipo_movimiento]
     );
-    
+
     //OBTENER ID DEL ORIGEN DEL MOVIMIENTO
     const [origen] = await conn.query(
         `SELECT id_estado_pk AS id
@@ -59,7 +58,7 @@ async function insertarMovimientoKardex (conn, datosMovimiento) {
         ) VALUES (?, ?, NOW(), ?, ?, ?, ?, ?)`,
         [
             cantidad_movimiento,
-            costo_unitario,     
+            costo_unitario,
             tipo[0].id,
             origen[0].id,
             id_usuario,
@@ -77,32 +76,37 @@ exports.crear = async (req, res) => {
     // console.log('req.body:', req.body);
     // console.log('req.files:', req.files);
 
-    const conn = await mysqlConnection.getConnection();    
+    const conn = await mysqlConnection.getConnection();
 
     try {
-        
+
         await conn.beginTransaction(); //INICIO LA TRANSACCIÓN
 
         let id_producto;
 
-        if (req.body.tipo_producto !== 'LOTES') { 
+        if (req.body.tipo_producto !== 'LOTES') {
             //OBTENGO EL ID DEL TIPO DE PRODUCTO (CATALOGO)
             const [tipoProducto] = await conn.query(
-                `SELECT id_tipo_producto_pk AS id_tipo
-                FROM cat_tipo_productos 
-                WHERE nombre_tipo_producto = ?`,
+                `SELECT
+                    id_tipo_item_pk AS id_tipo
+                FROM cat_tipo_item
+                WHERE nombre_tipo_item = ?`,
                 [req.body.tipo_producto]
             );
+
+            // Validar impuesto
+            const tieneImpuesto = req.body.tiene_impuesto == 1 ? 1 : 0;
 
             //SE LLENA LA TABLA PADRE PRIMERO
             const [productos] = await conn.query(
                 `INSERT INTO tbl_productos (
-                    nombre_producto, 
-                    precio_producto, 
+                    nombre_producto,
+                    precio_producto,
                     stock,
-                    tipo_producto_fk
-                ) VALUES (?, ?, ?, ?)`,
-                [...insert_atributos_padre(req.body), tipoProducto[0].id_tipo]
+                    tipo_item_fk,
+                    tiene_impuesto
+                ) VALUES (?, ?, ?, ?, ?)`,
+                [...insert_atributos_padre(req.body), tipoProducto[0].id_tipo, tieneImpuesto]
             );
 
             //OBTENGO EL ID DEL PRODUCTO INSERTADO
@@ -115,43 +119,43 @@ exports.crear = async (req, res) => {
 
                 await conn.query(
                     `INSERT INTO tbl_accesorios_info (
-                        tipo_accesorio, 
+                        tipo_accesorio,
                         id_producto_fk
                     ) VALUES (?, ?)`,
                     [
-                        req.body.tipo_accesorio, 
+                        req.body.tipo_accesorio,
                         id_producto
                     ]);
                 break;
-            
+
             case 'ANIMALES':
-                
+
                 await conn.query(
                     `INSERT INTO tbl_animales_info (
-                        especie, 
-                        sexo, 
+                        especie,
+                        sexo,
                         id_producto_fk
                     ) VALUES (?, ?, ?)`,
                     [
                         req.body.especie,
                         req.body.sexo,
                         id_producto
-                    ]);                               
-                break;    
+                    ]);
+                break;
 
             case 'ALIMENTOS':
 
                 await conn.query(
                     `INSERT INTO tbl_alimentos_info (
-                        alimento_destinado, 
-                        peso_alimento, 
+                        alimento_destinado,
+                        peso_alimento,
                         id_producto_fk
                     )VALUES (?,?,?)`,
                     [
                         req.body.alimento_destinado,
                         req.body.peso_alimento,
                         id_producto
-                    ]);                               
+                    ]);
                 break;
 
             case 'MEDICAMENTOS':
@@ -159,10 +163,10 @@ exports.crear = async (req, res) => {
                 //SE LLENA EL MEDICAMENTO PRIMERO
                 const [medicamentos] = await conn.query (
                     `INSERT INTO tbl_medicamentos_info (
-                        presentacion_medicamento, 
-                        tipo_medicamento, 
-                        cantidad_contenido, 
-                        unidad_medida, 
+                        presentacion_medicamento,
+                        tipo_medicamento,
+                        cantidad_contenido,
+                        unidad_medida,
                         id_producto_fk
                     )VALUES (?,?,?,?,?)`,
                     [
@@ -179,9 +183,9 @@ exports.crear = async (req, res) => {
                 //SE LLENA EL LOTE DEL MEDICAMENTO
                     const [lote] = await conn.query(
                         `INSERT INTO tbl_lotes_medicamentos (
-                        codigo_lote, 
-                        fecha_vencimiento, 
-                        stock_lote, 
+                        codigo_lote,
+                        fecha_vencimiento,
+                        stock_lote,
                         id_medicamento_fk)
                         VALUES (?, ?, ?, ?)`,
                         [
@@ -196,7 +200,7 @@ exports.crear = async (req, res) => {
                     //OBTENGO DATOS PARA LLENAR AUTOMATICAMENTE EL KARDEX
                     const id_lote = lote.insertId;
                     const cantidad_movimiento = req.body.stock_lote;
-                    const costo_unitario = req.body.precio_producto; 
+                    const costo_unitario = req.body.precio_producto;
 
                     //EL ID DEL USUARIO VIENE DEL MIDDLEWARE DE AUTENTICACIÓN
                     const id_usuario = req.usuario?.id_usuario_pk;
@@ -218,7 +222,7 @@ exports.crear = async (req, res) => {
 
                 //OBTENGO EL MEDICAMENTO FK Y EL PRECIO DEL PRODUCTO EXISTENTE
                 const [medicamento] = await conn.query (
-                    `SELECT 
+                    `SELECT
                         m.id_medicamento_pk AS id,
                         p.precio_producto
                     FROM tbl_medicamentos_info m
@@ -226,7 +230,7 @@ exports.crear = async (req, res) => {
                     WHERE m.id_producto_fk = ?`,
                     [req.body.id_producto]
                 );
-                
+
                 //GUARDA EN VARIABLES LA FK DE MEDICAMENTOS Y EL PRECIO
                 const id_med_fk = medicamento[0].id;
                 const precio_medicamento = medicamento[0].precio_producto;
@@ -234,9 +238,9 @@ exports.crear = async (req, res) => {
                 //INSERTO EL LOTE CORRESPONDIENTE A ESE MEDICAMENTO
                 const [lote_nuevo] = await conn.query(
                     `INSERT INTO tbl_lotes_medicamentos(
-                        codigo_lote, 
-                        fecha_vencimiento, 
-                        stock_lote, 
+                        codigo_lote,
+                        fecha_vencimiento,
+                        stock_lote,
                         id_medicamento_fk
                     ) VALUES (?, ?, ?, ?)`,
                     [
@@ -250,7 +254,7 @@ exports.crear = async (req, res) => {
                 //OBTENGO DATOS PARA LLENAR AUTOMATICAMENTE EL KARDEX
                 const id_lote_nuevo = lote_nuevo.insertId;
                 const cantidad_movimiento_lote = req.body.stock_lote;
-                const costo_unitario_lote = precio_medicamento; 
+                const costo_unitario_lote = precio_medicamento;
 
                 //EL ID DEL USUARIO VIENE DEL MIDDLEWARE DE AUTENTICACIÓN
                 const id_user = req.usuario?.id_usuario_pk;
@@ -296,50 +300,50 @@ exports.crear = async (req, res) => {
 //        ENDPOINT PARA VER CATÁLOGOS DE PRODUCTOS
 // ─────────────────────────────────────────────────────────
 exports.verCatalogo = async (req, res) => {
-    
+
     const conn = await mysqlConnection.getConnection();
-    
+
     try {
-        
+
         let registros;
-        
+
         switch (req.query.tipo_catalogo) {
-            
+
             case 'TIPOS_PRODUCTOS':
                 [registros] = await conn.query(
-                    `SELECT id_tipo_producto_pk, nombre_tipo_producto 
-                     FROM cat_tipo_productos 
+                    `SELECT id_tipo_producto_pk, nombre_tipo_producto
+                     FROM cat_tipo_productos
                      ORDER BY id_tipo_producto_pk`
                 );
                 break;
-                
+
             case 'ESTADOS_TIPO':
                 [registros] = await conn.query(
-                    `SELECT id_estado_pk, nombre_estado 
-                     FROM cat_estados 
-                     WHERE dominio = 'TIPO' 
+                    `SELECT id_estado_pk, nombre_estado
+                     FROM cat_estados
+                     WHERE dominio = 'TIPO'
                      ORDER BY id_estado_pk`
                 );
                 break;
-                
+
             case 'ESTADOS_ORIGEN':
                 [registros] = await conn.query(
-                    `SELECT id_estado_pk, nombre_estado 
-                     FROM cat_estados 
-                     WHERE dominio = 'ORIGEN' 
+                    `SELECT id_estado_pk, nombre_estado
+                     FROM cat_estados
+                     WHERE dominio = 'ORIGEN'
                      ORDER BY id_estado_pk`
                 );
                 break;
-                
+
             default:
                 throw new Error('Tipo de catálogo no válido');
         }
-        
+
         res.json({
             Consulta: true,
             catalogo: registros || []
         });
-        
+
     } catch (err) {
         res.json({
             Consulta: false,
@@ -377,8 +381,11 @@ exports.actualizar = async (req, res) => {
 
         const { id_producto, tipo_producto } = req.body;
 
+        //VALIDAR IMPUESTO
+        const tieneImpuesto = req.body.tiene_impuesto == 1 ? 1 : 0;
+
         //SE ACTUALIZA PRIMERO LA TABLA PADRE
-        const [result] = await conn.query(
+        await conn.query(
             `UPDATE tbl_productos
             SET
                 nombre_producto = COALESCE(?, nombre_producto),
@@ -386,89 +393,118 @@ exports.actualizar = async (req, res) => {
                 sku             = COALESCE(?, sku),
                 stock           = COALESCE(?, stock),
                 stock_minimo    = COALESCE(?, stock_minimo),
-                activo          = COALESCE(?, activo)
-            WHERE id_producto_pk = ?`, 
-            [...update_atributos_padre(req.body), id_producto]
+                activo          = COALESCE(?, activo),
+                tiene_impuesto = COALESCE(?, tiene_impuesto)
+            WHERE id_producto_pk = ?`,
+            [...update_atributos_padre(req.body), tieneImpuesto, id_producto]
         );
 
         switch (tipo_producto) {
-            
+
             case 'ANIMALES':
 
                 await conn.query(
                 `UPDATE tbl_animales_info
-                SET 
+                SET
                     especie = COALESCE(?, especie),
                     sexo    = COALESCE(?, sexo)
                 WHERE id_producto_fk = ?`,
-                [   
+                [
                     req.body.especie || null,
                     req.body.sexo || null,
                     id_producto,
-                ]);                               
+                ]);
                 break;
-            
+
             case 'ALIMENTOS':
-                
+
                 await conn.query(
                 `UPDATE tbl_alimentos_info
-                SET 
+                SET
                     alimento_destinado = COALESCE(?, alimento_destinado),
                     peso_alimento    = COALESCE(?, peso_alimento)
                 WHERE id_producto_fk = ?`,
-                [   
+                [
                     req.body.alimento_destinado || null,
                     req.body.peso_alimento || null,
                     id_producto,
-                ]);                               
+                ]);
                 break;
-            
+
             case 'ACCESORIOS':
                 await conn.query(
                 `UPDATE tbl_accesorios_info
                 SET
                     tipo_accesorio = COALESCE(?, tipo_accesorio)
                 WHERE id_producto_fk = ?`,
-                [   
+                [
                     req.body.tipo_accesorio || null,
                     id_producto
-                ]);                               
+                ]);
                 break;
-            
+
             case 'MEDICAMENTOS':
 
                 await conn.query(
                 `UPDATE tbl_medicamentos_info
-                SET 
+                SET
                     presentacion_medicamento = COALESCE(?, presentacion_medicamento),
                     tipo_medicamento         = COALESCE(?, tipo_medicamento),
                     cantidad_contenido       = COALESCE(?, cantidad_contenido),
                     unidad_medida            = COALESCE(?, unidad_medida)
                 WHERE id_producto_fk = ?`,
-                [   
+                [
                     req.body.presentacion_medicamento || null,
                     req.body.tipo_medicamento || null,
                     req.body.cantidad_contenido || null,
                     req.body.unidad_medida || null,
                     id_producto
-                ]);                               
+                ]);
                 break;
 
-            case 'LOTES':    
+            case 'LOTES':
 
                 await conn.query(
                 `UPDATE tbl_lotes_medicamentos
-                SET 
+                SET
                     fecha_vencimiento = COALESCE(?, fecha_vencimiento),
                     stock_lote        = COALESCE(?, stock_lote)
                 WHERE id_lote_medicamentos_pk = ?`,
                 [
-                    req.body.codigo_lote || null,
-                    req.body.fecha_ingreso || null,
                     req.body.fecha_vencimiento || null,
                     req.body.stock_lote || null,
-                    req.body.id_lote_medicamentos_pk
+                    id_producto
                 ]);
+
+                //SE OBTIENE EL ID DEL PRODUCTO FK PARA ACTUALIZAR EL STOCK TOTAL
+                const [loteInfo] = await conn.query(
+                    `SELECT m.id_producto_fk
+                     FROM tbl_lotes_medicamentos l
+                     INNER JOIN tbl_medicamentos_info m ON l.id_medicamento_fk = m.id_medicamento_pk
+                     WHERE l.id_lote_medicamentos_pk = ?`,
+                    [id_producto]
+                );
+
+                const id_producto_fk = loteInfo[0]?.id_producto_fk;
+
+                if (id_producto_fk) {
+
+                    //SE SUMA LOS STOCKS DE LOS LOTES DEL MEDICAMENTO
+                    const [sumaStock] = await conn.query(
+                        `SELECT SUM(stock_lote) AS total_stock
+                         FROM tbl_lotes_medicamentos l
+                         INNER JOIN tbl_medicamentos_info m ON l.id_medicamento_fk = m.id_medicamento_pk
+                         WHERE m.id_producto_fk = ?`,
+                        [id_producto_fk]
+                    );
+                    const total_stock = sumaStock[0]?.total_stock || 0;
+
+                    //SE ACTUALIZA EL STOCK TOTAL EN LA TABLA DE PRODUCTOS
+                    await conn.query(
+                        `UPDATE tbl_productos SET stock = ? WHERE id_producto_pk = ?`,
+                        [total_stock, id_producto_fk]
+                    );
+                }
                 break;
 
             default:
@@ -498,50 +534,50 @@ exports.actualizar = async (req, res) => {
 //        ENDPOINT PARA VER CATÁLOGOS DE
 // ─────────────────────────────────────────────────────────
 exports.verCatalogo = async (req, res) => {
-    
+
     const conn = await mysqlConnection.getConnection();
-    
+
     try {
-        
+
         let registros;
-        
+
         switch (req.query.tipo_catalogo) {
-            
+
             case 'TIPOS_PRODUCTOS':
                 [registros] = await conn.query(
-                    `SELECT id_tipo_producto_pk, nombre_tipo_producto 
-                     FROM cat_tipo_productos 
+                    `SELECT id_tipo_producto_pk, nombre_tipo_producto
+                     FROM cat_tipo_productos
                      ORDER BY id_tipo_producto_pk`
                 );
                 break;
-                
+
             case 'ESTADOS_TIPO':
                 [registros] = await conn.query(
-                    `SELECT id_estado_pk, nombre_estado 
-                     FROM cat_estados 
-                     WHERE dominio = 'TIPO' 
+                    `SELECT id_estado_pk, nombre_estado
+                     FROM cat_estados
+                     WHERE dominio = 'TIPO'
                      ORDER BY id_estado_pk`
                 );
                 break;
-                
+
             case 'ESTADOS_ORIGEN':
                 [registros] = await conn.query(
-                    `SELECT id_estado_pk, nombre_estado 
-                     FROM cat_estados 
-                     WHERE dominio = 'ORIGEN' 
+                    `SELECT id_estado_pk, nombre_estado
+                     FROM cat_estados
+                     WHERE dominio = 'ORIGEN'
                      ORDER BY id_estado_pk`
                 );
                 break;
-                
+
             default:
                 throw new Error('Tipo de catálogo no válido');
         }
-        
+
         res.json({
             Consulta: true,
             catalogo: registros || []
         });
-        
+
     } catch (err) {
         res.json({
             Consulta: false,
@@ -563,13 +599,13 @@ exports.ver = async (req, res) => {
     try {
 
         let registros; //VARIABLE DE APOYO
-        
+
 
         switch (req.query.tipo_producto) {
 
             case 'ACCESORIOS':
                 [registros] = await conn.query(
-                    `SELECT 
+                    `SELECT
                         p.id_producto_pk,
                         p.nombre_producto,
                         p.precio_producto,
@@ -577,15 +613,16 @@ exports.ver = async (req, res) => {
                         p.stock,
                         p.stock_minimo,
                         p.activo,
+                        p.tiene_impuesto,
                         ac.tipo_accesorio
-                    FROM tbl_productos p 
+                    FROM tbl_productos p
                     INNER JOIN tbl_accesorios_info ac ON p.id_producto_pk = ac.id_producto_fk
                     ORDER BY p.id_producto_pk DESC`);
                 break;
-            
+
             case 'ANIMALES':
                 [registros] = await conn.query(
-                    `SELECT 
+                    `SELECT
                         p.id_producto_pk,
                         p.nombre_producto,
                         p.precio_producto,
@@ -593,17 +630,18 @@ exports.ver = async (req, res) => {
                         p.stock,
                         p.stock_minimo,
                         p.activo,
+                        p.tiene_impuesto,
                         a.especie,
                         a.sexo
                     FROM tbl_productos p
-                    INNER JOIN tbl_animales_info a 
+                    INNER JOIN tbl_animales_info a
                         ON p.id_producto_pk = a.id_producto_fk
                     ORDER BY p.id_producto_pk DESC`);
                 break;
-            
+
             case 'ALIMENTOS':
                 [registros] = await conn.query(
-                    `SELECT 
+                    `SELECT
                         p.id_producto_pk,
                         p.nombre_producto,
                         p.precio_producto,
@@ -611,6 +649,7 @@ exports.ver = async (req, res) => {
                         p.stock,
                         p.stock_minimo,
                         p.activo,
+                        p.tiene_impuesto,
                         al.alimento_destinado,
                         al.peso_alimento
                     FROM tbl_productos p
@@ -621,7 +660,7 @@ exports.ver = async (req, res) => {
 
             case 'MEDICAMENTOS':
                 [registros] = await conn.query(
-                    `SELECT 
+                    `SELECT
                         p.id_producto_pk,
                         p.nombre_producto,
                         p.precio_producto,
@@ -629,28 +668,29 @@ exports.ver = async (req, res) => {
                         p.stock,
                         p.stock_minimo,
                         p.activo,
+                        p.tiene_impuesto,
                         m.presentacion_medicamento,
                         m.tipo_medicamento,
                         m.cantidad_contenido,
                         m.unidad_medida
                     FROM tbl_productos p
-                    INNER JOIN tbl_medicamentos_info m 
+                    INNER JOIN tbl_medicamentos_info m
                         ON p.id_producto_pk = m.id_producto_fk
                     ORDER BY p.id_producto_pk DESC`);
                 break;
 
             case 'LOTES':
                 [registros] = await conn.query(
-                    `SELECT 
+                    `SELECT
                         l.id_lote_medicamentos_pk,
                         l.codigo_lote,
                         l.fecha_ingreso,
                         l.fecha_vencimiento,
                         l.stock_lote,
-                        e.nombre_estado AS estado_lote_nombre, 
+                        e.nombre_estado AS estado_lote_nombre,
                         m.id_medicamento_pk,
-                        m.id_producto_fk,        
-                        p.nombre_producto       
+                        m.id_producto_fk,
+                        p.nombre_producto
                     FROM tbl_lotes_medicamentos l
                     INNER JOIN tbl_medicamentos_info m ON l.id_medicamento_fk = m.id_medicamento_pk
                     INNER JOIN tbl_productos p ON m.id_producto_fk = p.id_producto_pk
@@ -668,12 +708,12 @@ exports.ver = async (req, res) => {
                         l.codigo_lote,
                         k.cantidad_movimiento,
                         k.costo_unitario,
-                        k.fecha_movimiento, 
-                        tm.nombre_estado AS tipo_movimiento, 
-                        om.nombre_estado AS origen_movimiento, 
-                        u.usuario AS nombre_usuario_movimiento 
+                        k.fecha_movimiento,
+                        tm.nombre_estado AS tipo_movimiento,
+                        om.nombre_estado AS origen_movimiento,
+                        u.usuario AS nombre_usuario_movimiento
                     FROM
-                        tbl_movimientos_kardex k 
+                        tbl_movimientos_kardex k
                     INNER JOIN
                         tbl_medicamentos_info m ON k.id_medicamento_fk = m.id_medicamento_pk
                     INNER JOIN
@@ -681,15 +721,15 @@ exports.ver = async (req, res) => {
                     LEFT JOIN
                         tbl_lotes_medicamentos l ON k.id_lote_fk = l.id_lote_medicamentos_pk
                     INNER JOIN
-                        cat_estados tm ON k.id_tipo_fk = tm.id_estado_pk AND tm.dominio = 'TIPO' 
+                        cat_estados tm ON k.id_tipo_fk = tm.id_estado_pk AND tm.dominio = 'TIPO'
                     INNER JOIN
-                        cat_estados om ON k.id_origen_fk = om.id_estado_pk AND om.dominio = 'ORIGEN' 
+                        cat_estados om ON k.id_origen_fk = om.id_estado_pk AND om.dominio = 'ORIGEN'
                     INNER JOIN
                         tbl_usuarios u ON k.id_usuario_fk = u.id_usuario_pk
                     ORDER BY
                         k.fecha_movimiento DESC, k.id_movimiento_pk DESC`
                 );
-                break;   
+                break;
 
             default:
                 throw new Error('TIPO DE PRODUCTO NO VALIDO');
@@ -726,15 +766,39 @@ exports.eliminar = async (req, res) => {
         const { id_lote } = req.body;
 
         if (id_lote) {
-            
+
+            //SE OBTIENE EL STOCK DEL LOTE Y EL PRODUCTO RELACIONADO
+            const [lotes] = await conn.query(
+                `SELECT
+                    l.stock_lote,
+                    m.id_producto_fk
+                FROM tbl_lotes_medicamentos l
+                INNER JOIN tbl_medicamentos_info m ON l.id_medicamento_fk = m.id_medicamento_pk
+                WHERE l.id_lote_medicamentos_pk = ?`,
+                [id_lote]
+            );
+
+            const stock = lotes[0]?.stock_lote || 0;
+
+            const id_produ = lotes[0]?.id_producto_fk;
+
+            // SE RESTA EL STOCK DEL PRODUCTO
+            if (id_produ) {
+                await conn.query(
+                    `UPDATE tbl_productos SET stock = stock - ? WHERE id_producto_pk = ?`,
+                    [stockLote, idProducto]
+                );
+            }
+
+            // 3. Borrar el lote
             await conn.query(
-                `DELETE FROM tbl_lotes_medicamentos WHERE id_lote_medicamentos_pk = ?`,[id_lote]
+                `DELETE FROM tbl_lotes_medicamentos WHERE id_lote_medicamentos_pk = ?`, [id_lote]
             );
 
             await conn.commit();
             return res.json({
                 Consulta: true,
-                mensaje: 'Lote eliminado con éxito',
+                mensaje: 'Lote eliminado y stock actualizado',
                 id_lote
             });
 
