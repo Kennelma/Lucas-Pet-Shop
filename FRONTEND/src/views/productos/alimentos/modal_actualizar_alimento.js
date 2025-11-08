@@ -1,12 +1,17 @@
+// IMPORTACIÓN DE REACT Y COMPONENTES DE PRIME REACT
 import React, { useState, useEffect } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
+import { InputSwitch } from 'primereact/inputswitch';
 import { actualizarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
+//COMPONENTE MODAL ACTUALIZAR ALIMENTO
 const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
+
+  //LISTAS DROPDOWN
   const destinosBase = [
     { label: 'PERROS', value: 'PERROS' },
     { label: 'GATOS', value: 'GATOS' },
@@ -16,50 +21,110 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
     { label: 'ANFIBIOS', value: 'ANFIBIOS' }
   ];
 
+  //ESTADOS PRINCIPALES
   const [data, setData] = useState({
     nombre: '',
-    precio: '',
-    cantidad: '',
+    precio: 0,
+    cantidad: 0,
     peso: '',
     destino: '',
-    stock_minimo: '',
-    sku: ''
+    stock_minimo: 0,
+    sku: '',
+    tiene_impuesto: false
   });
-
   const [errores, setErrores] = useState({});
   const [loading, setLoading] = useState(false);
+  const [aplicaImpuesto, setAplicaImpuesto] = useState(false);
+  const [tasaImpuesto, setTasaImpuesto] = useState(15);
+  const [precioBase, setPrecioBase] = useState(0);
 
+  //GENERAR SKU
   const generarSKU = (nombre) => {
     if (!nombre) return '';
     const partes = nombre.trim().split(' ').map(p => p.substring(0, 3).toUpperCase());
     return partes.join('-');
   };
 
+  //RECALCULAR PRECIO CON/SIN IMPUESTO
+  const recalcularPrecio = (base, tasa, aplicar) => {
+    const pBase = parseFloat(base) || 0;
+    const pTasa = parseFloat(tasa) || 0;
+    return aplicar ? (pBase * (1 + pTasa / 100)) : pBase;
+  };
+
+  //EFECTO CARGAR DATOS EDITAR
   useEffect(() => {
     if (isOpen && editData) {
+      const tieneImpuesto = Boolean(editData.tiene_impuesto);
+      const tasa = 15; // Tasa por defecto ya que el backend no la trae aún
+      const precioInicial = parseFloat(editData.precio) || 0;
+      let base = precioInicial;
+      if (tieneImpuesto && precioInicial > 0 && tasa > 0) {
+        base = (precioInicial / (1 + tasa / 100));
+      }
+      setPrecioBase(Number(base.toFixed(2)));
       setData({
         nombre: (editData.nombre || '').toUpperCase(),
-        precio: editData.precio || '',
-        cantidad: editData.stock || '',
+        precio: precioInicial,
+        cantidad: Number.parseInt(editData.stock) || 0,
         peso: editData.peso || '',
         destino: (editData.destino || '').toUpperCase(),
-        stock_minimo: editData.stock_minimo || '',
-        sku: generarSKU(editData.nombre)
+        stock_minimo: Number.parseInt(editData.stock_minimo) || 0,
+        sku: generarSKU(editData.nombre),
+        tiene_impuesto: tieneImpuesto
       });
+      setAplicaImpuesto(tieneImpuesto);
+      setTasaImpuesto(tasa);
       setErrores({});
     }
   }, [isOpen, editData]);
 
+  //MANEJAR CAMBIOS INPUTS
   const handleChange = (field, value) => {
-    const val = ['nombre', 'destino'].includes(field) ? value.toUpperCase() : value;
+    const isText = ['nombre', 'destino', 'peso'].includes(field);
+    const isNumeric = ['precio', 'cantidad', 'stock_minimo'].includes(field);
+    let val = value;
+    if (isText) val = String(value ?? '').toUpperCase();
+    else if (isNumeric) val = (value === null || value === undefined || value === '') ? 0 : Number(value);
+
     setData(prev => {
       const newData = { ...prev, [field]: val };
       if (field === 'nombre') newData.sku = generarSKU(val);
+      if (field === 'precio') {
+        const precioActual = parseFloat(val) || 0;
+        const tasa = parseFloat(tasaImpuesto) || 0;
+        const nuevaBase = aplicaImpuesto && tasa > 0 ? (precioActual / (1 + tasa / 100)) : precioActual;
+        setPrecioBase(Number(nuevaBase.toFixed(2)));
+      }
       return newData;
     });
-    setErrores(prev => ({ ...prev, [field]: '' }));
+
+    setErrores(prev => {
+      const newErrores = { ...prev };
+      if (['nombre', 'destino', 'peso'].includes(field)) newErrores[field] = val ? '' : 'Campo obligatorio';
+      else if (['precio', 'cantidad', 'stock_minimo'].includes(field)) newErrores[field] = val > 0 ? '' : 'Debe ser mayor a 0';
+      return newErrores;
+    });
   };
 
+  //CAMBIO SWITCH IMPUESTO
+  const handleImpuestoChange = (value) => {
+    setAplicaImpuesto(value);
+    const nuevoPrecio = recalcularPrecio(precioBase, tasaImpuesto, value);
+    setData(prev => ({ ...prev, precio: Number(nuevoPrecio.toFixed(2)) }));
+  };
+
+  //CAMBIO TASA IMPUESTO
+  const handleTasaChange = (e) => {
+    const nuevaTasa = parseFloat(e.target.value) || 0;
+    setTasaImpuesto(nuevaTasa);
+    if (aplicaImpuesto) {
+      const nuevoPrecio = recalcularPrecio(precioBase, nuevaTasa, true);
+      setData(prev => ({ ...prev, precio: Number(nuevoPrecio.toFixed(2)) }));
+    }
+  };
+
+  //VALIDAR FORMULARIO
   const validarDatos = () => {
     let temp = {};
     if (!data.nombre) temp.nombre = 'Campo obligatorio';
@@ -67,36 +132,38 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
     if (!data.cantidad || data.cantidad <= 0) temp.cantidad = 'Debe ser mayor a 0';
     if (!data.peso || data.peso <= 0) temp.peso = 'Debe ser mayor a 0';
     if (!data.stock_minimo || data.stock_minimo <= 0) temp.stock_minimo = 'Debe ser mayor a 0';
-
     setErrores(temp);
     return Object.keys(temp).length === 0;
   };
 
+  //ENVIAR FORMULARIO
   const handleSubmit = async () => {
     if (!validarDatos()) return;
-
     setLoading(true);
     try {
       const body = {
         id_producto: editData.id_producto,
         nombre_producto: data.nombre,
-        precio_producto: data.precio,
-        stock: data.cantidad,
-        stock_minimo: data.stock_minimo,
+        precio_producto: parseFloat(data.precio),
+        stock: parseInt(data.cantidad),
+        stock_minimo: parseInt(data.stock_minimo),
         tipo_producto: 'ALIMENTOS',
         peso_alimento: data.peso,
         alimento_destinado: data.destino,
-        sku: generarSKU(data.nombre)
+        sku: generarSKU(data.nombre),
+        tiene_impuesto: aplicaImpuesto ? 1 : 0
+        // tasa_impuesto:
       };
-
       const res = await actualizarProducto(body);
-
       if (res.Consulta) {
-        onSave({ ...editData, ...data, sku: body.sku });
+        onSave({
+          ...editData,
+          ...data,
+          precio: Number(body.precio_producto.toFixed(2)),
+          tiene_impuesto: aplicaImpuesto ? 1 : 0
+        });
         onClose();
-      } else {
-        alert(`Error al actualizar: ${res.error}`);
-      }
+      } else alert(`Error al actualizar: ${res.error}`);
     } catch (err) {
       console.error(err);
       alert('Ocurrió un error al actualizar el alimento.');
@@ -110,113 +177,86 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
       ? [...destinosBase, { label: data.destino, value: data.destino }]
       : destinosBase;
 
+  //FOOTER MODAL
   const footer = (
-    <div className="flex justify-end gap-3 mt-2">
-      <Button
-        label="Cancelar"
-        icon="pi pi-times"
-        className="p-button-text p-button-rounded"
-        onClick={onClose}
-        disabled={loading}
-      />
-      <Button
-        label="Guardar"
-        icon="pi pi-check"
-        className="p-button-success p-button-rounded"
-        onClick={handleSubmit}
-        loading={loading}
-      />
+    <div className="flex justify-end gap-3 mt-1">
+      <Button label="Cancelar" icon="pi pi-times" className="p-button-text p-button-rounded text-sm" style={{ padding: '0.375rem 0.75rem' }} onClick={onClose} disabled={loading} />
+      <Button label="Guardar" icon="pi pi-check" className="p-button-success p-button-rounded text-sm" style={{ padding: '0.375rem 0.75rem' }} onClick={handleSubmit} loading={loading} />
     </div>
   );
 
+  //ETIQUETA PRECIO
+  const precioLabel = aplicaImpuesto ? 'PRECIO CON ISV (L)' : 'PRECIO BASE (L)';
+
+  //RENDER MODAL
   return (
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">ACTUALIZAR ALIMENTO</div>}
       visible={isOpen}
-      style={{ width: '28rem', borderRadius: '1.5rem', overflow: 'visible' }}
-      modal
-      closable={false}
-      onHide={onClose}
-      footer={footer}
-      position="center"
-      dismissableMask={false}
-      draggable={false}
-      resizable={false}
-      contentClassName="overflow-visible"
+      style={{ width: '30rem', height: '85vh', borderRadius: '1.5rem' }}
+      modal closable={false} onHide={onClose} footer={footer}
+      position="center" dismissableMask={false} draggable={false} resizable={false}
+      contentStyle={{ 
+        overflowY: 'auto', 
+        padding: '1rem',
+        height: 'calc(85vh - 120px)'
+      }}
     >
-      {/* Formulario */}
-      <div className="flex flex-col gap-3 overflow-visible">
-        {/* Nombre del Alimento */}
+      <div className="flex flex-col gap-3">
+        {/* NOMBRE */}
         <span>
-          <label htmlFor="nombre" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE DEL ALIMENTO</label>
-          <InputText
-            id="nombre"
-            name="nombre"
-            value={data.nombre}
-            onChange={(e) => handleChange('nombre', e.target.value)}
-            className="w-full rounded-xl h-9 text-sm"
-            placeholder="Ej: Royal Canin Adulto"
-          />
+          <label htmlFor="nombre" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE</label>
+          <InputText id="nombre" value={data.nombre} onChange={e => handleChange('nombre', e.target.value)} className="w-full rounded-xl h-9 text-sm" placeholder="Ej: Royal Canin Adulto" />
           {errores.nombre && <p className="text-xs text-red-600 mt-1">{errores.nombre}</p>}
         </span>
 
         {/* SKU */}
         <span>
-          <label htmlFor="sku" className="text-xs font-semibold text-gray-700 mb-1">SKU (GENERADO AUTOMÁTICAMENTE)</label>
-          <InputText
-            id="sku"
-            name="sku"
-            value={data.sku}
-            readOnly
-            className="w-full rounded-xl h-9 text-sm bg-gray-100"
-          />
+          <label htmlFor="sku" className="text-xs font-semibold text-gray-700 mb-1">SKU</label>
+          <InputText id="sku" value={data.sku} readOnly className="w-full rounded-xl h-9 text-sm bg-gray-100" />
         </span>
 
-        {/* Destinado a */}
-        <span>
-          <label htmlFor="destino" className="text-xs font-semibold text-gray-700 mb-1">DESTINADO A</label>
-          <Dropdown
-            id="destino"
-            name="destino"
-            value={data.destino}
-            options={destinos}
-            onChange={(e) => handleChange('destino', e.value)}
-            className="w-full rounded-xl h-9 text-sm"
-            placeholder="Seleccionar mascota"
-          />
-        </span>
-
-        {/* Peso y Precio en la misma fila */}
+        {/* DESTINADO A Y PESO */}
         <div className="grid grid-cols-2 gap-2">
           <span>
-            <label htmlFor="peso" className="text-xs font-semibold text-gray-700 mb-1">PESO (KG)</label>
-            <InputText
-              id="peso"
-              name="peso"
-              value={data.peso}
-              onChange={e => handleChange('peso', e.target.value)}
-              className="w-full rounded-xl h-9 text-sm"
-              placeholder="Peso en kg"
-              keyfilter="num"
-            />
-            {errores.peso && <p className="text-xs text-red-600 mt-1">{errores.peso}</p>}
+            <label htmlFor="destino" className="text-xs font-semibold text-gray-700 mb-1">DESTINADO A</label>
+            <Dropdown id="destino" value={data.destino} options={destinos} onChange={e => handleChange('destino', e.value)} className="w-full rounded-xl text-sm" placeholder="Seleccionar" />
           </span>
           <span>
-            <label htmlFor="precio" className="text-xs font-semibold text-gray-700 mb-1">PRECIO (L)</label>
-            <InputText
-              id="precio"
-              name="precio"
-              value={data.precio}
-              onChange={e => handleChange('precio', e.target.value)}
-              className="w-full rounded-xl h-9 text-sm"
-              placeholder="0.00"
-              keyfilter="num"
-            />
-            {errores.precio && <p className="text-xs text-red-600 mt-1">{errores.precio}</p>}
+            <label htmlFor="peso" className="text-xs font-semibold text-gray-700 mb-1">PESO (KG)</label>
+            <InputText id="peso" value={data.peso} onChange={e => handleChange('peso', e.target.value)} className="w-full rounded-xl h-9 text-sm" placeholder="Peso en kg" keyfilter="num" />
+            {errores.peso && <p className="text-xs text-red-600 mt-1">{errores.peso}</p>}
           </span>
         </div>
 
-        {/* Stock Disponible y Stock Mínimo en la misma fila */}
+        {/* PRECIO */}
+        <span>
+          <label htmlFor="precio" className="text-xs font-semibold text-gray-700 mb-1">{precioLabel}</label>
+          <InputNumber id="precio" value={data.precio} onValueChange={e => handleChange('precio', e.value)} mode="decimal" minFractionDigits={2} maxFractionDigits={2} className="w-full rounded-xl text-sm" inputClassName="h-9 text-sm" placeholder="0.00" />
+          {errores.precio && <p className="text-xs text-red-600 mt-1">{errores.precio}</p>}
+        </span>
+
+        {/* SWITCH ISV */}
+        <div className="flex items-center justify-between p-2 rounded-lg border border-gray-200 bg-gray-50">
+          <label className="text-sm font-semibold text-gray-700">¿APLICA ISV?</label>
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-medium ${!aplicaImpuesto ? 'text-red-600' : 'text-gray-500'}`}>NO</span>
+            <InputSwitch checked={aplicaImpuesto} onChange={e => handleImpuestoChange(e.value)} />
+            <span className={`text-sm font-medium ${aplicaImpuesto ? 'text-green-600' : 'text-gray-500'}`}>SÍ</span>
+          </div>
+        </div>
+
+        {aplicaImpuesto && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">TASA DE IMPUESTO (%)</label>
+            <div className="flex items-center gap-4">
+              <input type="number" value={tasaImpuesto} onChange={handleTasaChange} className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" step="0.01" min="0" max="100" />
+              <span className="text-sm text-gray-600">PRECIO BASE: L {precioBase.toFixed(2)} (SIN IMPUESTO)</span>
+            </div>
+          </div>
+        )}
+
+        {/* Stock Disponible y Stock Mínimo */}
         <div className="grid grid-cols-2 gap-2">
           <span>
             <label htmlFor="cantidad" className="text-xs font-semibold text-gray-700 mb-1">STOCK DISPONIBLE</label>
@@ -232,7 +272,7 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
             {errores.cantidad && <p className="text-xs text-red-600 mt-1">{errores.cantidad}</p>}
           </span>
           <span>
-            <label htmlFor="stock_minimo" className="text-xs font-semibold text-gray-700 mb-1">STOCK MÍNIMO</label>
+            <label htmlFor="stock_minimo" className="text-xs font-semibold text-gray-700 mb-1">STOCK MÍNIMO (ALERTAS)</label>
             <InputText
               id="stock_minimo"
               name="stock_minimo"
@@ -250,4 +290,5 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
   );
 };
 
+//EXPORTAR COMPONENTE
 export default ModalActualizarAlimento;

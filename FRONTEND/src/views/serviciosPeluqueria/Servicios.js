@@ -23,14 +23,23 @@ const Servicios = () => {
     cargarDatos();
   }, []);
 
+  //====================CONTROL_SCROLL_MODAL====================
   useEffect(() => {
     if (modalServicioAbierto) {
+      // Obtener el ancho de la scrollbar antes de ocultarla
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      
       document.body.style.overflow = 'hidden';
+      // Compensar el ancho de la scrollbar para evitar saltos
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
     } else {
       document.body.style.overflow = 'unset';
+      document.body.style.paddingRight = '0px';
     }
+
     return () => {
       document.body.style.overflow = 'unset';
+      document.body.style.paddingRight = '0px';
     };
   }, [modalServicioAbierto]);
 
@@ -214,14 +223,26 @@ const Servicios = () => {
       ) : (
         <>
           {/* Título */}
-      <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
-        <div className="flex justify-center items-center">
-          <h2 className="text-2xl font-black text-center uppercase text-gray-800">
-            SERVICIOS DE PELUQUERÍA
-          </h2>
-        </div>
-        <p className="text-center text-gray-600 italic">Administra los servicios de peluquería y estética para mascotas</p>
-      </div>
+      <div
+  className="rounded-xl p-6 mb-3 bg-cover bg-center"
+  style={{
+    backgroundImage: 'url("/header.jpg")',
+    backgroundColor: '#FF9A98',
+    backgroundSize: 'contain',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right center',
+    boxShadow: '0 0 8px #FF9A9840, 0 0 0 1px #FF9A9833'
+  }}
+>
+  <div className="flex justify-center items-center">
+    <h2 className="text-2xl font-black text-center uppercase text-white">
+      SERVICIOS DE PELUQUERÍA
+    </h2>
+  </div>
+  <p className="text-center text-white italic mt-2">
+    Administra los servicios de peluquería y estética para mascotas
+  </p>
+</div>
 
           {/* Dashboard de Servicios Favoritos */}
           <ServiciosFavoritos servicios={servicios} />

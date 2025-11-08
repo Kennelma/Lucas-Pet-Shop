@@ -2,11 +2,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   ScissorsIcon,
-  PlusIcon,
-  PencilIcon,
-  TrashIcon,
-  CurrencyDollarIcon,
-  ClockIcon
 } from '@heroicons/react/24/outline';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -73,9 +68,16 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
       </button>
 
       {isOpen && (
-        <div className={`absolute right-0 ${shouldShowAbove ? 'bottom-16' : 'top-12'} bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[140px]`}>
+        <div 
+          className="fixed bg-white border border-gray-200 rounded-lg shadow-xl w-28"
+          style={{
+            top: buttonRef.current?.getBoundingClientRect().top + 40,
+            left: buttonRef.current?.getBoundingClientRect().left - 80,
+            zIndex: 999999
+          }}
+        >
           <div
-            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            className="px-2 py-1.5 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-1 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
               setIsOpen(false);
@@ -83,13 +85,13 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
             }}
           >
             <i className="pi pi-pencil text-xs"></i>
-            <span className="uppercase">Editar</span>
+            <span>Editar</span>
           </div>
 
           <hr className="my-0 border-gray-200" />
 
           <div
-            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            className="px-2 py-1.5 text-xs text-gray-700 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-1 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
               setIsOpen(false);
@@ -97,7 +99,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
             }}
           >
             <i className="pi pi-trash text-xs"></i>
-            <span className="uppercase">Eliminar</span>
+            <span>Eliminar</span>
           </div>
         </div>
       )}
@@ -149,7 +151,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
 
 
   return (
-    <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+    <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #FF9A9840, 0 0 0 1px #FF9A9833'}}>
       {/* Barra de búsqueda + botón Nuevo */}
       <div className="flex justify-between items-center mb-6">
         <div className="relative w-80">
@@ -170,7 +172,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
         </div>
 
         <button
-          className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600 transition-colors flex items-center gap-2"
+          className="bg-rose-300 text-white px-6 py-2 rounded hover:bg-rose-600 transition-colors flex items-center gap-2"
           onClick={() => abrirModalServicio(null)}
         >
           <FontAwesomeIcon icon={faPlus} />
@@ -193,28 +195,34 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
         </div>
       ) : (
         <>
-          <DataTable
-            value={servicios}
-            loading={false}
-            loadingIcon={() => (
-              <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
-                <span>Cargando datos...</span>
-              </div>
-            )}
-            globalFilter={globalFilter}
-            globalFilterFields={['id_servicio_peluqueria_pk', 'nombre_servicio_peluqueria', 'descripcion_servicio', 'precio_servicio', 'duracion_estimada', 'requisitos']}
-            showGridlines
-            paginator
-            rows={5}
-            rowsPerPageOptions={[5, 10, 20, 25]}
-            paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-            tableStyle={{ minWidth: '50rem' }}
-            className="mt-4"
-            size="small"
-            selectionMode="single"
-            rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
-          >
+          <div style={{ width: '100%', overflowX: 'auto' }}>
+            <DataTable
+              value={servicios}
+              loading={false}
+              loadingIcon={() => (
+                <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
+                  <span>Cargando datos...</span>
+                </div>
+              )}
+              globalFilter={globalFilter}
+              globalFilterFields={['id_servicio_peluqueria_pk', 'nombre_servicio_peluqueria', 'descripcion_servicio', 'precio_servicio', 'duracion_estimada', 'requisitos']}
+              showGridlines
+              paginator
+              rows={5}
+              rowsPerPageOptions={[5, 10, 20, 25]}
+              paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+              tableStyle={{ 
+                minWidth: '50rem',
+                width: '100%',
+                tableLayout: 'fixed'
+              }}
+              className="mt-4"
+              size="small"
+              selectionMode="single"
+              rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
+              style={{ width: '100%' }}
+            >
             <Column
               field="id_servicio_peluqueria_pk"
               header="ID"
@@ -251,8 +259,18 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
               sortField="activo"
               className="text-sm"
             ></Column>
-            <Column header="ACCIONES" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm"></Column>
+            <Column 
+              header="ACCIONES" 
+              body={actionBotones} 
+              style={{ width: '120px', minWidth: '120px' }}
+              bodyStyle={{ 
+                textAlign: 'center', 
+                padding: '8px'
+              }}
+              className="text-sm"
+            ></Column>
           </DataTable>
+          </div>
         </>
       )}
     </div>

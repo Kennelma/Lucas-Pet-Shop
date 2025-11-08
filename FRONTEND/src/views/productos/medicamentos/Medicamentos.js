@@ -263,13 +263,23 @@ const Medicamentos = () => {
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
-      {/* Encabezado */}
-      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 mb-3"
-           style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
-        <h2 className="text-2xl font-black text-center uppercase text-gray-800">
-          GESTIÓN DE MEDICAMENTOS
-        </h2>
-        <p className="text-center text-gray-600 italic">
+      {/* Título */}
+      <div className="rounded-xl p-6 mb-3"
+        style={{
+          backgroundImage: 'url("/H3.jpg")',
+          backgroundColor: '#FFDE59',
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'left center',
+          boxShadow: '0 0 8px #FFDE5940, 0 0 0 1px #FFDE5933'
+        }}
+      >
+        <div className="flex justify-end items-right">
+          <h2 className="text-2xl font-black text-right uppercase text-white">
+            GESTIÓN DE MEDICAMENTOS
+          </h2>
+        </div>
+        <p className="text-right text-white italic mt-2">
           Administra medicamentos veterinarios, lotes y control de inventario
         </p>
       </div>
@@ -308,7 +318,7 @@ const Medicamentos = () => {
 
       {/* Contenido principal */}
       <div className="bg-white rounded-xl p-6 mb-6"
-           style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+           style={{boxShadow: '0 0 8px #FFDE5940, 0 0 0 1px #FFDE5933'}}>
         {vistaActual === "kardex" ? (
           <KardexTable kardexData={kardexFiltrado} />
         ) : (
@@ -333,7 +343,7 @@ const Medicamentos = () => {
               </div>
 
               <button
-                className="bg-purple-500 text-white px-6 py-2 rounded-full hover:bg-purple-600 transition-colors flex items-center gap-2 uppercase"
+                className="bg-yellow-200 text-white px-6 py-2 rounded-full hover:bg-yellow-500 transition-colors flex items-center gap-2 uppercase"
                 style={{ borderRadius: '12px' }}
                 onClick={() => setModalVisible(true)}
               >

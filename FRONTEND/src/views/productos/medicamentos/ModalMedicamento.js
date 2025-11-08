@@ -16,10 +16,12 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
     fecha_vencimiento: "",
     stock_lote: "",
     stock_minimo: "5",
-    activo: true
+    activo: true,
+    tasaImpuesto: 15
   });
 
   const [errores, setErrores] = useState({});
+  const [aplicaImpuesto, setAplicaImpuesto] = useState(true);
 
   // Función para normalizar texto: Primera letra mayúscula, resto minúscula
   const normalizarTexto = (texto) => {
@@ -55,8 +57,10 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
           stock_minimo: medicamentoEditando.stock_minimo || "5",
           codigo_lote: "",
           fecha_vencimiento: "",
-          stock_lote: ""
+          stock_lote: "",
+          tasaImpuesto: medicamentoEditando.tasa_impuesto || 15
         });
+        setAplicaImpuesto(medicamentoEditando.aplica_impuesto !== undefined ? medicamentoEditando.aplica_impuesto : true);
         setPaso(1);
       } else {
         setFormData({
@@ -71,8 +75,10 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
           stock_minimo: "5",
           codigo_lote: "",
           fecha_vencimiento: "",
-          stock_lote: ""
+          stock_lote: "",
+          tasaImpuesto: 15
         });
+        setAplicaImpuesto(true);
         setPaso(1);
       }
       setErrores({});
@@ -276,10 +282,11 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">{medicamentoEditando ? 'EDITAR MEDICAMENTO' : 'NUEVO MEDICAMENTO'}</div>}
       visible={isOpen}
-      style={medicamentoEditando ? 
-        { width: '30rem', maxHeight: '90vh', borderRadius: '1.5rem' } : 
-        { width: '28rem', borderRadius: '1.5rem' }
-      }
+      style={{ 
+        width: '30rem', 
+        maxHeight: '90vh', 
+        borderRadius: '1.5rem' 
+      }}
       modal
       closable={false}
       onHide={onClose}
@@ -288,7 +295,11 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
       dismissableMask={false}
       draggable={false}
       resizable={false}
-      contentStyle={medicamentoEditando ? { overflowY: 'visible', padding: '1rem' } : {}}
+      contentStyle={{ 
+        overflowY: 'auto', 
+        maxHeight: 'calc(90vh - 140px)',
+        padding: '1rem' 
+      }}
     >
       {/* Indicador de pasos */}
       {!medicamentoEditando && (
@@ -440,6 +451,8 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                 </select>
               </span>
             </div>
+
+         
           </>
         )}
 
