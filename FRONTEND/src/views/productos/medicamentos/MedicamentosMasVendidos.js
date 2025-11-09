@@ -106,7 +106,7 @@ const MedicamentosMasVendidos = ({ medicamentos = [] }) => {
     <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #FFDE5940, 0 0 0 1px #FFDE5933'}}>
       <div className="flex justify-between items-center mb-4">
         <div className="flex flex-col items-center justify-center flex-1 text-center">
-          <h className="text-xl font-bold text-gray-800 mb-1">MÁS VENDIDOS</h>
+          <div className="text-xl font-bold text-gray-800 mb-1">MÁS VENDIDOS</div>
           <p className="text-gray-600 text-sm">MEDICAMENTOS VETERINARIOS MÁS SOLICITADOS</p>
         </div>
         <button
@@ -124,7 +124,7 @@ const MedicamentosMasVendidos = ({ medicamentos = [] }) => {
             {medicamentosMasVendidos.map((medicamento, index) => (
               <div key={medicamento.id} className="bg-white/80 backdrop-blur-sm rounded-md p-2 border border-white/50 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 flex flex-col h-52">
                 <div className="flex-grow flex flex-col items-center justify-center">
-                  <h className="font-semibold text-gray-800 text-[16px] leading-tight text-center mb-1">{medicamento.nombre}</h>
+                  <div className="font-semibold text-gray-800 text-[16px] leading-tight text-center mb-1">{medicamento.nombre}</div>
                   <p className="text-xs text-gray-500 text-center mb-1">{medicamento.presentacion}</p>
                 
                 </div>

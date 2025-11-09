@@ -15,8 +15,19 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
   const buttonRef = useRef(null);
 
   const checkPosition = () => {
-    const showAbove = rowIndex >= 2 || rowIndex >= (totalRows - 3);
-    setShouldShowAbove(showAbove);
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const menuHeight = 80; // Altura aproximada del menú
+      
+      // Si no hay espacio suficiente abajo, mostrar arriba
+      const showAbove = rect.bottom + menuHeight > viewportHeight - 50;
+      setShouldShowAbove(showAbove);
+    } else {
+      // Fallback a la lógica anterior si no hay referencia
+      const showAbove = rowIndex >= 2 || rowIndex >= (totalRows - 3);
+      setShouldShowAbove(showAbove);
+    }
   };
 
   React.useEffect(() => {
@@ -69,11 +80,14 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
 
       {isOpen && (
         <div 
-          className="fixed bg-white border border-gray-200 rounded-lg shadow-xl w-28"
+          className="fixed bg-white border border-gray-200 rounded-lg shadow-xl min-w-[140px]"
           style={{
-            top: buttonRef.current?.getBoundingClientRect().top + 40,
-            left: buttonRef.current?.getBoundingClientRect().left - 80,
-            zIndex: 999999
+            zIndex: 99999,
+            position: 'fixed',
+            left: buttonRef.current ? buttonRef.current.getBoundingClientRect().right - 140 : 'auto',
+            top: shouldShowAbove ? 
+              (buttonRef.current ? buttonRef.current.getBoundingClientRect().top - 80 : 'auto') : 
+              (buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 5 : 'auto')
           }}
         >
           <div
@@ -172,7 +186,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
         </div>
 
         <button
-          className="bg-rose-300 text-white px-6 py-2 rounded hover:bg-rose-600 transition-colors flex items-center gap-2"
+          className="bg-rose-300 text-black px-6 py-2 rounded hover:bg-rose-600 transition-colors flex items-center gap-2"
           onClick={() => abrirModalServicio(null)}
         >
           <FontAwesomeIcon icon={faPlus} />
@@ -195,43 +209,70 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
         </div>
       ) : (
         <>
-          <div style={{ width: '100%', overflowX: 'auto' }}>
-            <DataTable
-              value={servicios}
-              loading={false}
-              loadingIcon={() => (
-                <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
-                  <span>Cargando datos...</span>
-                </div>
-              )}
-              globalFilter={globalFilter}
-              globalFilterFields={['id_servicio_peluqueria_pk', 'nombre_servicio_peluqueria', 'descripcion_servicio', 'precio_servicio', 'duracion_estimada', 'requisitos']}
-              showGridlines
-              paginator
-              rows={5}
-              rowsPerPageOptions={[5, 10, 20, 25]}
-              paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-              tableStyle={{ 
-                minWidth: '50rem',
-                width: '100%',
-                tableLayout: 'fixed'
-              }}
-              className="mt-4"
-              size="small"
-              selectionMode="single"
-              rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
-              style={{ width: '100%' }}
-            >
+          <DataTable
+            value={servicios}
+            loading={false}
+            loadingIcon={() => (
+              <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
+                <span>Cargando datos...</span>
+              </div>
+            )}
+            globalFilter={globalFilter}
+            globalFilterFields={['id_servicio_peluqueria_pk', 'nombre_servicio_peluqueria', 'descripcion_servicio', 'precio_servicio', 'duracion_estimada', 'requisitos']}
+            showGridlines
+            paginator
+            rows={5}
+            rowsPerPageOptions={[5, 10, 20, 25]}
+            paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+            tableStyle={{ 
+              width: '970px',
+              tableLayout: 'fixed'
+            }}
+            className="mt-4"
+            size="small"
+            selectionMode="single"
+            rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
+            style={{ width: '100%' }}
+          >
             <Column
               field="id_servicio_peluqueria_pk"
               header="ID"
               body={(rowData) => servicios.length - servicios.indexOf(rowData)}
               sortable
               className="text-sm"
+              style={{ width: '50px' }}
             />
-            <Column field="nombre_servicio_peluqueria" header="SERVICIO" sortable className="text-sm"></Column>
-            <Column field="descripcion_servicio" header="DESCRIPCIÓN" className="text-sm"></Column>
+            <Column 
+              field="nombre_servicio_peluqueria" 
+              header="SERVICIO" 
+              sortable 
+              className="text-sm"
+              style={{ width: '150px' }}
+              bodyStyle={{ 
+                whiteSpace: 'normal',
+                wordWrap: 'break-word',
+                overflow: 'hidden',
+                textOverflow: 'clip',
+                lineHeight: '1.4',
+                padding: '8px 10px'
+              }}
+            />
+            <Column 
+              field="descripcion_servicio" 
+              header="DESCRIPCIÓN" 
+              className="text-sm"
+              style={{ width: '210px' }}
+              headerStyle={{ padding: '8px 12px' }}
+              bodyStyle={{ 
+                whiteSpace: 'normal',
+                wordWrap: 'break-word',
+                overflow: 'hidden',
+                textOverflow: 'clip',
+                lineHeight: '1.4',
+                padding: '8px 12px'
+              }}
+            />
             <Column
               field="precio_servicio"
               header="PRECIO"
@@ -240,7 +281,11 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
               sortField="precio_servicio"
               dataType="numeric"
               className="text-sm"
-            ></Column>
+              style={{ width: '90px' }}
+              bodyStyle={{ 
+                padding: '8px 8px'
+              }}
+            />
             <Column
               field="duracion_estimada"
               header="DURACIÓN"
@@ -249,8 +294,27 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
               sortField="duracion_estimada"
               dataType="numeric"
               className="text-sm"
-            ></Column>
-            <Column field="requisitos" header="REQUISITOS" className="text-sm"></Column>
+              style={{ width: '110px' }}
+              headerStyle={{ padding: '8px 16px' }}
+              bodyStyle={{ 
+                padding: '8px 16px'
+              }}
+            />
+            <Column 
+              field="requisitos" 
+              header="REQUISITOS" 
+              className="text-sm"
+              style={{ width: '160px' }}
+              headerStyle={{ padding: '8px 18px' }}
+              bodyStyle={{ 
+                whiteSpace: 'normal',
+                wordWrap: 'break-word',
+                overflow: 'hidden',
+                textOverflow: 'clip',
+                lineHeight: '1.4',
+                padding: '8px 18px'
+              }}
+            />
             <Column
               field="activo"
               header="ESTADO"
@@ -258,19 +322,22 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
               sortable
               sortField="activo"
               className="text-sm"
-            ></Column>
+              style={{ width: '120px' }}
+              bodyStyle={{ 
+                padding: '8px 8px'
+              }}
+            />
             <Column 
               header="ACCIONES" 
               body={actionBotones} 
-              style={{ width: '120px', minWidth: '120px' }}
               bodyStyle={{ 
                 textAlign: 'center', 
                 padding: '8px'
               }}
               className="text-sm"
-            ></Column>
+              style={{ width: '80px' }}
+            />
           </DataTable>
-          </div>
         </>
       )}
     </div>

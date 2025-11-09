@@ -18,6 +18,7 @@ import {
   faCoins,
   faShower,
   faStore,
+  faShield,
 } from '@fortawesome/free-solid-svg-icons'
 
 
@@ -120,22 +121,6 @@ const _nav = [
     ],
   },
 
-    // PERFIL DE USUARIO
-    {
-      component: CNavGroup,
-      name: 'Perfil de usuario',
-      icon: <FontAwesomeIcon icon={faUser} className="nav-icon" />,
-      to: '/usuario',
-    },
-
-    // SEGURIDAD
-    {
-      component: CNavGroup,
-      name: 'Seguridad',
-      icon: <FontAwesomeIcon icon={faTags} className="nav-icon" />,
-      to: '/seguridad',
-    },
-
   //EMPRESA
   {
     component: CNavItem,
@@ -157,7 +142,7 @@ const _nav = [
     component: CNavItem,
     name: 'Seguridad',
     to: '/seguridad',
-    icon: <FontAwesomeIcon icon={faBell} className="nav-icon" />,
+    icon: <FontAwesomeIcon icon={faShield} className="nav-icon" />,
   },
 
 

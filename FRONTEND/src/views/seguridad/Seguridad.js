@@ -6,6 +6,8 @@
 
 
 
+import Usuarios from './usuarios/Usuarios';
+
 const Seguridad = () => {
   return  (
 
@@ -17,9 +19,11 @@ const Seguridad = () => {
                 GESTIÓN DE SEGURIDAD
               </h2>
             </div>
-            <p className="text-center text-gray-600 italic">Administra la información y perfiles de clientes del negocio</p>
+            <p className="text-center text-gray-600 italic">Administra la información y perfiles de usuarios del sistema</p>
           </div>
 
+          {/* Componente de Usuarios */}
+          <Usuarios />
         </div>
       );
 
