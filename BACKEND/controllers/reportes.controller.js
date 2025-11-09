@@ -1,4 +1,4 @@
-
+const express = require('express');
 //ENDPOINT PARA LOS GRAFICOS
 const mysqlConnection = require('../config/conexion');
 
@@ -58,6 +58,53 @@ exports.registroIngresos = async (req, res) => {
     }
 };
 
+exports.registrosGastos = async (req, res) => {
+  let conn;
+  try {
+    conn = await mysqlConnection.getConnection();
+
+    const { anio, mes } = req.query;
+
+    let query = `
+      SELECT
+        g.id_gasto_pk,
+        g.detalle_gasto,
+        g.monto_gasto,
+        g.fecha_registro_gasto,
+        g.id_usuario_fk,
+        u.usuario
+      FROM tbl_gastos g
+      INNER JOIN tbl_usuarios u ON u.id_usuario_pk = g.id_usuario_fk
+      WHERE 1=1
+    `;
+
+    const params = [];
+
+    if (anio && mes) {
+      query += ` AND YEAR(g.fecha_registro_gasto) = ? AND MONTH(g.fecha_registro_gasto) = ?`;
+      params.push(parseInt(anio), parseInt(mes));
+    }
+    else if (anio) {
+      query += ` AND YEAR(g.fecha_registro_gasto) = ?`;
+      params.push(parseInt(anio));
+    }
+
+    query += ` ORDER BY g.fecha_registro_gasto DESC`;
+
+    const [gastos] = await conn.query(query, params);
+
+    res.status(200).json({
+      ok: true,
+      gastos,
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'ERROR AL OBTENER LOS GASTOS.' });
+  } finally {
+    if (conn) conn.release();
+  }
+};
 
 //ENDPOINT PARA EL RESUMEN FINANCIERO DEL DIA ACTUAL (INGRESOS Y GASTOS DEL DIA)
 exports.resumenDiario = async (req, res) => {
@@ -169,7 +216,7 @@ exports.registrosGastos = async (req, res) => {
 };
 
 exports.resumenGraficos = async (req, res) => {
-    
+
   let conn;
   try {
     conn = await mysqlConnection.getConnection();

@@ -10,7 +10,6 @@ import {
   Edit3,
   Trash2
 } from 'lucide-react';
-import { Calendar } from 'lucide-react';
 import Swal from 'sweetalert2';
 import ModalAgregarGasto from './modal_nuevo_gasto';
 import ModalActualizarGasto from './modal_actualizar_gasto';
@@ -142,60 +141,184 @@ const Dashboard = () => {
     }
   };
 
-  return (
-    <div className="p-6 ">
-      {/* 🎯 Header con Bienvenida */}
-      <div className="mb-8">
-        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-          <div className="bg-blue-600 p-8 text-white relative overflow-hidden">
-            <div className="absolute inset-0 bg-black/10"></div>
-            <div className="relative z-10">
-              <h1 className="text-3xl font-bold mb-2">¡Hola, {usuario?.nombre || 'Administrador'}! </h1>
-              <p className="text-blue-100 text-lg">Bienvenido a Lucas Pet Shop - Panel de Control</p>
-              <div className="mt-4 flex items-center gap-4 text-sm text-blue-100">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  {today.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </div>
-              </div>
+  return (
+    <div className="p-5 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+      {/* Header con Bienvenida */}
+      <div className="mb-6 bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 p-6 text-white">
+          <h1 className="text-2xl font-bold mb-2">¡Hola, {usuario?.nombre || 'Usuario'}! 👋</h1>
+          <p className="opacity-90">Bienvenido a Lucas Pet Shop - Panel de Control</p>
+        </div>
+      </div>
+
+      {/* Métricas Rápidas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Ventas Hoy</p>
+              <p className="text-2xl font-bold text-green-600">L. 2,450</p>
+            </div>
+            <div className="bg-green-100 p-3 rounded-full">
+              <DollarSign className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Clientes Nuevos</p>
+              <p className="text-2xl font-bold text-blue-600">12</p>
+            </div>
+            <div className="bg-blue-100 p-3 rounded-full">
+              <Users className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Productos Activos</p>
+              <p className="text-2xl font-bold text-purple-600">245</p>
+            </div>
+            <div className="bg-purple-100 p-3 rounded-full">
+              <Package className="w-6 h-6 text-purple-600" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Stock Bajo</p>
+              <p className="text-2xl font-bold text-red-600">8</p>
+            </div>
+            <div className="bg-red-100 p-3 rounded-full">
+              <TrendingUp className="w-6 h-6 text-red-600" />
             </div>
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        <div className="lg:col-span-3 space-y-4">
-          {/* Accesos Directos */}
-          <div className="bg-white shadow-md rounded-xl p-4">
-            <h2 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-blue-500" />
-              Accesos Directos
-            </h2>
-            <div className="grid grid-cols-3 gap-3">
-              <button
-                onClick={() => navigate('/facturacion')}
-                className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-sm p-4 rounded-xl flex flex-col items-center justify-center hover:shadow-md hover:scale-105 transition-all group"
-              >
-                <FileText className="w-8 h-8 text-blue-600 group-hover:text-blue-700" />
-                <p className="mt-2 text-gray-700 font-semibold text-xs">Facturación</p>
-              </button>
-              <button
-                onClick={() => navigate('/reportes')}
-                className="bg-gradient-to-br from-purple-50 to-purple-100 shadow-sm p-4 rounded-xl flex flex-col items-center justify-center hover:shadow-md hover:scale-105 transition-all group"
-              >
-                <TrendingUp className="w-8 h-8 text-purple-600 group-hover:text-purple-700" />
-                <p className="mt-2 text-gray-700 font-semibold text-xs">Reportes</p>
-              </button>
-              <button
-                onClick={() => navigate('/clientes')}
-                className="bg-gradient-to-br from-green-50 to-green-100 shadow-sm p-4 rounded-xl flex flex-col items-center justify-center hover:shadow-md hover:scale-105 transition-all group"
-              >
-                <Users className="w-8 h-8 text-green-600 group-hover:text-green-700" />
-                <p className="mt-2 text-gray-700 font-semibold text-xs">Clientes</p>
-              </button>
-            </div>
-          </div>
 
-          {/* Gastos ocupan el ancho completo */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-3 space-y-6">
+          
+          {/* Accesos Directos Principales */}
+          <div className="bg-white shadow-lg rounded-2xl p-6">
+            <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-blue-500" />
+              Accesos Principales
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <button
+                onClick={() => navigate('/facturacion')}
+                className="group bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 p-4 rounded-xl flex flex-col items-center justify-center transition-all hover:shadow-md hover:scale-105"
+              >
+                <div className="bg-blue-500 p-2 rounded-lg mb-2 group-hover:bg-blue-600 transition-colors">
+                  <FileText className="w-6 h-6 text-white" />
+                </div>
+                <p className="text-gray-700 font-medium text-sm">Facturación</p>
+              </button>
+              
+              <button
+                onClick={() => navigate('/productos')}
+                className="group bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 p-4 rounded-xl flex flex-col items-center justify-center transition-all hover:shadow-md hover:scale-105"
+              >
+                <div className="bg-purple-500 p-2 rounded-lg mb-2 group-hover:bg-purple-600 transition-colors">
+                  <Package className="w-6 h-6 text-white" />
+                </div>
+                <p className="text-gray-700 font-medium text-sm">Productos</p>
+              </button>
+              
+              <button
+                onClick={() => navigate('/clientes')}
+                className="group bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 p-4 rounded-xl flex flex-col items-center justify-center transition-all hover:shadow-md hover:scale-105"
+              >
+                <div className="bg-green-500 p-2 rounded-lg mb-2 group-hover:bg-green-600 transition-colors">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <p className="text-gray-700 font-medium text-sm">Clientes</p>
+              </button>
+              
+              <button
+                onClick={() => navigate('/reportes')}
+                className="group bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 p-4 rounded-xl flex flex-col items-center justify-center transition-all hover:shadow-md hover:scale-105"
+              >
+                <div className="bg-orange-500 p-2 rounded-lg mb-2 group-hover:bg-orange-600 transition-colors">
+                  <TrendingUp className="w-6 h-6 text-white" />
+                </div>
+                <p className="text-gray-700 font-medium text-sm">Reportes</p>
+              </button>
+            </div>
+          </div>
+
+          {/* Accesos Rápidos Secundarios */}
+          <div className="bg-white shadow-lg rounded-2xl p-6">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">Accesos Rápidos</h2>
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+              <button
+                onClick={() => navigate('/productos/alimentos')}
+                className="group flex flex-col items-center p-3 rounded-lg hover:bg-pink-50 transition-colors"
+              >
+                <div className="bg-pink-100 p-2 rounded-full mb-1 group-hover:bg-pink-200">
+                  <span className="text-lg">🍖</span>
+                </div>
+                <span className="text-xs font-medium text-gray-600">Alimentos</span>
+              </button>
+              
+              <button
+                onClick={() => navigate('/productos/medicamentos')}
+                className="group flex flex-col items-center p-3 rounded-lg hover:bg-red-50 transition-colors"
+              >
+                <div className="bg-red-100 p-2 rounded-full mb-1 group-hover:bg-red-200">
+                  <span className="text-lg">💊</span>
+                </div>
+                <span className="text-xs font-medium text-gray-600">Medicinas</span>
+              </button>
+              
+              <button
+                onClick={() => navigate('/productos/animales')}
+                className="group flex flex-col items-center p-3 rounded-lg hover:bg-yellow-50 transition-colors"
+              >
+                <div className="bg-yellow-100 p-2 rounded-full mb-1 group-hover:bg-yellow-200">
+                  <span className="text-lg">🐕</span>
+                </div>
+                <span className="text-xs font-medium text-gray-600">Animales</span>
+              </button>
+              
+              <button
+                onClick={() => navigate('/servicios')}
+                className="group flex flex-col items-center p-3 rounded-lg hover:bg-indigo-50 transition-colors"
+              >
+                <div className="bg-indigo-100 p-2 rounded-full mb-1 group-hover:bg-indigo-200">
+                  <span className="text-lg">✂️</span>
+                </div>
+                <span className="text-xs font-medium text-gray-600">Peluquería</span>
+              </button>
+              
+              <button
+                onClick={() => navigate('/recordatorios')}
+                className="group flex flex-col items-center p-3 rounded-lg hover:bg-teal-50 transition-colors"
+              >
+                <div className="bg-teal-100 p-2 rounded-full mb-1 group-hover:bg-teal-200">
+                  <span className="text-lg">🔔</span>
+                </div>
+                <span className="text-xs font-medium text-gray-600">Recordatorios</span>
+              </button>
+              
+              <button
+                onClick={() => navigate('/empresa')}
+                className="group flex flex-col items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <div className="bg-gray-100 p-2 rounded-full mb-1 group-hover:bg-gray-200">
+                  <span className="text-lg">🏢</span>
+                </div>
+                <span className="text-xs font-medium text-gray-600">Empresa</span>
+              </button>
+            </div>
+          </div>          {/* Gastos ocupan el ancho completo */}
           <div className="grid grid-cols-1 gap-4"> 
             {/* Sección de gastos */}
             <div className="bg-gradient-to-br from-yellow-50 to-orange-50 shadow-md rounded-xl p-3 border border-orange-200">

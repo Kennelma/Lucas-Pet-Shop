@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-//import TablaRecordatorios from './tabla-recordatorios.js';
-import { verCatalogo } from '../../AXIOS.SERVICES/reminders';
+import TablaRecordatorios from './tabla-recordatorios.js';
+import { verCatalogo } from '../../AXIOS.SERVICES/reminders-axios.js';
+
 
 const Recordatorios = () => {
   const [tipoServicio, setTipoServicio] = useState([]);

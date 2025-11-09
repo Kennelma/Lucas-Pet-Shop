@@ -105,32 +105,60 @@ const DetallesFactura = ({
 
   //====================CÁLCULOS_DE_TOTALES====================
 
-  const TOTAL_BRUTO = items.reduce((sum, it) => {
+  //====================CÁLCULOS_DE_TOTALES====================
+
+const TOTAL_AJUSTE = items.reduce(
+  (sum, it) => sum + (parseFloat(it.ajuste) || 0),
+  0
+);
+
+const DESCUENTO = Math.max(0, parseInt(descuentoValor, 10) || 0);
+
+  let subtotal_exento_total = 0;
+  let subtotal_gravado_sin_isv = 0;
+
+  items.forEach((it) => {
     const cantidad = parseFloat(it.cantidad) || 0;
     const precio = parseFloat(it.precio) || 0;
-    return sum + cantidad * precio;
-  }, 0);
+    const tiene_impuesto = it.tiene_impuesto || false;
 
-  const TOTAL_AJUSTE = items.reduce(
-    (sum, it) => sum + (parseFloat(it.ajuste) || 0),
-    0
-  );
+    const total_linea = cantidad * precio;
 
-  const DESCUENTO = Math.max(0, parseInt(descuentoValor, 10) || 0); //ENTERO DEL DESCUENTO
+    if (tiene_impuesto) {
 
-  const TOTAL_FINAL = Math.max(0, TOTAL_BRUTO + TOTAL_AJUSTE - DESCUENTO); //RESTA TODO DEL FINAL
+      //EL PRECIO YA INCLUYE EL ISV, YA VIENE DEL MODULO DE PRODUCTOS  (ej: 230), extraemos la base sin ISV (230/1.15 = 200)
+      subtotal_gravado_sin_isv += total_linea / 1.15;
+    } else {
 
-  //const DIVISOR_ISV = 1.15;
+      subtotal_exento_total += total_linea;
+    }
+  });
 
-  //const SUBTOTAL_GRAVABLE = TOTAL_FINAL > 0 ? TOTAL_FINAL / DIVISOR_ISV : 0;
+  const SUBTOTAL_EXENTO = subtotal_exento_total;
+  const SUBTOTAL_GRAVADO = subtotal_gravado_sin_isv; //BASE SIN ISV
+  const IMPUESTO = SUBTOTAL_GRAVADO * 0.15; //15 DE LA BASE
 
-  const SUBTOTAL = TOTAL_FINAL;
-
-  //const IMPUESTO = TOTAL_FINAL - SUBTOTAL;
+  const TOTAL_FINAL = Math.max(0, SUBTOTAL_EXENTO + SUBTOTAL_GRAVADO + IMPUESTO + TOTAL_AJUSTE - DESCUENTO);
 
   const SALDO = TOTAL_FINAL;
 
-  //====================⭐ FUNCIÓN PARA GUARDAR FACTURA SIN ABRIR PAGOS====================
+
+// AGREGA ESTOS CONSOLE.LOG:
+console.log("🔍 DEBUG ITEMS:", items.map(it => ({
+  nombre: it.item,
+  precio: it.precio,
+  tiene_impuesto: it.tiene_impuesto,
+  tipo: it.tipo
+})));
+
+console.log("📊 SUBTOTAL_EXENTO:", SUBTOTAL_EXENTO);
+console.log("📊 SUBTOTAL_GRAVADO:", SUBTOTAL_GRAVADO);
+console.log("📊 IMPUESTO:", IMPUESTO);
+console.log("📊 TOTAL_FINAL:", TOTAL_FINAL);
+
+
+
+  //====================FUNCIÓN PARA GUARDAR FACTURA SIN ABRIR PAGOS====================
   const handleGuardarFacturaSinPago = async () => {
     // VALIDACIONES
     if (items.length === 0) {
@@ -231,7 +259,6 @@ const DetallesFactura = ({
       return;
     }
 
-    // ⭐ CONSTRUIR PAYLOAD PARA EL BACKEND
     setLoading(true);
 
     const datosFactura = {
@@ -888,53 +915,87 @@ const DetallesFactura = ({
                 </div>
               </div>
 
-              <div className="ml-auto" style={{ maxWidth: "320px" }}>
-                <div
-                  className="flex justify-between text-gray-700"
-                  style={{ fontSize: "14px", marginBottom: "8px" }}
-                >
-                 <span className="font-medium">
-                  {/*
-                    {formatCurrency(SUBTOTAL)}8*/}
-                  </span>
-                </div>
-                {DESCUENTO > 0 && (
-                  <div
-                    className="flex justify-between text-green-600"
-                    style={{ fontSize: "14px", marginBottom: "8px" }}
-                  >
-                    <span>Descuento:</span>
-                    <span className="font-medium">
-                      {formatCurrency(DESCUENTO)}
-                    </span>
-                  </div>
-                )}
-                <div
-                  className="flex justify-between text-gray-700"
-                  style={{ fontSize: "14px", marginBottom: "8px" }}
-                >
-                  {/*
-                  <span>Impuesto (15%):</span>
-                  <span className="font-medium">
-                    {formatCurrency(IMPUESTO)}
-                  </span>* */}
-                </div>
-                <div
-                  className="flex justify-between font-bold text-gray-900 border-t-2 border-gray-300"
-                  style={{
-                    fontSize: "18px",
-                    paddingTop: "8px",
-                    marginBottom: "4px",
-                  }}
-                >
-                  <span>TOTAL:</span>
-                  <span>{formatCurrency(TOTAL_FINAL)}</span>
-                </div>
-                <div className="flex justify-between font-semibold text-blue-600" style={{ fontSize: '17px', paddingTop: '8px' }}>
-                  <span>Saldo Pendiente:&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                  <span>{formatCurrency(SALDO)}</span>
-                </div>
-              </div>
+
+<div className="ml-auto" style={{ maxWidth: "380px" }}>
+  {/* Subtotal Exento */}
+  {SUBTOTAL_EXENTO > 0 && (
+    <div
+      className="flex justify-between text-gray-700"
+      style={{ fontSize: "14px", marginBottom: "8px" }}
+    >
+      <span>Subtotal Exento:</span>
+      <span className="font-medium">
+        {formatCurrency(SUBTOTAL_EXENTO)}
+      </span>
+    </div>
+  )}
+
+  {/* Subtotal Gravado (sin ISV) */}
+  {SUBTOTAL_GRAVADO > 0 && (
+    <div
+      className="flex justify-between text-gray-700"
+      style={{ fontSize: "14px", marginBottom: "8px" }}
+    >
+      <span>Subtotal Gravado:</span>
+      <span className="font-medium">
+        {formatCurrency(SUBTOTAL_GRAVADO)}
+      </span>
+    </div>
+  )}
+
+  {/* ISV 15% */}
+  {IMPUESTO > 0 && (
+    <div
+      className="flex justify-between text-gray-700"
+      style={{ fontSize: "14px", marginBottom: "8px" }}
+    >
+      <span>ISV (15%):</span>
+      <span className="font-medium">
+        {formatCurrency(IMPUESTO)}
+      </span>
+    </div>
+  )}
+
+  {/* Descuento */}
+  {DESCUENTO > 0 && (
+    <div
+      className="flex justify-between text-green-600"
+      style={{ fontSize: "14px", marginBottom: "8px" }}
+    >
+      <span>Descuento:</span>
+      <span className="font-medium">
+        {formatCurrency(DESCUENTO)}
+      </span>
+    </div>
+  )}
+
+  {/* Total */}
+  <div
+    className="flex justify-between font-bold text-gray-900 border-t-2 border-gray-300"
+    style={{
+      fontSize: "18px",
+      paddingTop: "8px",
+      marginBottom: "4px",
+    }}
+  >
+    <span>TOTAL:</span>
+    <span>{formatCurrency(TOTAL_FINAL)}</span>
+  </div>
+
+  {/* Saldo Pendiente */}
+  <div className="flex justify-between font-semibold text-blue-600" style={{ fontSize: '17px', paddingTop: '8px' }}>
+    <span>Saldo Pendiente:</span>
+    <span>{formatCurrency(SALDO)}</span>
+  </div>
+</div>
+
+
+
+
+
+
+
+
             </div>
           </div>
         )}
@@ -947,6 +1008,31 @@ const DetallesFactura = ({
         onPagoConfirmado={handlePaymentSuccess}
         factura={paymentData}
       />
+      {/* 🔍 DEBUG - BORRAR DESPUÉS */}
+{items.length > 0 && (
+  <div style={{
+    position: 'fixed',
+    bottom: 10,
+    left: 10,
+    background: 'black',
+    color: 'lime',
+    padding: '10px',
+    fontSize: '12px',
+    zIndex: 9999,
+    borderRadius: '8px'
+  }}>
+    <div>SUBTOTAL EXENTO: {SUBTOTAL_EXENTO.toFixed(2)}</div>
+    <div>SUBTOTAL GRAVADO: {SUBTOTAL_GRAVADO.toFixed(2)}</div>
+    <div>IMPUESTO: {IMPUESTO.toFixed(2)}</div>
+    <div>TOTAL: {TOTAL_FINAL.toFixed(2)}</div>
+    <hr />
+    {items.map((it, i) => (
+      <div key={i}>
+        Item {i+1}: tiene_impuesto = {String(it.tiene_impuesto)}
+      </div>
+    ))}
+  </div>
+)}
     </div>
   );
 };
