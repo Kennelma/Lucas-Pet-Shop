@@ -15,6 +15,7 @@ require('dotenv').config({
 //IMPORTACIÓN DE JOBS
 require('./jobs/lotes-vencimiento');
 require('./jobs/productos-stock');
+require('./jobs/envio-recordatorios');
 
 
 //PARA QUE EL SERVIDOR PUEDA RECIBIR JSON Y XXWW-FORM-URLENCODED
