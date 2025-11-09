@@ -4,11 +4,12 @@ import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
-import { InputSwitch } from 'primereact/inputswitch'; // Importación necesaria
+import { InputSwitch } from 'primereact/inputswitch';
 import Swal from 'sweetalert2';
 import { actualizarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
-const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
+// ✅ AGREGAR accesoriosExistentes COMO PROP
+const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes = [] }) => {
   const [data, setData] = useState({
     nombre: '',
     categoria: 'COLLAR',
@@ -20,12 +21,10 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
   const [errores, setErrores] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // 💡 Estados para la lógica de Impuestos (ISV)
   const [aplicaImpuesto, setAplicaImpuesto] = useState(false);
   const [tasaImpuesto, setTasaImpuesto] = useState(15);
   const [precioBase, setPrecioBase] = useState(0);
 
-  // Verificar si hay errores para mostrar scroll
   const hayErrores = Object.keys(errores).some(key => errores[key]);
 
   const categorias = [
@@ -42,11 +41,9 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
   const generarSKU = (nombre, id) => {
     if (!nombre) return '';
     const partes = nombre.trim().split(' ').map(p => p.substring(0, 3).toUpperCase());
-    // Usar el ID del producto para garantizar unicidad al actualizar
     return partes.join('-') + (id ? `-${id}` : '-XXX');
   };
 
-  // Función auxiliar para recalcular el precio final
   const recalcularPrecio = (base, tasa, aplicar) => {
     const pBase = parseFloat(base) || 0;
     const pTasa = parseFloat(tasa) || 0;
@@ -57,7 +54,6 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
     }
   }
 
-  // Función para calcular el precio final con ISV (usado en el mensaje de advertencia)
   const calcularPrecioFinalConISV = () => {
     const pBase = parseFloat(precioBase) || 0;
     const pTasa = parseFloat(tasaImpuesto) || 0;
@@ -66,13 +62,11 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
 
   useEffect(() => {
     if (isOpen && editData) {
-      // Lógica de Impuesto al cargar
       const tieneImpuesto = Boolean(editData.tiene_impuesto);
-      const tasa = 15; // Tasa fija del 15% como en alimentos
-      const precioInicial = parseFloat(editData.precio_producto || editData.precio || 0); // Asumiendo que 'precio' o 'precio_producto' es el precio final
+      const tasa = 15;
+      const precioInicial = parseFloat(editData.precio_producto || editData.precio || 0);
       let base = precioInicial;
 
-      // Si el precio inicial ya incluye impuesto, calculamos la base sin impuesto
       if (tieneImpuesto && precioInicial > 0) {
         base = (precioInicial / (1 + tasa / 100));
       }
@@ -85,7 +79,6 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
         nombre: (editData.nombre_producto || editData.nombre || '').toUpperCase(),
         categoria: (editData.tipo_accesorio || editData.categoria || 'COLLAR').toUpperCase(),
         cantidad: editData.stock || 0,
-        // Usamos el precio inicial (el que viene de la BD) para mostrarlo
         precio: precioInicial,
         sku: generarSKU(editData.nombre_producto || editData.nombre || '', editData.id_producto),
         activo: editData.activo !== undefined ? editData.activo : true
@@ -103,17 +96,14 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
       const newData = { ...prev, [field]: val };
       if (field === 'nombre') newData.sku = generarSKU(val, editData.id_producto);
 
-      // LÓGICA DE ACTUALIZACIÓN DEL PRECIO BASE CUANDO EL USUARIO LO EDITA
       if (field === 'precio') {
         const precioActual = parseFloat(val) || 0;
         const tasa = parseFloat(tasaImpuesto) || 0;
         let nuevaBase;
 
         if (aplicaImpuesto && tasa > 0) {
-          // Si el impuesto está activo, el valor introducido es CON impuesto.
           nuevaBase = (precioActual / (1 + tasa / 100));
         } else {
-          // Si no hay impuesto, el valor introducido es el precio base.
           nuevaBase = precioActual;
         }
         setPrecioBase(nuevaBase.toFixed(2));
@@ -122,39 +112,50 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
       return newData;
     });
 
-    // Validación en tiempo real
+    // ✅ VALIDACIÓN MEJORADA CON NOMBRES DUPLICADOS
     setErrores(prev => {
       const newErrores = { ...prev };
-      if (['nombre', 'categoria'].includes(field)) {
+      
+      if (field === 'nombre') {
+        if (!val.trim()) {
+          newErrores[field] = 'El nombre del accesorio es obligatorio';
+        } else {
+          // Verificar si ya existe otro accesorio con ese nombre (excluyendo el actual)
+          const nombreExiste = accesoriosExistentes.some(acc => 
+            acc.nombre.toLowerCase() === val.trim().toLowerCase() &&
+            acc.id_producto !== editData.id_producto
+          );
+          
+          if (nombreExiste) {
+            newErrores[field] = 'Ya existe un accesorio con este nombre';
+          } else {
+            newErrores[field] = '';
+          }
+        }
+      } else if (field === 'categoria') {
         newErrores[field] = val ? '' : 'Campo obligatorio';
       } else if (['precio', 'cantidad'].includes(field)) {
         newErrores[field] = (parseFloat(val) || 0) >= 0 ? '' : 'No puede ser negativo';
         if (field === 'precio' && (parseFloat(val) || 0) <= 0) {
-            newErrores[field] = 'Debe ser mayor a 0';
+          newErrores[field] = 'Debe ser mayor a 0';
         }
       }
+      
       return newErrores;
     });
   };
 
-  // Handler para el InputSwitch de impuesto
   const handleImpuestoChange = (value) => {
     setAplicaImpuesto(value);
-
-    // Usamos el precioBase (siempre sin impuesto) para recalcular el precio mostrado
     const nuevoPrecio = recalcularPrecio(precioBase, tasaImpuesto, value);
-
-    // Actualizamos el precio mostrado en el formulario
     setData(prev => ({ ...prev, precio: parseFloat(nuevoPrecio).toFixed(2) }));
   };
 
-  // Handler para la tasa de impuesto (también debe recalcular el precio)
   const handleTasaChange = (e) => {
     const nuevaTasa = parseFloat(e.target.value) || 0;
     setTasaImpuesto(nuevaTasa);
 
     if (aplicaImpuesto) {
-      // Si el impuesto está activo, recalcular el precio con la nueva tasa
       const nuevoPrecio = recalcularPrecio(precioBase, nuevaTasa, true);
       setData(prev => ({ ...prev, precio: parseFloat(nuevoPrecio).toFixed(2) }));
     }
@@ -162,7 +163,21 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
 
   const validarDatos = () => {
     let temp = {};
-    if (!data.nombre?.trim()) temp.nombre = 'Campo obligatorio';
+    
+    if (!data.nombre?.trim()) {
+      temp.nombre = 'El nombre del accesorio es obligatorio';
+    } else {
+      // ✅ VALIDACIÓN DE NOMBRE DUPLICADO EN EL SUBMIT
+      const nombreExiste = accesoriosExistentes.some(acc => 
+        acc.nombre.toLowerCase() === data.nombre.trim().toLowerCase() &&
+        acc.id_producto !== editData.id_producto
+      );
+      
+      if (nombreExiste) {
+        temp.nombre = 'Ya existe un accesorio con este nombre';
+      }
+    }
+    
     if (!data.categoria) temp.categoria = 'Campo obligatorio';
     if (parseFloat(data.precio) <= 0) temp.precio = 'Debe ser mayor a 0';
     if (data.cantidad < 0) temp.cantidad = 'No puede ser negativo';
@@ -181,11 +196,10 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
         nombre_producto: data.nombre,
         tipo_accesorio: data.categoria,
         stock: data.cantidad,
-        precio_producto: parseFloat(data.precio), // Ya tiene el ISV si aplica
+        precio_producto: parseFloat(data.precio),
         tipo_producto: 'ACCESORIOS',
         sku: data.sku,
         activo: data.activo ? 1 : 0,
-        // 💡 Campos de Impuesto
         tiene_impuesto: aplicaImpuesto ? 1 : 0
       };
 
@@ -220,9 +234,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
     }
   };
 
-  // 💡 Etiqueta dinámica para el precio
   const precioLabel = aplicaImpuesto ? 'PRECIO CON ISV (L)' : 'PRECIO BASE (L)';
-
 
   const footer = (
     <div className="flex justify-end gap-3 mt-2">
@@ -266,7 +278,6 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
       resizable={false}
       contentStyle={{ overflowY: 'auto', maxHeight: 'calc(85vh - 120px)' }}
     >
-      {/* Formulario */}
       <div className="flex flex-col gap-3 overflow-visible">
         {/* Nombre del Accesorio */}
         <span>
@@ -312,7 +323,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
         {/* Precio */}
         <span>
           <label htmlFor="precio" className="text-xs font-semibold text-gray-700 mb-1">
-            {precioLabel} {/* 👈 Etiqueta dinámica aplicada */}
+            {precioLabel}
           </label>
           <InputNumber
             id="precio"
@@ -330,56 +341,48 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
           {errores.precio && <p className="text-xs text-red-600 mt-1">{errores.precio}</p>}
         </span>
 
-        {/* 🚨 Sección de Impuestos */}
-        {/* Aplica impuesto - INPUTSWITCH */}
+        {/* Sección de Impuestos */}
         <div className="flex items-center justify-between p-2 rounded-lg border border-gray-200 bg-gray-50 mt-1">
-            <label className="text-sm font-semibold text-gray-700">¿APLICA ISV?</label>
-
-            <div className="flex items-center gap-2">
-              {/* Etiqueta NO */}
-              <span className={`text-sm font-medium ${!aplicaImpuesto ? 'text-red-600' : 'text-gray-500'}`}>NO</span>
-
-              {/* InputSwitch */}
-              <InputSwitch
-                  id="aplicaImpuestoSwitch"
-                  checked={aplicaImpuesto}
-                  onChange={e => handleImpuestoChange(e.value)}
-              />
-
-              {/* Etiqueta SÍ */}
-              <span className={`text-sm font-medium ${aplicaImpuesto ? 'text-green-600' : 'text-gray-500'}`}>SÍ</span>
-            </div>
+          <label className="text-sm font-semibold text-gray-700">¿APLICA ISV?</label>
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-medium ${!aplicaImpuesto ? 'text-red-600' : 'text-gray-500'}`}>NO</span>
+            <InputSwitch
+              id="aplicaImpuestoSwitch"
+              checked={aplicaImpuesto}
+              onChange={e => handleImpuestoChange(e.value)}
+            />
+            <span className={`text-sm font-medium ${aplicaImpuesto ? 'text-green-600' : 'text-gray-500'}`}>SÍ</span>
+          </div>
         </div>
 
         {aplicaImpuesto && (
-            <div className='mt-1'>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    TASA DE IMPUESTO (%)
-                </label>
-                <div className="flex items-center gap-4">
-                    <input
-                        type="number"
-                        name="tasaImpuesto"
-                        value={tasaImpuesto}
-                        onChange={handleTasaChange}
-                        className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                        placeholder="15"
-                        step="0.01"
-                        min="0"
-                        max="100"
-                    />
-                    <span className="text-xs text-gray-600">
-                        Precio base: L {precioBase} (sin impuesto)
-                    </span>
-                </div>
+          <div className='mt-1'>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              TASA DE IMPUESTO (%)
+            </label>
+            <div className="flex items-center gap-4">
+              <input
+                type="number"
+                name="tasaImpuesto"
+                value={tasaImpuesto}
+                onChange={handleTasaChange}
+                className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                placeholder="15"
+                step="0.01"
+                min="0"
+                max="100"
+              />
+              <span className="text-xs text-gray-600">
+                Precio base: L {precioBase} (sin impuesto)
+              </span>
             </div>
+          </div>
         )}
 
-        {/* Mensaje de advertencia si NO aplica impuesto */}
         {!aplicaImpuesto && parseFloat(data.precio) > 0 && (
           <div className="bg-yellow-100 border border-yellow-300 rounded-md p-2 mt-1">
             <p className="text-xs text-yellow-800">
-              El precio base es L {parseFloat(data.precio).toFixed(2)}. Si se aplica ISV (L {tasaImpuesto}%), el precio con ISV sería L {calcularPrecioFinalConISV()}.
+              El precio base es L {parseFloat(data.precio).toFixed(2)}. Si se aplica ISV ({tasaImpuesto}%), el precio con ISV sería L {calcularPrecioFinalConISV()}.
             </p>
           </div>
         )}
@@ -399,8 +402,6 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData }) => {
           />
           {errores.cantidad && <p className="text-xs text-red-600 mt-1">{errores.cantidad}</p>}
         </span>
-
-
       </div>
     </Dialog>
   );

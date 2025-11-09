@@ -89,12 +89,41 @@ const Medicamentos = () => {
   };
 
   const handleGuardarMedicamento = async (formData) => {
+  try {
     const success = await guardarMedicamento(formData, medicamentoEditando);
+    
     if (success) {
+      // ✅ MOSTRAR SWAL DESPUÉS DE GUARDAR EXITOSAMENTE
+      Swal.fire({
+        icon: 'success',
+        title: medicamentoEditando ? '¡Actualizado!' : '¡Agregado!',
+        text: `${formData.nombre_producto} fue ${medicamentoEditando ? 'actualizado' : 'agregado'} correctamente`,
+        timer: 1500,
+        showConfirmButton: false
+      });
+      
+      // Cerrar modal y limpiar estado
       setModalVisible(false);
       setMedicamentoEditando(null);
+    } else {
+      // ❌ MOSTRAR ERROR SI NO SE PUDO GUARDAR
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo guardar el medicamento',
+        confirmButtonText: 'Entendido'
+      });
     }
-  };
+  } catch (error) {
+    console.error('Error al guardar medicamento:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Ocurrió un error al guardar el medicamento',
+      confirmButtonText: 'Entendido'
+    });
+  }
+};
 
   const handleGuardarLote = async (formData) => {
     const success = await guardarLote(formData);

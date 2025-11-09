@@ -431,22 +431,26 @@ const Accesorios = () => {
         </DataTable>
       </div>
 
-      {/* Modal */}
-      {modalAbierto &&
-        (accesorioEditando ? (
-          <ModalEditar
-            isOpen={modalAbierto}
-            onClose={cerrarModal}
-            onSave={handleGuardar}
-                        editData={accesorioEditando} // Ahora editData incluye tiene_impuesto y tasa_impuesto
-          />
-        ) : (
-          <ModalAgregar
-            isOpen={modalAbierto}
-            onClose={cerrarModal}
-            onSave={handleGuardar}
-          />
-        ))}
+
+
+{/* Modal */}
+{modalAbierto &&
+  (accesorioEditando ? (
+    <ModalEditar
+      isOpen={modalAbierto}
+      onClose={cerrarModal}
+      onSave={handleGuardar}
+      editData={accesorioEditando}
+      accesoriosExistentes={accesorios} // ✅ AGREGAR ESTA PROP
+    />
+  ) : (
+    <ModalAgregar
+      isOpen={modalAbierto}
+      onClose={cerrarModal}
+      onSave={handleGuardar}
+      accesoriosExistentes={accesorios} // ✅ AGREGAR ESTA PROP
+    />
+  ))}
     </div>
   );
 };
