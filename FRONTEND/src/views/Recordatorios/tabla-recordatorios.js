@@ -1,6 +1,5 @@
-
 import React, { useState, useRef } from 'react';
-//
+import ConexionWhatsApp from './conexionWhatsApp.js';
 import Swal from "sweetalert2";
 import ModalRecordatorio from "./modal-agregar-recordatorio";
 import { DataTable } from 'primereact/datatable';
@@ -142,22 +141,24 @@ const TablaRecordatorios = ({ recordatorios = [], tipoServicio = [], frecuencias
         isOpen={showWhatsApp}
         onClose={() => setShowWhatsApp(false)}
       />
+
         <ModalRecordatorio
           isOpen={openModal}
           onClose={() => setOpenModal(false)}
           onGuardar={(data) => {
-            // Aquí puedes manejar el guardado del recordatorio
+            console.log("Recordatorio guardado:", data); // ← ahora sí muestra los datos correctos
             Swal.fire({
               icon: 'success',
               title: 'Recordatorio guardado',
               text: 'El recordatorio se ha registrado correctamente',
-              confirmButtonColor: '#3085d6',
             });
-
           }}
           tipoServicio={tipoServicio}
           frecuencias={frecuencias}
         />
+
+
+
         {recordatorios.length === 0 && !loading ? (
           <div className="text-center py-8">
             <p className="text-gray-500 text-lg">No hay recordatorios registrados</p>

@@ -28,7 +28,7 @@ export const useMedicamentos = () => {
         verProductos('KARDEX')
       ]);
 
-      // Normalizar medicamentos
+      // Normalizar medicamentos - AHORA INCLUYE DATOS DE IMPUESTO
       const medicamentosNormalizados = (productos || []).map((item) => ({
         id_producto_pk: item.id_producto_pk,
         nombre_producto: item.nombre_producto,
@@ -40,7 +40,9 @@ export const useMedicamentos = () => {
         presentacion_medicamento: item.presentacion_medicamento || "Sin presentación",
         tipo_medicamento: item.tipo_medicamento || "Sin tipo",
         cantidad_contenido: parseInt(item.cantidad_contenido || 0),
-        unidad_medida: item.unidad_medida || ""
+        unidad_medida: item.unidad_medida || "",
+        tiene_impuesto: item.tiene_impuesto || 0,  // ✅ NUEVO
+        tasa_impuesto: item.tasa_impuesto || 0      // ✅ NUEVO
       }));
 
       // Normalizar lotes SIN RENUMERAR (mantener códigos originales)
@@ -98,6 +100,7 @@ export const useMedicamentos = () => {
 
   const guardarMedicamento = async (formData, medicamentoEditando) => {
     if (medicamentoEditando) {
+      // ✅ ACTUALIZAR MEDICAMENTO - AHORA INCLUYE IMPUESTO
       const datosActualizar = {
         id_producto: medicamentoEditando.id_producto_pk,
         tipo_producto: 'MEDICAMENTOS',
@@ -108,7 +111,9 @@ export const useMedicamentos = () => {
         tipo_medicamento: formData.tipo.toUpperCase(),
         cantidad_contenido: parseInt(formData.cantidad_contenido) || 0,
         unidad_medida: formData.unidad_medida.toUpperCase(),
-        activo: formData.activo ? 1 : 0
+        activo: formData.activo ? 1 : 0,
+        tiene_impuesto: formData.tiene_impuesto || 0,  // ✅ NUEVO
+        tasa_impuesto: formData.tasa_impuesto || 0      // ✅ NUEVO
       };
 
       const resultado = await actualizarProducto(datosActualizar);
@@ -119,6 +124,7 @@ export const useMedicamentos = () => {
         return false;
       }
     } else {
+      // ✅ CREAR MEDICAMENTO NUEVO - AHORA INCLUYE IMPUESTO
       const datosCompletos = {
         tipo_producto: 'MEDICAMENTOS',
         nombre_producto: formData.nombre_producto.toUpperCase().trim(),
@@ -132,7 +138,9 @@ export const useMedicamentos = () => {
         unidad_medida: formData.unidad_medida ? formData.unidad_medida.toUpperCase().trim() : '',
         codigo_lote: formData.codigo_lote.toUpperCase().trim(),
         fecha_vencimiento: formData.fecha_vencimiento,
-        stock_lote: parseInt(formData.stock_lote)
+        stock_lote: parseInt(formData.stock_lote),
+        tiene_impuesto: formData.tiene_impuesto || 0,  // ✅ NUEVO
+        tasa_impuesto: formData.tasa_impuesto || 0      // ✅ NUEVO
       };
 
       const resultado = await insertarProducto(datosCompletos);
@@ -255,36 +263,33 @@ export const useMedicamentos = () => {
     }
   };
 
-  // ✅ FUNCIÓN CORREGIDA en useMedicamentos.js
+  const editarLote = async (loteEditado) => {
+    try {
+      console.log('📥 Lote a editar:', loteEditado);
+      
+      const datosActualizar = {
+        tipo_producto: 'LOTES',
+        id_producto: loteEditado.id_lote_medicamentos_pk,
+        fecha_vencimiento: loteEditado.fecha_vencimiento,
+        stock_lote: parseInt(loteEditado.stock_lote)
+      };
 
-const editarLote = async (loteEditado) => {
-  try {
-    console.log('📥 Lote a editar:', loteEditado);
-    
-    // ✅ CORRECCIÓN: Enviar tipo_producto='LOTES' y el ID correcto
-    const datosActualizar = {
-      tipo_producto: 'LOTES',
-      id_producto: loteEditado.id_lote_medicamentos_pk, // ✅ Este es el cambio clave
-      fecha_vencimiento: loteEditado.fecha_vencimiento,
-      stock_lote: parseInt(loteEditado.stock_lote)
-    };
+      console.log('📤 Enviando:', datosActualizar);
 
-    console.log('📤 Enviando:', datosActualizar);
+      const resultado = await actualizarProducto(datosActualizar);
 
-    const resultado = await actualizarProducto(datosActualizar);
+      console.log('📩 Respuesta:', resultado);
 
-    console.log('📩 Respuesta:', resultado);
-
-    if (resultado.Consulta) {
-      await cargarDatos();
-      return true;
+      if (resultado.Consulta) {
+        await cargarDatos();
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('❌ Error:', error);
+      return false;
     }
-    return false;
-  } catch (error) {
-    console.error('❌ Error:', error);
-    return false;
-  }
-};
+  };
 
   return {
     medicamentos,

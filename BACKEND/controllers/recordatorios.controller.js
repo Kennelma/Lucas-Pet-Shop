@@ -1,5 +1,6 @@
 
 const mysqlConnection = require('../config/conexion');
+const moment = require('moment');
 
 
 exports.verCatalogo = async (req, res) => {
@@ -13,29 +14,38 @@ exports.verCatalogo = async (req, res) => {
         switch (req.query.tipo_catalogo) {
 
             case 'FRECUENCIA':   //ME TRAE TODAS LAS FRECUENCIAS
-                [registros] = await conn.query(`
+                [filas] = await conn.query(`
                     SELECT
                         id_frecuencia_record_pk,
                         frecuencia_recordatorio
-                    FROM cat_frecuencia_recordatorio`);
+                    FROM cat_frecuencia_recordatorio
+                    ORDER BY id_frecuencia_record_pk DESC`);
                 break;
 
 
             case 'TELEFONO': //ME TRAE TODOS LOS TELEFONOS DE LOS CLIENTES REGISTRADOS
-                [registros] = await conn.query(`
+                [filas] = await conn.query(`
                     SELECT
                         telefono_cliente
                     FROM tbl_clientes`);
                 break;
 
+            case 'ESTADO':
+                [filas] = await conn.query(`
+                    SELECT
+                        id_estado_pk,
+                        nombre_estado
+                    FROM cat_estados
+                    WHERE dominio = 'RECORDATORIO'`);
+                break;
 
             case 'TIPO_SERVICIO':
-
-                [registros] = await conn.query(
-                    `SELECT
+                [filas] = await conn.query(`
+                    SELECT
                         id_tipo_item_pk,
                         nombre_tipo_item
-                    FROM cat_tipo_item`);
+                    FROM cat_tipo_item
+                    WHERE nombre_tipo_item != 'PRODUCTOS'`);
                 break;
 
             default:
@@ -68,20 +78,87 @@ exports.crear = async (req, res) => {
 
     try {
 
+        const { tipo_item, frecuencia, fecha_programacion, mensaje} = req.body;
+
+        //fecha programacion =  CUANDO SE EMPIEZA A ENVIAR
+        //ultimo envio = ULTIMA VEZ QUE SE ENVIO
+        //proximo envio = CUANDO SE DEBE ENVIAR DE NUEVO
+        //intentos = CUANTOS INTENTOS DE ENVIO SE HAN HECHO
+        //id_estado_programacion_fk = ENVIADO, PENDIENTE, FALLIDO, ETC.
+
+
+        let proximo_envio, ultimo_envio;
+
+        const [filas_frecuencia] = await conn.query(`
+            SELECT
+                id_frecuencia_record_pk,
+                frecuencia_recordatorio
+            FROM cat_frecuencia_recordatorio
+            WHERE id_frecuencia_record_pk = ?`,[frecuencia] );
+
+
+        switch (filas_frecuencia[0]?.frecuencia_recordatorio) {
+
+            case 'UNA SOLA VEZ':
+
+                proximo_envio = fecha_programacion;
+                ultimo_envio = fecha_programacion;
+
+                //ESTADO ENVIADO
+
+                
+                break;
+
+            case 'SEMANAL':
+
+                break;
+
+            case 'QUINCENAL':
+
+                break;
+
+
+            case 'MENSUAL':
+
+                break;
+
+
+            case 'BIMESTRAL':
+
+                break;
+
+            case 'TRIMESTRAL':
+
+                break;
+
+            default:
+                break;
+        }
+
         await conn.query(
             `INSERT INTO tbl_recordatorios (
-                mensaje_recordatorio,
                 id_tipo_item_fk,
                 id_frecuencia_fk,
-                proximo_envio
-            ) VALUES (?, ?, ?, ?)`,
+                fecha_programación,
+                mensaje_recordatorio,
+                ultimo_envio,
+                proximo_envio,
+                intentos,
+                id_estado_programacion_fk
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
-                req.body.mensaje,
-                req.body.id_tipo_item_fk,
-                req.body.id_frecuencia_fk,
-                req.body.proximo_envio
+                tipo_item,
+                frecuencia,
+                fecha_programacion,
+                mensaje,
+                req.body.ultimo_envio,
+                req.body.proximo_envio,
+                req.body.intentos,
+                req.body.id_estado_programacion_fk
             ]
         );
+
+
 
         await conn.commit();
         res.status(200).json({
@@ -191,60 +268,4 @@ exports.eliminar = async (req, res) => {
 
 
 
-};
-
-
-exports.verCatalogo = async (req, res) => {
-
-    const conn = await mysqlConnection.getConnection();
-
-    try {
-
-        let filas; //VARIABLE DE APOYO
-
-        switch (req.query.tipo_catalogo) {
-
-            case 'FRECUENCIA':
-                [filas] = await conn.query(`
-                    SELECT * FROM cat_frecuencia_recordatorio ORDER BY id_frecuencia_record_pk DESC`);
-                break;
-
-
-            case 'TELEFONO':
-                [filas] = await conn.query(`
-                    SELECT telefono_cliente FROM tbl_clientes`);
-                break;
-
-
-            case 'ESTADO':
-                [filas] = await conn.query(`
-                    SELECT id_estado_pk , nombre_estado FROM cat_estados WHERE dominio = 'RECORDATORIO'`);
-                break;
-
-
-            case 'TIPO_SERVICIO':
-
-                [filas] = await conn.query(
-                    `SELECT id_tipo_item_pk, nombre_tipo_item FROM cat_tipo_item where nombre_tipo_item != 'PRODUCTOS'`);
-                break;
-
-            default:
-               throw new Error('Tipo de catalogo no válido');
-        }
-
-        res.json({
-            Consulta: true,
-            Catalogo: filas || []
-        });
-
-    } catch (error) {
-        res.json({
-            Consulta: false,
-            error: error.message
-        });
-
-    } finally {
-
-        conn.release();
-    }
 };
