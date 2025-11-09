@@ -126,6 +126,7 @@ exports.registrosGastos = async (req, res) => {
     conn = await mysqlConnection.getConnection();
 
     const { anio, mes } = req.query;
+    
     let query = `
       SELECT
         g.id_gasto_pk,
@@ -133,28 +134,21 @@ exports.registrosGastos = async (req, res) => {
         g.monto_gasto,
         g.fecha_registro_gasto,
         g.id_usuario_fk,
-        u.nombre_usuario
+        u.usuario
       FROM tbl_gastos g
       INNER JOIN tbl_usuarios u ON u.id_usuario_pk = g.id_usuario_fk
       WHERE 1=1
     `;
+    
     const params = [];
 
-
     if (anio && mes) {
-      const m = String(mes).padStart(2, '0');
-      const inicio = `${anio}-${m}-01 00:00:00`;
-      const ultimoDia = new Date(parseInt(anio), parseInt(mes), 0).getDate();
-      const fin = `${anio}-${m}-${ultimoDia} 23:59:59`;
-      query += ` AND g.fecha_registro_gasto BETWEEN ? AND ?`;
-      params.push(inicio, fin);
+      query += ` AND YEAR(g.fecha_registro_gasto) = ? AND MONTH(g.fecha_registro_gasto) = ?`;
+      params.push(parseInt(anio), parseInt(mes));
     }
-
     else if (anio) {
-      const inicio = `${anio}-01-01 00:00:00`;
-      const fin = `${anio}-12-31 23:59:59`;
-      query += ` AND g.fecha_registro_gasto BETWEEN ? AND ?`;
-      params.push(inicio, fin);
+      query += ` AND YEAR(g.fecha_registro_gasto) = ?`;
+      params.push(parseInt(anio));
     }
 
     query += ` ORDER BY g.fecha_registro_gasto DESC`;
@@ -171,10 +165,8 @@ exports.registrosGastos = async (req, res) => {
     res.status(500).json({ error: 'ERROR AL OBTENER LOS GASTOS.' });
   } finally {
     if (conn) conn.release();
-  }
+  }
 };
-
-
 
 exports.resumenGraficos = async (req, res) => {
     
@@ -184,7 +176,7 @@ exports.resumenGraficos = async (req, res) => {
 
     const { modo, anio, mes } = req.query;
 
-    //MODO: DIARIO (dentro de un mes)
+    //MODO: DIARIO
     if (modo === 'diario') {
       const m = String(mes).padStart(2, '0');
       const inicio = `${anio}-${m}-01 00:00:00`;
@@ -193,26 +185,25 @@ exports.resumenGraficos = async (req, res) => {
 
       const [rows] = await conn.query(
         `
-        /* Ingresos diarios */
         WITH ingresos AS (
-          SELECT DATE(f.fecha_emision) AS fecha,
+          SELECT DATE(fecha_emision) AS fecha,
                  COUNT(*) AS cant_facturas,
-                 SUM(f.subtotal) AS subtotal_ing,
-                 SUM(f.impuesto) AS impuesto_ing,
-                 SUM(f.descuento) AS descuento_ing,
-                 SUM(f.total) AS total_ing,
-                 SUM(f.total - f.descuento) AS neto_ing
-          FROM tbl_facturas f
-          WHERE f.id_estado_fk IS NOT NULL
-            AND f.fecha_emision BETWEEN ? AND ?
-          GROUP BY DATE(f.fecha_emision)
+                 SUM(subtotal_exento + subtotal_gravado) AS subtotal_ing,
+                 SUM(impuesto) AS impuesto_ing,
+                 SUM(descuento) AS descuento_ing,
+                 SUM(total) AS total_ing,
+                 SUM(total - descuento) AS neto_ing
+          FROM tbl_facturas
+          WHERE id_estado_fk IS NOT NULL
+            AND fecha_emision BETWEEN ? AND ?
+          GROUP BY DATE(fecha_emision)
         ),
         gastos AS (
-          SELECT DATE(g.fecha_registro_gasto) AS fecha,
-                 SUM(g.monto_gasto) AS total_gasto
-          FROM tbl_gastos g
-          WHERE g.fecha_registro_gasto BETWEEN ? AND ?
-          GROUP BY DATE(g.fecha_registro_gasto)
+          SELECT DATE(fecha_registro_gasto) AS fecha,
+                 SUM(monto_gasto) AS total_gasto
+          FROM tbl_gastos
+          WHERE fecha_registro_gasto BETWEEN ? AND ?
+          GROUP BY DATE(fecha_registro_gasto)
         )
         SELECT
           d.fecha,
@@ -225,16 +216,15 @@ exports.resumenGraficos = async (req, res) => {
           COALESCE(g.total_gasto, 0)                AS gastos,
           COALESCE(i.neto_ing, 0) - COALESCE(g.total_gasto, 0) AS utilidad_neta
         FROM (
-          /* Generador de días existentes en cualquiera de las dos tablas */
           SELECT DATE(x.fecha) AS fecha
           FROM (
-            SELECT f.fecha_emision AS fecha
-            FROM tbl_facturas f
-            WHERE f.fecha_emision BETWEEN ? AND ?
+            SELECT fecha_emision AS fecha
+            FROM tbl_facturas
+            WHERE fecha_emision BETWEEN ? AND ?
             UNION
-            SELECT g.fecha_registro_gasto AS fecha
-            FROM tbl_gastos g
-            WHERE g.fecha_registro_gasto BETWEEN ? AND ?
+            SELECT fecha_registro_gasto AS fecha
+            FROM tbl_gastos
+            WHERE fecha_registro_gasto BETWEEN ? AND ?
           ) x
           GROUP BY DATE(x.fecha)
         ) d
@@ -248,73 +238,78 @@ exports.resumenGraficos = async (req, res) => {
       return res.status(200).json({ ok: true, modo: 'diario', anio: Number(anio), mes: Number(mes), data: rows });
     }
 
-    //MODO: MENSUAL (acumulado por mes)
-    let filtros = '';
-    const params = [];
-    if (anio) {
-      filtros = `WHERE YEAR(fecha) = ?`;
-      params.push(anio);
+    // ✅ MODO: MENSUAL - CORREGIDO CON NOMBRES REALES DE COLUMNAS
+    const anioConsulta = anio ? parseInt(anio) : new Date().getFullYear();
+
+    // 1. Obtener ingresos mensuales
+    const queryIngresos = `
+      SELECT
+        MONTH(fecha_emision) AS mes,
+        COUNT(*) AS cant_facturas,
+        COALESCE(SUM(subtotal_exento + subtotal_gravado), 0) AS subtotal_ing,
+        COALESCE(SUM(impuesto), 0) AS impuesto_ing,
+        COALESCE(SUM(descuento), 0) AS descuento_ing,
+        COALESCE(SUM(total), 0) AS total_ing,
+        COALESCE(SUM(total - descuento), 0) AS neto_ing
+      FROM tbl_facturas
+      WHERE id_estado_fk IS NOT NULL
+        AND YEAR(fecha_emision) = ?
+      GROUP BY MONTH(fecha_emision)
+    `;
+
+    // 2. Obtener gastos mensuales
+    const queryGastos = `
+      SELECT
+        MONTH(fecha_registro_gasto) AS mes,
+        COALESCE(SUM(monto_gasto), 0) AS total_gasto
+      FROM tbl_gastos
+      WHERE YEAR(fecha_registro_gasto) = ?
+      GROUP BY MONTH(fecha_registro_gasto)
+    `;
+
+    const [ingresos] = await conn.query(queryIngresos, [anioConsulta]);
+    const [gastos] = await conn.query(queryGastos, [anioConsulta]);
+
+    // 3. Combinar y completar los 12 meses
+    const mesesCompletos = [];
+    
+    for (let mes = 1; mes <= 12; mes++) {
+      const ingreso = ingresos.find(i => i.mes === mes);
+      const gasto = gastos.find(g => g.mes === mes);
+      
+      const ingresosNetos = ingreso ? Number(ingreso.neto_ing) : 0;
+      const gastosTotal = gasto ? Number(gasto.total_gasto) : 0;
+      
+      mesesCompletos.push({
+        anio: anioConsulta,
+        mes: mes,
+        cantidad_facturas: ingreso ? Number(ingreso.cant_facturas) : 0,
+        ingresos_subtotal: ingreso ? Number(ingreso.subtotal_ing) : 0,
+        ingresos_impuesto: ingreso ? Number(ingreso.impuesto_ing) : 0,
+        ingresos_descuento: ingreso ? Number(ingreso.descuento_ing) : 0,
+        ingresos_brutos: ingreso ? Number(ingreso.total_ing) : 0,
+        ingresos_netos: ingresosNetos,
+        gastos: gastosTotal,
+        utilidad_neta: ingresosNetos - gastosTotal
+      });
     }
 
-    const [rows] = await conn.query(
-      `
-      /* Ingresos mensuales */
-      WITH ing AS (
-        SELECT
-          DATE(f.fecha_emision) AS fecha,
-          YEAR(f.fecha_emision) AS anio,
-          MONTH(f.fecha_emision) AS mes,
-          COUNT(*) AS cant_facturas,
-          SUM(f.subtotal) AS subtotal_ing,
-          SUM(f.impuesto) AS impuesto_ing,
-          SUM(f.descuento) AS descuento_ing,
-          SUM(f.total) AS total_ing,
-          SUM(f.total - f.descuento) AS neto_ing
-        FROM tbl_facturas f
-        WHERE f.id_estado_fk IS NOT NULL
-        GROUP BY YEAR(f.fecha_emision), MONTH(f.fecha_emision)
-      ),
-      gas AS (
-        SELECT
-          DATE(g.fecha_registro_gasto) AS fecha,
-          YEAR(g.fecha_registro_gasto) AS anio,
-          MONTH(g.fecha_registro_gasto) AS mes,
-          SUM(g.monto_gasto) AS total_gasto
-        FROM tbl_gastos g
-        GROUP BY YEAR(g.fecha_registro_gasto), MONTH(g.fecha_registro_gasto)
-      ),
-      union_meses AS (
-        SELECT DATE(CONCAT(i.anio,'-',LPAD(i.mes,2,'0'),'-01')) AS fecha, i.anio, i.mes FROM ing i
-        UNION
-        SELECT DATE(CONCAT(g.anio,'-',LPAD(g.mes,2,'0'),'-01')) AS fecha, g.anio, g.mes FROM gas g
-      )
-      SELECT
-        u.anio,
-        u.mes,
-        COALESCE(i.cant_facturas, 0) AS cantidad_facturas,
-        COALESCE(i.subtotal_ing, 0)  AS ingresos_subtotal,
-        COALESCE(i.impuesto_ing, 0)  AS ingresos_impuesto,
-        COALESCE(i.descuento_ing, 0) AS ingresos_descuento,
-        COALESCE(i.total_ing, 0)     AS ingresos_brutos,
-        COALESCE(i.neto_ing, 0)      AS ingresos_netos,
-        COALESCE(g.total_gasto, 0)   AS gastos,
-        COALESCE(i.neto_ing, 0) - COALESCE(g.total_gasto, 0) AS utilidad_neta
-      FROM union_meses u
-      LEFT JOIN ing i ON i.anio = u.anio AND i.mes = u.mes
-      LEFT JOIN gas g ON g.anio = u.anio AND g.mes = u.mes
-      ${filtros}
-      ORDER BY u.anio DESC, u.mes DESC`,
-      params
-    );
-
-    return res.status(200).json({ ok: true, modo: 'mensual', anio: anio ? Number(anio) : null, data: rows });
+    return res.status(200).json({ 
+      ok: true, 
+      modo: 'mensual', 
+      anio: anioConsulta, 
+      data: mesesCompletos 
+    });
 
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ ok: false, msg: 'Error interno al consultar finanzas.' });
+    console.error('❌ Error en resumenGraficos:', err);
+    return res.status(500).json({ 
+      ok: false, 
+      msg: 'Error interno al consultar finanzas.',
+      error: err.message
+    });
 
   } finally {
-
     if (conn) conn.release();
   }
 };
