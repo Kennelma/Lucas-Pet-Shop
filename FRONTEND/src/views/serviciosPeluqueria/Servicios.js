@@ -223,26 +223,26 @@ const Servicios = () => {
       ) : (
         <>
           {/* Título */}
-      <div
-  className="rounded-xl p-6 mb-3 bg-cover bg-center"
-  style={{
-    backgroundImage: 'url("/header.jpg")',
-    backgroundColor: '#FF9A98',
-    backgroundSize: 'contain',
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'right center',
-    boxShadow: '0 0 8px #FF9A9840, 0 0 0 1px #FF9A9833'
-  }}
->
-  <div className="flex justify-center items-center">
-    <h2 className="text-2xl font-black text-center uppercase text-white">
-      SERVICIOS DE PELUQUERÍA
-    </h2>
-  </div>
-  <p className="text-center text-white italic mt-2">
-    Administra los servicios de peluquería y estética para mascotas
-  </p>
-</div>
+          <div
+            className="rounded-xl p-6 mb-3 bg-cover bg-center"
+            style={{
+              backgroundImage: 'url("/header.jpg")',
+              backgroundColor: '#FF9A98',
+              backgroundSize: 'contain',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right center',
+              boxShadow: '0 0 8px #FF9A9840, 0 0 0 1px #FF9A9833'
+            }}
+          >
+            <div className="flex justify-center items-center">
+              <h2 className="text-2xl font-black text-center uppercase text-white">
+                SERVICIOS DE PELUQUERÍA
+              </h2>
+            </div>
+            <p className="text-center text-white italic mt-2">
+              Administra los servicios de peluquería y estética para mascotas
+            </p>
+          </div>
 
           {/* Dashboard de Servicios Favoritos */}
           <ServiciosFavoritos servicios={servicios} />
@@ -257,11 +257,13 @@ const Servicios = () => {
         </>
       )}
 
+      {/* 👇 AQUÍ SE AGREGA LA PROP serviciosExistentes */}
       <ModalServicio
         isOpen={modalServicioAbierto}
         onClose={cerrarModalServicio}
         onSubmit={handleSubmitServicio}
         servicio={servicioEditando}
+        serviciosExistentes={servicios}
       />
     </div>
   );

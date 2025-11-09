@@ -4,7 +4,13 @@ import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 
-export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = null }) {
+export default function ModalServicio({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  servicio = null,
+  serviciosExistentes = [] // 👈 NUEVO: Lista de servicios para validar duplicados
+}) {
   const [formData, setFormData] = useState({
     nombre_servicio_peluqueria: '',
     descripcion_servicio: '',
@@ -45,16 +51,40 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
 
   const validarFormulario = () => {
     const nuevosErrores = {};
+    
+    // ============ VALIDACIÓN DE NOMBRE ============
     if (!formData.nombre_servicio_peluqueria.trim()) {
       nuevosErrores.nombre_servicio_peluqueria = 'El nombre es requerido';
     } else if (formData.nombre_servicio_peluqueria.trim().length < 3) {
       nuevosErrores.nombre_servicio_peluqueria = 'El nombre debe tener al menos 3 caracteres';
+    } else {
+      // 👇 VALIDACIÓN DE DUPLICADOS
+      const nombreNormalizado = formData.nombre_servicio_peluqueria.trim().toUpperCase();
+      const nombreDuplicado = serviciosExistentes.some(s => {
+        // Si estamos editando, excluir el servicio actual de la comparación
+        const esServicioActual = servicio && 
+          (s.id_servicio_peluqueria_pk === servicio.id_servicio_peluqueria_pk || 
+           s.id === servicio.id);
+        
+        if (esServicioActual) return false;
+        
+        // Comparar nombres normalizados
+        return s.nombre_servicio_peluqueria.trim().toUpperCase() === nombreNormalizado;
+      });
+
+      if (nombreDuplicado) {
+        nuevosErrores.nombre_servicio_peluqueria = 'Ya existe un servicio con este nombre';
+      }
     }
+
+    // ============ VALIDACIÓN DE DESCRIPCIÓN ============
     if (!formData.descripcion_servicio.trim()) {
       nuevosErrores.descripcion_servicio = 'La descripción es requerida';
     } else if (formData.descripcion_servicio.trim().length < 5) {
       nuevosErrores.descripcion_servicio = 'La descripción debe tener al menos 5 caracteres';
     }
+
+    // ============ VALIDACIÓN DE PRECIO ============
     const precio = parseFloat(formData.precio_servicio);
     if (!formData.precio_servicio || isNaN(precio)) {
       nuevosErrores.precio_servicio = 'El precio es requerido';
@@ -63,6 +93,8 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
     } else if (precio > 10000) {
       nuevosErrores.precio_servicio = 'El precio parece demasiado alto (máx: L. 10,000)';
     }
+
+    // ============ VALIDACIÓN DE DURACIÓN ============
     const duracion = parseInt(formData.duracion_estimada);
     if (!formData.duracion_estimada || isNaN(duracion)) {
       nuevosErrores.duracion_estimada = 'La duración es requerida';
@@ -73,6 +105,7 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
     } else if (duracion > 480) {
       nuevosErrores.duracion_estimada = 'La duración máxima es 480 minutos (8 horas)';
     }
+
     return nuevosErrores;
   };
 
@@ -181,6 +214,8 @@ export default function ModalServicio({ isOpen, onClose, onSubmit, servicio = nu
             />
             {errores.duracion_estimada && <p className="text-xs text-red-600 mt-1">{errores.duracion_estimada}</p>}
           </span>
+
+          {/* Requisitos */}
           <span>
             <label htmlFor="requisitos" className="text-xs font-semibold text-gray-700 mb-1">REQUISITOS (OPCIONAL)</label>
             <InputText

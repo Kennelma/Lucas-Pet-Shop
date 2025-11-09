@@ -8,24 +8,24 @@ import ModalMedicamento from "./ModalMedicamento";
 import ModalLote from "./ModalLote";
 import ModalMovimiento from "./ModalMovimiento";
 import ModalLotesMedicamento from "./ModalLotesMedicamento";
-import ModalEditarLote from "./ModalEditarLote"; // ✅ NUEVO IMPORT
+import ModalEditarLote from "./ModalEditarLote";
 import { cambiarEstadoProducto } from "../../../AXIOS.SERVICES/products-axios";
 
 const Medicamentos = () => {
-  const { 
-    medicamentos, 
-    setMedicamentos, 
-    lotes, 
-    kardexData, 
-    loading, 
-    mensaje, 
-    calcularStockTotal, 
-    guardarMedicamento, 
-    guardarLote, 
+  const {
+    medicamentos,
+    setMedicamentos,
+    lotes,
+    kardexData,
+    loading,
+    mensaje,
+    calcularStockTotal,
+    guardarMedicamento,
+    guardarLote,
     guardarMovimiento,
-    eliminarMedicamento, 
+    eliminarMedicamento,
     eliminarLote,
-    editarLote, // ✅ NUEVO
+    editarLote,
     cargarDatos
   } = useMedicamentos();
 
@@ -35,11 +35,11 @@ const Medicamentos = () => {
   const [modalLoteVisible, setModalLoteVisible] = useState(false);
   const [modalMovVisible, setModalMovVisible] = useState(false);
   const [modalLotesVisible, setModalLotesVisible] = useState(false);
-  const [modalEditarLoteVisible, setModalEditarLoteVisible] = useState(false); // ✅ NUEVO
+  const [modalEditarLoteVisible, setModalEditarLoteVisible] = useState(false);
   const [medicamentoEditando, setMedicamentoEditando] = useState(null);
   const [medicamentoSeleccionado, setMedicamentoSeleccionado] = useState(null);
   const [loteSeleccionado, setLoteSeleccionado] = useState(null);
-  const [loteEditar, setLoteEditar] = useState(null); // ✅ NUEVO
+  const [loteEditar, setLoteEditar] = useState(null); 
 
   //====================CONTROL_SCROLL_MODALES====================
   useEffect(() => {
@@ -122,9 +122,9 @@ const Medicamentos = () => {
   const handleGuardarEdicionLote = async (loteEditado) => {
     const exito = await editarLote(loteEditado);
     if (exito) {
-      Swal.fire({ 
-        icon: 'success', 
-        title: '¡Actualizado!', 
+      Swal.fire({
+        icon: 'success',
+        title: '¡Actualizado!',
         text: 'Lote actualizado correctamente',
         timer: 1500,
         showConfirmButton: false
@@ -132,9 +132,9 @@ const Medicamentos = () => {
       setModalEditarLoteVisible(false);
       setLoteEditar(null);
     } else {
-      Swal.fire({ 
-        icon: 'error', 
-        title: 'Error', 
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
         text: 'No se pudo actualizar el lote',
         confirmButtonText: 'Entendido'
       });
@@ -275,15 +275,16 @@ const Medicamentos = () => {
         }}
       >
         <div className="flex justify-end items-right">
-          <h2 className="text-2xl font-black text-right uppercase text-white">
+          <h2 className="text-2xl font-black text-left font-poppins uppercase text-black mt-2 ml-100 w-full">
             GESTIÓN DE MEDICAMENTOS
           </h2>
         </div>
-        <p className="text-right text-white italic mt-2">
+      {/* TEXTO DESCRIPTIVO CON FUENTE POPPINS */}
+        {/* TEXTO DESCRIPTIVO CON FUENTE POPPINS, LIGERAMENTE A LA IZQUIERDA */}
+        <p className="text-black font-poppins mt-2 ml-85 w-full">
           Administra medicamentos veterinarios, lotes y control de inventario
         </p>
       </div>
-
       {/* Tabs de navegación*/}
       <div className="flex flex-wrap rounded-lg bg-gray-200 p-1 w-80 text-sm shadow-sm mb-6">
         <label className="flex-1 text-center">
@@ -342,9 +343,10 @@ const Medicamentos = () => {
                 )}
               </div>
 
+              {/* BOTÓN NUEVO MEDICAMENTO CON COLOR AMARILLO PERSONALIZADO */}
               <button
-                className="bg-yellow-200 text-white px-6 py-2 rounded-full hover:bg-yellow-500 transition-colors flex items-center gap-2 uppercase"
-                style={{ borderRadius: '12px' }}
+                className="text-black px-6 py-2 rounded-full transition-colors flex items-center gap-2 uppercase font-poppins"
+                style={{ borderRadius: '12px', backgroundColor: 'rgb(255, 222, 89)' }}
                 onClick={() => setModalVisible(true)}
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 448 512">
@@ -394,45 +396,45 @@ const Medicamentos = () => {
 
       {/* Modales */}
       <ModalMedicamento
-        isOpen={modalVisible} 
+        isOpen={modalVisible}
         onClose={() => {
           setModalVisible(false);
           setMedicamentoEditando(null);
         }}
-        onSave={handleGuardarMedicamento} 
-        medicamentoEditando={medicamentoEditando} 
+        onSave={handleGuardarMedicamento}
+        medicamentoEditando={medicamentoEditando}
         medicamentosExistentes={medicamentos}
       />
 
       <ModalLote
-        isOpen={modalLoteVisible} 
+        isOpen={modalLoteVisible}
         onClose={() => {
           setModalLoteVisible(false);
           setMedicamentoSeleccionado(null);
         }}
-        onSave={handleGuardarLote} 
-        medicamentoSeleccionado={medicamentoSeleccionado} 
+        onSave={handleGuardarLote}
+        medicamentoSeleccionado={medicamentoSeleccionado}
         lotesExistentes={lotes}
       />
 
       <ModalMovimiento
-        isOpen={modalMovVisible} 
+        isOpen={modalMovVisible}
         onClose={() => {
           setModalMovVisible(false);
           setLoteSeleccionado(null);
         }}
-        onSave={handleGuardarMovimiento} 
+        onSave={handleGuardarMovimiento}
         loteSeleccionado={loteSeleccionado}
       />
 
-      <ModalLotesMedicamento 
-        isOpen={modalLotesVisible} 
+      <ModalLotesMedicamento
+        isOpen={modalLotesVisible}
         onClose={() => {
           setModalLotesVisible(false);
           setMedicamentoSeleccionado(null);
         }}
-        medicamentoSeleccionado={medicamentoSeleccionado} 
-        lotes={lotes} 
+        medicamentoSeleccionado={medicamentoSeleccionado}
+        lotes={lotes}
         onEliminarLote={handleEliminarLote}
         onEditarLote={handleEditarLote} // ✅ AGREGADO
       />
