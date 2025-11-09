@@ -40,9 +40,9 @@ const ModalRecordatorio = ({ isOpen, onClose, onGuardar, tipoServicio = [], frec
     }
 
     const datosRegistro = {
-      id_tipo_item_fk: Number(tipoItem),
-      id_frecuencia_fk: Number(frecuencia),
-      proximo_envio: fechaProgramacion, // formato YYYY-MM-DD
+      tipo_item: Number(tipoItem),
+      frecuencia: Number(frecuencia),
+      programada_para: fechaProgramacion, // formato YYYY-MM-DD
       mensaje: mensaje.trim(),
     };
 
@@ -125,10 +125,10 @@ const ModalRecordatorio = ({ isOpen, onClose, onGuardar, tipoServicio = [], frec
 
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            Fecha Programación para enviar recordatorio:
+            Fecha y hora para enviar recordatorio:
           </label>
           <input
-            type="date"
+            type="datetime-local"
             className="w-full border rounded px-3 py-2 text-sm"
             value={fechaProgramacion}
             onChange={e => setFechaProgramacion(e.target.value)}
