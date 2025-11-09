@@ -60,6 +60,20 @@ export default function Sucursales() {
 
     if (!formSucursal.nombre_sucursal.trim()) {
       nuevosErrores.nombre_sucursal = 'El nombre de la sucursal es obligatorio';
+    } else {
+      // Verificar si ya existe una sucursal con el mismo nombre en la misma empresa
+      const nombreExiste = sucursales.some(sucursal => {
+        // En modo edición, excluir la sucursal actual de la validación
+        if (modoEdicion && sucursal.id_sucursal_pk === sucursalEditando.id_sucursal_pk) {
+          return false;
+        }
+        return sucursal.nombre_sucursal.toLowerCase() === formSucursal.nombre_sucursal.toLowerCase() &&
+               sucursal.id_empresa_fk === formSucursal.id_empresa_fk;
+      });
+      
+      if (nombreExiste) {
+        nuevosErrores.nombre_sucursal = 'Ya existe una sucursal con este nombre en la empresa seleccionada';
+      }
     }
 
     if (!formSucursal.direccion_sucursal.trim()) {
@@ -68,6 +82,19 @@ export default function Sucursales() {
 
     if (!formSucursal.telefono_sucursal.trim()) {
       nuevosErrores.telefono_sucursal = 'El teléfono es obligatorio';
+    } else {
+      // Verificar si ya existe una sucursal con el mismo teléfono
+      const telefonoExiste = sucursales.some(sucursal => {
+        // En modo edición, excluir la sucursal actual de la validación
+        if (modoEdicion && sucursal.id_sucursal_pk === sucursalEditando.id_sucursal_pk) {
+          return false;
+        }
+        return sucursal.telefono_sucursal === formSucursal.telefono_sucursal;
+      });
+      
+      if (telefonoExiste) {
+        nuevosErrores.telefono_sucursal = 'Ya existe una sucursal con este número de teléfono';
+      }
     }
 
     if (!formSucursal.id_empresa_fk) {

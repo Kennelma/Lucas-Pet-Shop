@@ -3,6 +3,8 @@ import { FilterMatchMode } from 'primereact/api';
 import TablaEstilistas from './tabla-estilistas';
 import ModalAgregarEstilista from './modal-agregar';
 import ModalActualizarEstilista from './modal-actualizar';
+import EstadisticasEstilistas from './EstadisticasEstilistas';
+
 import Swal from 'sweetalert2';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
@@ -115,6 +117,14 @@ const Estilistas = () => {
             <p className="text-center text-gray-600 italic">Administra el personal de peluquería y sus bonificaciones</p>
           </div>
 
+          {/* Dashboard Estadístico */}
+          <EstadisticasEstilistas 
+            estilistaSeleccionado={estilistaSeleccionado} 
+            onClearSelection={() => setEstilistaSeleccionado(null)}
+            estilistas={estilistas}
+          />
+
+         
           {/* Header con búsqueda, botón y tabla */}
           <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
             {/* Barra de búsqueda + botón Nuevo */}
@@ -152,6 +162,8 @@ const Estilistas = () => {
               globalFilter={globalFilter}
               onEdit={abrirModalActualizar}
               onDelete={handleEliminar}
+              onSelectionChange={setEstilistaSeleccionado}
+              estilistaSeleccionado={estilistaSeleccionado}
             />
           </div>
         </>

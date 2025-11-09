@@ -146,6 +146,22 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
 
   return (
     <>
+      <style jsx>{`
+        :global(.p-datatable .p-datatable-wrapper),
+        :global(.p-datatable .p-datatable-table),
+        :global(.p-datatable tbody),
+        :global(.p-datatable tr),
+        :global(.p-datatable td) {
+          overflow: visible !important;
+        }
+        :global(.p-datatable) {
+          overflow: visible !important;
+        }
+        :global(.p-datatable .p-datatable-tbody > tr > td) {
+          overflow: visible !important;
+          position: relative !important;
+        }
+      `}</style>
       {/* Título */}
       <div className="rounded-xl p-6 mb-3"
         style={{
@@ -217,9 +233,8 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto">
-            <div style={{ minWidth: '50rem', position: 'relative' }}>
-              <DataTable
+          <div style={{ overflow: 'visible' }}>
+            <DataTable
                 value={promociones}
                 loading={false}
                 loadingIcon={() => (
@@ -235,16 +250,53 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
                 rows={5}
                 rowsPerPageOptions={[5, 10, 20, 25]}
                 paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-                tableStyle={{ minWidth: '50rem', width: '100%', tableLayout: 'fixed' }}
+                tableStyle={{ width: '950px', tableLayout: 'fixed' }}
                 className="mt-4"
                 size="small"
                 selectionMode="single"
                 rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
               >
 
-          <Column field="id_promocion_pk" header="ID" body={(rowData) => promociones.length - promociones.indexOf(rowData)}  sortable className="text-sm"/>
-          <Column field="nombre_promocion" header="NOMBRE" sortable className="text-sm"></Column>
-          <Column field="descripcion_promocion" header="DESCRIPCIÓN" className="text-sm"></Column>
+          <Column 
+            field="id_promocion_pk" 
+            header="ID" 
+            body={(rowData) => promociones.length - promociones.indexOf(rowData)}  
+            sortable 
+            className="text-sm"
+            style={{ width: '60px', padding: '8px 8px' }}
+            headerStyle={{ width: '60px', padding: '8px 8px' }}
+          />
+          <Column 
+            field="nombre_promocion" 
+            header="NOMBRE" 
+            sortable 
+            className="text-sm"
+            style={{ width: '200px', padding: '8px 12px' }}
+            headerStyle={{ width: '200px', padding: '8px 12px' }}
+            bodyStyle={{ 
+              whiteSpace: 'normal',
+              wordWrap: 'break-word',
+              overflow: 'hidden',
+              textOverflow: 'clip',
+              lineHeight: '1.4',
+              padding: '8px 12px'
+            }}
+          />
+          <Column 
+            field="descripcion_promocion" 
+            header="DESCRIPCIÓN" 
+            className="text-sm"
+            style={{ width: '220px', padding: '8px 10px' }}
+            headerStyle={{ width: '220px', padding: '8px 10px' }}
+            bodyStyle={{ 
+              whiteSpace: 'normal',
+              wordWrap: 'break-word',
+              overflow: 'hidden',
+              textOverflow: 'clip',
+              lineHeight: '1.4',
+              padding: '8px 10px'
+            }}
+          />
           <Column
             field="precio_promocion"
             header="PRECIO"
@@ -258,7 +310,9 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
               return e.order * (value1 - value2);
             }}
             className="text-sm"
-          ></Column>
+            style={{ width: '110px', padding: '8px 8px' }}
+            headerStyle={{ width: '110px', padding: '8px 8px' }}
+          />
           <Column
             header="DÍAS DE PROMOCIÓN"
             body={(rowData) => {
@@ -272,7 +326,17 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
               return duracion;
             }}
             className="text-sm"
-          ></Column>
+            style={{ width: '140px', padding: '8px 8px' }}
+            headerStyle={{ width: '140px', padding: '8px 8px' }}
+            bodyStyle={{ 
+              whiteSpace: 'normal',
+              wordWrap: 'break-word',
+              overflow: 'hidden',
+              textOverflow: 'clip',
+              lineHeight: '1.4',
+              padding: '8px 8px'
+            }}
+          />
           <Column
             field="activo"
             header="ESTADO"
@@ -280,10 +344,17 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
             sortable
             sortField="activo"
             className="text-sm"
-          ></Column>
-          <Column header="ACCIONES" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm"></Column>
+            style={{ width: '120px', padding: '8px 8px' }}
+            headerStyle={{ width: '120px', padding: '8px 8px' }}
+          />
+          <Column 
+            header="ACCIONES" 
+            body={actionBotones} 
+            className="py-2 pr-9 pl-1 border-b text-sm"
+            style={{ width: '120px', padding: '8px 8px' }}
+            headerStyle={{ width: '120px', padding: '8px 8px' }}
+          />
               </DataTable>
-            </div>
           </div>
         </>
       )}

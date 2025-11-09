@@ -5,6 +5,29 @@ import { Column } from "primereact/column";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
 
+// CSS personalizado para centrar la columna de stock
+const stockColumnStyles = `
+  .stock-header-center {
+    text-align: center !important;
+  }
+  .stock-body-center {
+    text-align: center !important;
+  }
+  .stock-column-center .p-column-header-content {
+    justify-content: center !important;
+  }
+  .stock-body-center .p-datatable-tbody > tr > td {
+    text-align: center !important;
+  }
+`;
+
+// Agregar los estilos al DOM
+if (typeof document !== 'undefined') {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = stockColumnStyles;
+  document.head.appendChild(styleElement);
+}
+
 import ModalNuevoAnimal from "./modal_nuevo_animal";
 import ModalActualizarAnimal from "./modal_actualizar_animal";
 import AnimalesMasVendidos from "./AnimalesMasVendidos";
@@ -292,16 +315,16 @@ const Animales = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
+    <div className="min-h-screen p-6 ">
      {/* Título */}
       <div className="rounded-xl p-6 mb-3"
         style={{
           backgroundImage: 'url("/H6.jpg")',
-          backgroundColor: '#AC6F90',
+          backgroundColor: '#F5CC8E',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'left center',
-          boxShadow: '0 0 8px '
+          boxShadow: '0 0 8px #F5CC8E40, 0 0 0 1px #F5CC8E33'
         }}
       >
         <div className="flex justify-center items-center">
@@ -316,7 +339,7 @@ const Animales = () => {
 
       <AnimalesMasVendidos animales={animales} />
 
-      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #AC6F9040, 0 0 0 1px #AC6F9033'}}>
+      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #F5CC8E40, 0 0 0 1px #F5CC8E33'}}>
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="relative w-80"> 
@@ -336,7 +359,7 @@ const Animales = () => {
             )}
           </div>
           <button
-            className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-00 transition-colors flex items-center gap-2"
+            className="bg-orange-300 text-black px-6 py-2 rounded hover:bg-orange-400 transition-colors flex items-center gap-2"
             onClick={() => abrirModal()}
           >
             <FontAwesomeIcon icon={faPlus} />
@@ -393,8 +416,9 @@ const Animales = () => {
               </span>
             )}
             sortable
-            className="text-sm text-center"
-            bodyClassName="text-center"
+            className="text-sm stock-column-center"
+            headerClassName="stock-header-center"
+            bodyClassName="stock-body-center"
           />
           <Column
             field="activo"
