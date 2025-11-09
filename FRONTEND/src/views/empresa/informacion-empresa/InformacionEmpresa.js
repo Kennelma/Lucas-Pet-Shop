@@ -60,6 +60,19 @@ export default function InformacionEmpresa() {
 
     if (!formEmpresa.nombre_empresa.trim()) {
       nuevosErrores.nombre_empresa = 'El nombre de la empresa es obligatorio';
+    } else {
+      // Verificar si ya existe una empresa con el mismo nombre
+      const nombreExiste = empresas.some(empresa => {
+        // En modo edición, excluir la empresa actual de la validación
+        if (modoEdicion && empresa.id_empresa_pk === empresaEditando.id_empresa_pk) {
+          return false;
+        }
+        return empresa.nombre_empresa.toLowerCase() === formEmpresa.nombre_empresa.toLowerCase();
+      });
+      
+      if (nombreExiste) {
+        nuevosErrores.nombre_empresa = 'Ya existe una empresa con este nombre';
+      }
     }
 
     if (!formEmpresa.direccion_empresa.trim()) {
@@ -74,6 +87,21 @@ export default function InformacionEmpresa() {
       nuevosErrores.correo_empresa = 'El correo electrónico es obligatorio';
     } else if (!/\S+@\S+\.\S+/.test(formEmpresa.correo_empresa)) {
       nuevosErrores.correo_empresa = 'El formato del correo electrónico no es válido';
+    }
+
+    // Verificar si ya existe una empresa con el mismo correo (solo si el campo no está vacío)
+    if (formEmpresa.correo_empresa.trim()) {
+      const correoExiste = empresas.some(empresa => {
+        // En modo edición, excluir la empresa actual de la validación
+        if (modoEdicion && empresa.id_empresa_pk === empresaEditando.id_empresa_pk) {
+          return false;
+        }
+        return empresa.correo_empresa.toLowerCase() === formEmpresa.correo_empresa.toLowerCase();
+      });
+      
+      if (correoExiste && !nuevosErrores.correo_empresa) {
+        nuevosErrores.correo_empresa = 'Ya existe una empresa con este correo electrónico';
+      }
     }
 
     setErrores(nuevosErrores);

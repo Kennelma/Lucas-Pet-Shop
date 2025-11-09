@@ -1,8 +1,7 @@
-import { useState } from "react";
 
 //IMPORTACION DE LOS ARCHIVOS COMPLEMENTARIOS DEL MODULO DE CLIENTES
 import TablaClientes from "./tabla-clientes.js";
-import DecoracionClientes from "./decoracion-clientes.js";
+
 
 
 const Clientes = () => {
@@ -10,18 +9,27 @@ const Clientes = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       {/* Título */}
-      <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+      <div className="rounded-xl p-6 mb-3"
+        style={{
+          backgroundImage: 'url("/H2.jpg")',
+          backgroundColor: '#A5CC8B',
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'left center',
+          boxShadow: '0 0 8px #A5CC8B40, 0 0 0 1px #A5CC8B33'
+        }}
+      >
         <div className="flex justify-center items-center">
-          <h2 className="text-2xl font-black text-center uppercase text-gray-800">
+          <h2 className="text-2xl font-black text-center uppercase text-black">
             GESTIÓN DE CLIENTES
           </h2>
         </div>
-        <p className="text-center text-gray-600 italic">Administra la información y perfiles de clientes del negocio</p>
+        <p className="text-center text-black italic mt-2">
+          Administra los clientes disponibles en el sistema para su venta
+        </p>
       </div>
 
-      {/* Componente de Decoraciones */}
-      <DecoracionClientes />
-
+      
       <TablaClientes/>
     </div>
   );

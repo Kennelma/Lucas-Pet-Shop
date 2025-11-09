@@ -1,4 +1,4 @@
-
+const express = require('express');
 //ENDPOINT PARA LOS GRAFICOS
 const mysqlConnection = require('../config/conexion');
 
@@ -58,6 +58,53 @@ exports.registroIngresos = async (req, res) => {
     }
 };
 
+exports.registrosGastos = async (req, res) => {
+  let conn;
+  try {
+    conn = await mysqlConnection.getConnection();
+
+    const { anio, mes } = req.query;
+
+    let query = `
+      SELECT
+        g.id_gasto_pk,
+        g.detalle_gasto,
+        g.monto_gasto,
+        g.fecha_registro_gasto,
+        g.id_usuario_fk,
+        u.usuario
+      FROM tbl_gastos g
+      INNER JOIN tbl_usuarios u ON u.id_usuario_pk = g.id_usuario_fk
+      WHERE 1=1
+    `;
+
+    const params = [];
+
+    if (anio && mes) {
+      query += ` AND YEAR(g.fecha_registro_gasto) = ? AND MONTH(g.fecha_registro_gasto) = ?`;
+      params.push(parseInt(anio), parseInt(mes));
+    }
+    else if (anio) {
+      query += ` AND YEAR(g.fecha_registro_gasto) = ?`;
+      params.push(parseInt(anio));
+    }
+
+    query += ` ORDER BY g.fecha_registro_gasto DESC`;
+
+    const [gastos] = await conn.query(query, params);
+
+    res.status(200).json({
+      ok: true,
+      gastos,
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'ERROR AL OBTENER LOS GASTOS.' });
+  } finally {
+    if (conn) conn.release();
+  }
+};
 
 //ENDPOINT PARA EL RESUMEN FINANCIERO DEL DIA ACTUAL (INGRESOS Y GASTOS DEL DIA)
 exports.resumenDiario = async (req, res) => {
@@ -120,64 +167,8 @@ exports.resumenDiario = async (req, res) => {
     }
 };
 
-exports.registrosGastos = async (req, res) => {
-  let conn;
-  try {
-    conn = await mysqlConnection.getConnection();
-
-    const { anio, mes } = req.query;
-    let query = `
-      SELECT
-        g.id_gasto_pk,
-        g.detalle_gasto,
-        g.monto_gasto,
-        g.fecha_registro_gasto,
-        g.id_usuario_fk,
-        u.nombre_usuario
-      FROM tbl_gastos g
-      INNER JOIN tbl_usuarios u ON u.id_usuario_pk = g.id_usuario_fk
-      WHERE 1=1
-    `;
-    const params = [];
-
-
-    if (anio && mes) {
-      const m = String(mes).padStart(2, '0');
-      const inicio = `${anio}-${m}-01 00:00:00`;
-      const ultimoDia = new Date(parseInt(anio), parseInt(mes), 0).getDate();
-      const fin = `${anio}-${m}-${ultimoDia} 23:59:59`;
-      query += ` AND g.fecha_registro_gasto BETWEEN ? AND ?`;
-      params.push(inicio, fin);
-    }
-
-    else if (anio) {
-      const inicio = `${anio}-01-01 00:00:00`;
-      const fin = `${anio}-12-31 23:59:59`;
-      query += ` AND g.fecha_registro_gasto BETWEEN ? AND ?`;
-      params.push(inicio, fin);
-    }
-
-    query += ` ORDER BY g.fecha_registro_gasto DESC`;
-
-    const [gastos] = await conn.query(query, params);
-
-    res.status(200).json({
-      ok: true,
-      gastos,
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'ERROR AL OBTENER LOS GASTOS.' });
-  } finally {
-    if (conn) conn.release();
-  }
-};
-
-
-
 exports.resumenGraficos = async (req, res) => {
-    
+
   let conn;
   try {
     conn = await mysqlConnection.getConnection();
@@ -193,8 +184,7 @@ exports.resumenGraficos = async (req, res) => {
 
       const [rows] = await conn.query(
         `
-        /* Ingresos diarios */
-        WITH ingresos AS (
+          WITH ingresos AS (
           SELECT DATE(f.fecha_emision) AS fecha,
                  COUNT(*) AS cant_facturas,
                  SUM(f.subtotal) AS subtotal_ing,
@@ -258,7 +248,6 @@ exports.resumenGraficos = async (req, res) => {
 
     const [rows] = await conn.query(
       `
-      /* Ingresos mensuales */
       WITH ing AS (
         SELECT
           DATE(f.fecha_emision) AS fecha,

@@ -40,11 +40,14 @@ export const verRecordatorios = async () => {
 // ───────────────────────────────────────────────
 export const insertarRecordatorio = async (datosRecordatorio) => {
   try {
-    const res = await axiosInstance.post(`${API_URL}/insertar`, datosRecordatorio);
+    const res = await axiosInstance.post(`${API_URL}/crear`, datosRecordatorio);
+    
     return res.data;
+
   } catch (err) {
+    // Si ocurre un error, devolvemos un objeto estándar con la clave 'error'
     console.error("Error al insertar recordatorio:", err);
-    return { Consulta: false, error: err.message };
+    return { error: err.response?.data?.error || err.message };
   }
 };
 

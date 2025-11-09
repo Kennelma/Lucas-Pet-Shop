@@ -59,7 +59,7 @@ router.get  ('/facturacion/verFacturas', facturas.historialFacturas);
 router.get  ('/facturacion/imprimirFactura', facturas.ImpresionFactura);
 
 //========== RUTAS DE PAGOS ==========
-router.post('/pagos/procesarPago', verificarToken, pagos.procesarPago);+
+router.post('/pagos/procesarPago', verificarToken, pagos.procesarPago);
 router.get ('/pagos/tipoPago', verificarToken, pagos.obtenerTipoPago);
 router.get ('/pagos/metodosPago', verificarToken, pagos.obtenerMetodosPago);
 
@@ -67,7 +67,7 @@ router.get ('/pagos/metodosPago', verificarToken, pagos.obtenerMetodosPago);
 
 //========== RUTAS DE REPORTES ==========
 router.get('/reportes/ingresos', reportes.registroIngresos);
-router.get('/reportes/gastos', reportes.gastosMensuales);
+router.get('/reportes/gastos', reportes.registrosGastos);
 router.get('/reportes/resumen-diario', reportes.resumenDiario);
 router.get('/reportes/graficos', reportes.resumenGraficos);
 
@@ -83,10 +83,10 @@ router.put('/estilistas/actualizar', verificarToken, estilistas.actualizar);
 router.delete ('/estilistas/eliminar', verificarToken, estilistas.eliminar);
 
 //========== RUTAS DE RECORDATORIOS ==========
-router.post('/recordatorios/crear', verificarToken, recordatorios.crear);
-router.get('/recordatorios/ver', verificarToken, recordatorios.ver);
-router.put('/recordatorios/actualizar', verificarToken, recordatorios.actualizar);
-router.delete('/recordatorios/eliminar', verificarToken, recordatorios.eliminar);
+router.post('/recordatorios/crear', recordatorios.crear);
+router.get('/recordatorios/ver', recordatorios.ver);
+router.put('/recordatorios/actualizar', recordatorios.actualizar);
+router.delete('/recordatorios/eliminar', recordatorios.eliminar);
 router.get('/recordatorios/catalogo', recordatorios.verCatalogo);
 
 // ========== RUTAS DE WHATSAPP ==========

@@ -96,7 +96,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
   );
 };
 
-const TablaEstilistas = ({ estilistas, loading, globalFilter, onEdit, onDelete }) => {
+const TablaEstilistas = ({ estilistas, loading, globalFilter, onEdit, onDelete, onSelectionChange, estilistaSeleccionado }) => {
   
   const formatearFecha = (fecha) => {
     if (!fecha) return 'N/A';
@@ -155,39 +155,44 @@ const TablaEstilistas = ({ estilistas, loading, globalFilter, onEdit, onDelete }
           rows={5}
           rowsPerPageOptions={[5, 10, 15, 20]}
           paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-          tableStyle={{ minWidth: '50rem' }}
-          className="mt-4"
-          size="small"
+          tableStyle={{ minWidth: '60rem' }}
+          className="mt-6"
+          size="normal"
           selectionMode="single"
-          rowClassName={(rowData) => `hover:bg-gray-50 cursor-pointer`}
+          selection={estilistaSeleccionado}
+          onSelectionChange={(e) => onSelectionChange && onSelectionChange(e.value)}
+          rowClassName={(rowData) => {
+            const isSelected = estilistaSeleccionado && rowData.id_empleado_pk === estilistaSeleccionado.id_empleado_pk;
+            return `hover:bg-blue-50 cursor-pointer transition-colors duration-200 ${isSelected ? 'bg-purple-50 border-purple-200' : ''}`;
+          }}
         >
           <Column
             field="id_estilista_pk"
             header="ID"
             body={(rowData, options) => options.rowIndex + 1}
             sortable
-            className="text-sm"
+            className="text-sm py-3 px-4"
           />
           
           <Column
             field="nombre_estilista"
             header="NOMBRE"
             sortable
-            className="text-sm"
+            className="text-sm py-3 px-4"
           />
           
           <Column
             field="apellido_estilista"
             header="APELLIDOS"
             sortable
-            className="text-sm"
+            className="text-sm py-3 px-4"
           />
           
           <Column
             field="identidad_estilista"
             header="IDENTIDAD"
             sortable
-            className="text-sm"
+            className="text-sm py-3 px-4"
           />
           
           <Column
@@ -195,13 +200,13 @@ const TablaEstilistas = ({ estilistas, loading, globalFilter, onEdit, onDelete }
             header="FECHA DE INGRESO"
             sortable
             field="fecha_ingreso"
-            className="text-sm text-center"
+            className="text-sm text-center py-3 px-4"
           />
           
           <Column
             header="ACCIONES"
             body={accionesTemplate}
-            className="py-2 pr-9 pl-1 border-b text-sm"
+            className="py-3 px-4 text-center"
           />
           
         </DataTable>
