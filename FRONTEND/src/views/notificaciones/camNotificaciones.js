@@ -400,10 +400,8 @@ const CamNotificaciones = () => {
           <CIcon icon={cilBell} size="lg" />
         </div>
         {noLeidas > 0 && (
-          <span 
-            className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-            style={{ fontSize: '0.65rem' }}
-          >
+          <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '0.50rem',       
+           padding: '0.2rem 0.20rem', minWidth: '10px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} >
             {noLeidas > 9 ? '9+' : noLeidas}
           </span>
         )}
