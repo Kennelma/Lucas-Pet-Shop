@@ -3,7 +3,7 @@ import Swal from "sweetalert2";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 import ModalNuevoAnimal from "./modal_nuevo_animal";
 import ModalActualizarAnimal from "./modal_actualizar_animal";
@@ -167,7 +167,7 @@ const Animales = () => {
         especie: item.especie || "No especificada",
         sexo: item.sexo || "N/A",
         sku: item.sku || "",
-        tiene_impuesto: item.tiene_impuesto || 0,  
+        tiene_impuesto: item.tiene_impuesto || 0,
         tasa_impuesto: item.tasa_impuesto
       }));
       setAnimales(normalizados);
@@ -319,7 +319,7 @@ const Animales = () => {
       <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #AC6F9040, 0 0 0 1px #AC6F9033'}}>
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <div className="relative w-80"> 
+          <div className="relative w-80">
             <input
               value={filtroGlobal}
               onChange={(e) => setFiltroGlobal(e.target.value)}
@@ -335,12 +335,13 @@ const Animales = () => {
               </button>
             )}
           </div>
+          {/* BOTÓN PARA ABRIR EL MODAL DE NUEVO ANIMAL, TEXTO EN NEGRO */}
           <button
-            className="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-00 transition-colors flex items-center gap-2"
+            className="bg-purple-500 px-6 py-2 rounded hover:bg-purple-00 transition-colors flex items-center gap-2"
             onClick={() => abrirModal()}
           >
             <FontAwesomeIcon icon={faPlus} />
-            NUEVO ANIMAL
+            <span className="text-black">NUEVO ANIMAL</span>
           </button>
         </div>
 

@@ -94,18 +94,16 @@ exports.crearFactura = async (req, res) => {
             WHERE nombre_parametro = 'IMPUESTO_ISV'`
         );
 
-        const impuesto_porcentaje = parseFloat(isv[0]?.valor_parametro || 15); // ✅ Default 15%
-        const impuesto_valor = 1 + (impuesto_porcentaje / 100);
+        const impuesto_porcentaje = parseFloat(isv[0]?.valor_parametro || 15);
 
-        // ✅ VALIDAR QUE NO SEA 0
-        if (impuesto_valor <= 0 || isNaN(impuesto_valor)) {
+        if (impuesto_porcentaje <= 0 || isNaN(impuesto_porcentaje)) {
             throw new Error('Error al obtener el impuesto del sistema. Contacte al administrador.');
         }
 
         //SE VALIDA Y CALCULAR CADA ITEM
         let id_medicamento = null;
-        let total_bruto = 0;
-        let total_ajuste = 0;
+        let subtotal_exento = 0;   //PRODUCTO EXENTO
+        let subtotal_gravado = 0;   //PRODUCTO GRAVADO
         const detallesValidados = [];
 
         //FOR EACH PARA EL ARRAY DE ITEMS QUE VIENEN DEL FRONTEND
@@ -116,6 +114,8 @@ exports.crearFactura = async (req, res) => {
             let precio_unitario = 0;
             let nombre_item = '';
             let id_producto = '';
+            let tiene_impuesto = false;
+            let id_tipo_item_fk = null;
 
             //OBTENER PRECIO REAL DESDE LA BD SEGÚN EL TIPO
             if (tipo === 'PRODUCTOS') {
@@ -126,7 +126,8 @@ exports.crearFactura = async (req, res) => {
                     p.nombre_producto,
                     p.precio_producto,
                     p.stock,
-                    p.tipo_item_fk
+                    p.tipo_item_fk,
+                    p.tiene_impuesto
                 FROM tbl_productos p
                 INNER JOIN cat_tipo_item t
                         ON t.id_tipo_item_pk = p.tipo_item_fk
@@ -139,7 +140,7 @@ exports.crearFactura = async (req, res) => {
                     throw new Error(`Producto con ID ${item_id} no encontrado o inactivo`);
                 }
 
-                // VALIDAR STOCK
+                //VALIDAR STOCK
                 if (producto[0].stock < cantidad) {
                     throw new Error(`Stock insuficiente para ${producto[0].nombre_producto}. Disponible: ${producto[0].stock}`);
                 }
@@ -148,6 +149,7 @@ exports.crearFactura = async (req, res) => {
                 id_producto = producto[0].id_producto_pk;
                 nombre_item = producto[0].nombre_producto;
                 id_tipo_item_fk = producto[0].tipo_item_fk;
+                tiene_impuesto = Boolean(producto[0].tiene_impuesto);
 
 
                 //====================VALIDAR_SI_ES_MEDICAMENTO_CON_LOTES====================
@@ -158,7 +160,7 @@ exports.crearFactura = async (req, res) => {
                     [item_id]
                 );
 
-                if (esMedicamento && esMedicamento.length > 0) {
+                if (esMedicamento.length > 0) {
 
                     //ES UN MEDICAMENTO, VALIDAR LOTES CON FIFO
                     id_medicamento = esMedicamento[0].id_medicamento_pk;
@@ -184,7 +186,7 @@ exports.crearFactura = async (req, res) => {
 
 
                     if (!lotes || lotes.length === 0) {
-                        throw new Error(`No hay lotes disponibles (no vencidos) para ${nombre_item}`);
+                        throw new Error(`No hay lotes disponibles para ${nombre_item}`);
                     }
 
                     //VALIDAR QUE HAY SUFICIENTE STOCK EN LOTES NO VENCIDOS
@@ -270,10 +272,15 @@ exports.crearFactura = async (req, res) => {
 
             //CALCULAR TOTAL DE LINEA
             const ajuste_valor = parseFloat(ajuste || 0);
-            const total_linea = (cantidad * precio_unitario) + ajuste_valor;
+            const subtotal_linea = cantidad * precio_unitario;
+            const total_linea = subtotal_linea + ajuste_valor;
 
-            total_bruto += (cantidad * precio_unitario);
-            total_ajuste += ajuste_valor;
+            //ACUMULAR SUBTOTALES SEGÚN IMPUESTO
+            if (tiene_impuesto) {
+                subtotal_gravado += total_linea / 1.15;
+            } else {
+               subtotal_exento += total_linea;
+            }
 
             //AGREGAR AL ARRAY VALIDADO
             detallesValidados.push({
@@ -284,36 +291,32 @@ exports.crearFactura = async (req, res) => {
                 total_linea,
                 id_producto,
                 id_tipo_item_fk,
+                tiene_impuesto,
                 id_medicamento,
                 estilistas: estilistas || [],
                 lotesADescontar: item.lotesADescontar || null  //LOTES FIFO PARA MEDICAMENTOS
             });
         }
 
+
+        //SE CALCULAN LOS TOTALES DE LA FACTURA
+        const impuesto = subtotal_gravado * (impuesto_porcentaje / 100);
         const descuento_valor = parseFloat(descuento || 0);
+        const total_final = subtotal_exento + subtotal_gravado + impuesto - descuento_valor;
+        const saldo = total_final; //INICIALMENTE EL SALDO ES IGUAL AL TOTAL
 
         //SE CALCULA LOS TOTALES FINALES
-        const total_con_ajustes = total_bruto + total_ajuste - descuento_valor;
-
-        //
-        if (isNaN(total_con_ajustes) || isNaN(impuesto_valor)) {
+        if (isNaN(total_final) || isNaN(impuesto_porcentaje)) {
             throw new Error('Error en el cálculo de totales. Valores inválidos detectados.');
         }
 
-        const subtotal = Math.max(0, total_con_ajustes / impuesto_valor); //BASE IMPONIBLE (no negativo)
-        const impuesto = Math.max(0, total_con_ajustes - subtotal); //IMPUESTO (no negativo)
-
-        const total = Math.max(0, total_con_ajustes); // TOTAL FINAL (no negativo)
-        const saldo = total; //INICIALMENTE EL SALDO ES IGUAL AL TOTAL
-
         //VALIDAR RESULTADOS
-        if (isNaN(subtotal) || isNaN(impuesto) || isNaN(total)) {
+        if (isNaN(subtotal_exento) || isNaN(subtotal_gravado) || isNaN(impuesto) || isNaN(total_final)) {
             throw new Error('Error en cálculos finales. Por favor, revise los datos ingresados.');
         }
 
-        if (total <= 0) {
-            throw new Error('El total de la factura no puede ser cero o negativo.');
-}
+        if (total_final <= 0) {
+            throw new Error('El total de la factura no puede ser cero o negativo.');}
 
         //SE GENERA EL NÚMERO DE FACTURA (Formato: FAC-2025-001)
         const [[{ numero_factura }]] = await conn.query(`
@@ -342,7 +345,8 @@ exports.crearFactura = async (req, res) => {
                 numero_factura,
                 fecha_emision,
                 RTN,
-                subtotal,
+                subtotal_exento,
+                subtotal_gravado,
                 impuesto,
                 descuento,
                 total,
@@ -351,15 +355,16 @@ exports.crearFactura = async (req, res) => {
                 id_usuario_fk,
                 id_estado_fk,
                 id_cliente_fk
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
             [
                 numero_factura,
                 fechaEmision,
                 RTN || null,
-                subtotal.toFixed(2),
+                subtotal_exento.toFixed(2),
+                subtotal_gravado.toFixed(2),
                 impuesto.toFixed(2),
                 descuento_valor.toFixed(2),
-                total.toFixed(2),
+                total_final.toFixed(2),
                 saldo.toFixed(2),
                 id_sucursal,
                 id_usuario,
@@ -384,8 +389,9 @@ exports.crearFactura = async (req, res) => {
                     ajuste_precio,
                     total_linea,
                     id_factura_fk,
-                    id_tipo_item_fk
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                    id_tipo_item_fk,
+                    tiene_impuesto
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     detalle.nombre_item,
                     detalle.cantidad,
@@ -393,7 +399,8 @@ exports.crearFactura = async (req, res) => {
                     detalle.ajuste,
                     detalle.total_linea || null,
                     id_factura,
-                    detalle.id_tipo_item_fk
+                    detalle.id_tipo_item_fk,
+                    detalle.tiene_impuesto ? 1 : 0,
                 ]
             );
 
@@ -405,7 +412,7 @@ exports.crearFactura = async (req, res) => {
                 for (const estilista of detalle.estilistas) {
 
                     await conn.query(
-                        `INSERT INTO tbl_detalle_estilistas (
+                        `INSERT INTO tbl_detalle_factura_estilistas (
                             id_detalle_fk,
                             id_estilista_fk,
                             num_mascotas_atendidas
@@ -481,10 +488,10 @@ exports.crearFactura = async (req, res) => {
                 id_factura,
                 numero_factura,
                 fecha_emision: fechaEmision,
-                subtotal: subtotal.toFixed(2),
+                subtotal: (subtotal_exento + subtotal_gravado).toFixed(2),
                 impuesto: impuesto.toFixed(2),
-                descuento: descuento.toFixed(2),
-                total: total.toFixed(2),
+                descuento: descuento_valor.toFixed(2),
+                total: total_final.toFixed(2),
                 saldo: saldo.toFixed(2)
             }
         });
@@ -568,7 +575,8 @@ exports.catalogoItems = async (req, res) => {
                         id_producto_pk,
                         nombre_producto,
                         precio_producto,
-                        stock
+                        stock,
+                        tiene_impuesto
                     FROM tbl_productos
                     WHERE activo = TRUE AND stock > 0`
                 )
@@ -810,7 +818,7 @@ exports.ImpresionFactura = async (req, res) => {
                 f.numero_factura,
                 f.fecha_emision,
                 f.RTN,
-                f.subtotal,
+                (f.subtotal_exento + f.subtotal_gravado) as subtotal,
                 f.descuento,
                 f.impuesto,
                 f.total,
