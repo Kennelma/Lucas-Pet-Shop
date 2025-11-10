@@ -4,7 +4,13 @@ import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 
-export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = null }) {
+export default function ModalPromocion({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  promocion = null,
+  promocionesExistentes = [] // 👈 NUEVO: Lista de promociones para validar duplicados
+}) {
   console.log('ModalPromocion renderizado - isOpen:', isOpen, 'promocion:', promocion);
   
   const [formData, setFormData] = useState({
@@ -81,18 +87,39 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
   const validarFormulario = () => {
     const nuevosErrores = {};
     
+    // ============ VALIDACIÓN DE NOMBRE ============
     if (!formData.nombre_promocion.trim()) {
       nuevosErrores.nombre_promocion = 'El nombre es requerido';
     } else if (formData.nombre_promocion.trim().length < 3) {
       nuevosErrores.nombre_promocion = 'El nombre debe tener al menos 3 caracteres';
+    } else {
+      // 👇 VALIDACIÓN DE DUPLICADOS
+      const nombreNormalizado = formData.nombre_promocion.trim().toUpperCase();
+      const nombreDuplicado = promocionesExistentes.some(p => {
+        // Si estamos editando, excluir la promoción actual de la comparación
+        const esPromocionActual = promocion && 
+          (p.id_promocion_pk === promocion.id_promocion_pk || 
+           p.id === promocion.id);
+        
+        if (esPromocionActual) return false;
+        
+        // Comparar nombres normalizados
+        return p.nombre_promocion.trim().toUpperCase() === nombreNormalizado;
+      });
+
+      if (nombreDuplicado) {
+        nuevosErrores.nombre_promocion = 'Ya existe una promoción con este nombre';
+      }
     }
     
+    // ============ VALIDACIÓN DE DESCRIPCIÓN ============
     if (!formData.descripcion_promocion.trim()) {
       nuevosErrores.descripcion_promocion = 'La descripción es requerida';
     } else if (formData.descripcion_promocion.trim().length < 10) {
       nuevosErrores.descripcion_promocion = 'La descripción debe tener al menos 10 caracteres';
     }
     
+    // ============ VALIDACIÓN DE PRECIO ============
     const precio = parseFloat(formData.precio_promocion);
     if (!formData.precio_promocion || isNaN(precio)) {
       nuevosErrores.precio_promocion = 'El precio es requerido';
@@ -101,6 +128,8 @@ export default function ModalPromocion({ isOpen, onClose, onSubmit, promocion = 
     } else if (precio > 10000) {
       nuevosErrores.precio_promocion = 'El precio parece demasiado alto (máx: L. 10,000)';
     }
+
+    // ============ VALIDACIÓN DE DÍAS ============
     if (!formData.dias_promocion || formData.dias_promocion.length === 0) {
       nuevosErrores.dias_promocion = 'Debe seleccionar al menos un día de la semana';
     }

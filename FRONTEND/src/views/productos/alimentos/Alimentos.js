@@ -24,7 +24,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
       const rect = buttonRef.current.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
       const menuHeight = 80; // Altura aproximada del menú
-      
+
       // Si no hay espacio suficiente abajo, mostrar arriba
       const showAbove = rect.bottom + menuHeight > viewportHeight - 50;
       setShouldShowAbove(showAbove);
@@ -84,14 +84,14 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
       </button>
 
       {isOpen && (
-        <div 
+        <div
           className={`fixed ${shouldShowAbove ? 'bottom-auto' : 'top-auto'} bg-white border border-gray-200 rounded-lg shadow-lg min-w-[140px]`}
           style={{
             zIndex: 99999,
             position: 'fixed',
             left: buttonRef.current ? buttonRef.current.getBoundingClientRect().right - 140 : 'auto',
-            top: shouldShowAbove ? 
-              (buttonRef.current ? buttonRef.current.getBoundingClientRect().top - 80 : 'auto') : 
+            top: shouldShowAbove ?
+              (buttonRef.current ? buttonRef.current.getBoundingClientRect().top - 80 : 'auto') :
               (buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 5 : 'auto')
           }}
         >
@@ -144,7 +144,7 @@ const Alimentos = () => {
     if (modalAbierto) {
       // Obtener el ancho de la scrollbar antes de ocultarla
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-      
+
       document.body.style.overflow = 'hidden';
       // Compensar el ancho de la scrollbar para evitar saltos
       document.body.style.paddingRight = `${scrollbarWidth}px`;
@@ -209,6 +209,21 @@ const Alimentos = () => {
   };
 
   const abrirModal = (alimento = null) => {
+    //VALIDAR ROL DEL USUARIO ACTUAL
+    const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
+    const rolActual = usuarioActual?.rol?.toLowerCase();
+
+    //SI NO ES ADMINISTRADOR U OPERADOR DE INVENTARIO, MOSTRAR MENSAJE
+    if (rolActual !== 'administrador' && rolActual !== 'operador de inventario') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acceso Denegado',
+        text: 'No tienes permisos para modificar productos',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
     setAlimentoEditando(alimento);
     setModalAbierto(true);
   };
@@ -224,6 +239,21 @@ const Alimentos = () => {
   };
 
   const handleEliminar = async (alimento) => {
+    //VALIDAR ROL DEL USUARIO ACTUAL
+    const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
+    const rolActual = usuarioActual?.rol?.toLowerCase();
+
+    //SI NO ES ADMINISTRADOR U OPERADOR DE INVENTARIO, MOSTRAR MENSAJE
+    if (rolActual !== 'administrador' && rolActual !== 'operador de inventario') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acceso Denegado',
+        text: 'No tienes permisos para eliminar productos',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
     const result = await Swal.fire({
       title: '¿Eliminar alimento?',
       html: `
@@ -269,6 +299,21 @@ const Alimentos = () => {
   };
 
   const actualizarEstadoAlimento = async (alimento, nuevoEstado) => {
+    //VALIDAR ROL DEL USUARIO ACTUAL
+    const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
+    const rolActual = usuarioActual?.rol?.toLowerCase();
+
+    //SI NO ES ADMINISTRADOR U OPERADOR DE INVENTARIO, MOSTRAR MENSAJE
+    if (rolActual !== 'administrador' && rolActual !== 'operador de inventario') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acceso Denegado',
+        text: 'No tienes permisos para cambiar el estado de productos',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
     try {
       const payload = {
         id_producto: alimento.id_producto,
@@ -417,23 +462,23 @@ const Alimentos = () => {
             sortable
             className="text-sm"
           />
-          <Column 
-            field="nombre" 
-            header="NOMBRE" 
-            sortable 
-            className="text-sm" 
+          <Column
+            field="nombre"
+            header="NOMBRE"
+            sortable
+            className="text-sm"
           />
-          <Column 
-            field="sku" 
-            header="SKU" 
-            sortable 
-            className="text-sm" 
+          <Column
+            field="sku"
+            header="SKU"
+            sortable
+            className="text-sm"
           />
-          <Column 
-            field="destino" 
-            header="DESTINADO" 
-            sortable 
-            className="text-sm text-center" 
+          <Column
+            field="destino"
+            header="DESTINADO"
+            sortable
+            className="text-sm text-center"
           />
           <Column
             field="peso"
@@ -497,12 +542,14 @@ const Alimentos = () => {
             onClose={cerrarModal}
             onSave={handleGuardar}
             editData={alimentoEditando}
+            alimentosExistentes={alimentos} // ✅ AGREGAR ESTA PROP
           />
         ) : (
           <ModalNuevoAlimento
             isOpen={modalAbierto}
             onClose={cerrarModal}
             onSave={handleGuardar}
+            alimentosExistentes={alimentos} // ✅ AGREGAR ESTA PROP
           />
         ))}
       </div>

@@ -32,10 +32,14 @@ exports.login = async (req, res) => {
                 u.bloqueado_hasta,
                 u.id_sucursal_fk,
                 s.nombre_sucursal,
-                e.nombre_estado
+                e.nombre_estado,
+                r.id_rol_pk,
+                r.tipo_rol
             FROM tbl_usuarios u
-            JOIN cat_estados e   ON u.cat_estado_fk = e.id_estado_pk
+            JOIN cat_estados e ON u.cat_estado_fk = e.id_estado_pk
             JOIN tbl_sucursales s ON u.id_sucursal_fk = s.id_sucursal_pk
+            LEFT JOIN tbl_usuario_roles ur ON ur.id_usuario_fk = u.id_usuario_pk
+            LEFT JOIN cat_roles r ON r.id_rol_pk = ur.id_rol_fk
             WHERE u.email_usuario = ? OR u.usuario = ?`,
             [login, login]
         );
@@ -163,14 +167,18 @@ exports.login = async (req, res) => {
 
         //SI EL USUARIO ESTÁ DENTRO DEL SISTEMA
         let token = null;
+
         if (estado === 200) {
             console.log('Antes de JWT:', Date.now() - start, 'ms');
+
             token = jwt.sign(
 
                 {
                     id_usuario_pk: user.id_usuario_pk,
                     usuario: user.usuario,
-                    id_sucursal_fk: user.id_sucursal_fk
+                    id_sucursal_fk: user.id_sucursal_fk,
+                    id_rol_pk: user.id_rol_pk,
+                    rol: user.tipo_rol
                 },
 
                 process.env.JWT_SECRET,
@@ -195,7 +203,9 @@ exports.login = async (req, res) => {
                 email: user.email_usuario,
                 sucursal: user.nombre_sucursal,
                 id_sucursal: user.id_sucursal_fk,
-                estado: user.nombre_estado
+                estado: user.nombre_estado,
+                rol: user.tipo_rol,
+                id_rol: user.id_rol_pk
             } : null,
             token
         });

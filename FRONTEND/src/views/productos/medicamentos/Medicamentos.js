@@ -86,10 +86,27 @@ const Medicamentos = () => {
     return { bgBadge: "bg-green-500", texto: "DISPONIBLE" };
   };
 
+  //VALIDAR PERMISOS ANTES DE REALIZAR ACCIONES
+  const validarPermisoAdministrador = (accion) => {
+    const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
+    const rolActual = usuarioActual?.rol?.toLowerCase();
+
+    if (rolActual !== 'administrador' && rolActual !== 'operador de inventario') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acceso Denegado',
+        text: `No tienes permisos para ${accion}`,
+        confirmButtonText: 'Aceptar'
+      });
+      return false;
+    }
+    return true;
+  };
+
   const handleGuardarMedicamento = async (formData) => {
     try {
       const success = await guardarMedicamento(formData, medicamentoEditando);
-      
+
       if (success) {
         Swal.fire({
           icon: 'success',
@@ -98,7 +115,7 @@ const Medicamentos = () => {
           timer: 1500,
           showConfirmButton: false
         });
-        
+
         setModalVisible(false);
         setMedicamentoEditando(null);
       } else {
@@ -164,6 +181,8 @@ const Medicamentos = () => {
   };
 
   const handleEliminarMedicamento = async (medicamento) => {
+    if (!validarPermisoAdministrador('eliminar medicamentos')) return;
+
     const lotesAsociados = lotes.filter(l => l.id_producto_fk === medicamento.id_producto_pk).length;
 
     const result = await Swal.fire({
@@ -196,8 +215,11 @@ const Medicamentos = () => {
     }
   };
 
-  // ✅ FUNCIÓN CORREGIDA - USA actualizarProducto
+  //FUNCIÓN CORREGIDA - USA actualizarProducto
   const handleCambiarEstado = async (medicamento) => {
+    //VALIDAR ROL DEL USUARIO ACTUAL
+    if (!validarPermisoAdministrador('cambiar el estado de medicamentos')) return;
+
     try {
       const nuevoEstado = !medicamento.activo;
 
@@ -367,7 +389,11 @@ const Medicamentos = () => {
               <button
                 className="text-black px-6 py-2 rounded-full transition-colors flex items-center gap-2 uppercase font-poppins"
                 style={{ borderRadius: '12px', backgroundColor: 'rgb(255, 222, 89)' }}
-                onClick={() => setModalVisible(true)}
+                onClick={() => {
+                  if (validarPermisoAdministrador('crear medicamentos')) {
+                    setModalVisible(true);
+                  }
+                }}
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 448 512">
                   <path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/>
@@ -395,12 +421,16 @@ const Medicamentos = () => {
                 globalFilter={busqueda}
                 setGlobalFilter={setBusqueda}
                 onEditar={(med) => {
-                  setMedicamentoEditando(med);
-                  setModalVisible(true);
+                  if (validarPermisoAdministrador('editar medicamentos')) {
+                    setMedicamentoEditando(med);
+                    setModalVisible(true);
+                  }
                 }}
                 onAgregarLote={(med) => {
-                  setMedicamentoSeleccionado(med);
-                  setModalLoteVisible(true);
+                  if (validarPermisoAdministrador('agregar lotes')) {
+                    setMedicamentoSeleccionado(med);
+                    setModalLoteVisible(true);
+                  }
                 }}
                 onVerLotes={(med) => {
                   setMedicamentoSeleccionado(med);

@@ -16,7 +16,7 @@ const mysqlConnection = mysql.createPool({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     multipleStatements: true,
-    //timezone: '-06:00' ,
+    timezone: '-06:00', // Zona horaria de Honduras (CST)
     ssl: {
         rejectUnauthorized: false
     }

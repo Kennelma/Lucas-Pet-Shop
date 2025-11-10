@@ -18,6 +18,7 @@ const whatsapp = require('../controllers/whatsapp.controller');
 const notificaciones = require('../controllers/notificaciones.controller');
 const reportes = require('../controllers/reportes.controller');
 const perfil = require('../controllers/perfil.controller');
+const seguridad = require('../controllers/seguridad.controller');
 
 //========== RUTAS DE AUTENTICACIÓN Y SEGURIDAD ==========
 router.post('/login', auth.login);
@@ -43,6 +44,7 @@ router.get ('/clientes/ver', verificarToken, clientes.ver);
 router.post('/clientes/insertar',verificarToken, clientes.crear);
 router.delete ('/clientes/eliminar', verificarToken, clientes.eliminar);
 router.put('/clientes/actualizar', verificarToken, clientes.actualizar);
+router.get ('/clientes/historial-compras', verificarToken, clientes.historialCompras);
 
 //========== RUTAS DE MÓDULO DE EMPRESA (EMPRESA, SUCURSALES, USUARIOS) ==========
 router.post('/empresa/insertar', verificarToken, empresa.crear);
@@ -57,8 +59,11 @@ router.get ('/facturacion/buscarCliente', verificarToken,facturas.buscarClientes
 router.get ('/facturacion/usuarioFacturacion', verificarToken, facturas.usuarioFactura);
 router.get ('/facturacion/estilistasFacturacion', verificarToken, facturas.buscarEstilistas);
 
+
 router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFactura)
 router.get  ('/facturacion/verFacturas', facturas.historialFacturas);
+router.get  ('/facturacion/verDetalleFactura', facturas.detalleFacturaSeleccionada);
+
 
 //RUTA PARA IMPRIMIR LA FACTURA EN FORMATO PDF
 router.get  ('/facturacion/verDetalleFactura', facturas.detalleFacturaSeleccionada);
@@ -89,6 +94,17 @@ router.post('/estilistas/insertar', verificarToken, estilistas.crear);
 router.get ('/estilistas/ver', verificarToken, estilistas.ver);
 router.put('/estilistas/actualizar', verificarToken, estilistas.actualizar);
 router.delete ('/estilistas/eliminar', verificarToken, estilistas.eliminar);
+router.get ('/estilistas/bonificaciones', verificarToken, estilistas.conteoMascotasPorEstilista);
+
+
+
+//==========RUTAS DE SEGURIDAD Y USUARIOS ==========
+router.get('/seguridad/catalogoRoles', verificarToken, seguridad.verRolesUsuarios);
+router.post('/seguridad/crearUsuario', verificarToken, seguridad.crearUsuario);
+router.get('/seguridad/verUsuarios', verificarToken, seguridad.verUsuarios);
+router.put('/seguridad/actualizarUsuario', verificarToken, seguridad.actualizarUsuario);
+router.delete('/seguridad/eliminarUsuario', verificarToken, seguridad.eliminarUsuario);
+
 
 //========== RUTAS DE RECORDATORIOS ==========
 router.post('/recordatorios/crear', recordatorios.crear);
