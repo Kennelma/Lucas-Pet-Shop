@@ -60,25 +60,8 @@ const Estilistas = () => {
   };
 
   const handleEliminar = async (id) => {
-<<<<<<< HEAD
-    console.log('ID a eliminar:', id);
-=======
-   
->>>>>>> ed0b2392b75611cb3505aa3dec69e9c9e7cb9d48
+    console.log('ID a eliminar:', id); // Debug
     
-    // Buscar información del estilista para mostrar en la confirmación
-    const estilista = estilistas.find(e => e.id_estilista_pk === id);
-    
-    if (!estilista) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se encontró el estilista seleccionado',
-        confirmButtonColor: '#ef4444'
-      });
-      return;
-    }
-
     const result = await Swal.fire({
       title: '⚠️ ¿Eliminar Estilista?',
       html: `
