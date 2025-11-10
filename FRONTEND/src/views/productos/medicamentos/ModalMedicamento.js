@@ -274,9 +274,6 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
   };
 
   const handleGuardar = () => {
-    console.log('🎯 Intentando guardar medicamento:', formData);
-    console.log('🔍 Es edición:', !!medicamentoEditando);
-    console.log('📋 Paso actual:', paso);
     
     // Agregar información de impuesto al formData antes de guardar
     const dataConImpuesto = {
@@ -414,16 +411,20 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
             {/* Precio */}
             <span>
               <label htmlFor="precio_producto" className="text-xs font-semibold text-gray-700 mb-1">
-                {precioLabel}
+                {aplicaImpuesto ? 'PRECIO CON ISV' : 'PRECIO BASE'}
               </label>
-              <InputText
-                id="precio_producto"
-                name="precio_producto"
-                value={formData.precio_producto}
-                onChange={e => handleChange('precio_producto', e.target.value)}
-                className="w-full rounded-xl h-9 text-sm"
-                placeholder="0.00"
-              />
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-sm text-gray-600 font-semibold">L</span>
+                <InputText
+                  id="precio_producto"
+                  name="precio_producto"
+                  value={formData.precio_producto}
+                  onChange={e => handleChange('precio_producto', e.target.value)}
+                  className="w-full rounded-xl h-9 text-sm"
+                  style={{ paddingLeft: '2rem' }}
+                  placeholder="0.00"
+                />
+              </div>
               {errores.precio_producto && <p className="text-xs text-red-600 mt-1">{errores.precio_producto}</p>}
             </span>
 
@@ -548,12 +549,10 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                   className="w-full rounded-xl h-9 text-sm border border-gray-300"
                 >
                   <option value="">Seleccione...</option>
-                  <option value="MG">MG (Miligramos)</option>
-                  <option value="G">G (Gramos)</option>
-                  <option value="ML">ML (Mililitros)</option>
-                  <option value="OZ">OZ (Onzas)</option>
-                  <option value="GOTAS">GOTAS</option>
-                  <option value="UNIDADES">UNIDADES</option>
+                  <option value="MG">mg (Miligramos)</option>
+                  <option value="G">g (Gramos)</option>
+                  <option value="ML">ml (Mililitros)</option>
+                  <option value="OZ">oz (Onzas)</option>
                 </select>
               </span>
             </div>
