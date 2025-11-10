@@ -221,9 +221,9 @@ const Servicios = () => {
           <span className="ml-3 text-gray-600">Cargando servicios...</span>
         </div>
       ) : (
-        <>
-          {/* Título */}
-      <div
+        <>    
+    <div
+      // Título 
   className="rounded-xl p-6 mb-3 bg-cover bg-center"
   style={{
     backgroundImage: 'url("/header.jpg")',
@@ -235,11 +235,11 @@ const Servicios = () => {
   }}
 >
   <div className="flex justify-center items-center">
-    <h2 className="text-2xl font-black text-center uppercase text-white">
+    <h2 className="text-2xl font-black text-center uppercase text-black">
       SERVICIOS DE PELUQUERÍA
     </h2>
   </div>
-  <p className="text-center text-white italic mt-2">
+  <p className="text-center text-black poppins mt-2">
     Administra los servicios de peluquería y estética para mascotas
   </p>
 </div>

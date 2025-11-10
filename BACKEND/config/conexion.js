@@ -2,7 +2,7 @@
 const path = require('path');
 
 require('dotenv').config({
-    path: path.resolve(process.cwd(), '..', '.env') 
+    path: path.resolve(process.cwd(), '..', '.env')
 });
 
 const mysql = require('mysql2/promise');
@@ -16,15 +16,16 @@ const mysqlConnection = mysql.createPool({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     multipleStatements: true,
+    //timezone: '-06:00' ,
     ssl: {
-        rejectUnauthorized: false 
+        rejectUnauthorized: false
     }
 });
 
 //MENSAJE DE CONFIRMACIÓN DE CONEXIÓN Y MANEJO DE ERRORES
 (async () => {
     try {
-        await mysqlConnection.getConnection(); 
+        await mysqlConnection.getConnection();
         console.log('Conexión a MySQL OK');
     } catch (err) {
         console.log('Error conectando a MySQL:', err.message);

@@ -210,7 +210,7 @@ const ResumenPromocionesDelDia = () => {
     <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #365DA040, 0 0 0 1px #365DA033'}}>
       <div className="flex justify-between items-center mb-4">
         <div className="flex flex-col items-center justify-center flex-1 text-center">
-          <h className="text-xl font-bold text-gray-800 mb-1">PROMOCIONES DE HOY</h>
+          <div className="text-xl font-bold text-gray-800 mb-1">PROMOCIONES DE HOY</div>
           <p className="text-gray-600 text-sm">{obtenerNombreDia().toUpperCase()} - {obtenerHoraActual()}</p>
         </div>
         <button

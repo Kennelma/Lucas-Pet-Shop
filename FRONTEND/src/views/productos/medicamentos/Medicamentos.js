@@ -8,24 +8,24 @@ import ModalMedicamento from "./ModalMedicamento";
 import ModalLote from "./ModalLote";
 import ModalMovimiento from "./ModalMovimiento";
 import ModalLotesMedicamento from "./ModalLotesMedicamento";
-import ModalEditarLote from "./ModalEditarLote"; // ✅ NUEVO IMPORT
-import { cambiarEstadoProducto } from "../../../AXIOS.SERVICES/products-axios";
+import ModalEditarLote from "./ModalEditarLote";
+import { actualizarProducto } from "../../../AXIOS.SERVICES/products-axios"; // ✅ CAMBIADO
 
 const Medicamentos = () => {
-  const { 
-    medicamentos, 
-    setMedicamentos, 
-    lotes, 
-    kardexData, 
-    loading, 
-    mensaje, 
-    calcularStockTotal, 
-    guardarMedicamento, 
-    guardarLote, 
+  const {
+    medicamentos,
+    setMedicamentos,
+    lotes,
+    kardexData,
+    loading,
+    mensaje,
+    calcularStockTotal,
+    guardarMedicamento,
+    guardarLote,
     guardarMovimiento,
-    eliminarMedicamento, 
+    eliminarMedicamento,
     eliminarLote,
-    editarLote, // ✅ NUEVO
+    editarLote,
     cargarDatos
   } = useMedicamentos();
 
@@ -35,15 +35,14 @@ const Medicamentos = () => {
   const [modalLoteVisible, setModalLoteVisible] = useState(false);
   const [modalMovVisible, setModalMovVisible] = useState(false);
   const [modalLotesVisible, setModalLotesVisible] = useState(false);
-  const [modalEditarLoteVisible, setModalEditarLoteVisible] = useState(false); // ✅ NUEVO
+  const [modalEditarLoteVisible, setModalEditarLoteVisible] = useState(false);
   const [medicamentoEditando, setMedicamentoEditando] = useState(null);
   const [medicamentoSeleccionado, setMedicamentoSeleccionado] = useState(null);
   const [loteSeleccionado, setLoteSeleccionado] = useState(null);
-  const [loteEditar, setLoteEditar] = useState(null); // ✅ NUEVO
+  const [loteEditar, setLoteEditar] = useState(null); 
 
-  //====================CONTROL_SCROLL_MODALES====================
   useEffect(() => {
-    const anyModalOpen = modalVisible || modalLoteVisible || modalMovVisible || modalLotesVisible || modalEditarLoteVisible; // ✅ AGREGADO
+    const anyModalOpen = modalVisible || modalLoteVisible || modalMovVisible || modalLotesVisible || modalEditarLoteVisible;
 
     if (anyModalOpen) {
       document.body.style.overflow = 'hidden';
@@ -54,7 +53,7 @@ const Medicamentos = () => {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [modalVisible, modalLoteVisible, modalMovVisible, modalLotesVisible, modalEditarLoteVisible]); // ✅ AGREGADO
+  }, [modalVisible, modalLoteVisible, modalMovVisible, modalLotesVisible, modalEditarLoteVisible]);
 
   const medicamentosFiltrados = medicamentos.filter((m) =>
     m.nombre_producto.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -71,7 +70,6 @@ const Medicamentos = () => {
            mov.origen_movimiento.toLowerCase().includes(searchLower);
   });
 
-  // Función para calcular estado del lote
   const calcularEstadoLote = (lote) => {
     const hoy = new Date();
     const vencimiento = new Date(lote.fecha_vencimiento);
@@ -89,41 +87,38 @@ const Medicamentos = () => {
   };
 
   const handleGuardarMedicamento = async (formData) => {
-  try {
-    const success = await guardarMedicamento(formData, medicamentoEditando);
-    
-    if (success) {
-      // ✅ MOSTRAR SWAL DESPUÉS DE GUARDAR EXITOSAMENTE
-      Swal.fire({
-        icon: 'success',
-        title: medicamentoEditando ? '¡Actualizado!' : '¡Agregado!',
-        text: `${formData.nombre_producto} fue ${medicamentoEditando ? 'actualizado' : 'agregado'} correctamente`,
-        timer: 1500,
-        showConfirmButton: false
-      });
+    try {
+      const success = await guardarMedicamento(formData, medicamentoEditando);
       
-      // Cerrar modal y limpiar estado
-      setModalVisible(false);
-      setMedicamentoEditando(null);
-    } else {
-      // ❌ MOSTRAR ERROR SI NO SE PUDO GUARDAR
+      if (success) {
+        Swal.fire({
+          icon: 'success',
+          title: medicamentoEditando ? '¡Actualizado!' : '¡Agregado!',
+          text: `${formData.nombre_producto} fue ${medicamentoEditando ? 'actualizado' : 'agregado'} correctamente`,
+          timer: 1500,
+          showConfirmButton: false
+        });
+        
+        setModalVisible(false);
+        setMedicamentoEditando(null);
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo guardar el medicamento',
+          confirmButtonText: 'Entendido'
+        });
+      }
+    } catch (error) {
+      console.error('Error al guardar medicamento:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'No se pudo guardar el medicamento',
+        text: 'Ocurrió un error al guardar el medicamento',
         confirmButtonText: 'Entendido'
       });
     }
-  } catch (error) {
-    console.error('Error al guardar medicamento:', error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Ocurrió un error al guardar el medicamento',
-      confirmButtonText: 'Entendido'
-    });
-  }
-};
+  };
 
   const handleGuardarLote = async (formData) => {
     const success = await guardarLote(formData);
@@ -141,19 +136,17 @@ const Medicamentos = () => {
     }
   };
 
-  // ✅ NUEVA FUNCIÓN: Abrir modal de editar lote
   const handleEditarLote = (lote) => {
     setLoteEditar(lote);
     setModalEditarLoteVisible(true);
   };
 
-  // ✅ NUEVA FUNCIÓN: Guardar edición de lote
   const handleGuardarEdicionLote = async (loteEditado) => {
     const exito = await editarLote(loteEditado);
     if (exito) {
-      Swal.fire({ 
-        icon: 'success', 
-        title: '¡Actualizado!', 
+      Swal.fire({
+        icon: 'success',
+        title: '¡Actualizado!',
         text: 'Lote actualizado correctamente',
         timer: 1500,
         showConfirmButton: false
@@ -161,9 +154,9 @@ const Medicamentos = () => {
       setModalEditarLoteVisible(false);
       setLoteEditar(null);
     } else {
-      Swal.fire({ 
-        icon: 'error', 
-        title: 'Error', 
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
         text: 'No se pudo actualizar el lote',
         confirmButtonText: 'Entendido'
       });
@@ -203,11 +196,16 @@ const Medicamentos = () => {
     }
   };
 
+  // ✅ FUNCIÓN CORREGIDA - USA actualizarProducto
   const handleCambiarEstado = async (medicamento) => {
     try {
       const nuevoEstado = !medicamento.activo;
 
-      const response = await cambiarEstadoProducto(medicamento.id_producto_pk, nuevoEstado);
+      const response = await actualizarProducto({
+        id_producto: medicamento.id_producto_pk,
+        tipo_producto: 'MEDICAMENTOS',
+        activo: nuevoEstado ? 1 : 0
+      });
 
       if (response.Consulta) {
         setMedicamentos(prev =>
@@ -292,7 +290,6 @@ const Medicamentos = () => {
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
-      {/* Título */}
       <div className="rounded-xl p-6 mb-3"
         style={{
           backgroundImage: 'url("/H3.jpg")',
@@ -304,16 +301,15 @@ const Medicamentos = () => {
         }}
       >
         <div className="flex justify-end items-right">
-          <h2 className="text-2xl font-black text-right uppercase text-white">
+          <h2 className="text-2xl font-black text-left font-poppins uppercase text-black mt-2 ml-100 w-full">
             GESTIÓN DE MEDICAMENTOS
           </h2>
         </div>
-        <p className="text-right text-white italic mt-2">
+        <p className="text-black font-poppins mt-2 ml-85 w-full">
           Administra medicamentos veterinarios, lotes y control de inventario
         </p>
       </div>
 
-      {/* Tabs de navegación*/}
       <div className="flex flex-wrap rounded-lg bg-gray-200 p-1 w-80 text-sm shadow-sm mb-6">
         <label className="flex-1 text-center">
           <input type="radio" name="vista" checked={vistaActual === "medicamentos"} onChange={() => setVistaActual("medicamentos")} className="hidden" />
@@ -340,19 +336,16 @@ const Medicamentos = () => {
         </label>
       </div>
 
-      {/* Sección Más Vendidos - SOLO PARA MEDICAMENTOS */}
       {vistaActual === "medicamentos" && (
         <MedicamentosMasVendidos medicamentos={medicamentos} />
       )}
 
-      {/* Contenido principal */}
       <div className="bg-white rounded-xl p-6 mb-6"
            style={{boxShadow: '0 0 8px #FFDE5940, 0 0 0 1px #FFDE5933'}}>
         {vistaActual === "kardex" ? (
           <KardexTable kardexData={kardexFiltrado} />
         ) : (
           <>
-            {/* Barra de búsqueda y controles - SOLO PARA MEDICAMENTOS */}
             <div className="flex justify-between items-center mb-6">
               <div className="relative w-80">
                 <input
@@ -372,8 +365,8 @@ const Medicamentos = () => {
               </div>
 
               <button
-                className="bg-yellow-200 text-white px-6 py-2 rounded-full hover:bg-yellow-500 transition-colors flex items-center gap-2 uppercase"
-                style={{ borderRadius: '12px' }}
+                className="text-black px-6 py-2 rounded-full transition-colors flex items-center gap-2 uppercase font-poppins"
+                style={{ borderRadius: '12px', backgroundColor: 'rgb(255, 222, 89)' }}
                 onClick={() => setModalVisible(true)}
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 448 512">
@@ -421,52 +414,50 @@ const Medicamentos = () => {
         )}
       </div>
 
-      {/* Modales */}
       <ModalMedicamento
-        isOpen={modalVisible} 
+        isOpen={modalVisible}
         onClose={() => {
           setModalVisible(false);
           setMedicamentoEditando(null);
         }}
-        onSave={handleGuardarMedicamento} 
-        medicamentoEditando={medicamentoEditando} 
+        onSave={handleGuardarMedicamento}
+        medicamentoEditando={medicamentoEditando}
         medicamentosExistentes={medicamentos}
       />
 
       <ModalLote
-        isOpen={modalLoteVisible} 
+        isOpen={modalLoteVisible}
         onClose={() => {
           setModalLoteVisible(false);
           setMedicamentoSeleccionado(null);
         }}
-        onSave={handleGuardarLote} 
-        medicamentoSeleccionado={medicamentoSeleccionado} 
+        onSave={handleGuardarLote}
+        medicamentoSeleccionado={medicamentoSeleccionado}
         lotesExistentes={lotes}
       />
 
       <ModalMovimiento
-        isOpen={modalMovVisible} 
+        isOpen={modalMovVisible}
         onClose={() => {
           setModalMovVisible(false);
           setLoteSeleccionado(null);
         }}
-        onSave={handleGuardarMovimiento} 
+        onSave={handleGuardarMovimiento}
         loteSeleccionado={loteSeleccionado}
       />
 
-      <ModalLotesMedicamento 
-        isOpen={modalLotesVisible} 
+      <ModalLotesMedicamento
+        isOpen={modalLotesVisible}
         onClose={() => {
           setModalLotesVisible(false);
           setMedicamentoSeleccionado(null);
         }}
-        medicamentoSeleccionado={medicamentoSeleccionado} 
-        lotes={lotes} 
+        medicamentoSeleccionado={medicamentoSeleccionado}
+        lotes={lotes}
         onEliminarLote={handleEliminarLote}
-        onEditarLote={handleEditarLote} // ✅ AGREGADO
+        onEditarLote={handleEditarLote}
       />
 
-      {/* ✅ NUEVO MODAL: Modal Editar Lote */}
       <ModalEditarLote
         isOpen={modalEditarLoteVisible}
         onClose={() => {
@@ -477,7 +468,6 @@ const Medicamentos = () => {
         loteEditar={loteEditar}
       />
 
-      {/* Notificación de mensajes */}
       {mensaje && (
         <div className="fixed bottom-5 right-5 px-4 py-2 bg-purple-600 text-white rounded font-bold shadow-lg animate-pulse z-50">
           {mensaje}

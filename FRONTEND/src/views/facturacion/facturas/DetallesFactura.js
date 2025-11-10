@@ -53,7 +53,10 @@ const DetallesFactura = ({
 
   const formatCurrency = (value) => {
     const num = Number(value || 0);
-    return `  L. ${num.toLocaleString("es-HN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `  L. ${num.toLocaleString("es-HN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
   };
 
   //====================GESTIÓN_DE_ESTILISTAS====================
@@ -61,7 +64,10 @@ const DetallesFactura = ({
   const addEstilista = (itemId) => {
     const item = items.find((it) => it.id === itemId);
     const currentEstilistas = item.estilistas || [];
-    updateItem(itemId, "estilistas", [...currentEstilistas, { id: Date.now(), estilistaId: "", cantidadMascotas: 1 }]);
+    updateItem(itemId, "estilistas", [
+      ...currentEstilistas,
+      { id: Date.now(), estilistaId: "", cantidadMascotas: 1 },
+    ]);
   };
 
   const removeEstilista = (itemId, estilistaIndex) => {
@@ -84,53 +90,82 @@ const DetallesFactura = ({
 
   //====================FUNCIÓN_PARA_APLICAR_DESCUENTO====================
   const aplicarDescuento = () => {
-    const inputDescuento = document.getElementById('input-descuento-manual');
+    const inputDescuento = document.getElementById("input-descuento-manual");
     const valorDescuento = parseFloat(inputDescuento.value) || 0;
 
     if (valorDescuento < 0) {
-      alert('El descuento no puede ser negativo');
-      inputDescuento.value = '';
+      alert("El descuento no puede ser negativo");
+      inputDescuento.value = "";
       return;
     }
 
     if (valorDescuento > TOTAL_CON_AJUSTE) {
-      alert('El descuento no puede ser mayor al total de la factura');
-      inputDescuento.value = '';
+      alert("El descuento no puede ser mayor al total de la factura");
+      inputDescuento.value = "";
       return;
     }
 
     setDescuentoManual(valorDescuento);
-    inputDescuento.value = '';
+    inputDescuento.value = "";
   };
 
   //====================CÁLCULOS_DE_TOTALES====================
 
-  const TOTAL_BRUTO = items.reduce((sum, it) => {
-    const cantidad = parseFloat(it.cantidad) || 0;
-    const precio = parseFloat(it.precio) || 0;
-    return sum + cantidad * precio;
-  }, 0);
+  //====================CÁLCULOS_DE_TOTALES====================
 
   const TOTAL_AJUSTE = items.reduce(
     (sum, it) => sum + (parseFloat(it.ajuste) || 0),
     0
   );
 
-  const DESCUENTO = Math.max(0, parseInt(descuentoValor, 10) || 0); //ENTERO DEL DESCUENTO
+  const DESCUENTO = Math.max(0, parseInt(descuentoValor, 10) || 0);
 
-  const TOTAL_FINAL = Math.max(0, TOTAL_BRUTO + TOTAL_AJUSTE - DESCUENTO); //RESTA TODO DEL FINAL
+  let subtotal_exento_total = 0;
+  let subtotal_gravado_sin_isv = 0;
 
-  //const DIVISOR_ISV = 1.15;
+  items.forEach((it) => {
+    const cantidad = parseFloat(it.cantidad) || 0;
+    const precio = parseFloat(it.precio) || 0;
+    const tiene_impuesto = it.tiene_impuesto || false;
 
-  //const SUBTOTAL_GRAVABLE = TOTAL_FINAL > 0 ? TOTAL_FINAL / DIVISOR_ISV : 0;
+    const total_linea = cantidad * precio;
 
-  const SUBTOTAL = TOTAL_FINAL;
+    if (tiene_impuesto) {
+      //EL PRECIO YA INCLUYE EL ISV, YA VIENE DEL MODULO DE PRODUCTOS  (ej: 230), extraemos la base sin ISV (230/1.15 = 200)
+      subtotal_gravado_sin_isv += total_linea / 1.15;
+    } else {
+      subtotal_exento_total += total_linea;
+    }
+  });
 
-  //const IMPUESTO = TOTAL_FINAL - SUBTOTAL;
+  const SUBTOTAL_EXENTO = subtotal_exento_total;
+  const SUBTOTAL_GRAVADO = subtotal_gravado_sin_isv; //BASE SIN ISV
+  const IMPUESTO = SUBTOTAL_GRAVADO * 0.15; //15 DE LA BASE
+
+  const TOTAL_FINAL = Math.max(
+    0,
+    SUBTOTAL_EXENTO + SUBTOTAL_GRAVADO + IMPUESTO + TOTAL_AJUSTE - DESCUENTO
+  );
 
   const SALDO = TOTAL_FINAL;
 
-  //====================⭐ FUNCIÓN PARA GUARDAR FACTURA SIN ABRIR PAGOS====================
+  // AGREGA ESTOS CONSOLE.LOG:
+  console.log(
+    "🔍 DEBUG ITEMS:",
+    items.map((it) => ({
+      nombre: it.item,
+      precio: it.precio,
+      tiene_impuesto: it.tiene_impuesto,
+      tipo: it.tipo,
+    }))
+  );
+
+  console.log("📊 SUBTOTAL_EXENTO:", SUBTOTAL_EXENTO);
+  console.log("📊 SUBTOTAL_GRAVADO:", SUBTOTAL_GRAVADO);
+  console.log("📊 IMPUESTO:", IMPUESTO);
+  console.log("📊 TOTAL_FINAL:", TOTAL_FINAL);
+
+  //====================FUNCIÓN PARA GUARDAR FACTURA SIN ABRIR PAGOS====================
   const handleGuardarFacturaSinPago = async () => {
     // VALIDACIONES
     if (items.length === 0) {
@@ -231,7 +266,6 @@ const DetallesFactura = ({
       return;
     }
 
-    // ⭐ CONSTRUIR PAYLOAD PARA EL BACKEND
     setLoading(true);
 
     const datosFactura = {
@@ -304,10 +338,12 @@ const DetallesFactura = ({
         const saldoPendiente = response.data?.saldo ?? 0;
         if (saldoPendiente > 0) {
           await Swal.fire({
-            icon: 'success',
-            title: 'Pago procesado',
-            text: `${response.mensaje || 'Pago procesado exitosamente'}\nSaldo pendiente:  ${saldoPendiente.toFixed(2)}`,
-            confirmButtonColor: '#3085d6',
+            icon: "success",
+            title: "Pago procesado",
+            text: `${
+              response.mensaje || "Pago procesado exitosamente"
+            }\nSaldo pendiente:  ${saldoPendiente.toFixed(2)}`,
+            confirmButtonColor: "#3085d6",
           });
         } else {
           await Swal.fire({
@@ -369,7 +405,7 @@ const DetallesFactura = ({
               type="button"
               onClick={addItem}
               className="bg-purple-500 text-white px-6 py-2 rounded-full hover:bg-purple-600 transition-colors flex items-center gap-2 font-semibold text-sm shadow-lg hover:shadow-xl"
-              style={{ borderRadius: '12px' }}
+              style={{ borderRadius: "12px" }}
             >
               <Plus size={18} />
               AGREGAR ITEM
@@ -699,7 +735,7 @@ const DetallesFactura = ({
                         <button
                           onClick={() => removeItem(item.id)}
                           className="text-red-600 hover:bg-red-50 rounded-xl transition-colors inline-flex"
-                          style={{ padding: '4px' }}
+                          style={{ padding: "4px" }}
                           title="Eliminar item"
                         >
                           <Trash2 size={18} />
@@ -721,10 +757,22 @@ const DetallesFactura = ({
                         >
                           <div style={{ marginLeft: "16px" }}>
                             {itemEstilistas.map((est, index) => (
-                              <div key={est.id} className="flex items-center" style={{ gap: '16px', marginBottom: '8px' }}>
-                                <div className="flex items-center" style={{ gap: '8px' }}>
-                                  <label className="font-medium text-gray-600" style={{ fontSize: '14px' }}>Estilista:</label>
-                                  <div style={{ width: '250px' }}>
+                              <div
+                                key={est.id}
+                                className="flex items-center"
+                                style={{ gap: "16px", marginBottom: "8px" }}
+                              >
+                                <div
+                                  className="flex items-center"
+                                  style={{ gap: "8px" }}
+                                >
+                                  <label
+                                    className="font-medium text-gray-600"
+                                    style={{ fontSize: "14px" }}
+                                  >
+                                    Estilista:
+                                  </label>
+                                  <div style={{ width: "250px" }}>
                                     <Select
                                       value={
                                         estilistas
@@ -757,10 +805,28 @@ const DetallesFactura = ({
                                       menuPortalTarget={document.body}
                                       menuPosition="fixed"
                                       styles={{
-                                        control: (base) => ({ ...base, minHeight: '34px', height: '34px', fontSize: '14px', borderColor: '#d1d5db' }),
-                                        option: (base) => ({ ...base, fontSize: '14px' }),
-                                        singleValue: (base) => ({ ...base, fontSize: '14px', whiteSpace: 'nowrap', overflow: 'visible', textOverflow: 'unset' }),
-                                        placeholder: (base) => ({ ...base, fontSize: '14px' })
+                                        control: (base) => ({
+                                          ...base,
+                                          minHeight: "34px",
+                                          height: "34px",
+                                          fontSize: "14px",
+                                          borderColor: "#d1d5db",
+                                        }),
+                                        option: (base) => ({
+                                          ...base,
+                                          fontSize: "14px",
+                                        }),
+                                        singleValue: (base) => ({
+                                          ...base,
+                                          fontSize: "14px",
+                                          whiteSpace: "nowrap",
+                                          overflow: "visible",
+                                          textOverflow: "unset",
+                                        }),
+                                        placeholder: (base) => ({
+                                          ...base,
+                                          fontSize: "14px",
+                                        }),
                                       }}
                                     />
                                   </div>
@@ -779,11 +845,22 @@ const DetallesFactura = ({
                                     type="number"
                                     value={est.cantidadMascotas ?? 1}
                                     onChange={(e) => {
-                                      const valor = parseInt(e.target.value) || 0;
+                                      const valor =
+                                        parseInt(e.target.value) || 0;
                                       if (valor >= 1) {
-                                        updateEstilista(item.id, index, "cantidadMascotas", e.target.value);
+                                        updateEstilista(
+                                          item.id,
+                                          index,
+                                          "cantidadMascotas",
+                                          e.target.value
+                                        );
                                       } else {
-                                        updateEstilista(item.id, index, "cantidadMascotas", "1");
+                                        updateEstilista(
+                                          item.id,
+                                          index,
+                                          "cantidadMascotas",
+                                          "1"
+                                        );
                                       }
                                     }}
                                     min="1"
@@ -796,9 +873,11 @@ const DetallesFactura = ({
                                   />
                                 </div>
                                 <button
-                                  onClick={() => removeEstilista(item.id, index)}
+                                  onClick={() =>
+                                    removeEstilista(item.id, index)
+                                  }
                                   className="text-red-600 hover:bg-red-100 rounded-xl transition-colors"
-                                  style={{ padding: '4px' }}
+                                  style={{ padding: "4px" }}
                                   title="Eliminar estilista"
                                 >
                                   <Trash2 size={16} />
@@ -808,7 +887,12 @@ const DetallesFactura = ({
                             <button
                               onClick={() => addEstilista(item.id)}
                               className="flex items-center text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
-                              style={{ gap: '4px', padding: '4px 12px', fontSize: '14px', marginTop: '8px' }}
+                              style={{
+                                gap: "4px",
+                                padding: "4px 12px",
+                                fontSize: "14px",
+                                marginTop: "8px",
+                              }}
                             >
                               <UserPlus size={16} />
                               Agregar Estilista
@@ -833,33 +917,42 @@ const DetallesFactura = ({
           )}
         </div>
 
-
-
         {/*TOTALES Y BOTONES*/}
         {items.length > 0 && (
-          <div className="flex justify-between items-center" style={{ gap: '24px' }}>
-            <div className="flex flex-1 justify-center" style={{ gap: '12px' }}>
+          <div
+            className="flex justify-between items-center"
+            style={{ gap: "24px" }}
+          >
+            <div className="flex flex-1 justify-center" style={{ gap: "12px" }}>
               <button
                 onClick={handleGuardarFacturaSinPago}
                 disabled={loading}
-                className={`${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'} text-white px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl`}
-                style={{ borderRadius: '12px' }}
+                className={`${
+                  loading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-500 hover:bg-blue-600"
+                } text-white px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl`}
+                style={{ borderRadius: "12px" }}
               >
                 {loading ? "Guardando..." : "GUARDAR SIN PAGAR"}
               </button>
               <button
                 onClick={handleOpenPaymentModal}
                 disabled={loading}
-                className={`${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'} text-white px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl`}
-                style={{ borderRadius: '12px' }}
+                className={`${
+                  loading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-green-500 hover:bg-green-600"
+                } text-white px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl`}
+                style={{ borderRadius: "12px" }}
               >
-                {loading ? 'Guardando...' : 'CONTINUAR CON PAGO'}
+                {loading ? "Guardando..." : "CONTINUAR CON PAGO"}
               </button>
               <button
                 onClick={onCancel}
                 disabled={loading}
                 className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl"
-                style={{ borderRadius: '12px' }}
+                style={{ borderRadius: "12px" }}
               >
                 CANCELAR
               </button>
@@ -888,16 +981,47 @@ const DetallesFactura = ({
                 </div>
               </div>
 
-              <div className="ml-auto" style={{ maxWidth: "320px" }}>
-                <div
-                  className="flex justify-between text-gray-700"
-                  style={{ fontSize: "14px", marginBottom: "8px" }}
-                >
-                 <span className="font-medium">
-                  {/*
-                    {formatCurrency(SUBTOTAL)}8*/}
-                  </span>
-                </div>
+              <div className="ml-auto" style={{ maxWidth: "380px" }}>
+                {/* Subtotal Exento */}
+                {SUBTOTAL_EXENTO > 0 && (
+                  <div
+                    className="flex justify-between text-gray-700"
+                    style={{ fontSize: "14px", marginBottom: "8px" }}
+                  >
+                    <span>Subtotal Exento:</span>
+                    <span className="font-medium">
+                      {formatCurrency(SUBTOTAL_EXENTO)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Subtotal Gravado (sin ISV) */}
+                {SUBTOTAL_GRAVADO > 0 && (
+                  <div
+                    className="flex justify-between text-gray-700"
+                    style={{ fontSize: "14px", marginBottom: "8px" }}
+                  >
+                    <span>Subtotal Gravado:</span>
+                    <span className="font-medium">
+                      {formatCurrency(SUBTOTAL_GRAVADO)}
+                    </span>
+                  </div>
+                )}
+
+                {/* ISV 15% */}
+                {IMPUESTO > 0 && (
+                  <div
+                    className="flex justify-between text-gray-700"
+                    style={{ fontSize: "14px", marginBottom: "8px" }}
+                  >
+                    <span>ISV (15%):</span>
+                    <span className="font-medium">
+                      {formatCurrency(IMPUESTO)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Descuento */}
                 {DESCUENTO > 0 && (
                   <div
                     className="flex justify-between text-green-600"
@@ -909,16 +1033,8 @@ const DetallesFactura = ({
                     </span>
                   </div>
                 )}
-                <div
-                  className="flex justify-between text-gray-700"
-                  style={{ fontSize: "14px", marginBottom: "8px" }}
-                >
-                  {/*
-                  <span>Impuesto (15%):</span>
-                  <span className="font-medium">
-                    {formatCurrency(IMPUESTO)}
-                  </span>* */}
-                </div>
+
+                {/* Total */}
                 <div
                   className="flex justify-between font-bold text-gray-900 border-t-2 border-gray-300"
                   style={{
@@ -930,8 +1046,13 @@ const DetallesFactura = ({
                   <span>TOTAL:</span>
                   <span>{formatCurrency(TOTAL_FINAL)}</span>
                 </div>
-                <div className="flex justify-between font-semibold text-blue-600" style={{ fontSize: '17px', paddingTop: '8px' }}>
-                  <span>Saldo Pendiente:&nbsp;&nbsp;&nbsp;&nbsp;</span>
+
+                {/* Saldo Pendiente */}
+                <div
+                  className="flex justify-between font-semibold text-blue-600"
+                  style={{ fontSize: "17px", paddingTop: "8px" }}
+                >
+                  <span>Saldo Pendiente:</span>
                   <span>{formatCurrency(SALDO)}</span>
                 </div>
               </div>
@@ -947,6 +1068,31 @@ const DetallesFactura = ({
         onPagoConfirmado={handlePaymentSuccess}
         factura={paymentData}
       />
+      {/* 🔍 DEBUG - BORRAR DESPUÉS
+        {items.length > 0 && (
+    <div style={{
+      position: 'fixed',
+      bottom: 10,
+      left: 10,
+      background: 'black',
+      color: 'lime',
+      padding: '10px',
+      fontSize: '12px',
+      zIndex: 9999,
+      borderRadius: '8px'
+    }}>
+      <div>SUBTOTAL EXENTO: {SUBTOTAL_EXENTO.toFixed(2)}</div>
+      <div>SUBTOTAL GRAVADO: {SUBTOTAL_GRAVADO.toFixed(2)}</div>
+      <div>IMPUESTO: {IMPUESTO.toFixed(2)}</div>
+      <div>TOTAL: {TOTAL_FINAL.toFixed(2)}</div>
+      <hr />
+      {items.map((it, i) => (
+        <div key={i}>
+          Item {i+1}: tiene_impuesto = {String(it.tiene_impuesto)}
+        </div>
+      ))}
+    </div>
+  )}*/}
     </div>
   );
 };

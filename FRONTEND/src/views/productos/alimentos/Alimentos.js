@@ -20,8 +20,19 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
   const buttonRef = useRef(null);
 
   const checkPosition = () => {
-    const showAbove = rowIndex >= 2 || rowIndex >= (totalRows - 3);
-    setShouldShowAbove(showAbove);
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const menuHeight = 80; // Altura aproximada del menú
+      
+      // Si no hay espacio suficiente abajo, mostrar arriba
+      const showAbove = rect.bottom + menuHeight > viewportHeight - 50;
+      setShouldShowAbove(showAbove);
+    } else {
+      // Fallback a la lógica anterior si no hay referencia
+      const showAbove = rowIndex >= 2 || rowIndex >= (totalRows - 3);
+      setShouldShowAbove(showAbove);
+    }
   };
 
   React.useEffect(() => {
@@ -73,7 +84,17 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
       </button>
 
       {isOpen && (
-        <div className={`absolute right-0 ${shouldShowAbove ? 'bottom-16' : 'top-12'} bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[140px]`}>
+        <div 
+          className={`fixed ${shouldShowAbove ? 'bottom-auto' : 'top-auto'} bg-white border border-gray-200 rounded-lg shadow-lg min-w-[140px]`}
+          style={{
+            zIndex: 99999,
+            position: 'fixed',
+            left: buttonRef.current ? buttonRef.current.getBoundingClientRect().right - 140 : 'auto',
+            top: shouldShowAbove ? 
+              (buttonRef.current ? buttonRef.current.getBoundingClientRect().top - 80 : 'auto') : 
+              (buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 5 : 'auto')
+          }}
+        >
           <div
             className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={(e) => {
@@ -296,8 +317,25 @@ const Alimentos = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
-      {/* Título */}
+    <>
+      <style jsx>{`
+        :global(.p-datatable .p-datatable-wrapper),
+        :global(.p-datatable .p-datatable-table),
+        :global(.p-datatable tbody),
+        :global(.p-datatable tr),
+        :global(.p-datatable td) {
+          overflow: visible !important;
+        }
+        :global(.p-datatable) {
+          overflow: visible !important;
+        }
+        :global(.p-datatable .p-datatable-tbody > tr > td) {
+          overflow: visible !important;
+          position: relative !important;
+        }
+      `}</style>
+      <div className="min-h-screen p-6 bg-gray-50">
+        {/* Título */}
       <div className="rounded-xl p-6 mb-3"
         style={{
           backgroundImage: 'url("/H4.jpg")',
@@ -350,34 +388,28 @@ const Alimentos = () => {
         </div>
 
         {/* Tabla */}
-        <div style={{ width: '100%', overflowX: 'auto' }}>
-          <DataTable
-            value={filtroAlimentos}
-            loading={loading}
-            loadingIcon={() => (
-              <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
-                <span>Cargando datos...</span>
-              </div>
-            )}
-            globalFilter={filtroGlobal}
-            globalFilterFields={['nombre', 'sku', 'destino']}
-            showGridlines
-            paginator
-            rows={5}
-            rowsPerPageOptions={[5, 10, 20, 25]}
-            paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-            tableStyle={{ 
-              minWidth: '50rem',
-              width: '100%',
-              tableLayout: 'fixed'
-            }}
-            className="mt-4"
-            size="small"
-            selectionMode="single"
-            rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
-            style={{ width: '100%' }}
-          >
+        <DataTable
+          value={filtroAlimentos}
+          loading={loading}
+          loadingIcon={() => (
+            <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
+              <span>Cargando datos...</span>
+            </div>
+          )}
+          globalFilter={filtroGlobal}
+          globalFilterFields={['nombre', 'sku', 'destino']}
+          showGridlines
+          paginator
+          rows={5}
+          rowsPerPageOptions={[5, 10, 20, 25]}
+          paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+          tableStyle={{ minWidth: '50rem' }}
+          className="mt-4"
+          size="small"
+          selectionMode="single"
+          rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
+        >
           <Column
             field="id_producto"
             header="ID"
@@ -385,9 +417,24 @@ const Alimentos = () => {
             sortable
             className="text-sm"
           />
-          <Column field="nombre" header="NOMBRE" sortable className="text-sm" />
-          <Column field="sku" header="SKU" sortable className="text-sm" />
-          <Column field="destino" header="DESTINADO" sortable className="text-sm text-center" />
+          <Column 
+            field="nombre" 
+            header="NOMBRE" 
+            sortable 
+            className="text-sm" 
+          />
+          <Column 
+            field="sku" 
+            header="SKU" 
+            sortable 
+            className="text-sm" 
+          />
+          <Column 
+            field="destino" 
+            header="DESTINADO" 
+            sortable 
+            className="text-sm text-center" 
+          />
           <Column
             field="peso"
             header="PESO"
@@ -437,9 +484,9 @@ const Alimentos = () => {
               );
             }}
             className="py-2 pr-9 pl-1 border-b text-sm"
+            style={{ position: 'relative', overflow: 'visible' }}
           />
         </DataTable>
-        </div>
       </div>
 
       {/* Modal */}
@@ -458,7 +505,8 @@ const Alimentos = () => {
             onSave={handleGuardar}
           />
         ))}
-    </div>
+      </div>
+    </>
   );
 };
 

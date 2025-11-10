@@ -51,18 +51,3 @@ export const eliminarProducto = async (datos) => {
     return { Consulta: false, error: err.message };
   }
 };
-
-//SERVICIO PARA CAMBIAR ESTADO DE PRODUCTO*/
-export const cambiarEstadoProducto = async (id_producto, nuevoEstado) => {
-  try {
-    const res = await axiosInstance.put(`${API_URL}/actualizar`, {
-      id_producto,
-      activo: nuevoEstado,
-      tipo_producto: 'MEDICAMENTOS'
-    });
-    return res.data;
-  } catch (err) {
-    console.error(`Error al cambiar estado del producto:`, err);
-    return { Consulta: false, error: err.message };
-  }
-};

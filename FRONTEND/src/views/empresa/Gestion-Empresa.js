@@ -1,18 +1,16 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBuilding, faMapMarkerAlt, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faBuilding, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
 
 import InformacionEmpresa from './informacion-empresa/InformacionEmpresa';
 import Sucursales from './sucursales/Sucursales';
-import Usuarios from './usuarios/Usuarios';
 
 export default function Empresa() {
   const [tabActiva, setTabActiva] = useState('EMPRESA');
 
   const tabs = [
     { id: 'EMPRESA', nombre: 'EMPRESA', icono: faBuilding },
-    { id: 'SUCURSALES', nombre: 'SUCURSALES', icono: faMapMarkerAlt },
-    { id: 'USUARIOS', nombre: 'USUARIOS', icono: faUser }
+    { id: 'SUCURSALES', nombre: 'SUCURSALES', icono: faMapMarkerAlt }
   ];
 
   return (
@@ -25,7 +23,7 @@ export default function Empresa() {
             GESTIÓN EMPRESARIAL
           </h2>
         </div>
-        <p className="text-center text-gray-600 italic">Administra la información de tu empresa, sucursales y usuarios</p>
+        <p className="text-center text-gray-600 italic">Administra la información de tu empresa y sucursales</p>
       </div>
 
         <div className="bg-white rounded-2xl overflow-hidden" style={{boxShadow: '0 0 8px #1c04f440, 0 0 0 1px #4e33ea33'}}>
@@ -50,7 +48,6 @@ export default function Empresa() {
           <div className="p-6" style={{backgroundColor: '#f0f4f8'}}>
             {tabActiva === 'EMPRESA' && <InformacionEmpresa />}
             {tabActiva === 'SUCURSALES' && <Sucursales />}
-            {tabActiva === 'USUARIOS' && <Usuarios />}
           </div>
         </div>
 

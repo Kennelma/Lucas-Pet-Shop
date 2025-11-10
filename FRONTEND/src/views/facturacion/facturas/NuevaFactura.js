@@ -147,6 +147,7 @@ const NuevaFactura = (props) => {
             ...item,
             item: selectedId,
             precio: selectedItemData ? parseFloat(selectedItemData[priceKey]) : 0.0,
+            tiene_impuesto: selectedItemData ? Boolean(selectedItemData.tiene_impuesto) : false,
           };
         }
         return item;
@@ -187,7 +188,7 @@ const NuevaFactura = (props) => {
           setRTN={setRTN}
           vendedor={vendedor}
           sucursal={sucursal}
-          setIdCliente={setIdCliente} 
+          setIdCliente={setIdCliente}
         />
       </div>
 

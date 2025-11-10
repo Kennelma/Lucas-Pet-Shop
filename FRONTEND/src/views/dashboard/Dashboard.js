@@ -4,13 +4,13 @@ import {
   DollarSign,
   ChevronLeft,
   ChevronRight,
-  Package, // Ya no se usa, pero se mantuvo en el import
   FileText,
   TrendingUp,
   Users,
   Edit3,
   Trash2
 } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import Swal from 'sweetalert2';
 import ModalAgregarGasto from './modal_nuevo_gasto';
 import ModalActualizarGasto from './modal_actualizar_gasto';
@@ -143,7 +143,25 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="p-5 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+    <div className="p-6 ">
+      {/* 🎯 Header con Bienvenida */}
+      <div className="mb-8">
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+          <div className="bg-blue-600 p-8 text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-black/10"></div>
+            <div className="relative z-10">
+              <h1 className="text-3xl font-bold mb-2">¡Hola, {usuario?.nombre || 'Administrador'}! </h1>
+              <p className="text-blue-100 text-lg">Bienvenido a Lucas Pet Shop - Panel de Control</p>
+              <div className="mt-4 flex items-center gap-4 text-sm text-blue-100">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  {today.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <div className="lg:col-span-3 space-y-4">
           {/* Accesos Directos */}
