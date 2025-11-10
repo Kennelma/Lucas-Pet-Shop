@@ -1,6 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Download, BarChart3, Table2, Wallet, Calendar, AlertCircle, TrendingUp, TrendingDown, CalendarDays } from 'lucide-react';
-import VistaNormal from './VistaNormal.js';
+import { 
+  Download, 
+  BarChart3, 
+  Table2, 
+  Wallet, 
+  Calendar, 
+  AlertCircle, 
+  TrendingUp, 
+  TrendingDown, 
+  CalendarDays 
+} from 'lucide-react';
 import Grafica from './Grafica.js';
 import Tabla from './Tabla.js';
 import { descargarPDF } from './pdf.js';
@@ -13,7 +22,7 @@ const Reportes = () => {
   const [error, setError] = useState(null);
   const [anioSeleccionado, setAnioSeleccionado] = useState(new Date().getFullYear());
   const [vistaAnual, setVistaAnual] = useState(false);
-
+  
   const vistaNormalRef = useRef(null);
   const graficaRef = useRef(null);
   const tablaRef = useRef(null);
@@ -25,15 +34,20 @@ const Reportes = () => {
   const cargarDatos = async () => {
     setCargando(true);
     setError(null);
+    
     try {
       const response = await verGraficosMensual({ anio: anioSeleccionado });
-      if (!response.ok || !response.data) throw new Error('No se pudieron cargar los datos');
+      
+      if (!response.ok || !response.data) {
+        throw new Error('No se pudieron cargar los datos');
+      }
 
       const ingresosFormateados = response.data.map(item => ({ monto: item.ingresos_netos || 0 }));
       const gastosFormateados = response.data.map(item => ({ monto: item.gastos || 0 }));
 
       setIngresos(ingresosFormateados);
       setGastos(gastosFormateados);
+
     } catch (err) {
       console.error('Error al cargar datos:', err);
       setError('Error al cargar los datos. Por favor, intenta nuevamente.');
@@ -47,7 +61,7 @@ const Reportes = () => {
   const scrollToSection = (ref) => {
     const element = ref.current;
     if (element) {
-      const offset = 120;
+      const offset = 180; // Aumentado para compensar el header fijo
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
       window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
@@ -55,7 +69,11 @@ const Reportes = () => {
   };
 
   const mesActual = new Date().getMonth();
-  const nombreMesActual = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][mesActual];
+  const nombreMesActual = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ][mesActual];
+
   const ingresosMesActual = ingresos[mesActual]?.monto || 0;
   const gastosMesActual = gastos[mesActual]?.monto || 0;
   const gananciaMesActual = ingresosMesActual - gastosMesActual;
@@ -64,7 +82,11 @@ const Reportes = () => {
   const totalGastos = gastos.reduce((sum, item) => sum + (item.monto || 0), 0);
   const gananciaTotal = totalIngresos - totalGastos;
 
-  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const meses = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ];
+
   const datosTabla = meses.map((mes, index) => {
     const ingreso = ingresos[index]?.monto || 0;
     const gasto = gastos[index]?.monto || 0;
@@ -76,203 +98,136 @@ const Reportes = () => {
   const aniosDisponibles = Array.from({ length: 5 }, (_, i) => anioActual - i);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-6">
-      <div className="max-w-7xl mx-auto">
-
-        {/* Selector de año y botones de navegación */}
-        {/* --- He cambiado sticky a relative y aumentado separación (mt-32) --- */}
-        <div className="relative z-40 p-4 mb-8 mt-32">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 pt-24">
+      {/* ==== ENCABEZADO FIJO ==== */}
+      <div className="fixed top-16 left-0 right-0 z-50 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-4 shadow-sm">
+        <div className="max-w-7xl mx-auto">
           <div className="flex flex-wrap gap-3 justify-center items-center">
-            {/* Selector de año */}
-            <div className="flex items-center gap-2 bg-white rounded-xl px-4 py-3 shadow-lg border border-purple-200">
-              <Calendar className="w-5 h-5 text-purple-600" />
-              <select
-                value={anioSeleccionado}
-                onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
-                className="bg-transparent font-semibold text-slate-700 outline-none cursor-pointer"
-              >
-                {aniosDisponibles.map(anio => <option key={anio} value={anio}>{anio}</option>)}
-              </select>
-            </div>
-
-            {/* Toggle Mensual/Anual */}
-            <button
-              onClick={() => setVistaAnual(!vistaAnual)}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 bg-indigo-600 text-white shadow-lg hover:bg-indigo-700"
-            >
-              <CalendarDays className="w-5 h-5" />
-              {vistaAnual ? 'Ver Mensual' : 'Ver Anual'}
+            
+            {/* Botones de navegación */}
+            <button onClick={() => scrollToSection(graficaRef)} className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg transition-all duration-200">
+              <BarChart3 className="w-5 h-5" /> Gráfica
             </button>
-
-            {/* Botones de navegación - color fijo y sin gradientes */}
-            <button
-              onClick={() => scrollToSection(vistaNormalRef)}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 bg-indigo-600 text-white shadow-lg hover:bg-indigo-700"
-            >
-              <Wallet className="w-5 h-5" />
-              Vista Normal
-            </button>
-
-            <button
-              onClick={() => scrollToSection(graficaRef)}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 bg-indigo-600 text-white shadow-lg hover:bg-indigo-700"
-            >
-              <BarChart3 className="w-5 h-5" />
-              Gráfica
-            </button>
-
-            <button
-              onClick={() => scrollToSection(tablaRef)}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 bg-indigo-600 text-white shadow-lg hover:bg-indigo-700"
-            >
-              <Table2 className="w-5 h-5" />
-              Tabla
-            </button>
-
-            {/* Descargar PDF - lo dejo en azul para destacarlo */}
-            <button
-              onClick={() => descargarPDF(datosTabla, totalIngresos, totalGastos, gananciaTotal)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105"
-            >
-              <Download className="w-5 h-5" />
-              Descargar PDF
+            <button onClick={() => scrollToSection(tablaRef)} className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg transition-all duration-200">
+              <Table2 className="w-5 h-5" /> Tabla
             </button>
           </div>
         </div>
+      </div>
 
-        {/* TARJETAS - Vista Condicional */}
-        <div className="mb-8">
-          {!vistaAnual ? (
-            <>
-              <h2 className="text-2xl font-bold text-black mb-4 text-center">
-                📅 Resumen de {nombreMesActual} {anioSeleccionado}
-              </h2>
+      {/* ==== CONTENIDO ==== */}
+      <div className="max-w-7xl mx-auto">
+        <div className="p-6">
+          {/* ==== TARJETAS MENSUAL ==== */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-slate-700 mb-4 text-center">
+              📅 Resumen de {nombreMesActual} {anioSeleccionado}
+            </h2>
+            <VistaFinanciera 
+              ingresos={ingresosMesActual}
+              gastos={gastosMesActual}
+              ganancia={gananciaMesActual}
+            />
+          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl shadow-lg p-6 border border-green-100">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-green-700 text-sm font-medium mb-2">Total Ingresos</p>
-                      <p className="text-4xl font-bold text-green-800">L {ingresosMesActual.toLocaleString('es-HN')}</p>
-                    </div>
-                    <div className="bg-white rounded-full p-4 shadow-md">
-                      <TrendingUp className="w-8 h-8 text-green-600" />
-                    </div>
-                  </div>
-                </div>
+          {/* ==== ESTADOS ==== */}
+          {cargando && (
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-6 flex items-center gap-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <p className="text-blue-700 font-medium">Cargando datos financieros de {anioSeleccionado}...</p>
+            </div>
+          )}
 
-                <div className="bg-gradient-to-br from-red-50 to-rose-50 rounded-3xl shadow-lg p-6 border border-red-100">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-red-700 text-sm font-medium mb-2">Total Gastos</p>
-                      <p className="text-4xl font-bold text-red-800">L {gastosMesActual.toLocaleString('es-HN')}</p>
-                    </div>
-                    <div className="bg-white rounded-full p-4 shadow-md">
-                      <TrendingDown className="w-8 h-8 text-red-600" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className={`bg-gradient-to-br ${gananciaMesActual >= 0 ? 'from-blue-50 to-cyan-50' : 'from-orange-50 to-amber-50'} rounded-3xl shadow-lg p-6 border ${gananciaMesActual >= 0 ? 'border-blue-100' : 'border-orange-100'}`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className={`${gananciaMesActual >= 0 ? 'text-blue-700' : 'text-orange-700'} text-sm font-medium mb-2`}>Ganancia Total</p>
-                      <p className={`text-4xl font-bold ${gananciaMesActual >= 0 ? 'text-blue-800' : 'text-orange-800'}`}>L {gananciaMesActual.toLocaleString('es-HN')}</p>
-                    </div>
-                    <div className="bg-white rounded-full p-4 shadow-md">
-                      <Wallet className={`w-8 h-8 ${gananciaMesActual >= 0 ? 'text-blue-600' : 'text-orange-600'}`} />
-                    </div>
-                  </div>
-                </div>
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-6 flex items-center gap-4">
+              <AlertCircle className="w-8 h-8 text-red-600" />
+              <div>
+                <p className="text-red-700 font-medium">{error}</p>
+                <button 
+                  onClick={cargarDatos}
+                  className="text-red-600 underline text-sm mt-1 hover:text-red-800"
+                >
+                  Reintentar
+                </button>
               </div>
-            </>
-          ) : (
+            </div>
+          )}
+
+          {/* ==== CONTENIDO ==== */}
+          {!cargando && (
             <>
-              <h2 className="text-2xl font-bold text-black mb-4 text-center">
-                📊 Resumen Anual {anioSeleccionado}
-              </h2>
+              <div ref={vistaNormalRef}>
+                <VistaNormal anioSeleccionado={anioSeleccionado} />
+              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl shadow-lg p-6 border border-green-100">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-green-700 text-sm font-medium mb-2">Total Ingresos</p>
-                      <p className="text-4xl font-bold text-green-800">L {totalIngresos.toLocaleString('es-HN')}</p>
-                    </div>
-                    <div className="bg-white rounded-full p-4 shadow-md">
-                      <TrendingUp className="w-8 h-8 text-green-600" />
-                    </div>
+              <div ref={graficaRef}>
+                <Grafica ingresos={ingresos} gastos={gastos} meses={meses} />
+              </div>
+
+              <div ref={tablaRef}>
+                <div className="bg-white rounded-2xl shadow-md p-6 mb-4 border border-purple-100">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-2xl font-bold text-slate-700">📋 Tabla de Datos</h2>
+                    <button
+                      onClick={() => descargarPDF(datosTabla, totalIngresos, totalGastos, gananciaTotal)}
+                      className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all duration-200"
+                    >
+                      <Download className="w-5 h-5" /> Descargar PDF
+                    </button>
                   </div>
                 </div>
-
-                <div className="bg-gradient-to-br from-red-50 to-rose-50 rounded-3xl shadow-lg p-6 border border-red-100">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-red-700 text-sm font-medium mb-2">Total Gastos</p>
-                      <p className="text-4xl font-bold text-red-800">L {totalGastos.toLocaleString('es-HN')}</p>
-                    </div>
-                    <div className="bg-white rounded-full p-4 shadow-md">
-                      <TrendingDown className="w-8 h-8 text-red-600" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className={`bg-gradient-to-br ${gananciaTotal >= 0 ? 'from-blue-50 to-cyan-50' : 'from-orange-50 to-amber-50'} rounded-3xl shadow-lg p-6 border ${gananciaTotal >= 0 ? 'border-blue-100' : 'border-orange-100'}`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className={`${gananciaTotal >= 0 ? 'text-blue-700' : 'text-orange-700'} text-sm font-medium mb-2`}>Ganancia Total</p>
-                      <p className={`text-4xl font-bold ${gananciaTotal >= 0 ? 'text-blue-800' : 'text-orange-800'}`}>L {gananciaTotal.toLocaleString('es-HN')}</p>
-                    </div>
-                    <div className="bg-white rounded-full p-4 shadow-md">
-                      <Wallet className={`w-8 h-8 ${gananciaTotal >= 0 ? 'text-blue-600' : 'text-orange-600'}`} />
-                    </div>
-                  </div>
-                </div>
+                <Tabla 
+                  datosTabla={datosTabla}
+                  totalIngresos={totalIngresos}
+                  totalGastos={totalGastos}
+                  gananciaTotal={gananciaTotal}
+                />
               </div>
             </>
           )}
         </div>
-
-        {cargando && (
-          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-6 flex items-center gap-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="text-blue-700 font-medium">Cargando datos financieros de {anioSeleccionado}...</p>
-          </div>
-        )}
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-6 flex items-center gap-4">
-            <AlertCircle className="w-8 h-8 text-red-600" />
-            <div>
-              <p className="text-red-700 font-medium">{error}</p>
-              <button onClick={cargarDatos} className="text-red-600 underline text-sm mt-1 hover:text-red-800">Reintentar</button>
-            </div>
-          </div>
-        )}
-
-        {!cargando && (
-          <>
-            <div ref={vistaNormalRef}>
-              <VistaNormal
-                totalIngresos={totalIngresos}
-                totalGastos={totalGastos}
-                gananciaTotal={gananciaTotal}
-                anioSeleccionado={anioSeleccionado}
-              />
-            </div>
-
-            <div ref={graficaRef}>
-              <Grafica ingresos={ingresos} gastos={gastos} meses={meses} />
-            </div>
-
-            <div ref={tablaRef}>
-              <Tabla datosTabla={datosTabla} totalIngresos={totalIngresos} totalGastos={totalGastos} gananciaTotal={gananciaTotal} />
-            </div>
-          </>
-        )}
       </div>
     </div>
   );
 };
+
+/* ====== SUBCOMPONENTES ====== */
+
+// Vista de tarjetas financieras (mensual / anual)
+const VistaFinanciera = ({ ingresos, gastos, ganancia }) => (
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <Tarjeta color="green" titulo="Total Ingresos" valor={ingresos} icon={<TrendingUp className="w-8 h-8 text-green-600" />} />
+    <Tarjeta color="red" titulo="Total Gastos" valor={gastos} icon={<TrendingDown className="w-8 h-8 text-red-600" />} />
+    <Tarjeta color={ganancia >= 0 ? "blue" : "orange"} titulo="Ganancia Total" valor={ganancia} icon={<Wallet className={`w-8 h-8 ${ganancia >= 0 ? "text-blue-600" : "text-orange-600"}`} />} />
+  </div>
+);
+
+// Tarjeta individual
+const Tarjeta = ({ color, titulo, valor, icon }) => (
+  <div className={`bg-gradient-to-br from-${color}-50 to-${color}-100 rounded-3xl shadow-lg p-6 border border-${color}-200`}>
+    <div className="flex items-center justify-between">
+      <div>
+        <p className={`text-${color}-700 text-sm font-medium mb-2`}>{titulo}</p>
+        <p className={`text-4xl font-bold text-${color}-800`}>
+          L {valor.toLocaleString('es-HN')}
+        </p>
+      </div>
+      <div className="bg-white rounded-full p-4 shadow-md">{icon}</div>
+    </div>
+  </div>
+);
+
+// Vista general SIN tarjetas duplicadas
+const VistaNormal = ({ anioSeleccionado }) => (
+  <div className="mt-6">
+    <div className="bg-white rounded-2xl shadow-md p-8 mb-6 border border-purple-100">
+      <h1 className="text-4xl font-bold text-slate-700 mb-2">📊 Reportes Financieros</h1>
+      <p className="text-slate-500 text-lg">
+        Análisis de ingresos, gastos y ganancias del año {anioSeleccionado}
+      </p>
+    </div>
+    {/* ✅ TARJETAS ELIMINADAS - Solo quedan las de arriba */}
+  </div>
+);
 
 export default Reportes;
