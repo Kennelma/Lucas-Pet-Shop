@@ -497,12 +497,14 @@ const Alimentos = () => {
             onClose={cerrarModal}
             onSave={handleGuardar}
             editData={alimentoEditando}
+            alimentosExistentes={alimentos} // ✅ AGREGAR ESTA PROP
           />
         ) : (
           <ModalNuevoAlimento
             isOpen={modalAbierto}
             onClose={cerrarModal}
             onSave={handleGuardar}
+            alimentosExistentes={alimentos} // ✅ AGREGAR ESTA PROP
           />
         ))}
       </div>

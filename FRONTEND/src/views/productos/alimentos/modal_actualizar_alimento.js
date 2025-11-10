@@ -9,7 +9,7 @@ import { InputSwitch } from 'primereact/inputswitch';
 import { actualizarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
 //COMPONENTE MODAL ACTUALIZAR ALIMENTO
-const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
+const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosExistentes = [] }) => {
 
   //LISTAS DROPDOWN
   const destinosBase = [
@@ -56,7 +56,7 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
   useEffect(() => {
     if (isOpen && editData) {
       const tieneImpuesto = Boolean(editData.tiene_impuesto);
-      const tasa = 15; // Tasa por defecto ya que el backend no la trae aún
+      const tasa = parseFloat(editData.tasa_impuesto) || 15;
       const precioInicial = parseFloat(editData.precio) || 0;
       let base = precioInicial;
       if (tieneImpuesto && precioInicial > 0 && tasa > 0) {
@@ -99,10 +99,32 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
       return newData;
     });
 
+    // ✅ VALIDACIÓN EN TIEMPO REAL CON DETECCIÓN DE DUPLICADOS
     setErrores(prev => {
       const newErrores = { ...prev };
-      if (['nombre', 'destino', 'peso'].includes(field)) newErrores[field] = val ? '' : 'Campo obligatorio';
-      else if (['precio', 'cantidad', 'stock_minimo'].includes(field)) newErrores[field] = val > 0 ? '' : 'Debe ser mayor a 0';
+      
+      if (field === 'nombre') {
+        if (!val.trim()) {
+          newErrores[field] = 'El nombre del alimento es obligatorio';
+        } else {
+          // Verificar duplicados excluyendo el alimento actual
+          const nombreExiste = alimentosExistentes.some(alimento => 
+            alimento.nombre?.toLowerCase() === val.trim().toLowerCase() &&
+            alimento.id_producto !== editData.id_producto
+          );
+          
+          if (nombreExiste) {
+            newErrores[field] = 'Ya existe un alimento con este nombre';
+          } else {
+            newErrores[field] = '';
+          }
+        }
+      } else if (['destino', 'peso'].includes(field)) {
+        newErrores[field] = val ? '' : 'Campo obligatorio';
+      } else if (['precio', 'cantidad', 'stock_minimo'].includes(field)) {
+        newErrores[field] = val > 0 ? '' : 'Debe ser mayor a 0';
+      }
+      
       return newErrores;
     });
   };
@@ -127,11 +149,27 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
   //VALIDAR FORMULARIO
   const validarDatos = () => {
     let temp = {};
-    if (!data.nombre) temp.nombre = 'Campo obligatorio';
+    
+    // ✅ VALIDACIÓN DEL NOMBRE CON VERIFICACIÓN DE DUPLICADOS
+    if (!data.nombre?.trim()) {
+      temp.nombre = 'El nombre del alimento es obligatorio';
+    } else {
+      const nombreExiste = alimentosExistentes.some(alimento => 
+        alimento.nombre?.toLowerCase() === data.nombre.trim().toLowerCase() &&
+        alimento.id_producto !== editData.id_producto
+      );
+      
+      if (nombreExiste) {
+        temp.nombre = 'Ya existe un alimento con este nombre';
+      }
+    }
+    
+    if (!data.destino) temp.destino = 'Campo obligatorio';
     if (!data.precio || data.precio <= 0) temp.precio = 'Debe ser mayor a 0';
     if (!data.cantidad || data.cantidad <= 0) temp.cantidad = 'Debe ser mayor a 0';
     if (!data.peso || data.peso <= 0) temp.peso = 'Debe ser mayor a 0';
     if (!data.stock_minimo || data.stock_minimo <= 0) temp.stock_minimo = 'Debe ser mayor a 0';
+    
     setErrores(temp);
     return Object.keys(temp).length === 0;
   };
@@ -151,8 +189,8 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
         peso_alimento: data.peso,
         alimento_destinado: data.destino,
         sku: generarSKU(data.nombre),
-        tiene_impuesto: aplicaImpuesto ? 1 : 0
-        // tasa_impuesto:
+        tiene_impuesto: aplicaImpuesto ? 1 : 0,
+        tasa_impuesto: aplicaImpuesto ? parseFloat(tasaImpuesto) : 0
       };
       const res = await actualizarProducto(body);
       if (res.Consulta) {
@@ -206,7 +244,13 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
         {/* NOMBRE */}
         <span>
           <label htmlFor="nombre" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE</label>
-          <InputText id="nombre" value={data.nombre} onChange={e => handleChange('nombre', e.target.value)} className="w-full rounded-xl h-9 text-sm" placeholder="Ej: Royal Canin Adulto" />
+          <InputText 
+            id="nombre" 
+            value={data.nombre} 
+            onChange={e => handleChange('nombre', e.target.value)} 
+            className={`w-full rounded-xl h-9 text-sm ${errores.nombre ? 'border-red-500' : ''}`}
+            placeholder="Ej: Royal Canin Adulto" 
+          />
           {errores.nombre && <p className="text-xs text-red-600 mt-1">{errores.nombre}</p>}
         </span>
 
@@ -220,11 +264,26 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
         <div className="grid grid-cols-2 gap-2">
           <span>
             <label htmlFor="destino" className="text-xs font-semibold text-gray-700 mb-1">DESTINADO A</label>
-            <Dropdown id="destino" value={data.destino} options={destinos} onChange={e => handleChange('destino', e.value)} className="w-full rounded-xl text-sm" placeholder="Seleccionar" />
+            <Dropdown 
+              id="destino" 
+              value={data.destino} 
+              options={destinos} 
+              onChange={e => handleChange('destino', e.value)} 
+              className={`w-full rounded-xl text-sm ${errores.destino ? 'border-red-500' : ''}`}
+              placeholder="Seleccionar" 
+            />
+            {errores.destino && <p className="text-xs text-red-600 mt-1">{errores.destino}</p>}
           </span>
           <span>
             <label htmlFor="peso" className="text-xs font-semibold text-gray-700 mb-1">PESO (KG)</label>
-            <InputText id="peso" value={data.peso} onChange={e => handleChange('peso', e.target.value)} className="w-full rounded-xl h-9 text-sm" placeholder="Peso en kg" keyfilter="num" />
+            <InputText 
+              id="peso" 
+              value={data.peso} 
+              onChange={e => handleChange('peso', e.target.value)} 
+              className={`w-full rounded-xl h-9 text-sm ${errores.peso ? 'border-red-500' : ''}`}
+              placeholder="Peso en kg" 
+              keyfilter="num" 
+            />
             {errores.peso && <p className="text-xs text-red-600 mt-1">{errores.peso}</p>}
           </span>
         </div>
@@ -232,7 +291,17 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
         {/* PRECIO */}
         <span>
           <label htmlFor="precio" className="text-xs font-semibold text-gray-700 mb-1">{precioLabel}</label>
-          <InputNumber id="precio" value={data.precio} onValueChange={e => handleChange('precio', e.value)} mode="decimal" minFractionDigits={2} maxFractionDigits={2} className="w-full rounded-xl text-sm" inputClassName="h-9 text-sm" placeholder="0.00" />
+          <InputNumber 
+            id="precio" 
+            value={data.precio} 
+            onValueChange={e => handleChange('precio', e.value)} 
+            mode="decimal" 
+            minFractionDigits={2} 
+            maxFractionDigits={2} 
+            className={`w-full rounded-xl text-sm ${errores.precio ? 'border-red-500' : ''}`}
+            inputClassName="h-9 text-sm" 
+            placeholder="0.00" 
+          />
           {errores.precio && <p className="text-xs text-red-600 mt-1">{errores.precio}</p>}
         </span>
 
@@ -265,7 +334,7 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
               name="cantidad"
               value={data.cantidad}
               onChange={e => handleChange('cantidad', e.target.value)}
-              className="w-full rounded-xl h-9 text-sm"
+              className={`w-full rounded-xl h-9 text-sm ${errores.cantidad ? 'border-red-500' : ''}`}
               placeholder="Cantidad disponible"
               keyfilter="int"
             />
@@ -278,7 +347,7 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData }) => {
               name="stock_minimo"
               value={data.stock_minimo}
               onChange={e => handleChange('stock_minimo', e.target.value)}
-              className="w-full rounded-xl h-9 text-sm"
+              className={`w-full rounded-xl h-9 text-sm ${errores.stock_minimo ? 'border-red-500' : ''}`}
               placeholder="Stock mínimo"
               keyfilter="int"
             />

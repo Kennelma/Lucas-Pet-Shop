@@ -229,11 +229,13 @@ const Promociones = () => {
         />
       )}
 
+      {/* 👇 AQUÍ SE AGREGA LA PROP promocionesExistentes */}
       <ModalPromocion
         isOpen={modalAbierto}
         onClose={cerrarModal}
         onSubmit={manejarSubmit}
         promocion={promocionSeleccionada}
+        promocionesExistentes={promociones}
       />
     </div>
   );
