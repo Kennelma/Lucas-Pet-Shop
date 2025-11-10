@@ -828,7 +828,7 @@ exports.eliminar = async (req, res) => {
     }
 
 };
-
+//Endpoint para obtener los productos de favoritos del mes
 
 exports.favoritos = async (req, res) => {
 
