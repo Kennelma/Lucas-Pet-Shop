@@ -1,0 +1,82 @@
+[33m15f088f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mRama-James[m[33m)[m HEAD@{0}: pull origin main: Merge made by the 'ort' strategy.
+[33m893e67d[m HEAD@{1}: commit: Actualización de la rama con la main
+[33m03e5941[m[33m ([m[1;31morigin/Rama-James[m[33m)[m HEAD@{2}: checkout: moving from main to Rama-James
+[33m73d59bb[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{3}: reset: moving to HEAD
+[33m73d59bb[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{4}: commit (merge): Acrualización de todas las ramas
+[33mf0e3088[m HEAD@{5}: checkout: moving from Rama-James to main
+[33m03e5941[m[33m ([m[1;31morigin/Rama-James[m[33m)[m HEAD@{6}: pull origin Rama-James: Fast-forward
+[33mb33ba5c[m HEAD@{7}: checkout: moving from main to Rama-James
+[33mf0e3088[m HEAD@{8}: pull origin main: Fast-forward
+[33m7779019[m HEAD@{9}: checkout: moving from Rama-James to main
+[33mb33ba5c[m HEAD@{10}: checkout: moving from main to Rama-James
+[33m7779019[m HEAD@{11}: checkout: moving from Rama-Kenn to main
+[33mb48d2e7[m[33m ([m[1;31morigin/Rama-Kenn[m[33m, [m[1;32mRama-Kenn[m[33m)[m HEAD@{12}: commit: Antes de los cambios de la main
+[33m05aec99[m HEAD@{13}: commit: Corrección de lo que se perdió
+[33m14fb684[m HEAD@{14}: commit: Corrección de toda la rama, restablecido
+[33mddd8ffd[m HEAD@{15}: reset: moving to ddd8ffd
+[33mb077532[m HEAD@{16}: reset: moving to HEAD
+[33mb077532[m HEAD@{17}: pull origin main: Merge made by the 'ort' strategy.
+[33m7616275[m HEAD@{18}: commit (merge): Endpoint de compras de clientes, incluido el servicio de axios
+[33mcf81c1d[m HEAD@{19}: commit: Antes nuevos cambios en la main
+[33mddd8ffd[m HEAD@{20}: commit: Corrección del medicamento a vender completo por temas de trigger
+[33m3d44e00[m HEAD@{21}: commit: Corrección del selector de productos en facturación
+[33mcfd7d92[m HEAD@{22}: commit: Corrección de los medicamentos en facturación
+[33m7624fe1[m HEAD@{23}: commit: Ajustes en el tema de facturación
+[33m8fecd74[m HEAD@{24}: commit: Controlador de favoritos de productos, axios incluido
+[33me35dd3a[m HEAD@{25}: commit: Endpoint y servicio de axios de detalles factura seleccionada, listo
+[33mb46bc31[m HEAD@{26}: commit: Avance en recordatorios, perfil de usuario (controlador y servicios de axios)
+[33mcd67f54[m HEAD@{27}: pull origin main: Merge made by the 'ort' strategy.
+[33m5ac72d8[m HEAD@{28}: commit: Controlador y servicios de axios de recordatorios, listo y corregido
+[33m70f1d8a[m HEAD@{29}: commit: Avance de facturación
+[33m3df7c64[m HEAD@{30}: pull origin main: Merge made by the 'ort' strategy.
+[33m20bab4e[m HEAD@{31}: commit: Reportes: axios y controlador listo
+[33med81ff9[m HEAD@{32}: commit: Aplicado el tema de ISV individual a productos
+[33m3f61cfb[m HEAD@{33}: pull origin Rama-Kenn: Fast-forward
+[33m6f290a0[m HEAD@{34}: commit: Avance en la corrección de medicamentos
+[33m119dda9[m HEAD@{35}: pull origin main: Merge made by the 'ort' strategy.
+[33mf8c23a5[m HEAD@{36}: commit: Nuevos cambios de la main
+[33m263ff86[m HEAD@{37}: commit: Correcion en medicamentos
+[33m79aadf1[m HEAD@{38}: commit: Corrección relaciones de productos y detalles facturas
+[33mcbc3d68[m HEAD@{39}: pull origin main: Merge made by the 'ort' strategy.
+[33m161a64a[m HEAD@{40}: commit: Corrección del endpoint: actualizar lotes
+[33mddd0104[m HEAD@{41}: commit: Job de notificaciones, controlador y servicio axios listos
+[33m4d923be[m HEAD@{42}: pull origin Rama-dayana: Merge made by the 'ort' strategy.
+[33m2b578fa[m HEAD@{43}: commit: Avance en los jobs de notificaciones
+[33mb550209[m HEAD@{44}: commit: Descuento de la factura agregado
+[33m18fc469[m HEAD@{45}: pull origin Rama-Kenn: Fast-forward
+[33me8fa28a[m HEAD@{46}: commit: Corección lista
+[33m50ff035[m HEAD@{47}: pull origin Rama-dayana: Fast-forward
+[33me96666f[m HEAD@{48}: commit: Avance en la factura a imprimir
+[33me426272[m HEAD@{49}: pull origin Rama-Kenn: Fast-forward
+[33mdfbe7be[m HEAD@{50}: commit: Avance en pagos
+[33m34a9e1d[m HEAD@{51}: pull origin Rama-Kenn: Fast-forward
+[33m5fbd70c[m HEAD@{52}: reset: moving to HEAD
+[33m5fbd70c[m HEAD@{53}: pull origin Rama-Kenn: Fast-forward
+[33m4160eeb[m HEAD@{54}: reset: moving to HEAD
+[33m4160eeb[m HEAD@{55}: pull origin Rama-Kenn: Merge made by the 'ort' strategy.
+[33m2c7d9ae[m HEAD@{56}: commit (merge): Depuracion de los archivos de recordatorios
+[33m8fe5bc3[m HEAD@{57}: checkout: moving from Rama-James to Rama-Kenn
+[33mb33ba5c[m HEAD@{58}: reset: moving to HEAD
+[33mb33ba5c[m HEAD@{59}: commit: Recordatorios corregido
+[33mefd7221[m HEAD@{60}: commit (merge): Conexion de la libreria de Bailyes corregida
+[33mac3e703[m HEAD@{61}: commit: Mejoras con el tema de la conexión a WhatsApp
+[33m12da3c6[m HEAD@{62}: pull origin Rama-James: Fast-forward
+[33meb033cc[m HEAD@{63}: checkout: moving from Rama-Kenn to Rama-James
+[33m8fe5bc3[m HEAD@{64}: commit: Factura funcionando, falta mejorar el de pagos
+[33m9d28574[m HEAD@{65}: pull origin main: Merge made by the 'ort' strategy.
+[33m61f6fca[m HEAD@{66}: commit: Nuevos cambios entrantes
+[33md0a5410[m HEAD@{67}: commit (merge): Mejoras en vista de facturación, listo para pruebas con endpoint
+[33m0827d08[m HEAD@{68}: commit: Nuevos archivos en la main
+[33maa3cacc[m HEAD@{69}: commit: Avance en la vista de facturacion, copia
+[33ma5acbdf[m HEAD@{70}: commit: Avance en a vista 3/4
+[33medba668[m HEAD@{71}: pull origin Rama-Kenn: Fast-forward
+[33m8ae243b[m HEAD@{72}: commit: Avance en facturas
+[33m2f76bf9[m HEAD@{73}: pull origin Rama-Kenn: Fast-forward
+[33m1c6aa63[m HEAD@{74}: commit: Avance en el endpoint de facturación, mejoras en detalles minimos de otros módulos
+[33m95cafa3[m HEAD@{75}: commit: Corrección del servicio de facturación
+[33m109e1f2[m HEAD@{76}: commit: Servicios de axios que consume el controlador de facturas
+[33mc3ebc19[m HEAD@{77}: commit: Envio de las correciones en los modulos de produtos y servicios
+[33mad53e62[m HEAD@{78}: commit: Avance en controlador de facturación 2/4
+[33me9c72b8[m HEAD@{79}: merge origin/main: Merge made by the 'ort' strategy.
+[33mdc03b10[m HEAD@{80}: checkout: moving from main to Rama-Kenn
+[33m7779019[m HEAD@{81}: commit: Main sin problemas
