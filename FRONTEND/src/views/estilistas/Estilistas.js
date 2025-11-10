@@ -55,7 +55,7 @@ const Estilistas = () => {
   };
 
   const handleEliminar = async (id) => {
-    console.log('ID a eliminar:', id); // Debug
+   
     
     const result = await Swal.fire({
       title: '¿Estás seguro?',

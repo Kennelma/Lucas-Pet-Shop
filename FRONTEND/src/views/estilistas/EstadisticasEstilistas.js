@@ -56,14 +56,11 @@ const EstadisticasEstilistas = ({ estilistaSeleccionado = null, onClearSelection
       return;
     }
     
-    console.log('Filtrando datos desde:', startDate, 'hasta:', endDate);
     
     try {
       // Calcular meses reales en el rango
       const mesesReales = obtenerMesesEnRango(startDate, endDate);
       const diasTotales = calcularDiasEntreFechas(startDate, endDate);
-      
-      // TODO: Llamada real al backend para obtener datos filtrados
       
    
       // Datos temporales vacíos hasta conectar con backend
@@ -103,7 +100,6 @@ const EstadisticasEstilistas = ({ estilistaSeleccionado = null, onClearSelection
     
     console.log('Exportando datos desde:', startDate, 'hasta:', endDate);
     // Aquí se implementará la lógica de exportación
-    // Por ejemplo: exportarEstadisticas(startDate, endDate, estilistaSeleccionado?.id_estilista_pk)
   };
 
   // Calcular datos para mostrar

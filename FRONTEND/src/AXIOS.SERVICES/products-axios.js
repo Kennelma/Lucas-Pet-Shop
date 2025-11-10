@@ -51,3 +51,16 @@ export const eliminarProducto = async (datos) => {
     return { Consulta: false, error: err.message };
   }
 };
+
+//SERVICIO PARA VER PRODUCTOS FAVORITOS*/
+export const verProductosFavoritos = async (tipo) => {
+  try {
+    const res = await axiosInstance.get(`${API_URL}/favoritos`, {
+      params: { tipo }
+    });
+    return res.data.favoritos || [];
+  } catch (err) {
+    console.error(`Error al traer productos favoritos:`, err);
+    return [];
+  }
+};
