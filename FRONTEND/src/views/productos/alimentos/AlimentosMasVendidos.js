@@ -1,12 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronUp, faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { verProductosFavoritos } from "../../../AXIOS.SERVICES/products-axios";
 
-const AlimentosMasVendidos = ({ alimentos = [] }) => {
+const AlimentosMasVendidos = () => {
   const [alimentosMasVendidos, setAlimentosMasVendidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mostrarComponente, setMostrarComponente] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [error, setError] = useState(null);
+
+  // Función para obtener el mes actual en español
+  const obtenerMesActual = () => {
+    const meses = [
+      'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+      'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
+    ];
+    const fechaActual = new Date();
+    return meses[fechaActual.getMonth()];
+  };
 
   // Colores para los alimentos
   const colores = ['bg-amber-500', 'bg-green-500', 'bg-orange-500', 'bg-blue-500', 'bg-purple-500', 'bg-red-500'];
@@ -20,49 +32,77 @@ const AlimentosMasVendidos = ({ alimentos = [] }) => {
     "/alimentos5.jpg"
   ];
 
-  // Función para procesar alimentos 
-  const procesarAlimentos = (alimentosReales) => {
-    if (!alimentosReales || alimentosReales.length === 0) {
-      return [];
-    }
+  // Función para obtener alimentos favoritos desde el endpoint
+  const obtenerAlimentosFavoritos = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Llamar al endpoint para obtener los productos favoritos de tipo ALIMENTOS
+      const favoritosFromAPI = await verProductosFavoritos('ALIMENTOS');
+      
+      if (!favoritosFromAPI || favoritosFromAPI.length === 0) {
+        setAlimentosMasVendidos([]);
+        return;
+      }
 
-    const alimentosConVentas = alimentosReales
-      .filter(alimento => alimento.activo) // Solo alimentos activos
-      .map((alimento, index) => {
-        // Simular cantidad de ventas basado en precio y stock (precio medio y stock alto = más ventas)
-        const factorPrecio = Math.max(5, 30 - (alimento.precio || 0) * 0.5);
-        const factorStock = Math.min(20, (alimento.stock || 0) * 0.3);
-        const cantidadVentas = Math.floor(factorPrecio + factorStock + Math.random() * 15);
+      // Agrupar los datos por nombre del producto para sumar las ventas del mismo alimento
+      const alimentosAgrupados = {};
+      
+      favoritosFromAPI.forEach(favorito => {
+        const nombreProducto = favorito.nombre_item || 'ALIMENTO SIN NOMBRE';
+        const ventasActuales = parseInt(favorito.total_vendido) || 0;
         
-        return {
-          id: alimento.id_producto || alimento.id,
-          nombre: alimento.nombre || 'ALIMENTO SIN NOMBRE',
-          cantidad_ventas: cantidadVentas,
-          color: colores[index % colores.length]
-        };
-      })
-      .sort((a, b) => b.cantidad_ventas - a.cantidad_ventas) // Ordenar por ventas
-      .slice(0, 4); // Tomar solo los 4 más vendidos
+        if (alimentosAgrupados[nombreProducto]) {
+          // Si ya existe, sumar las ventas
+          alimentosAgrupados[nombreProducto].cantidad_ventas += ventasActuales;
+          alimentosAgrupados[nombreProducto].facturas.push(favorito.numero_factura);
+        } else {
+          // Si no existe, crear nuevo registro
+          alimentosAgrupados[nombreProducto] = {
+            nombre: nombreProducto,
+            cantidad_ventas: ventasActuales,
+            mes: favorito.mes,
+            facturas: [favorito.numero_factura]
+          };
+        }
+      });
 
-    // Calcular porcentajes
-    const totalVentas = alimentosConVentas.reduce((sum, a) => sum + a.cantidad_ventas, 0);
-    
-    return alimentosConVentas.map(alimento => ({
-      ...alimento,
-      porcentaje: totalVentas > 0 ? Math.round((alimento.cantidad_ventas / totalVentas) * 100) : 0
-    }));
+      // Convertir a array y ordenar por ventas
+      const alimentosProcesados = Object.values(alimentosAgrupados)
+        .sort((a, b) => b.cantidad_ventas - a.cantidad_ventas) // Ordenar por ventas descendente
+        .slice(0, 4) // Tomar solo los 4 más vendidos
+        .map((alimento, index) => ({
+          id: `alimento-${alimento.nombre.replace(/\s+/g, '-').toLowerCase()}`,
+          nombre: alimento.nombre,
+          cantidad_ventas: alimento.cantidad_ventas,
+          mes: alimento.mes,
+          color: colores[index % colores.length]
+        }));
+
+      // Calcular porcentajes
+      const totalVentas = alimentosProcesados.reduce((sum, a) => sum + a.cantidad_ventas, 0);
+      
+      const alimentosConPorcentajes = alimentosProcesados.map(alimento => ({
+        ...alimento,
+        porcentaje: totalVentas > 0 ? Math.round((alimento.cantidad_ventas / totalVentas) * 100) : 0
+      }));
+
+      setAlimentosMasVendidos(alimentosConPorcentajes);
+      
+    } catch (err) {
+      console.error('Error al obtener alimentos favoritos:', err);
+      setError('Error al cargar los productos más vendidos');
+      setAlimentosMasVendidos([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    setLoading(true);
-    
-    // Simular delay de carga
-    setTimeout(() => {
-      const alimentosProcesados = procesarAlimentos(alimentos);
-      setAlimentosMasVendidos(alimentosProcesados);
-      setLoading(false);
-    }, 500);
-  }, [alimentos]);
+    // Obtener los alimentos favoritos del mes actual desde el endpoint
+    obtenerAlimentosFavoritos();
+  }, []); // Se ejecuta solo al montar el componente
 
   // Efecto para el carrusel de imágenes
   useEffect(() => {
@@ -73,6 +113,43 @@ const AlimentosMasVendidos = ({ alimentos = [] }) => {
     return () => clearInterval(interval);
   }, [images.length]);
 
+  // Mostrar estado de carga
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl p-6 border border-gray-200 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col items-center justify-center flex-1 text-center">
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">
+              Cargando productos más vendidos...
+            </h3>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar error si ocurrió
+  if (error) {
+    return (
+      <div className="bg-white rounded-2xl p-6 border border-gray-200 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col items-center justify-center flex-1 text-center">
+            <h3 className="text-lg font-semibold text-red-600 mb-2">
+              {error}
+            </h3>
+            <button 
+              onClick={obtenerAlimentosFavoritos}
+              className="mt-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
+            >
+              Reintentar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Si no hay alimentos más vendidos
   if (alimentosMasVendidos.length === 0) {
     return (
@@ -80,10 +157,10 @@ const AlimentosMasVendidos = ({ alimentos = [] }) => {
         <div className="flex justify-between items-center mb-4">
           <div className="flex flex-col items-center justify-center flex-1 text-center">
             <h3 className="text-lg font-semibold text-gray-600 mb-2">
-              No hay alimentos para mostrar estadísticas de ventas
+              No hay datos de ventas de alimentos este mes
             </h3>
             <p className="text-gray-500 text-sm">
-              Agrega alimentos primero para ver cuáles son los más vendidos
+              Aún no se han registrado ventas de alimentos en el mes actual
             </p>
           </div>
           <button
@@ -94,7 +171,13 @@ const AlimentosMasVendidos = ({ alimentos = [] }) => {
             <FontAwesomeIcon icon={mostrarComponente ? faChevronUp : faChevronDown} size="sm" />
           </button>
         </div>
-        
+        {mostrarComponente && (
+          <div className="text-center py-4">
+            <p className="text-gray-400 italic">
+              El sistema mostrará los datos cuando haya ventas registradas
+            </p>
+          </div>
+        )}
       </div>
     );
   }
@@ -104,15 +187,27 @@ const AlimentosMasVendidos = ({ alimentos = [] }) => {
       <div className="flex justify-between items-center mb-4">
         <div className="flex flex-col items-center justify-center flex-1 text-center">
           <div className="text-xl font-bold text-gray-800 mb-1">MÁS VENDIDOS</div>
-          <p className="text-gray-600 text-sm">BASADO EN LAS VENTAS DEL MES ACTUAL</p>
+          <p className="text-gray-600 text-sm">BASADO EN LAS VENTAS DEL MES DE {obtenerMesActual()}</p>
         </div>
-        <button
-          onClick={() => setMostrarComponente(!mostrarComponente)}
-          className="ml-4 w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full transition-colors flex items-center justify-center"
-          title={mostrarComponente ? 'Ocultar' : 'Mostrar'}
-        >
-          <FontAwesomeIcon icon={mostrarComponente ? faChevronUp : faChevronDown} size="sm" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={obtenerAlimentosFavoritos}
+            className="w-8 h-8 bg-amber-100 hover:bg-amber-200 text-amber-600 rounded-full transition-colors flex items-center justify-center"
+            title="Actualizar datos"
+            disabled={loading}
+          >
+            <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setMostrarComponente(!mostrarComponente)}
+            className="w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full transition-colors flex items-center justify-center"
+            title={mostrarComponente ? 'Ocultar' : 'Mostrar'}
+          >
+            <FontAwesomeIcon icon={mostrarComponente ? faChevronUp : faChevronDown} size="sm" />
+          </button>
+        </div>
       </div>
       
       {mostrarComponente && (

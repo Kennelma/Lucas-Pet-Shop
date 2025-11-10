@@ -303,6 +303,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
             <Column 
               field="requisitos" 
               header="REQUISITOS" 
+              body={(rowData) => rowData.requisitos && rowData.requisitos.trim() !== '' ? rowData.requisitos : 'N/A'}
               className="text-sm"
               style={{ width: '160px' }}
               headerStyle={{ padding: '8px 18px' }}

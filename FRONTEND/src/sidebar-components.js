@@ -33,8 +33,6 @@ const _nav = [
     },
   },
 
-
-
   {
     component: CNavTitle,
     name: 'MODULOS',
@@ -166,13 +164,7 @@ const _nav = [
   },
 
 
-  //PERFIL DE USUARIO
-  {
-    component: CNavItem,
-    name: 'Perfil de Usuario',
-    to: '/perfil',
-    icon: <FontAwesomeIcon icon={faUser} className="nav-icon" />,
-  },
+  
 
 
 
