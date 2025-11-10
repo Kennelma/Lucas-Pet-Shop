@@ -9,7 +9,7 @@ import ModalLote from "./ModalLote";
 import ModalMovimiento from "./ModalMovimiento";
 import ModalLotesMedicamento from "./ModalLotesMedicamento";
 import ModalEditarLote from "./ModalEditarLote";
-import { cambiarEstadoProducto } from "../../../AXIOS.SERVICES/products-axios";
+//import { cambiarEstadoProducto } from "../../../AXIOS.SERVICES/products-axios";
 
 const Medicamentos = () => {
   const {
@@ -39,7 +39,7 @@ const Medicamentos = () => {
   const [medicamentoEditando, setMedicamentoEditando] = useState(null);
   const [medicamentoSeleccionado, setMedicamentoSeleccionado] = useState(null);
   const [loteSeleccionado, setLoteSeleccionado] = useState(null);
-  const [loteEditar, setLoteEditar] = useState(null); 
+  const [loteEditar, setLoteEditar] = useState(null);
 
   //====================CONTROL_SCROLL_MODALES====================
   useEffect(() => {

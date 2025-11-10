@@ -403,7 +403,7 @@ const DetallesFactura = ({
           <div className="flex justify-end items-center mb-4">
             <button
               type="button"
-              onClick={addItem}
+              onClick={() => addItem({ cantidad: 0 })}
               className="bg-purple-500 text-white px-6 py-2 rounded-full hover:bg-purple-600 transition-colors flex items-center gap-2 font-semibold text-sm shadow-lg hover:shadow-xl"
               style={{ borderRadius: "12px" }}
             >
@@ -567,14 +567,19 @@ const DetallesFactura = ({
                         }}
                       >
                         <Select
-                          value={
-                            currentItems
-                              .map((availableItem) => ({
-                                value: availableItem[idKey],
-                                label: availableItem[nameKey],
-                              }))
-                              .find((opt) => opt.value === item.item) || null
-                          }
+                          value={(() => {
+                            // Buscar el item seleccionado y mostrar el stock en el label
+                            const selected = currentItems.find((availableItem) => String(availableItem[idKey]) === String(item.item));
+                            if (selected) {
+                              // Si tiene propiedad stock, mostrarlo
+                              const stock = selected.stock !== undefined ? ` (${selected.stock})` : "";
+                              return {
+                                value: selected[idKey],
+                                label: `${selected[nameKey]}${stock}`,
+                              };
+                            }
+                            return null;
+                          })()}
                           onChange={(selectedOption) => {
                             if (!selectedOption) {
                               onItemChange(
@@ -601,7 +606,7 @@ const DetallesFactura = ({
                           }}
                           options={currentItems.map((availableItem) => ({
                             value: availableItem[idKey],
-                            label: availableItem[nameKey],
+                            label: `${availableItem[nameKey]}${availableItem.stock !== undefined ? ` (${availableItem.stock})` : ""}`,
                           }))}
                           isClearable
                           placeholder="Seleccionar..."
@@ -645,11 +650,26 @@ const DetallesFactura = ({
                       >
                         <input
                           type="number"
-                          value={item.cantidad ?? 1}
+                          value={item.cantidad !== undefined ? item.cantidad : 0}
                           onChange={(e) => {
                             const valor = parseFloat(e.target.value) || 0;
+                            let maxStock = null;
+                            if (item.tipo === "PRODUCTOS") {
+                              const selected = currentItems.find((availableItem) => String(availableItem[idKey]) === String(item.item));
+                              maxStock = selected?.stock ?? null;
+                            }
                             if (valor >= 1) {
-                              updateItem(item.id, "cantidad", e.target.value);
+                              if (maxStock !== null && valor > maxStock) {
+                                Swal.fire({
+                                  icon: "error",
+                                  title: "Stock insuficiente",
+                                  text: `Solo hay ${maxStock} unidades disponibles en stock.`,
+                                  confirmButtonColor: "#3085d6",
+                                });
+                                updateItem(item.id, "cantidad", "");
+                              } else {
+                                updateItem(item.id, "cantidad", e.target.value);
+                              }
                             } else {
                               updateItem(item.id, "cantidad", "1");
                             }
@@ -658,6 +678,20 @@ const DetallesFactura = ({
                           className="w-full border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
                           style={{ padding: "4px 8px", fontSize: "14px" }}
                         />
+
+                        {/* Mensaje visual de stock insuficiente */}
+                        {item.tipo === "PRODUCTOS" && (() => {
+                          const selected = currentItems.find((availableItem) => String(availableItem[idKey]) === String(item.item));
+                          const maxStock = selected?.stock ?? null;
+                          if (maxStock !== null && (parseFloat(item.cantidad) > maxStock)) {
+                            return (
+                              <div style={{ color: "#e53e3e", fontSize: "12px", marginTop: "2px" }}>
+                                Stock insuficiente. Disponible: {maxStock}
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
                       </td>
                       {/*COLUMNA PRECIO*/}
                       <td
@@ -672,7 +706,7 @@ const DetallesFactura = ({
                         <input
                           type="number"
                           step="0.01"
-                          value={item.precio || "0.00"}
+                          value={Number(item.precio).toFixed(2)}
                           readOnly
                           className="w-full border border-gray-300 rounded bg-gray-100 text-gray-700 cursor-default focus:ring-0 text-right"
                           style={{ padding: "4px 8px", fontSize: "14px" }}
@@ -921,7 +955,7 @@ const DetallesFactura = ({
         {items.length > 0 && (
           <div
             className="flex justify-between items-center"
-            style={{ gap: "24px" }}
+            style={{ gap: "24px", marginTop: "38px" }}
           >
             <div className="flex flex-1 justify-center" style={{ gap: "12px" }}>
               <button
