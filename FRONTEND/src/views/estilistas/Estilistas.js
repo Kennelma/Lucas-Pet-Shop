@@ -60,8 +60,6 @@ const Estilistas = () => {
   };
 
   const handleEliminar = async (id) => {
-   
-    
     // Buscar información del estilista para mostrar en la confirmación
     const estilista = estilistas.find(e => e.id_estilista_pk === id);
     
