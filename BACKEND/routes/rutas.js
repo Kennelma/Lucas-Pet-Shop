@@ -61,6 +61,8 @@ router.get ('/facturacion/estilistasFacturacion', verificarToken, facturas.busca
 
 router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFactura)
 router.get  ('/facturacion/verFacturas', facturas.historialFacturas);
+router.get  ('/facturacion/verDetalleFactura', facturas.detalleFacturaSeleccionada);
+
 
 //RUTA PARA IMPRIMIR LA FACTURA EN FORMATO PDF
 router.get  ('/facturacion/verDetalleFactura', facturas.detalleFacturaSeleccionada);
