@@ -101,7 +101,7 @@ const VerDetallesFactura = ({ numFactura, onClose }) => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+ <div className="max-w-2xl mx-auto bg-white p-4 rounded-lg shadow-lg">
       {onClose && (
         <button
           onClick={onClose}
@@ -110,8 +110,7 @@ const VerDetallesFactura = ({ numFactura, onClose }) => {
           ×
         </button>
       )}
-
-      <h2 className="text-2xl font-bold text-center mb-6">DETALLES DE FACTURA</h2>
+ <h2 className="text-xl font-bold text-center mb-4">DETALLES DE FACTURA</h2>
 
       <div className="mb-6 text-center">
         <div className="text-lg font-semibold bg-blue-50 p-3 rounded">

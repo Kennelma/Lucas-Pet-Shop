@@ -506,29 +506,24 @@ const handleVerFactura = (factura) => {
           </div>
         </div>
       )}
-
-   {/* MODAL DE DETALLES FACTURA */}
+{/* MODAL DE DETALLES FACTURA - VERSIÓN CORREGIDA */}
       {showDetallesFactura && (
         <div 
-          className="fixed inset-0 flex items-center justify-center z-[9999]"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+          className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-50"
+          onClick={() => setShowDetallesFactura(false)} // Cerrar al hacer clic fuera
         >
-          <div className="bg-white rounded-lg shadow-2xl p-6 max-w-2xl w-full relative">
-            <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 z-10"
-              onClick={() => setShowDetallesFactura(false)}
-            >
-              <X size={22} />
-            </button>
+          <div 
+            className="relative"
+            onClick={(e) => e.stopPropagation()} // Evitar cerrar al hacer clic dentro
+          >
             <VerDetallesFactura
               numFactura={facturaVista}
               onClose={() => setShowDetallesFactura(false)}
             />
           </div>
         </div>
-      )}
-      
-      
+      )}      
+
     </div>
   );
 };
