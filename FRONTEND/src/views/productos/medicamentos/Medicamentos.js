@@ -9,7 +9,7 @@ import ModalLote from "./ModalLote";
 import ModalMovimiento from "./ModalMovimiento";
 import ModalLotesMedicamento from "./ModalLotesMedicamento";
 import ModalEditarLote from "./ModalEditarLote";
-//import { cambiarEstadoProducto } from "../../../AXIOS.SERVICES/products-axios";
+import { actualizarProducto } from "../../../AXIOS.SERVICES/products-axios"; // ✅ CAMBIADO
 
 const Medicamentos = () => {
   const {

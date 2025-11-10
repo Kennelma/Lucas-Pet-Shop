@@ -4,16 +4,15 @@ import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { InputMask } from "primereact/inputmask";
 import { Button } from "primereact/button";
-// ...existing code...
-import { insertarCliente } from "../../AXIOS.SERVICES/clients-axios.js";
+import { insertarCliente, verClientes } from "../../AXIOS.SERVICES/clients-axios.js";
 
 export default function FormularioCliente({
   isOpen,
   onClose,
   onClienteAgregado,
-  identidadInicial = '' // ← Nueva prop
+  identidadInicial = '' 
 }) {
-    // ...existing code...
+   
 
     const [nuevoCliente, setNuevoCliente] = useState({
         nombre_cliente: "",
@@ -58,11 +57,25 @@ export default function FormularioCliente({
         if (!validacionFormulario()) {
             return;
         }
+
+        // Verificar teléfono duplicado
+        try {
+            const clientesExistentes = await verClientes();
+            const telefonoDuplicado = clientesExistentes.find(cliente => 
+                cliente.telefono_cliente === nuevoCliente.telefono_cliente
+            );
+            
+            if (telefonoDuplicado) {
+                alert('Ya existe un cliente con este número de teléfono');
+                return;
+            }
+        } catch (error) {
+            console.error("Error al verificar duplicados:", error);
+        }
+
         try {
             const res = await insertarCliente(nuevoCliente);
             if (res.Consulta !== false) {
-                // ...existing code...
-
                 onClienteAgregado(nuevoCliente);
 
                 onClose();

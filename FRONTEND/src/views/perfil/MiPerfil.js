@@ -351,7 +351,6 @@ const MiPerfil = ({ visible, onClose }) => {
                       value={formData.nuevaContraseña}
                       onChange={handleChange}
                       className={`form-control ${errores.nuevaContraseña ? 'is-invalid' : ''}`}
-                      placeholder="Nueva contraseña"
                       style={{ height: '50px' }}
                     />
                     <label 
@@ -385,7 +384,6 @@ const MiPerfil = ({ visible, onClose }) => {
                       value={formData.confirmarContraseña}
                       onChange={handleChange}
                       className={`form-control ${errores.confirmarContraseña ? 'is-invalid' : ''}`}
-                      placeholder="Confirmar contraseña"
                       style={{ height: '50px' }}
                     />
                     <label 

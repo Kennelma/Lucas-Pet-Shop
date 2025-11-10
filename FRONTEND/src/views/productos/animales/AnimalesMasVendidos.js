@@ -1,12 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronUp, faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { verProductosFavoritos } from "../../../AXIOS.SERVICES/products-axios";
 
-const AnimalesMasVendidos = ({ animales = [] }) => {
+const AnimalesMasVendidos = () => {
   const [animalesMasVendidos, setAnimalesMasVendidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mostrarComponente, setMostrarComponente] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [error, setError] = useState(null);
+
+  // Función para obtener el mes actual en español
+  const obtenerMesActual = () => {
+    const meses = [
+      'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+      'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
+    ];
+    const fechaActual = new Date();
+    return meses[fechaActual.getMonth()];
+  };
 
   // Colores para los animales
   const colores = ['bg-pink-500', 'bg-blue-500', 'bg-green-500', 'bg-orange-500', 'bg-purple-500', 'bg-red-500'];
@@ -20,54 +32,77 @@ const AnimalesMasVendidos = ({ animales = [] }) => {
     "/animales5.jpg"
   ];
 
-  // Función para procesar animales reales
-  const procesarAnimales = (animalesReales) => {
-    if (!animalesReales || animalesReales.length === 0) {
-      return [];
-    }
+  // Función para obtener animales favoritos desde el endpoint
+  const obtenerAnimalesFavoritos = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Llamar al endpoint para obtener los productos favoritos de tipo ANIMALES
+      const favoritosFromAPI = await verProductosFavoritos('ANIMALES');
+      
+      if (!favoritosFromAPI || favoritosFromAPI.length === 0) {
+        setAnimalesMasVendidos([]);
+        return;
+      }
 
-    const animalesConVentas = animalesReales
-      .filter(animal => animal.activo) // Solo animales activos
-      .map((animal, index) => {
-        // Simular cantidad de ventas basado en precio y stock (precio medio y stock alto = más ventas)
-        const factorPrecio = Math.max(5, 30 - (animal.precio || 0) * 0.5);
-        const factorStock = Math.min(20, (animal.stock || 0) * 0.3);
-        const cantidadVentas = Math.floor(factorPrecio + factorStock + Math.random() * 15);
+      // Agrupar los datos por nombre del producto para sumar las ventas del mismo animal
+      const animalesAgrupados = {};
+      
+      favoritosFromAPI.forEach(favorito => {
+        const nombreProducto = favorito.nombre_item || 'ANIMAL SIN NOMBRE';
+        const ventasActuales = parseInt(favorito.total_vendido) || 0;
         
-        return {
-          id: animal.id_producto || animal.id,
-          nombre: animal.nombre || 'ANIMAL SIN NOMBRE',
-          especie: animal.especie || 'No especificada',
-          sexo: animal.sexo || 'N/A',
-          precio: animal.precio || 0,
-          stock: animal.stock || 0,
-          sku: animal.sku || '',
-          cantidad_ventas: cantidadVentas,
-          color: colores[index % colores.length]
-        };
-      })
-      .sort((a, b) => b.cantidad_ventas - a.cantidad_ventas) // Ordenar por ventas
-      .slice(0, 4); // Tomar solo los 4 más vendidos
+        if (animalesAgrupados[nombreProducto]) {
+          // Si ya existe, sumar las ventas
+          animalesAgrupados[nombreProducto].cantidad_ventas += ventasActuales;
+          animalesAgrupados[nombreProducto].facturas.push(favorito.numero_factura);
+        } else {
+          // Si no existe, crear nuevo registro
+          animalesAgrupados[nombreProducto] = {
+            nombre: nombreProducto,
+            cantidad_ventas: ventasActuales,
+            mes: favorito.mes,
+            facturas: [favorito.numero_factura]
+          };
+        }
+      });
 
-    // Calcular porcentajes
-    const totalVentas = animalesConVentas.reduce((sum, a) => sum + a.cantidad_ventas, 0);
-    
-    return animalesConVentas.map(animal => ({
-      ...animal,
-      porcentaje: totalVentas > 0 ? Math.round((animal.cantidad_ventas / totalVentas) * 100) : 0
-    }));
+      // Convertir a array y ordenar por ventas
+      const animalesProcesados = Object.values(animalesAgrupados)
+        .sort((a, b) => b.cantidad_ventas - a.cantidad_ventas) // Ordenar por ventas descendente
+        .slice(0, 4) // Tomar solo los 4 más vendidos
+        .map((animal, index) => ({
+          id: `animal-${animal.nombre.replace(/\s+/g, '-').toLowerCase()}`,
+          nombre: animal.nombre,
+          cantidad_ventas: animal.cantidad_ventas,
+          mes: animal.mes,
+          color: colores[index % colores.length]
+        }));
+
+      // Calcular porcentajes
+      const totalVentas = animalesProcesados.reduce((sum, a) => sum + a.cantidad_ventas, 0);
+      
+      const animalesConPorcentajes = animalesProcesados.map(animal => ({
+        ...animal,
+        porcentaje: totalVentas > 0 ? Math.round((animal.cantidad_ventas / totalVentas) * 100) : 0
+      }));
+
+      setAnimalesMasVendidos(animalesConPorcentajes);
+      
+    } catch (err) {
+      console.error('Error al obtener animales favoritos:', err);
+      setError('Error al cargar los productos más vendidos');
+      setAnimalesMasVendidos([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    setLoading(true);
-    
-    // Simular delay de carga
-    setTimeout(() => {
-      const animalesProcesados = procesarAnimales(animales);
-      setAnimalesMasVendidos(animalesProcesados);
-      setLoading(false);
-    }, 500);
-  }, [animales]);
+    // Obtener los animales favoritos del mes actual desde el endpoint
+    obtenerAnimalesFavoritos();
+  }, []); // Se ejecuta solo al montar el componente
 
   // Efecto para el carrusel de imágenes
   useEffect(() => {
@@ -78,6 +113,43 @@ const AnimalesMasVendidos = ({ animales = [] }) => {
     return () => clearInterval(interval);
   }, [images.length]);
 
+  // Mostrar estado de carga
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl p-6 border border-gray-200 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col items-center justify-center flex-1 text-center">
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">
+              Cargando productos más vendidos...
+            </h3>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500 mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar error si ocurrió
+  if (error) {
+    return (
+      <div className="bg-white rounded-2xl p-6 border border-gray-200 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col items-center justify-center flex-1 text-center">
+            <h3 className="text-lg font-semibold text-red-600 mb-2">
+              {error}
+            </h3>
+            <button 
+              onClick={obtenerAnimalesFavoritos}
+              className="mt-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+            >
+              Reintentar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Si no hay animales más vendidos
   if (animalesMasVendidos.length === 0) {
     return (
@@ -85,10 +157,10 @@ const AnimalesMasVendidos = ({ animales = [] }) => {
         <div className="flex justify-between items-center mb-4">
           <div className="flex flex-col items-center justify-center flex-1 text-center">
             <h3 className="text-lg font-semibold text-gray-600 mb-2">
-              No hay animales para mostrar estadísticas de ventas
+              No hay datos de ventas de animales este mes
             </h3>
             <p className="text-gray-500 text-sm">
-              Agrega animales primero para ver cuáles son los más vendidos
+              Aún no se han registrado ventas de animales en el mes actual
             </p>
           </div>
           <button
@@ -102,7 +174,7 @@ const AnimalesMasVendidos = ({ animales = [] }) => {
         {mostrarComponente && (
           <div className="text-center py-4">
             <p className="text-gray-400 italic">
-              📊 El sistema de análisis de ventas está listo para funcionar
+              El sistema mostrará los datos cuando haya ventas registradas
             </p>
           </div>
         )}
@@ -115,15 +187,27 @@ const AnimalesMasVendidos = ({ animales = [] }) => {
       <div className="flex justify-between items-center mb-4">
         <div className="flex flex-col items-center justify-center flex-1 text-center">
           <div className="text-xl font-bold text-gray-800 mb-1">MÁS VENDIDOS</div>
-          <p className="text-gray-600 text-sm">BASADO EN LAS VENTAS DEL MES ACTUAL</p>
+          <p className="text-gray-600 text-sm">BASADO EN LAS VENTAS DEL MES DE {obtenerMesActual()}</p>
         </div>
-        <button
-          onClick={() => setMostrarComponente(!mostrarComponente)}
-          className="ml-4 w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full transition-colors flex items-center justify-center"
-          title={mostrarComponente ? 'Ocultar' : 'Mostrar'}
-        >
-          <FontAwesomeIcon icon={mostrarComponente ? faChevronUp : faChevronDown} size="sm" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={obtenerAnimalesFavoritos}
+            className="w-8 h-8 bg-pink-100 hover:bg-pink-200 text-pink-600 rounded-full transition-colors flex items-center justify-center"
+            title="Actualizar datos"
+            disabled={loading}
+          >
+            <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setMostrarComponente(!mostrarComponente)}
+            className="w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full transition-colors flex items-center justify-center"
+            title={mostrarComponente ? 'Ocultar' : 'Mostrar'}
+          >
+            <FontAwesomeIcon icon={mostrarComponente ? faChevronUp : faChevronDown} size="sm" />
+          </button>
+        </div>
       </div>
       {/* Contenido principal */}
       {mostrarComponente && (

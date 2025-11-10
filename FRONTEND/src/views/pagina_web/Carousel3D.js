@@ -276,6 +276,7 @@ export default function Carousel3D() {
                   controls
                   playsInline
                   preload="auto"
+                  muted
                   style={{borderRadius: '4px'}}
                 />
               ) : (
