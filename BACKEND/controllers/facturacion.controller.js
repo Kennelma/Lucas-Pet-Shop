@@ -178,7 +178,7 @@ exports.crearFactura = async (req, res) => {
                     WHERE l.id_medicamento_fk = ?
                         AND l.stock_lote > 0
                         AND l.fecha_vencimiento >= CURDATE()
-                        AND e.nombre_estado = 'DISPONIBLE'
+                        AND e.nombre_estado != 'CADUCADO'
                     ORDER BY l.fecha_vencimiento ASC
                     FOR UPDATE`,
                     [id_medicamento]
@@ -570,13 +570,13 @@ exports.catalogoItems = async (req, res) => {
 
             case 'PRODUCTOS':
 
-
                 [resultados] = await conn.query(
                     `SELECT
                         p.id_producto_pk,
                         p.nombre_producto,
                         p.precio_producto,
                         p.tiene_impuesto,
+                        -- Calcular stock real disponible
                         COALESCE(
                             (SELECT SUM(l.stock_lote)
                             FROM tbl_lotes_medicamentos l
@@ -589,11 +589,13 @@ exports.catalogoItems = async (req, res) => {
                             AND l.fecha_vencimiento >= CURDATE()
                             AND e.nombre_estado = 'DISPONIBLE'
                             ),
+                            p.stock  
                         ) AS stock
                     FROM tbl_productos p
                     WHERE p.activo = TRUE
                     HAVING stock > 0`
                 )
+
                 break;
 
             case 'SERVICIOS':
