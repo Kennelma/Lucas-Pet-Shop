@@ -125,23 +125,23 @@ const ListaFacturas = () => {
 
   const handlePagoExitoso = async (datosPago) => {
     try {
-      // MOSTRAR EN CONSOLA QUÉ SE VA A ENVIAR
+      //MOSTRAR EN CONSOLA QUÉ SE VA A ENVIAR
       console.log('📤 DATOS A ENVIAR AL BACKEND:', JSON.stringify(datosPago, null, 2));
 
-      // LLAMAR AL SERVICIO PARA PROCESAR EL PAGO
+      //LLAMAR AL SERVICIO PARA PROCESAR EL PAGO
       const response = await procesarPago(datosPago);
 
       console.log('📥 RESPUESTA DEL BACKEND:', response);
 
       if (response.success) {
-        // MOSTRAR MENSAJE DE ÉXITO
+        //MOSTRAR MENSAJE DE ÉXITO
         alert(response.mensaje || 'Pago procesado exitosamente');
 
-        // CERRAR MODAL Y LIMPIAR SELECCIONES
+        //CERRAR MODAL Y LIMPIAR SELECCIONES
         setShowModalPago(false);
         setFacturaSeleccionada(null);
 
-        // RECARGAR FACTURAS PARA VER CAMBIOS
+        //RECARGAR FACTURAS PARA VER CAMBIOS
         cargarFacturas();
       } else {
         alert(response.mensaje || 'Error al procesar el pago');
@@ -152,12 +152,13 @@ const ListaFacturas = () => {
     }
   };
 
+  
   //====================IMPRIMIR_PDF====================
   const handleImprimirFactura = async (factura) => {
     try {
       const response = await obtenerDatosFacturaPDF(factura.numero_factura);
       if (response.success) {
-        // Generar el PDF
+        //Generar el PDF
         const doc = generarPDFFactura(response.data);
 
         // Convertir a blob y crear URL
@@ -290,7 +291,7 @@ const ListaFacturas = () => {
             <p className="text-white text-xs font-medium">PARCIAL</p>
             <p className="text-base font-bold text-white">
               {facturas.filter(f => f.nombre_estado?.toUpperCase() === 'PARCIAL').length}
-            </p>    
+            </p>
           </div>
         </div>
         <div className="bg-yellow-500 rounded shadow-sm p-1.5 w-40">

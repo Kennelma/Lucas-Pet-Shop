@@ -33,8 +33,6 @@ const _nav = [
     },
   },
 
-
-
   {
     component: CNavTitle,
     name: 'MODULOS',

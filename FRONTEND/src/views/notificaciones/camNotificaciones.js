@@ -275,8 +275,7 @@ const CamNotificaciones = () => {
       notificacionesAdaptadas.sort((a, b) => {
         return b.id_notificacion_pk - a.id_notificacion_pk
       })
-      
-      console.log('✅ Notificaciones procesadas:', notificacionesAdaptadas.length)
+
       
       // Detectar nuevas notificaciones comparando IDs
       const prevIds = prevNotificacionesRef.current.map(n => n.id_notificacion_pk)
@@ -393,7 +392,7 @@ const CamNotificaciones = () => {
             })
           }
         }}
-        className="nav-link border-0 bg-transparent p-2"
+        className="nav-link border-0 bg-transparent p-20"
         style={{ cursor: 'pointer', position: 'relative' }}
       >
         <div className={animarCampana ? 'animate-shake' : ''}>
