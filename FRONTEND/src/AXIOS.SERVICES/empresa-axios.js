@@ -1,19 +1,19 @@
 import axiosInstance from './axiosConfig';
 
-const API_URL = "/empresa"; 
+const API_URL = "/empresa";
 
 
 //SERVICIO PARA INSERTAR DATOS DEL MODULO DE EMPRESA
 export const insertar = async (entidad, datos) => {
   try {
-    
-    const res = await axiosInstance.post(`${API_URL}/insertar`, 
-      { entidad, 
-        ...datos }); 
-    return res.data; 
+
+    const res = await axiosInstance.post(`${API_URL}/insertar`,
+      { entidad,
+        ...datos });
+    return res.data;
 
   } catch (err) {
-    
+
     const msg = err?.response?.data?.error || err.message || "Error de red";
     console.error(`Error al insertar ${entidad}:`, msg);
     return { Consulta: false, error: msg };
@@ -24,26 +24,27 @@ export const insertar = async (entidad, datos) => {
 export const ver = async (entidad) => {
   try {
     // Convierte a mayúsculas para evitar errores de case con el backend
-    const entidadEnviada = entidad.toUpperCase(); 
+    const entidadEnviada = entidad.toUpperCase();
 
     const res = await axiosInstance.get(`${API_URL}/ver`,
        { params: { entidad: entidadEnviada } }
     );
-    
+
     if (res.data?.Consulta) {
       return res.data.entidad || [];
     } else {
         // Error de lógica de negocio (ej. "Entidad no permitida")
-        console.error("Error en ver():", res.data?.error); 
+        console.error("Error en ver():", res.data?.error);
         return [];
     }
-    
+
   } catch (err) {
     // Deja que el Interceptor de Axios maneje el 401 si el token expira
     console.error(`Error al traer ${entidad}:`, err);
     return [];
   }
 };
+
 
 // ─────────────────────────────────────────────
 // ELIMINAR REGISTRO (EMPRESA, SUCURSAL, GASTO o USUARIO)

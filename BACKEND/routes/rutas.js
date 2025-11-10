@@ -17,6 +17,7 @@ const pagos = require('../controllers/pagos.controller');
 const whatsapp = require('../controllers/whatsapp.controller');
 const notificaciones = require('../controllers/notificaciones.controller');
 const reportes = require('../controllers/reportes.controller');
+const perfil = require('../controllers/perfil.controller');
 
 //========== RUTAS DE AUTENTICACIÓN Y SEGURIDAD ==========
 router.post('/login', auth.login);
@@ -29,6 +30,7 @@ router.put('/productos/actualizar', productos.actualizar);
 router.delete('/productos/eliminar', productos.eliminar);
 router.get('/productos/ver',productos.ver);
 router.get('/productos/verCatalogo', verificarToken, productos.verCatalogo);
+router.get('/productos/favoritos',  productos.favoritos);
 
 //========== RUTAS DE SERVICIOS PELUQUERIA Y PROMOCIONES ==========
 router.post('/servicios-peluqueria/insertar', verificarToken, servicios.crear);
@@ -54,8 +56,12 @@ router.get ('/facturacion/catalogoItems', verificarToken, facturas.catalogoItems
 router.get ('/facturacion/buscarCliente', verificarToken,facturas.buscarClientesPorIdentidad);
 router.get ('/facturacion/usuarioFacturacion', verificarToken, facturas.usuarioFactura);
 router.get ('/facturacion/estilistasFacturacion', verificarToken, facturas.buscarEstilistas);
+
 router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFactura)
 router.get  ('/facturacion/verFacturas', facturas.historialFacturas);
+
+//RUTA PARA IMPRIMIR LA FACTURA EN FORMATO PDF
+router.get  ('/facturacion/verDetalleFactura', facturas.detalleFacturaSeleccionada);
 router.get  ('/facturacion/imprimirFactura', facturas.ImpresionFactura);
 
 //========== RUTAS DE PAGOS ==========
@@ -63,7 +69,9 @@ router.post('/pagos/procesarPago', verificarToken, pagos.procesarPago);
 router.get ('/pagos/tipoPago', verificarToken, pagos.obtenerTipoPago);
 router.get ('/pagos/metodosPago', verificarToken, pagos.obtenerMetodosPago);
 
-
+//========== RUTAS DE PERFIL DE USUARIO ==========
+router.get ('/perfil/ver', verificarToken, perfil.verPerfil);
+router.put ('/perfil/actualizar', verificarToken, perfil.actualizarPerfil);
 
 //========== RUTAS DE REPORTES ==========
 router.get('/reportes/ingresos', reportes.registroIngresos);
@@ -94,7 +102,6 @@ router.get('/whatsapp/qr', whatsapp.obtenerQR);
 router.get('/whatsapp/estado', whatsapp.verificarEstado);
 router.post('/whatsapp/pairing', whatsapp.solicitarCodigoEmparejamiento);
 router.post('/whatsapp/logout', whatsapp.cerrarSesion);
-
-
+router.post('/whatsapp/enviar-recordatorios', whatsapp.enviarRecordatoriosPendientes);
 
 module.exports = router;

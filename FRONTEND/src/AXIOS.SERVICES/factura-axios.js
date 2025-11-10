@@ -85,7 +85,7 @@ export const obtenerEstilistasFactura = async () => {
 };
 
 
-//SERVICIO PARA OBTENER HISTORIAL DE FACTURAS
+//SERVICIO PARA OBTENER HISTORIAL DE FACTURAS (TABLA, NO CONFUNDIR)
 export const obtenerHistorialFacturas = async () => {
   try {
     const { data } = await axiosInstance.get(`${API_URL}/verFacturas`);
@@ -102,6 +102,7 @@ export const obtenerHistorialFacturas = async () => {
 
 
 
+//SERVICIO PARA OBTENER DATOS DE FACTURA EN FORMATO PDF
 export const obtenerDatosFacturaPDF = async (numero_factura) => {
   try {
     const { data } = await axiosInstance.get(`${API_URL}/imprimirFactura`, {
@@ -113,6 +114,24 @@ export const obtenerDatosFacturaPDF = async (numero_factura) => {
     return {
       success: false,
       mensaje: error?.response?.data?.mensaje || "Error al obtener datos de la factura",
+      data: null
+    };
+  }
+};
+
+
+//SERVICIO PARA OBTENER DETALLE DE FACTURA SELECCIONADA
+export const obtenerDetalleFacturaSeleccionada = async (id_factura) => {
+  try {
+    const { data } = await axiosInstance.get(`${API_URL}/verDetalleFactura`, {
+      params: { id_factura }
+    });
+    return data;
+  } catch (error) {
+    console.error("Error al obtener detalle de factura:", error);
+    return {
+      success: false,
+      mensaje: error?.response?.data?.mensaje || "Error al obtener detalle de factura",
       data: null
     };
   }

@@ -10,13 +10,13 @@ const argon2 = require('argon2');
 // ─────────────────────────────────────────────────────────
 exports.crear = async (req, res) => {
 
-    const conn = await mysqlConnection.getConnection(); 
+    const conn = await mysqlConnection.getConnection();
 
     await conn.beginTransaction(); //INICIO LA TRANSACCIÓN
 
     try  {
 
-        const {entidad} = req.body; 
+        const {entidad} = req.body;
 
         switch (entidad) {
 
@@ -30,8 +30,8 @@ exports.crear = async (req, res) => {
                     correo_empresa) VALUES (?,?,?,?)`,
                     [
                         req.body.nombre_empresa,
-                        req.body.direccion_empresa, 
-                        req.body.telefono_empresa, 
+                        req.body.direccion_empresa,
+                        req.body.telefono_empresa,
                         req.body.correo_empresa
                     ]);
                 break;
@@ -47,39 +47,34 @@ exports.crear = async (req, res) => {
                     ) VALUES (?,?,?,?)`,
                     [
                         req.body.nombre_sucursal,
-                        req.body.direccion_sucursal, 
-                        req.body.telefono_sucursal, 
+                        req.body.direccion_sucursal,
+                        req.body.telefono_sucursal,
                         req.body.id_empresa_fk
                     ]);
 
                 break;
-                
-            
-            case 'USUARIOS':
-                                
-                const contraHasheada = await argon2.hash(req.body.contrasena_usuario, options); 
 
+
+            case 'USUARIOS':
+
+
+                const { usuario, email_usuario, contrasena_usuario, id_sucursal_fk } = req.body;
+
+                const contraHasheada = await argon2.hash(contrasena_usuario);
                 const fechaCreacion = new Date();
-                
-                await conn.query (
-                    `INSERT INTO tbl_usuarios(
-                        usuario, 
-                        email_usuario, 
-                        fecha_creacion,
-                        password_update_at,
-                        contrasena_usuario, 
-                        id_sucursal_fk
-                    ) VALUES (?,?,?,?)`, 
-                    [
-                        req.body.usuario,
-                        req.body.email_usuario,
-                        fechaCreacion,
-                        fechaCreacion,
-                        contraHasheada,
-                        req.body.id_sucursal_fk
-                    ]
+
+                await conn.query(
+                `INSERT INTO tbl_usuarios(
+                    usuario,
+                    email_usuario,
+                    fecha_creacion,
+                    contrasena_usuario,
+                    id_sucursal_fk,
+                    password_update_at
+                ) VALUES (?,?,?,?,?,?)`,
+
+                [usuario, email_usuario, fechaCreacion, contraHasheada, id_sucursal_fk, fechaCreacion]
                 );
-                
                 break;
 
             case 'GASTOS':
@@ -88,11 +83,11 @@ exports.crear = async (req, res) => {
                 const id_usuario = req.usuario?.id_usuario_pk;
 
                 //console.log(` INFO: ID de usuario obtenido del token: ${id_usuario}`);
-                
+
                 await conn.query(
                 `INSERT INTO tbl_gastos (
-                    detalle_gasto, 
-                    monto_gasto, 
+                    detalle_gasto,
+                    monto_gasto,
                     id_usuario_fk
                 ) VALUES (?,?,?)`,
                 [
@@ -101,9 +96,9 @@ exports.crear = async (req, res) => {
                     id_usuario
                 ]
                 );
-                
+
                 break;
-        
+
             default:
                 throw new Error('No es parte del módulo de empresa. Intente de nuevo');
         }
@@ -113,7 +108,7 @@ exports.crear = async (req, res) => {
             Consulta: true,
             mensaje: `Registro en ${entidad} ingresado con éxito`,
         });
-        
+
     } catch (err) {
         await conn.rollback(); //REVIERTO LA CONSULTA SI HAY ERROR
         res.json ({
@@ -151,7 +146,7 @@ exports.actualizar = async (req, res) => {
 
                 await conn.query(
                     `UPDATE tbl_empresa
-                    SET 
+                    SET
                         nombre_empresa    = COALESCE(?, nombre_empresa),
                         direccion_empresa = COALESCE(?, direccion_empresa),
                         telefono_empresa  = COALESCE(?, telefono_empresa),
@@ -172,7 +167,7 @@ exports.actualizar = async (req, res) => {
 
                 await conn.query(
                     `UPDATE tbl_sucursales
-                    SET 
+                    SET
                         nombre_sucursal    = COALESCE(?, nombre_sucursal),
                         direccion_sucursal = COALESCE(?, direccion_sucursal),
                         telefono_sucursal  = COALESCE(?, telefono_sucursal),
@@ -190,7 +185,7 @@ exports.actualizar = async (req, res) => {
 
             case 'USUARIOS':
 
-                
+
                 let contraHasheada = null;
 
                 if (req.body.contrasena_usuario) {
@@ -199,7 +194,7 @@ exports.actualizar = async (req, res) => {
 
                 await conn.query(
                     `UPDATE tbl_usuarios
-                    SET 
+                    SET
                         usuario            = COALESCE(?, usuario),
                         email_usuario      = COALESCE(?, email_usuario),
                         contrasena_usuario = COALESCE(?, contrasena_usuario),
@@ -225,7 +220,7 @@ exports.actualizar = async (req, res) => {
 
                 await conn.query(
                     `UPDATE tbl_gastos
-                    SET 
+                    SET
                         detalle_gasto = COALESCE(?, detalle_gasto),
                         monto_gasto   = COALESCE(?, monto_gasto)
                     WHERE id_gasto_pk = ?`,
@@ -272,33 +267,33 @@ exports.ver = async (req, res) => {
 
     try {
 
-        let registros; 
+        let registros;
 
-        const {entidad} = req.query; 
+        const {entidad} = req.query;
 
         switch (entidad) {
-            
+
             case 'EMPRESA':
 
                 [registros] = await conn.query(
 
-                    `SELECT 
+                    `SELECT
                         id_empresa_pk,
                         nombre_empresa,
                         direccion_empresa,
                         telefono_empresa,
                         correo_empresa
                     FROM tbl_empresa`);
-                
+
                 break;
 
             case 'SUCURSALES':
 
                 [registros] = await conn.query(
-                    `SELECT 
-                        s.id_sucursal_pk,  
-                        s.nombre_sucursal, 
-                        s.direccion_sucursal, 
+                    `SELECT
+                        s.id_sucursal_pk,
+                        s.nombre_sucursal,
+                        s.direccion_sucursal,
                         s.telefono_sucursal,
                         s.id_empresa_fk,
                         e.nombre_empresa
@@ -310,25 +305,25 @@ exports.ver = async (req, res) => {
             case 'USUARIOS':
 
                 [registros] = await conn.query(
-                    `SELECT 
-                        u.id_usuario_pk, 
-                        u.usuario, 
-                        u.email_usuario, 
+                    `SELECT
+                        u.id_usuario_pk,
+                        u.usuario,
+                        u.email_usuario,
                         u.fecha_creacion,
-                        u.intentos_fallidos, 
+                        u.intentos_fallidos,
                         u.bloqueado_hasta,
-                        u.id_sucursal_fk, 
+                        u.id_sucursal_fk,
                         s.nombre_sucursal,
                         u.cat_estado_fk
                     FROM tbl_usuarios u
                     JOIN tbl_sucursales s ON s.id_sucursal_pk = u.id_sucursal_fk
                     ORDER BY u.id_usuario_pk DESC`);
                 break;
-                
+
             case 'GASTOS':
-                
+
                 [registros] = await conn.query(
-                    `SELECT 
+                    `SELECT
                         id_gasto_pk,
                         detalle_gasto,
                         monto_gasto,
@@ -336,7 +331,7 @@ exports.ver = async (req, res) => {
                     FROM tbl_gastos
                     ORDER BY id_gasto_pk DESC`);
                 break;
-   
+
             default:
 
                 throw new Error('Las entidades permitidas son: GASTOS, EMPRESA, SUCURSALES o USUARIOS');
@@ -347,7 +342,7 @@ exports.ver = async (req, res) => {
             mensaje: `Registros de ${entidad}`,
             entidad: registros || []
         });
-        
+
 
     } catch (err) {
 
@@ -375,7 +370,7 @@ exports.eliminar = async (req, res) => {
 
 
     const conn = await mysqlConnection.getConnection();
-    
+
     try {
 
         await conn.beginTransaction();
@@ -391,35 +386,35 @@ exports.eliminar = async (req, res) => {
 
                 await conn.query(
                     `DELETE FROM tbl_empresa
-                     WHERE id_empresa_pk = ?`, 
+                     WHERE id_empresa_pk = ?`,
                      [id]);
-                
+
                 break;
-        
+
             case 'SUCURSALES':
-                
+
                 await conn.query(
                     `DELETE FROM tbl_sucursales
-                    WHERE id_sucursal_pk = ?`, 
+                    WHERE id_sucursal_pk = ?`,
                     [id]);
                 break;
 
             case 'GASTOS':
-                
+
                 await conn.query(
                     `DELETE FROM tbl_gastos
-                    WHERE id_gasto_pk = ?`, 
+                    WHERE id_gasto_pk = ?`,
                     [id]);
-                break;    
+                break;
 
             case 'USUARIOS':
-                
+
                 await conn.query(
                     `DELETE FROM tbl_usuarios
-                    WHERE id_usuario_pk = ?`, 
+                    WHERE id_usuario_pk = ?`,
                     [id]);
-                break;       
-                
+                break;
+
             default:
                 throw new Error('Entidad no válida');
         }
@@ -431,7 +426,7 @@ exports.eliminar = async (req, res) => {
             id
         });
 
-        
+
     } catch (err) {
         await conn.rollback();
         res.json({
@@ -442,5 +437,5 @@ exports.eliminar = async (req, res) => {
         conn.release();
     }
 
-    
+
 }
