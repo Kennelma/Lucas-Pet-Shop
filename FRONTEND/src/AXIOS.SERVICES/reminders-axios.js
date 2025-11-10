@@ -41,7 +41,7 @@ export const verRecordatorios = async () => {
 export const insertarRecordatorio = async (datosRecordatorio) => {
   try {
     const res = await axiosInstance.post(`${API_URL}/crear`, datosRecordatorio);
-    
+
     return res.data;
 
   } catch (err) {
@@ -63,7 +63,8 @@ export const actualizarRecordatorio = async (datosRecordatorio) => {
     return { Consulta: false, error: err.message };
   }
 };
-// ───────────────────────────────────────────────
+
+// ─────────────────────────────────────────────
 // SERVICIO PARA ELIMINAR RECORDATORIO - CORREGIDO
 // ───────────────────────────────────────────────
 export const eliminarRecordatorio = async (id) => {
