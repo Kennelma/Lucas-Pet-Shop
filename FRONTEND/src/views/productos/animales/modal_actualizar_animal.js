@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
-import Swal from 'sweetalert2';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
@@ -9,7 +8,7 @@ import { InputSwitch } from 'primereact/inputswitch';
 import { actualizarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
 //COMPONENTE MODAL ACTUALIZAR ANIMAL
-const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
+const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData, animalesExistentes = [] }) => {
 
   //LISTAS DROPDOWN
   const especies = [
@@ -104,10 +103,32 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
       return newData;
     });
 
+    // ✅ VALIDACIÓN EN TIEMPO REAL CON DETECCIÓN DE DUPLICADOS
     setErrores(prev => {
       const newErrores = { ...prev };
-      if (['nombre', 'especie', 'sexo'].includes(field)) newErrores[field] = val ? '' : 'Campo obligatorio';
-      else if (['precio', 'cantidad', 'stock_minimo'].includes(field)) newErrores[field] = val > 0 ? '' : 'Debe ser mayor a 0';
+      
+      if (field === 'nombre') {
+        if (!val.trim()) {
+          newErrores[field] = 'El nombre del animal es obligatorio';
+        } else {
+          // Verificar duplicados excluyendo el animal actual
+          const nombreExiste = animalesExistentes.some(animal => 
+            animal.nombre?.toLowerCase() === val.trim().toLowerCase() &&
+            animal.id_producto !== editData.id_producto
+          );
+          
+          if (nombreExiste) {
+            newErrores[field] = 'Ya existe un animal con este nombre';
+          } else {
+            newErrores[field] = '';
+          }
+        }
+      } else if (['especie', 'sexo'].includes(field)) {
+        newErrores[field] = val ? '' : 'Campo obligatorio';
+      } else if (['precio', 'cantidad', 'stock_minimo'].includes(field)) {
+        newErrores[field] = val > 0 ? '' : 'Debe ser mayor a 0';
+      }
+      
       return newErrores;
     });
   };
@@ -115,12 +136,27 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
   //VALIDAR FORMULARIO
   const validarDatos = () => {
     let temp = {};
-    if (!data.nombre) temp.nombre = 'Campo obligatorio';
+    
+    // ✅ VALIDACIÓN DEL NOMBRE CON VERIFICACIÓN DE DUPLICADOS
+    if (!data.nombre?.trim()) {
+      temp.nombre = 'El nombre del animal es obligatorio';
+    } else {
+      const nombreExiste = animalesExistentes.some(animal => 
+        animal.nombre?.toLowerCase() === data.nombre.trim().toLowerCase() &&
+        animal.id_producto !== editData.id_producto
+      );
+      
+      if (nombreExiste) {
+        temp.nombre = 'Ya existe un animal con este nombre';
+      }
+    }
+    
     if (!data.especie) temp.especie = 'Campo obligatorio';
     if (!data.sexo) temp.sexo = 'Campo obligatorio';
     if (!data.precio || data.precio <= 0) temp.precio = 'Debe ser mayor a 0';
     if (!data.cantidad || data.cantidad <= 0) temp.cantidad = 'Debe ser mayor a 0';
     if (!data.stock_minimo || data.stock_minimo <= 0) temp.stock_minimo = 'Debe ser mayor a 0';
+    
     setErrores(temp);
     return Object.keys(temp).length === 0;
   };
@@ -150,7 +186,6 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
           ...data,
           precio: Number(body.precio_producto.toFixed(2)),
           tiene_impuesto: aplicaImpuesto ? 1 : 0,
-          
         });
         onClose();
       } else alert(`Error al actualizar: ${res.error}`);
@@ -209,7 +244,13 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
         {/* NOMBRE */}
         <span>
           <label htmlFor="nombre" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE</label>
-          <InputText id="nombre" value={data.nombre} onChange={e => handleChange('nombre', e.target.value)} className="w-full rounded-xl h-9 text-sm" placeholder="Ej: Rocky" />
+          <InputText 
+            id="nombre" 
+            value={data.nombre} 
+            onChange={e => handleChange('nombre', e.target.value)} 
+            className={`w-full rounded-xl h-9 text-sm ${errores.nombre ? 'border-red-500' : ''}`}
+            placeholder="Ej: Rocky" 
+          />
           {errores.nombre && <p className="text-xs text-red-600 mt-1">{errores.nombre}</p>}
         </span>
 
@@ -223,12 +264,26 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
         <div className="grid grid-cols-2 gap-2">
           <span>
             <label htmlFor="especie" className="text-xs font-semibold text-gray-700 mb-1">ESPECIE</label>
-            <Dropdown id="especie" value={data.especie} options={especies} onChange={e => handleChange('especie', e.value)} className="w-full rounded-xl text-sm" placeholder="Seleccionar" />
+            <Dropdown 
+              id="especie" 
+              value={data.especie} 
+              options={especies} 
+              onChange={e => handleChange('especie', e.value)} 
+              className={`w-full rounded-xl text-sm ${errores.especie ? 'border-red-500' : ''}`}
+              placeholder="Seleccionar" 
+            />
             {errores.especie && <p className="text-xs text-red-600 mt-1">{errores.especie}</p>}
           </span>
           <span>
             <label htmlFor="sexo" className="text-xs font-semibold text-gray-700 mb-1">SEXO</label>
-            <Dropdown id="sexo" value={data.sexo} options={sexos} onChange={e => handleChange('sexo', e.value)} className="w-full rounded-xl text-sm" placeholder="Seleccionar" />
+            <Dropdown 
+              id="sexo" 
+              value={data.sexo} 
+              options={sexos} 
+              onChange={e => handleChange('sexo', e.value)} 
+              className={`w-full rounded-xl text-sm ${errores.sexo ? 'border-red-500' : ''}`}
+              placeholder="Seleccionar" 
+            />
             {errores.sexo && <p className="text-xs text-red-600 mt-1">{errores.sexo}</p>}
           </span>
         </div>
@@ -236,7 +291,17 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
         {/* PRECIO */}
         <span>
           <label htmlFor="precio" className="text-xs font-semibold text-gray-700 mb-1">{precioLabel}</label>
-          <InputNumber id="precio" value={data.precio} onValueChange={e => handleChange('precio', e.value)} mode="decimal" minFractionDigits={2} maxFractionDigits={2} className="w-full rounded-xl text-sm" inputClassName="h-9 text-sm" placeholder="0.00" />
+          <InputNumber 
+            id="precio" 
+            value={data.precio} 
+            onValueChange={e => handleChange('precio', e.value)} 
+            mode="decimal" 
+            minFractionDigits={2} 
+            maxFractionDigits={2} 
+            className={`w-full rounded-xl text-sm ${errores.precio ? 'border-red-500' : ''}`}
+            inputClassName="h-9 text-sm" 
+            placeholder="0.00" 
+          />
           {errores.precio && <p className="text-xs text-red-600 mt-1">{errores.precio}</p>}
         </span>
 
@@ -269,7 +334,7 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
               name="cantidad"
               value={data.cantidad}
               onChange={e => handleChange('cantidad', e.target.value)}
-              className="w-full rounded-xl h-9 text-sm"
+              className={`w-full rounded-xl h-9 text-sm ${errores.cantidad ? 'border-red-500' : ''}`}
               placeholder="Cantidad disponible"
               keyfilter="int"
             />
@@ -282,7 +347,7 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData }) => {
               name="stock_minimo"
               value={data.stock_minimo}
               onChange={e => handleChange('stock_minimo', e.target.value)}
-              className="w-full rounded-xl h-9 text-sm"
+              className={`w-full rounded-xl h-9 text-sm ${errores.stock_minimo ? 'border-red-500' : ''}`}
               placeholder="Stock mínimo"
               keyfilter="int"
             />
