@@ -4,7 +4,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
-
+import verProductos from "../../../AXIOS.SERVICES/products-axios";
 import ModalAgregar from "./ModalAgregar";
 import ModalEditar from "./ModalEditar";
 import AccesoriosMasVendidos from "./AccesoriosMasVendidos";

@@ -39,7 +39,7 @@ const Medicamentos = () => {
   const [medicamentoEditando, setMedicamentoEditando] = useState(null);
   const [medicamentoSeleccionado, setMedicamentoSeleccionado] = useState(null);
   const [loteSeleccionado, setLoteSeleccionado] = useState(null);
-  const [loteEditar, setLoteEditar] = useState(null); 
+  const [loteEditar, setLoteEditar] = useState(null);
 
   useEffect(() => {
     const anyModalOpen = modalVisible || modalLoteVisible || modalMovVisible || modalLotesVisible || modalEditarLoteVisible;
