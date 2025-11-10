@@ -4,6 +4,7 @@ import CIcon from '@coreui/icons-react'
 import { cilBell, cilCheckAlt, cilSettings } from '@coreui/icons'
 import { obtenerNotificaciones, marcarNotificacionLeida } from '../../AXIOS.SERVICES/notifications-axios'
 import ModalNotificaciones from './ModalNotificaciones'
+import Swal from 'sweetalert2' // ✅ IMPORTAR SWAL
 
 const CamNotificaciones = () => {
   const [notificaciones, setNotificaciones] = useState([])
@@ -51,22 +52,14 @@ const CamNotificaciones = () => {
       if (match) {
         const producto = match[1].trim()
         const stock = match[2]
-        return (
-          <span>
-            El producto <strong>{producto}</strong> tiene un stock de {stock} unidades. Es necesario reabastecer.
-          </span>
-        )
+        return `El producto ${producto} tiene un stock de ${stock} unidades. Es necesario reabastecer.`
       }
     } else if (tipo === 'LOTE_VENCIDO') {
       const match = mensaje.match(/EL MEDICAMENTO (.+?), TIENE EL (.+?) VENCIDO/i)
       if (match) {
         const medicamento = match[1].trim()
         const lote = match[2].trim()
-        return (
-          <span>
-            El medicamento <strong>{medicamento}</strong> tiene el lote {lote} vencido. Es necesario tomar acción inmediata.
-          </span>
-        )
+        return `El medicamento ${medicamento} tiene el lote ${lote} vencido. Es necesario tomar acción inmediata.`
       }
     } else if (tipo === 'LOTE_PROXIMO_VENCER') {
       const match = mensaje.match(/EL MEDICAMENTO (.+?) CON EL (.+?), SE VENCE EN (\d+) DÍAS/i)
@@ -74,18 +67,50 @@ const CamNotificaciones = () => {
         const medicamento = match[1].trim()
         const lote = match[2].trim()
         const dias = match[3]
-        return (
-          <span>
-            El medicamento <strong>{medicamento}</strong> con el lote {lote} se vence en {dias} días. Planifique en consecuencia.
-          </span>
-        )
+        return `El medicamento ${medicamento} con el lote ${lote} se vence en ${dias} días. Planifique en consecuencia.`
       }
     }
     
     return mensaje
   }
 
-  // Función para obtener el icono SVG (igual que en el modal)
+  // ✅ NUEVA FUNCIÓN: Mostrar SweetAlert cuando llega nueva notificación
+  const mostrarSwalNotificacion = (notificacion) => {
+    const titulo = getTituloNotificacion(notificacion.nombre_tipo_notificacion, notificacion.nombre_notificacion)
+    const mensaje = formatearMensajeLimpio(notificacion.nombre_notificacion, notificacion.nombre_tipo_notificacion)
+    
+    // Determinar icono según tipo
+    let icono = 'info'
+    if (notificacion.nombre_tipo_notificacion === 'LOTE_VENCIDO') {
+      icono = 'error'
+    } else if (notificacion.nombre_tipo_notificacion === 'STOCK_BAJOS') {
+      icono = 'warning'
+    } else if (notificacion.nombre_tipo_notificacion === 'LOTE_PROXIMO_VENCER') {
+      icono = 'warning'
+    }
+
+    Swal.fire({
+      icon: icono,
+      title: titulo,
+      text: mensaje,
+      timer: 4000,
+      timerProgressBar: true,
+      showConfirmButton: true,
+      confirmButtonText: 'Entendido',
+      showCancelButton: true,
+      cancelButtonText: 'Ver todas',
+      customClass: {
+        confirmButton: 'swal2-confirm swal2-styled',
+        cancelButton: 'swal2-cancel swal2-styled'
+      }
+    }).then((result) => {
+      if (result.dismiss === Swal.DismissReason.cancel) {
+        // Si hace clic en "Ver todas", abrir el modal
+        setModalVisible(true)
+      }
+    })
+  }
+
   const getIconoSVG = (tipo) => {
     if (tipo === 'STOCK_BAJOS') {
       return (
@@ -135,7 +160,6 @@ const CamNotificaciones = () => {
     return null
   }
 
-  // Ahora usamos el emoji de triángulo para stock bajo
   const getIconoAvatar = (tipo) => {
     if (tipo === 'STOCK_BAJOS') return '⚠️'
     if (tipo === 'LOTE_VENCIDO') return '🚨'
@@ -163,30 +187,24 @@ const CamNotificaciones = () => {
 
   const reproducirSonido = () => {
     try {
-      // Crear contexto de audio
       const audioContext = new (window.AudioContext || window.webkitAudioContext)()
       
-      // Crear oscilador y nodo de ganancia
       const oscillator = audioContext.createOscillator()
       const gainNode = audioContext.createGain()
       
       oscillator.connect(gainNode)
       gainNode.connect(audioContext.destination)
       
-      // Configurar sonido más audible
       oscillator.frequency.value = 800
       oscillator.type = 'sine'
       
-      // Fade in/out para evitar clicks
       gainNode.gain.setValueAtTime(0, audioContext.currentTime)
       gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.1)
       gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3)
       
-      // Reproducir
       oscillator.start(audioContext.currentTime)
       oscillator.stop(audioContext.currentTime + 0.3)
       
-      // Limpiar
       setTimeout(() => {
         audioContext.close()
       }, 400)
@@ -198,10 +216,8 @@ const CamNotificaciones = () => {
   }
 
   useEffect(() => {
-    // Cargar notificaciones inmediatamente al montar
     cargarNotificaciones()
     
-    // Configurar intervalo de 10 segundos
     const interval = setInterval(() => {
       console.log('🔍 Verificando nuevas notificaciones...', new Date().toLocaleTimeString())
       cargarNotificaciones()
@@ -220,7 +236,6 @@ const CamNotificaciones = () => {
       setAnimarCampana(true)
       setTimeout(() => setAnimarCampana(false), 500)
       
-      // Reproducir sonido de notificación
       reproducirSonido()
     }
     
@@ -271,22 +286,21 @@ const CamNotificaciones = () => {
         }
       })
       
-      // Ordenar por ID en orden descendente
       notificacionesAdaptadas.sort((a, b) => {
         return b.id_notificacion_pk - a.id_notificacion_pk
       })
-
       
-      // Detectar nuevas notificaciones comparando IDs
+      // ✅ DETECTAR Y MOSTRAR SWAL PARA NUEVAS NOTIFICACIONES
       const prevIds = prevNotificacionesRef.current.map(n => n.id_notificacion_pk)
-      const currentIds = notificacionesAdaptadas.map(n => n.id_notificacion_pk)
-      const nuevasNotificaciones = currentIds.filter(id => !prevIds.includes(id))
+      const notificacionesNuevas = notificacionesAdaptadas.filter(n => !prevIds.includes(n.id_notificacion_pk))
       
-      if (nuevasNotificaciones.length > 0) {
-        console.log('🎉 ¡Notificaciones nuevas detectadas!:', nuevasNotificaciones)
+      if (notificacionesNuevas.length > 0) {
+        console.log('🎉 ¡Notificaciones nuevas detectadas!:', notificacionesNuevas)
+        
+        // Mostrar SweetAlert solo para la primera notificación nueva
+        mostrarSwalNotificacion(notificacionesNuevas[0])
       }
       
-      // Guardar referencia para próxima comparación
       prevNotificacionesRef.current = notificacionesAdaptadas
       
       setNotificaciones(notificacionesAdaptadas)
@@ -383,7 +397,6 @@ const CamNotificaciones = () => {
       <button
         onClick={() => {
           setDropdownOpen(!dropdownOpen)
-          // Activar contexto de audio al hacer clic
           if (!dropdownOpen) {
             const ctx = new (window.AudioContext || window.webkitAudioContext)()
             ctx.resume().then(() => {
