@@ -869,25 +869,6 @@ exports.detalleFacturaSeleccionada = async (req, res) => {
 };
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //ENDPOINT PARA IMPRESIÓN DE FACTURA DETALLADA (MEJORAR)
 exports.ImpresionFactura = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
@@ -983,5 +964,3 @@ exports.ImpresionFactura = async (req, res) => {
         conn.release();
     }
 };
-
-
