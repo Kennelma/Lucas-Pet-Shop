@@ -59,7 +59,7 @@ const VerDetallesFactura = ({ numFactura, onClose }) => {
   const descuento = Number(factura.descuento || 0);
   const subtotalConDescuento = subtotal - descuento;
   const impuesto = subtotalConDescuento * 0.15;
-  const total = subtotalConDescuento + impuesto;
+  const total = subtotalConDescuento;
 
   return {
     subtotal: subtotal.toFixed(2),

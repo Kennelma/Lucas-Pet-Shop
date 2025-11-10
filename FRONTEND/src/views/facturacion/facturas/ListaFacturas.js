@@ -507,23 +507,28 @@ const handleVerFactura = (factura) => {
         </div>
       )}
 
-      {/* MODAL DE DETALLES FACTURA */}
+   {/* MODAL DE DETALLES FACTURA */}
       {showDetallesFactura && (
-  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full relative">
-      <button
-        className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-        onClick={() => setShowDetallesFactura(false)}
-      >
-        <X size={22} />
-      </button>
-      <VerDetallesFactura
-        numFactura={facturaVista}  // ✅ Solo necesita el ID
-        onClose={() => setShowDetallesFactura(false)}  // ✅ Y la función para cerrar
-      />
-    </div>
-  </div>
-)}
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-[9999]"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+        >
+          <div className="bg-white rounded-lg shadow-2xl p-6 max-w-2xl w-full relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 z-10"
+              onClick={() => setShowDetallesFactura(false)}
+            >
+              <X size={22} />
+            </button>
+            <VerDetallesFactura
+              numFactura={facturaVista}
+              onClose={() => setShowDetallesFactura(false)}
+            />
+          </div>
+        </div>
+      )}
+      
+      
     </div>
   );
 };
