@@ -436,23 +436,11 @@ exports.crearFactura = async (req, res) => {
                     //ACTUALIZO STOCK DE LOS LOTES SI ES QUE VENDO
                     for (const lote of detalle.lotesADescontar) {
 
-                        //VALIDAR QUE EL LOTE SIGUE SIENDO VÁLIDO Y TIENE STOCK
-                        await conn.query(
-                            `SELECT 1
-                            FROM tbl_lotes_medicamentos l
-                            INNER JOIN cat_estados e ON l.estado_lote_fk = e.id_estado_pk
-                            WHERE l.id_lote_medicamentos_pk = ?
-                                AND l.stock_lote >= ?
-                                AND l.fecha_vencimiento >= CURDATE()
-                                AND e.nombre_estado != 'CADUCADO'
-                            FOR UPDATE`,
-                            [lote.id_lote, lote.cantidad]
-                        );
-
+                        //SE DESCUENTA EL LOTE
                         await conn.query(
                             `UPDATE tbl_lotes_medicamentos
-                             SET stock_lote = stock_lote - ?
-                             WHERE id_lote_medicamentos_pk = ?`,
+                            SET stock_lote = stock_lote - ?
+                            WHERE id_lote_medicamentos_pk = ?`,
                             [lote.cantidad, lote.id_lote]
                         );
 
@@ -576,7 +564,6 @@ exports.catalogoItems = async (req, res) => {
                         p.nombre_producto,
                         p.precio_producto,
                         p.tiene_impuesto,
-                        -- Calcular stock real disponible
                         COALESCE(
                             (SELECT SUM(l.stock_lote)
                             FROM tbl_lotes_medicamentos l
@@ -589,7 +576,7 @@ exports.catalogoItems = async (req, res) => {
                             AND l.fecha_vencimiento >= CURDATE()
                             AND e.nombre_estado = 'DISPONIBLE'
                             ),
-                            p.stock  
+                            p.stock
                         ) AS stock
                     FROM tbl_productos p
                     WHERE p.activo = TRUE
