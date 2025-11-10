@@ -120,13 +120,15 @@ const Medicamentos = () => {
     }
   };
 
-  const handleGuardarLote = async (formData) => {
-    const success = await guardarLote(formData);
-    if (success) {
-      setModalLoteVisible(false);
-      setMedicamentoSeleccionado(null);
-    }
-  };
+  const handleGuardarLote = async () => {
+  await guardarLote({
+    id_producto_fk: productoSeleccionado.id_producto_pk,
+    codigo_lote,
+    fecha_vencimiento,
+    stock_lote
+  });
+};
+
 
   const handleGuardarMovimiento = (formData) => {
     const success = guardarMovimiento(formData);

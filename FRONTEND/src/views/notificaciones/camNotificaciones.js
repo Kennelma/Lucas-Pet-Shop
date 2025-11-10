@@ -4,7 +4,7 @@ import CIcon from '@coreui/icons-react'
 import { cilBell, cilCheckAlt, cilSettings } from '@coreui/icons'
 import { obtenerNotificaciones, marcarNotificacionLeida } from '../../AXIOS.SERVICES/notifications-axios'
 import ModalNotificaciones from './ModalNotificaciones'
-import Swal from 'sweetalert2' // ✅ IMPORTAR SWAL
+import Swal from 'sweetalert2'
 
 const CamNotificaciones = () => {
   const [notificaciones, setNotificaciones] = useState([])
@@ -74,12 +74,10 @@ const CamNotificaciones = () => {
     return mensaje
   }
 
-  // ✅ NUEVA FUNCIÓN: Mostrar SweetAlert cuando llega nueva notificación
   const mostrarSwalNotificacion = (notificacion) => {
     const titulo = getTituloNotificacion(notificacion.nombre_tipo_notificacion, notificacion.nombre_notificacion)
     const mensaje = formatearMensajeLimpio(notificacion.nombre_notificacion, notificacion.nombre_tipo_notificacion)
     
-    // Determinar icono según tipo
     let icono = 'info'
     if (notificacion.nombre_tipo_notificacion === 'LOTE_VENCIDO') {
       icono = 'error'
@@ -105,59 +103,9 @@ const CamNotificaciones = () => {
       }
     }).then((result) => {
       if (result.dismiss === Swal.DismissReason.cancel) {
-        // Si hace clic en "Ver todas", abrir el modal
         setModalVisible(true)
       }
     })
-  }
-
-  const getIconoSVG = (tipo) => {
-    if (tipo === 'STOCK_BAJOS') {
-      return (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L2 20h20L12 2z" fill="#FCD34D" stroke="#F59E0B" strokeWidth="1.5"/>
-          <path d="M12 9v5M12 17h.01" stroke="#78350F" strokeWidth="2" strokeLinecap="round"/>
-        </svg>
-      )
-    }
-    
-    if (tipo === 'LOTE_VENCIDO') {
-      return (
-        <svg width="24" height="24" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="20" y="42" width="24" height="8" rx="2" fill="#9CA3AF"/>
-          <rect x="18" y="48" width="28" height="4" rx="1" fill="#6B7280"/>
-          <path d="M32 12 Q22 12 22 24 L22 38 Q22 42 26 42 L38 42 Q42 42 42 38 L42 24 Q42 12 32 12 Z" fill="#DC2626"/>
-          <rect x="30" y="20" width="4" height="12" rx="2" fill="white"/>
-          <circle cx="32" cy="36" r="2.5" fill="white"/>
-          <line x1="14" y1="18" x2="18" y2="22" stroke="#DC2626" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="12" y1="26" x2="18" y2="26" stroke="#DC2626" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="14" y1="34" x2="18" y2="30" stroke="#DC2626" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="50" y1="18" x2="46" y2="22" stroke="#DC2626" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="52" y1="26" x2="46" y2="26" stroke="#DC2626" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="50" y1="34" x2="46" y2="30" stroke="#DC2626" strokeWidth="3" strokeLinecap="round"/>
-        </svg>
-      )
-    }
-    
-    if (tipo === 'LOTE_PROXIMO_VENCER') {
-      return (
-        <svg width="24" height="24" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="20" y="42" width="24" height="8" rx="2" fill="#9CA3AF"/>
-          <rect x="18" y="48" width="28" height="4" rx="1" fill="#6B7280"/>
-          <path d="M32 12 Q22 12 22 24 L22 38 Q22 42 26 42 L38 42 Q42 42 42 38 L42 24 Q42 12 32 12 Z" fill="#F59E0B"/>
-          <rect x="30" y="20" width="4" height="12" rx="2" fill="white"/>
-          <circle cx="32" cy="36" r="2.5" fill="white"/>
-          <line x1="14" y1="18" x2="18" y2="22" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="12" y1="26" x2="18" y2="26" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="14" y1="34" x2="18" y2="30" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="50" y1="18" x2="46" y2="22" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="52" y1="26" x2="46" y2="26" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="50" y1="34" x2="46" y2="30" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round"/>
-        </svg>
-      )
-    }
-    
-    return null
   }
 
   const getIconoAvatar = (tipo) => {
@@ -290,14 +238,11 @@ const CamNotificaciones = () => {
         return b.id_notificacion_pk - a.id_notificacion_pk
       })
       
-      // ✅ DETECTAR Y MOSTRAR SWAL PARA NUEVAS NOTIFICACIONES
       const prevIds = prevNotificacionesRef.current.map(n => n.id_notificacion_pk)
       const notificacionesNuevas = notificacionesAdaptadas.filter(n => !prevIds.includes(n.id_notificacion_pk))
       
       if (notificacionesNuevas.length > 0) {
         console.log('🎉 ¡Notificaciones nuevas detectadas!:', notificacionesNuevas)
-        
-        // Mostrar SweetAlert solo para la primera notificación nueva
         mostrarSwalNotificacion(notificacionesNuevas[0])
       }
       
@@ -405,18 +350,30 @@ const CamNotificaciones = () => {
             })
           }
         }}
-        className="nav-link border-0 bg-transparent p-20"
-        style={{ cursor: 'pointer', position: 'relative' }}
+        className="nav-link border-0 bg-transparent"
+        style={{ cursor: 'pointer', position: 'relative', padding: '0.3rem 1rem' }}
       >
-        <div className={animarCampana ? 'animate-shake' : ''}>
+        <div className={animarCampana ? 'animate-shake' : ''} style={{ display: 'inline-block', position: 'relative' }}>
           <CIcon icon={cilBell} size="lg" />
+          {noLeidas > 0 && (
+            <span 
+              className="position-absolute badge rounded-pill bg-danger" 
+              style={{ 
+                fontSize: '0.5rem',
+                padding: '0.25rem 0.35rem', 
+                minWidth: '16px', 
+                height: '16px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                top: '-6px',
+                right: '-8px'
+              }} 
+            >
+              {noLeidas > 9 ? '9+' : noLeidas}
+            </span>
+          )}
         </div>
-        {noLeidas > 0 && (
-          <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '0.50rem',       
-           padding: '0.2rem 0.20rem', minWidth: '10px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} >
-            {noLeidas > 9 ? '9+' : noLeidas}
-          </span>
-        )}
       </button>
 
       {dropdownOpen && (
@@ -493,9 +450,10 @@ const CamNotificaciones = () => {
                   style={{
                     cursor: 'pointer',
                     backgroundColor: !notif.leida ? '#eff6ff' : 'white',
-                    transition: 'background-color 0.2s'
+                    transition: 'all 0.2s',
+  opacity: notif.leida ? 0.5 : 1 
                   }}
-                  onClick={() => manejarClickNotificacion(notif)}
+                  onClick={(e) => manejarClickNotificacion(notif, e)}
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = !notif.leida ? '#eff6ff' : 'white'}
                 >

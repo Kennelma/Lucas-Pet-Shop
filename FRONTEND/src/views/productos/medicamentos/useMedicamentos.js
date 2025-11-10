@@ -153,45 +153,52 @@ export const useMedicamentos = () => {
     }
   };
 
-  const guardarLote = async (formData) => {
-    if (!formData.codigo_lote || !formData.fecha_vencimiento || !formData.stock_lote) {
-      return false;
-    }
+ const guardarLote = async (formData) => {
+  if (!formData.codigo_lote || !formData.fecha_vencimiento || !formData.stock_lote) {
+    return false;
+  }
 
-    if (!formData.id_producto_fk) {
-      return false;
-    }
+  if (!formData.id_producto_fk) {
+    return false;
+  }
 
-    const stockLote = parseInt(formData.stock_lote);
-    if (stockLote < 5) {
-      return false;
-    }
+  const stockLote = parseInt(formData.stock_lote);
+  if (stockLote < 5) {
+    return false;
+  }
 
-    // Buscar el medicamento para obtener su precio
-    const medicamento = medicamentos.find(m => m.id_producto_pk === formData.id_producto_fk);
-    if (!medicamento) {
-      console.error('No se encontró el medicamento');
-      return false;
-    }
+  // Buscar el medicamento relacionado
+  const medicamento = medicamentos.find(m => m.id_producto_pk === formData.id_producto_fk);
+  if (!medicamento) {
+    console.error('No se encontró el medicamento asociado');
+    return false;
+  }
 
-    const datosLote = {
-      tipo_producto: 'LOTES',
-      id_producto: formData.id_producto_fk,
-      codigo_lote: formData.codigo_lote.toUpperCase().trim(),
-      fecha_ingreso: formData.fecha_ingreso,
-      fecha_vencimiento: formData.fecha_vencimiento,
-      stock_lote: stockLote,
-      costo_unitario: parseFloat(medicamento.precio_producto)
-    };
+  // 🔧 Aquí corregimos nombres de campos
+  const datosLote = {
+    tipo_producto: 'LOTES',
+    id_producto: formData.id_producto_fk, // ✅ backend lo espera así
+    codigo_lote: formData.codigo_lote.toUpperCase().trim(),
+    fecha_vencimiento: formData.fecha_vencimiento, // ✅ fecha_ingreso no es necesaria
+    stock_lote: stockLote,
+    costo_unitario: parseFloat(medicamento.precio_producto)
+  };
 
+  try {
     const resultado = await insertarProducto(datosLote);
     if (resultado.Consulta) {
       await cargarDatos();
       return true;
     } else {
+      console.error('Error insertando lote:', resultado);
       return false;
     }
-  };
+  } catch (error) {
+    console.error('Error al insertar lote:', error);
+    return false;
+  }
+};
+
 
   const guardarMovimiento = (formData) => {
     if (!formData.cantidad || !formData.id_lote_fk) {
