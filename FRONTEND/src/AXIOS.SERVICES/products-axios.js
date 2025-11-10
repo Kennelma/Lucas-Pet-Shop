@@ -52,17 +52,17 @@ export const eliminarProducto = async (datos) => {
   }
 };
 
-//SERVICIO PARA CAMBIAR ESTADO DE PRODUCTO*/
-export const cambiarEstadoProducto = async (id_producto, nuevoEstado) => {
+
+
+//SERVICIO PARA VER PRODUCTOS FAVORITOS*/
+export const verProductosFavoritos = async (tipo) => {
   try {
-    const res = await axiosInstance.put(`${API_URL}/actualizar`, {
-      id_producto,
-      activo: nuevoEstado,
-      tipo_producto: 'MEDICAMENTOS'
+    const res = await axiosInstance.get(`${API_URL}/favoritos`, {
+      params: { tipo }
     });
-    return res.data;
+    return res.data.favoritos || [];
   } catch (err) {
-    console.error(`Error al cambiar estado del producto:`, err);
-    return { Consulta: false, error: err.message };
+    console.error(`Error al traer productos favoritos:`, err);
+    return [];
   }
 };

@@ -135,15 +135,15 @@ exports.crearFactura = async (req, res) => {
                 [item_id]
                 );
 
+                const cantidadSolicitada = parseInt(cantidad);
 
-                if (!producto || producto.length === 0) {
-                    throw new Error(`Producto con ID ${item_id} no encontrado o inactivo`);
+                console.log(`Validando stock para ${producto[0].nombre_producto}`);
+                console.log(`Disponible: ${producto[0].stock}, Solicitado: ${cantidadSolicitada}`);
+
+                if (producto[0].stock < cantidadSolicitada) {
+                throw new Error(`Stock insuficiente para "${producto[0].nombre_producto}". Solicitado: ${cantidadSolicitada}, Disponible: ${producto[0].stock}`);
                 }
 
-                //VALIDAR STOCK
-                if (producto[0].stock < cantidad) {
-                    throw new Error(`Stock insuficiente para ${producto[0].nombre_producto}. Disponible: ${producto[0].stock}`);
-                }
 
                 precio_unitario = parseFloat(producto[0].precio_producto);
                 id_producto = producto[0].id_producto_pk;
@@ -436,23 +436,11 @@ exports.crearFactura = async (req, res) => {
                     //ACTUALIZO STOCK DE LOS LOTES SI ES QUE VENDO
                     for (const lote of detalle.lotesADescontar) {
 
-                        //VALIDAR QUE EL LOTE SIGUE SIENDO VÁLIDO Y TIENE STOCK
-                        await conn.query(
-                            `SELECT 1
-                            FROM tbl_lotes_medicamentos l
-                            INNER JOIN cat_estados e ON l.estado_lote_fk = e.id_estado_pk
-                            WHERE l.id_lote_medicamentos_pk = ?
-                                AND l.stock_lote >= ?
-                                AND l.fecha_vencimiento >= CURDATE()
-                                AND e.nombre_estado != 'CADUCADO'
-                            FOR UPDATE`,
-                            [lote.id_lote, lote.cantidad]
-                        );
-
+                        //SE DESCUENTA EL LOTE
                         await conn.query(
                             `UPDATE tbl_lotes_medicamentos
-                             SET stock_lote = stock_lote - ?
-                             WHERE id_lote_medicamentos_pk = ?`,
+                            SET stock_lote = stock_lote - ?
+                            WHERE id_lote_medicamentos_pk = ?`,
                             [lote.cantidad, lote.id_lote]
                         );
 
@@ -572,13 +560,27 @@ exports.catalogoItems = async (req, res) => {
 
                 [resultados] = await conn.query(
                     `SELECT
-                        id_producto_pk,
-                        nombre_producto,
-                        precio_producto,
-                        stock,
-                        tiene_impuesto
-                    FROM tbl_productos
-                    WHERE activo = TRUE AND stock > 0`
+                        p.id_producto_pk,
+                        p.nombre_producto,
+                        p.precio_producto,
+                        p.tiene_impuesto,
+                        COALESCE(
+                            (SELECT SUM(l.stock_lote)
+                            FROM tbl_lotes_medicamentos l
+                            INNER JOIN tbl_medicamentos_info m
+                                ON l.id_medicamento_fk = m.id_medicamento_pk
+                            INNER JOIN cat_estados e
+                                ON l.estado_lote_fk = e.id_estado_pk
+                            WHERE m.id_producto_fk = p.id_producto_pk
+                            AND l.stock_lote > 0
+                            AND l.fecha_vencimiento >= CURDATE()
+                            AND e.nombre_estado = 'DISPONIBLE'
+                            ),
+                            p.stock
+                        ) AS stock
+                    FROM tbl_productos p
+                    WHERE p.activo = TRUE
+                    HAVING stock > 0`
                 )
 
                 break;
@@ -770,6 +772,7 @@ exports.historialFacturas = async (req, res) => {
 
         [facturas] = await conn.query(
             `SELECT
+                f.id_factura_pk,
                 f.numero_factura,
                 f.fecha_emision,
                 f.total,
