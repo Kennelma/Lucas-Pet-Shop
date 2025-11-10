@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react' 
 import { useNavigate } from 'react-router-dom'
 import {
   CAvatar,
@@ -14,9 +14,11 @@ import {
   cilAccountLogout,
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
+import MiPerfil from '../../views/perfil/MiPerfil'
 
 const AppHeaderDropdown = () => {
   const navigate = useNavigate()
+  const [showPerfilModal, setShowPerfilModal] = useState(false)
   
   // Obtener datos del usuario del sessionStorage
   const usuarioString = sessionStorage.getItem('usuario')
@@ -39,7 +41,13 @@ const AppHeaderDropdown = () => {
     navigate('/login')
   }
 
+   // Función para abrir el modal de perfil
+  const handleOpenPerfil = () => {
+    setShowPerfilModal(true)
+  }
+
   return (
+  <>
     <CDropdown variant="nav-item">
       <CDropdownToggle placement="bottom-end" className="py-0 pe-0" caret={false}>
         <CAvatar 
@@ -58,10 +66,10 @@ const AppHeaderDropdown = () => {
         </CDropdownHeader>
         
         {/*BOTON DE PERFIL*/}
-        <CDropdownItem href="#/perfil">
-          <CIcon icon={cilUser} className="me-2" />
-          Mi Perfil
-        </CDropdownItem>
+        <CDropdownItem onClick={handleOpenPerfil} style={{ cursor: 'pointer' }}>
+            <CIcon icon={cilUser} className="me-2" />
+            Mi Perfil
+          </CDropdownItem>
         
         <CDropdownDivider />
         
@@ -72,6 +80,13 @@ const AppHeaderDropdown = () => {
         </CDropdownItem>
       </CDropdownMenu>
     </CDropdown>
+
+    {/* Modal de Perfil */}
+      <MiPerfil 
+        visible={showPerfilModal} 
+        onClose={() => setShowPerfilModal(false)} 
+      />
+  </>  
   )
 }
 

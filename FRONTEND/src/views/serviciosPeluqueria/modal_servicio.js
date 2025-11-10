@@ -80,8 +80,6 @@ export default function ModalServicio({
     // ============ VALIDACIÓN DE DESCRIPCIÓN ============
     if (!formData.descripcion_servicio.trim()) {
       nuevosErrores.descripcion_servicio = 'La descripción es requerida';
-    } else if (formData.descripcion_servicio.trim().length < 5) {
-      nuevosErrores.descripcion_servicio = 'La descripción debe tener al menos 5 caracteres';
     }
 
     // ============ VALIDACIÓN DE PRECIO ============

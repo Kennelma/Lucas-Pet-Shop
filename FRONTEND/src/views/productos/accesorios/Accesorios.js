@@ -170,7 +170,6 @@ const Accesorios = () => {
       }));
       setAccesorios(normalizados);
     } catch (error) {
-      console.error("Error cargando accesorios:", error);
       Swal.fire({
         icon: "error",
         title: "Error",

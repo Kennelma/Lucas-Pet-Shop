@@ -52,8 +52,6 @@ export const eliminarProducto = async (datos) => {
   }
 };
 
-
-
 //SERVICIO PARA VER PRODUCTOS FAVORITOS*/
 export const verProductosFavoritos = async (tipo) => {
   try {
