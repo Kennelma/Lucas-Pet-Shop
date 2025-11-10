@@ -770,7 +770,8 @@ exports.historialFacturas = async (req, res) => {
 
         [facturas] = await conn.query(
             `SELECT
-                f.numero_factura,
+f.id_factura_pk,
+            f.numero_factura,
                 f.fecha_emision,
                 f.total,
                 f.saldo,
@@ -806,65 +807,59 @@ exports.historialFacturas = async (req, res) => {
 
 
 exports.detalleFacturaSeleccionada = async (req, res) => {
+  const conn = await mysqlConnection.getConnection();
 
-    const conn = await mysqlConnection.getConnection();
+  try {
+    const { numero_factura } = req.query;
 
-    try {
+    const [detalle] = await conn.query(`
+      SELECT
+        f.id_factura_pk,
+        f.numero_factura,
+        f.subtotal_gravado,
+        f.subtotal_exento,
+        f.total,
+        f.impuesto,
+        f.saldo,
+        f.descuento,
+        df.nombre_item,
+        df.cantidad_item,
+        df.precio_item,
+        df.ajuste_precio,
+        df.total_linea,
+        ct.nombre_tipo_item AS tipo_item
+      FROM tbl_facturas f
+      LEFT JOIN tbl_detalles_facturas df 
+        ON df.id_factura_fk = f.id_factura_pk
+      LEFT JOIN cat_tipo_item ct 
+        ON df.id_tipo_item_fk = ct.id_tipo_item_pk
+      WHERE f.numero_factura = ?
+      ORDER BY df.id_detalle_pk
+    `, [numero_factura]);
 
-        const { id_factura } = req.query;
-
-        const [detalle] = await conn.query(
-            `SELECT
-                f.numero_factura,
-                f.subtotal_gravado,
-                f.subtotal_exento,
-                f.total,
-                f.impuesto,
-                f.saldo,
-                f.descuento,
-                df.nombre_item,
-                df.cantidad_item,
-                df.precio_item,
-                df.ajuste_precio,
-                df.total_linea,
-                ct.nombre_tipo_item AS tipo_item
-            FROM tbl_detalles_facturas df
-            LEFT JOIN cat_tipo_item ct
-                ON df.id_tipo_item_fk = ct.id_tipo_item_pk
-            LEFT JOIN tbl_facturas f
-                ON df.id_factura_fk = f.id_factura_pk
-            WHERE df.id_factura_fk = ?
-            ORDER BY df.id_detalle_pk`,
-            [id_factura]
-        );
-
-        if (detalle.length > 0) {
-            res.status(200).json({
-                success: true,
-                message: "DETALLE DE FACTURA ENCONTRADO",
-                data: detalle
-            });
-        } else {
-            res.status(404).json({
-                success: false,
-                message: "DETALLE DE FACTURA NO ENCONTRADO"
-            });
-        }
-
-
-    } catch (error) {
-        console.error("Error al obtener detalle de factura:", error);
-        res.status(500).json({
-            success: false,
-            mensaje: 'Error al obtener detalle de factura',
-            error: error.message
-        });
-    } finally {
-        conn.release();
+    if (detalle.length > 0) {
+      res.status(200).json({
+        success: true,
+        message: "DETALLE DE FACTURA ENCONTRADO",
+        data: detalle
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "DETALLE DE FACTURA NO ENCONTRADO"
+      });
     }
-
+  } catch (error) {
+    console.error("Error al obtener detalle de factura:", error);
+    res.status(500).json({
+      success: false,
+      mensaje: 'Error al obtener detalle de factura',
+      error: error.message
+    });
+  } finally {
+    conn.release();
+  }
 };
-
 
 
 

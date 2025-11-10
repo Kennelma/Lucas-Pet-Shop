@@ -25,6 +25,8 @@ const ListaFacturas = () => {
 
   //====================CARGAR_FACTURAS_AL_MONTAR_COMPONENTE====================
   useEffect(() => {
+    console.log("🟩 ID enviado a VerDetallesFactura:", facturaVista);
+
     cargarFacturas();
   }, []);
 
@@ -200,11 +202,15 @@ const ListaFacturas = () => {
     }
   };
 
-  // Handler para mostrar detalles
-  const handleVerFactura = (factura) => {
-    setFacturaVista(factura);
-    setShowDetallesFactura(true);
-  };
+// ✅ BIEN - usa numero_factura que es lo que espera el backend
+const handleVerFactura = (factura) => {
+  console.log("🔍 Objeto factura completo:", factura);
+  console.log("🟩 Enviando numero_factura:", factura.numero_factura);
+  
+  setFacturaVista(factura.numero_factura);  // ← Esto es "FAC-2025-001"
+  setShowDetallesFactura(true);
+};
+
 
   return (
     <div className="space-y-6 p-4 max-w-5xl mx-auto bg-white shadow-xl rounded-lg min-h-screen">
@@ -246,8 +252,7 @@ const ListaFacturas = () => {
                 <option value="PAGADA">Pagadas</option>
                 <option value="PARCIAL">Parciales</option>
                 <option value="PENDIENTE">Pendientes</option>
-                <option value="ANULADA">Anuladas</option>
-              </select>
+                </select>
             </div>
           </div>
 
@@ -504,30 +509,21 @@ const ListaFacturas = () => {
 
       {/* MODAL DE DETALLES FACTURA */}
       {showDetallesFactura && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full relative">
-            <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-              onClick={() => setShowDetallesFactura(false)}
-            >
-              <X size={22} />
-            </button>
-            <VerDetallesFactura
-              numero={facturaVista?.numero_factura}
-              fecha={facturaVista?.fecha_emision}
-              estado={facturaVista?.nombre_estado}
-              cliente={facturaVista?.nombre_cliente}
-              items={facturaVista?.items || []}
-              subtotal={facturaVista?.subtotal}
-              descuento={facturaVista?.descuento}
-              impuesto={facturaVista?.impuesto}
-              total={facturaVista?.total}
-              saldo={facturaVista?.saldo}
-              pagos={facturaVista?.pagos || []}
-            />
-          </div>
-        </div>
-      )}
+  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full relative">
+      <button
+        className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+        onClick={() => setShowDetallesFactura(false)}
+      >
+        <X size={22} />
+      </button>
+      <VerDetallesFactura
+        numFactura={facturaVista}  // ✅ Solo necesita el ID
+        onClose={() => setShowDetallesFactura(false)}  // ✅ Y la función para cerrar
+      />
+    </div>
+  </div>
+)}
     </div>
   );
 };

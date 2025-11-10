@@ -120,18 +120,20 @@ export const obtenerDatosFacturaPDF = async (numero_factura) => {
 };
 
 
-//SERVICIO PARA OBTENER DETALLE DE FACTURA SELECCIONADA
-export const obtenerDetalleFacturaSeleccionada = async (numero_factura) => {
+// SERVICIO CORREGIDO - OBTENER DETALLE DE FACTURA
+export const obtenerDetalleFacturaSeleccionada = async (numFactura) => {
   try {
     const { data } = await axiosInstance.get(`${API_URL}/verDetalleFactura`, {
-      params: { numero_factura }
+      params: { 
+        numero_factura: numFactura 
+      }
     });
     return data;
   } catch (error) {
     console.error("Error al obtener detalle de factura:", error);
     return {
       success: false,
-      mensaje: error?.response?.data?.mensaje || "Error al obtener detalle de factura",
+      mensaje: "Error de conexión al cargar los datos",
       data: null
     };
   }
