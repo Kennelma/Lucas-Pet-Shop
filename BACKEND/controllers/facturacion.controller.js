@@ -135,15 +135,15 @@ exports.crearFactura = async (req, res) => {
                 [item_id]
                 );
 
+                const cantidadSolicitada = parseInt(cantidad);
 
-                if (!producto || producto.length === 0) {
-                    throw new Error(`Producto con ID ${item_id} no encontrado o inactivo`);
+                console.log(`Validando stock para ${producto[0].nombre_producto}`);
+                console.log(`Disponible: ${producto[0].stock}, Solicitado: ${cantidadSolicitada}`);
+
+                if (producto[0].stock < cantidadSolicitada) {
+                throw new Error(`Stock insuficiente para "${producto[0].nombre_producto}". Solicitado: ${cantidadSolicitada}, Disponible: ${producto[0].stock}`);
                 }
 
-                //VALIDAR STOCK
-                if (producto[0].stock < cantidad) {
-                    throw new Error(`Stock insuficiente para ${producto[0].nombre_producto}. Disponible: ${producto[0].stock}`);
-                }
 
                 precio_unitario = parseFloat(producto[0].precio_producto);
                 id_producto = producto[0].id_producto_pk;
@@ -178,7 +178,7 @@ exports.crearFactura = async (req, res) => {
                     WHERE l.id_medicamento_fk = ?
                         AND l.stock_lote > 0
                         AND l.fecha_vencimiento >= CURDATE()
-                        AND e.nombre_estado != 'CADUCADO'
+                        AND e.nombre_estado = 'DISPONIBLE'
                     ORDER BY l.fecha_vencimiento ASC
                     FOR UPDATE`,
                     [id_medicamento]
@@ -570,17 +570,30 @@ exports.catalogoItems = async (req, res) => {
 
             case 'PRODUCTOS':
 
+
                 [resultados] = await conn.query(
                     `SELECT
-                        id_producto_pk,
-                        nombre_producto,
-                        precio_producto,
-                        stock,
-                        tiene_impuesto
-                    FROM tbl_productos
-                    WHERE activo = TRUE AND stock > 0`
+                        p.id_producto_pk,
+                        p.nombre_producto,
+                        p.precio_producto,
+                        p.tiene_impuesto,
+                        COALESCE(
+                            (SELECT SUM(l.stock_lote)
+                            FROM tbl_lotes_medicamentos l
+                            INNER JOIN tbl_medicamentos_info m
+                                ON l.id_medicamento_fk = m.id_medicamento_pk
+                            INNER JOIN cat_estados e
+                                ON l.estado_lote_fk = e.id_estado_pk
+                            WHERE m.id_producto_fk = p.id_producto_pk
+                            AND l.stock_lote > 0
+                            AND l.fecha_vencimiento >= CURDATE()
+                            AND e.nombre_estado = 'DISPONIBLE'
+                            ),
+                        ) AS stock
+                    FROM tbl_productos p
+                    WHERE p.activo = TRUE
+                    HAVING stock > 0`
                 )
-
                 break;
 
             case 'SERVICIOS':
