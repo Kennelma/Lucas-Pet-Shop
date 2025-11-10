@@ -121,10 +121,10 @@ export const obtenerDatosFacturaPDF = async (numero_factura) => {
 
 
 //SERVICIO PARA OBTENER DETALLE DE FACTURA SELECCIONADA
-export const obtenerDetalleFacturaSeleccionada = async (numero_factura) => {
+export const obtenerDetalleFacturaSeleccionada = async (id_factura) => {
   try {
     const { data } = await axiosInstance.get(`${API_URL}/verDetalleFactura`, {
-      params: { numero_factura }
+      params: { id_factura }
     });
     return data;
   } catch (error) {

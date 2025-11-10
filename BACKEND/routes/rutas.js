@@ -30,6 +30,7 @@ router.put('/productos/actualizar', productos.actualizar);
 router.delete('/productos/eliminar', productos.eliminar);
 router.get('/productos/ver',productos.ver);
 router.get('/productos/verCatalogo', verificarToken, productos.verCatalogo);
+router.get('/productos/favoritos',  productos.favoritos);
 
 //========== RUTAS DE SERVICIOS PELUQUERIA Y PROMOCIONES ==========
 router.post('/servicios-peluqueria/insertar', verificarToken, servicios.crear);
