@@ -323,14 +323,18 @@ exports.ver = async (req, res) => {
             case 'GASTOS':
 
                 [registros] = await conn.query(
-                    `SELECT
-                        id_gasto_pk,
-                        detalle_gasto,
-                        monto_gasto,
-                        fecha_registro_gasto
-                    FROM tbl_gastos
-                    ORDER BY id_gasto_pk DESC`);
-                break;
+     
+        `SELECT
+            id_gasto_pk,
+            detalle_gasto,
+            monto_gasto,
+            fecha_registro_gasto
+        FROM tbl_gastos
+        WHERE fecha_registro_gasto >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        ORDER BY fecha_registro_gasto DESC, id_gasto_pk DESC`
+    );
+    break;
+
 
             default:
 
