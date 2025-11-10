@@ -172,6 +172,7 @@ exports.registrosGastos = async (req, res) => {
   try {
     conn = await mysqlConnection.getConnection();
 
+    const id_usuario = req.usuario?.id_usuario_pk;
     const { anio, mes } = req.query;
     
     let query = `
@@ -183,8 +184,8 @@ exports.registrosGastos = async (req, res) => {
         g.id_usuario_fk,
         u.usuario
       FROM tbl_gastos g
-      INNER JOIN tbl_usuarios u ON u.id_usuario_pk = g.id_usuario_fk
-      WHERE 1=1
+      INNER JOIN tbl_usuarios u ON g.id_usuario_fk = u.id_usuario_pk
+      WHERE g.id_usuario_fk = ?
     `;
     
     const params = [];
@@ -206,7 +207,6 @@ exports.registrosGastos = async (req, res) => {
       ok: true,
       gastos,
     });
-
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'ERROR AL OBTENER LOS GASTOS.' });

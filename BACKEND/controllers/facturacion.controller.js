@@ -772,13 +772,8 @@ exports.historialFacturas = async (req, res) => {
 
         [facturas] = await conn.query(
             `SELECT
-<<<<<<< HEAD
-f.id_factura_pk,
-            f.numero_factura,
-=======
                 f.id_factura_pk,
                 f.numero_factura,
->>>>>>> ed0b2392b75611cb3505aa3dec69e9c9e7cb9d48
                 f.fecha_emision,
                 f.total,
                 f.saldo,

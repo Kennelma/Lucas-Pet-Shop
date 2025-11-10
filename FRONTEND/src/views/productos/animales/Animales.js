@@ -457,12 +457,14 @@ const Animales = () => {
             onClose={cerrarModal}
             onSave={handleGuardar}
             editData={animalEditando}
+              animalesExistentes={animales} // ✅ AGREGAR ESTA PROP
           />
         ) : (
           <ModalNuevoAnimal
             isOpen={modalAbierto}
             onClose={cerrarModal}
             onSave={handleGuardar}
+              animalesExistentes={animales} // ✅ AGREGAR ESTA PROP
           />
         ))}
     </div>
