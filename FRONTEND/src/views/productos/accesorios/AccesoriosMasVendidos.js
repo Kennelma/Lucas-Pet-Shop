@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronUp, faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { verProductosFavoritos } from '../../../AXIOS.SERVICES/products-axios';
 
 const AccesoriosMasVendidos = ({ accesorios = [] }) => {
   const [accesoriosMasVendidos, setAccesoriosMasVendidos] = useState([]);
@@ -20,31 +21,25 @@ const AccesoriosMasVendidos = ({ accesorios = [] }) => {
     "/accesorios5.jpg"
   ];
 
-  // Función para procesar accesorios reales
-  const procesarAccesorios = (accesoriosReales) => {
-    if (!accesoriosReales || accesoriosReales.length === 0) {
+  // Función para procesar productos favoritos desde el backend
+  const procesarProductosFavoritos = (productosFavoritos) => {
+    if (!productosFavoritos || productosFavoritos.length === 0) {
       return [];
     }
 
-    const accesoriosConVentas = accesoriosReales
-      .filter(accesorio => accesorio.activo) // Solo accesorios activos
-      .map((accesorio, index) => {
-        // Simular cantidad de ventas basado en precio y stock (precio medio y stock alto = más ventas)
-        const factorPrecio = Math.max(5, 30 - (accesorio.precio || 0) * 0.5);
-        const factorStock = Math.min(20, (accesorio.stock || 0) * 0.3);
-        const cantidadVentas = Math.floor(factorPrecio + factorStock + Math.random() * 15);
-        
-        return {
-          id: accesorio.id_producto || accesorio.id,
-          nombre: accesorio.nombre || 'ACCESORIO SIN NOMBRE',
-          categoria: accesorio.categoria || 'No especificada',
-          precio: accesorio.precio || 0,
-          stock: accesorio.stock || 0,
-          sku: accesorio.sku || '',
-          cantidad_ventas: cantidadVentas,
-          color: colores[index % colores.length]
-        };
-      })
+    // Procesar los productos favoritos del backend
+    const accesoriosConVentas = productosFavoritos
+      .filter(producto => producto.activo && producto.tipo_producto === 'ACCESORIO') // Solo accesorios activos
+      .map((producto, index) => ({
+        id: producto.id_producto_pk || producto.id,
+        nombre: producto.nombre_producto || 'ACCESORIO SIN NOMBRE',
+        categoria: producto.categoria || 'No especificada',
+        precio: producto.precio || 0,
+        stock: producto.stock || 0,
+        sku: producto.sku_producto || '',
+        cantidad_ventas: producto.cantidad_ventas || 0, // Viene del backend
+        color: colores[index % colores.length]
+      }))
       .sort((a, b) => b.cantidad_ventas - a.cantidad_ventas) // Ordenar por ventas
       .slice(0, 4); // Tomar solo los 4 más vendidos
 
@@ -58,15 +53,24 @@ const AccesoriosMasVendidos = ({ accesorios = [] }) => {
   };
 
   useEffect(() => {
-    setLoading(true);
-    
-    // Simular delay de carga
-    setTimeout(() => {
-      const accesoriosProcesados = procesarAccesorios(accesorios);
-      setAccesoriosMasVendidos(accesoriosProcesados);
-      setLoading(false);
-    }, 500);
-  }, [accesorios]);
+    const cargarProductosFavoritos = async () => {
+      setLoading(true);
+      
+      try {
+        // Llamar al endpoint para obtener productos favoritos de tipo ACCESORIO
+        const productosFavoritos = await verProductosFavoritos('ACCESORIO');
+        const accesoriosProcesados = procesarProductosFavoritos(productosFavoritos);
+        setAccesoriosMasVendidos(accesoriosProcesados);
+      } catch (error) {
+        console.error('Error al cargar productos favoritos:', error);
+        setAccesoriosMasVendidos([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarProductosFavoritos();
+  }, []); // Ya no depende de props, obtiene datos directamente del backend
 
   // Efecto para el carrusel de imágenes
   useEffect(() => {
@@ -77,6 +81,24 @@ const AccesoriosMasVendidos = ({ accesorios = [] }) => {
     return () => clearInterval(interval);
   }, [images.length]);
 
+  // Estado de loading
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #9aeb1040, 0 0 0 1px #9ae91133'}}>
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col items-center justify-center flex-1 text-center">
+            <div className="text-xl font-bold text-gray-800 mb-1">MÁS VENDIDOS</div>
+            <p className="text-gray-600 text-sm">CARGANDO DATOS...</p>
+          </div>
+        </div>
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-500"></div>
+          <span className="ml-3 text-gray-500">Obteniendo productos favoritos...</span>
+        </div>
+      </div>
+    );
+  }
+
   // Si no hay accesorios más vendidos
   if (accesoriosMasVendidos.length === 0) {
     return (
@@ -84,10 +106,10 @@ const AccesoriosMasVendidos = ({ accesorios = [] }) => {
         <div className="flex justify-between items-center mb-4">
           <div className="flex flex-col items-center justify-center flex-1 text-center">
             <h3 className="text-lg font-semibold text-gray-600 mb-2">
-              No hay accesorios para mostrar estadísticas de ventas
+              No hay accesorios favoritos para mostrar
             </h3>
             <p className="text-gray-500 text-sm">
-              Agrega accesorios primero para ver cuáles son los más vendidos
+              Los productos más vendidos aparecerán aquí cuando haya datos de ventas
             </p>
           </div>
           <button
