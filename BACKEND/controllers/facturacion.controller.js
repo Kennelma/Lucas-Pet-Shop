@@ -787,7 +787,8 @@ exports.historialFacturas = async (req, res) => {
             INNER JOIN tbl_usuarios u ON f.id_usuario_fk = u.id_usuario_pk
             INNER JOIN tbl_sucursales s ON f.id_sucursal_fk = s.id_sucursal_pk
             INNER JOIN cat_estados c ON f.id_estado_fk = c.id_estado_pk
-            LEFT JOIN tbl_clientes cl ON f.id_cliente_fk = cl.id_cliente_pk`
+            LEFT JOIN tbl_clientes cl ON f.id_cliente_fk = cl.id_cliente_pk
+            ORDER BY f.id_factura_pk DESC`
         );
 
         res.status(200).json({
@@ -814,30 +815,30 @@ exports.detalleFacturaSeleccionada = async (req, res) => {
   try {
     const { numero_factura } = req.query;
 
-    const [detalle] = await conn.query(`
-      SELECT
-        f.id_factura_pk,
-        f.numero_factura,
-        f.subtotal_gravado,
-        f.subtotal_exento,
-        f.total,
-        f.impuesto,
-        f.saldo,
-        f.descuento,
-        df.nombre_item,
-        df.cantidad_item,
-        df.precio_item,
-        df.ajuste_precio,
-        df.total_linea,
-        ct.nombre_tipo_item AS tipo_item
-      FROM tbl_facturas f
-      LEFT JOIN tbl_detalles_facturas df 
-        ON df.id_factura_fk = f.id_factura_pk
-      LEFT JOIN cat_tipo_item ct 
-        ON df.id_tipo_item_fk = ct.id_tipo_item_pk
-      WHERE f.numero_factura = ?
-      ORDER BY df.id_detalle_pk
-    `, [numero_factura]);
+        const [detalle] = await conn.query(
+            `SELECT
+                f.numero_factura,
+                f.subtotal_gravado,
+                f.subtotal_exento,
+                f.total,
+                f.impuesto,
+                f.saldo,
+                f.descuento,
+                df.nombre_item,
+                df.cantidad_item,
+                df.precio_item,
+                df.ajuste_precio,
+                df.total_linea,
+                ct.nombre_tipo_item AS tipo_item
+            FROM tbl_detalles_facturas df
+            LEFT JOIN cat_tipo_item ct
+                ON df.id_tipo_item_fk = ct.id_tipo_item_pk
+            LEFT JOIN tbl_facturas f
+                ON df.id_factura_fk = f.id_factura_pk
+            WHERE df.id_factura_fk = ?
+            ORDER BY df.id_detalle_pk`,
+            [id_factura]
+        );
 
     if (detalle.length > 0) {
       res.status(200).json({
@@ -862,24 +863,6 @@ exports.detalleFacturaSeleccionada = async (req, res) => {
     conn.release();
   }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 //ENDPOINT PARA IMPRESIÓN DE FACTURA DETALLADA (MEJORAR)
@@ -977,5 +960,3 @@ exports.ImpresionFactura = async (req, res) => {
         conn.release();
     }
 };
-
-
