@@ -54,35 +54,10 @@ exports.crear = async (req, res) => {
 
                 break;
 
-
-            case 'USUARIOS':
-
-
-                const { usuario, email_usuario, contrasena_usuario, id_sucursal_fk } = req.body;
-
-                const contraHasheada = await argon2.hash(contrasena_usuario);
-                const fechaCreacion = new Date();
-
-                await conn.query(
-                `INSERT INTO tbl_usuarios(
-                    usuario,
-                    email_usuario,
-                    fecha_creacion,
-                    contrasena_usuario,
-                    id_sucursal_fk,
-                    password_update_at
-                ) VALUES (?,?,?,?,?,?)`,
-
-                [usuario, email_usuario, fechaCreacion, contraHasheada, id_sucursal_fk, fechaCreacion]
-                );
-                break;
-
             case 'GASTOS':
 
                 //SE TOMA EL ID DEL USUARIO AUTENTICADO (MIDDLEWARE AUTH)
                 const id_usuario = req.usuario?.id_usuario_pk;
-
-                //console.log(` INFO: ID de usuario obtenido del token: ${id_usuario}`);
 
                 await conn.query(
                 `INSERT INTO tbl_gastos (
@@ -300,24 +275,6 @@ exports.ver = async (req, res) => {
                     FROM tbl_sucursales s
                     JOIN tbl_empresa e ON e.id_empresa_pk = s.id_empresa_fk
                     ORDER BY s.id_sucursal_pk DESC`);
-                break;
-
-            case 'USUARIOS':
-
-                [registros] = await conn.query(
-                    `SELECT
-                        u.id_usuario_pk,
-                        u.usuario,
-                        u.email_usuario,
-                        u.fecha_creacion,
-                        u.intentos_fallidos,
-                        u.bloqueado_hasta,
-                        u.id_sucursal_fk,
-                        s.nombre_sucursal,
-                        u.cat_estado_fk
-                    FROM tbl_usuarios u
-                    JOIN tbl_sucursales s ON s.id_sucursal_pk = u.id_sucursal_fk
-                    ORDER BY u.id_usuario_pk DESC`);
                 break;
 
             case 'GASTOS':

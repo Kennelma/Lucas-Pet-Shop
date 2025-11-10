@@ -18,6 +18,7 @@ const whatsapp = require('../controllers/whatsapp.controller');
 const notificaciones = require('../controllers/notificaciones.controller');
 const reportes = require('../controllers/reportes.controller');
 const perfil = require('../controllers/perfil.controller');
+const seguridad = require('../controllers/seguridad.controller');
 
 //========== RUTAS DE AUTENTICACIÓN Y SEGURIDAD ==========
 router.post('/login', auth.login);
@@ -94,6 +95,15 @@ router.get ('/estilistas/ver', verificarToken, estilistas.ver);
 router.put('/estilistas/actualizar', verificarToken, estilistas.actualizar);
 router.delete ('/estilistas/eliminar', verificarToken, estilistas.eliminar);
 router.get ('/estilistas/bonificaciones', verificarToken, estilistas.conteoMascotasPorEstilista);
+
+
+
+//==========RUTAS DE SEGURIDAD Y USUARIOS ==========
+router.get('/seguridad/catalogoRoles', verificarToken, seguridad.verRolesUsuarios);
+router.post('/seguridad/crearUsuario', verificarToken, seguridad.crearUsuario);
+router.get('/seguridad/verUsuarios', verificarToken, seguridad.verUsuarios);
+router.put('/seguridad/actualizarUsuario', verificarToken, seguridad.actualizarUsuario);
+router.delete('/seguridad/eliminarUsuario', verificarToken, seguridad.eliminarUsuario);
 
 
 //========== RUTAS DE RECORDATORIOS ==========

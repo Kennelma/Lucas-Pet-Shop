@@ -121,7 +121,7 @@ const DetallesFactura = ({
   const DESCUENTO = Math.max(0, parseInt(descuentoValor, 10) || 0);
 
   let subtotal_exento_total = 0;
-  let subtotal_gravado_sin_isv = 0;
+  let subtotal_gravado_con_isv = 0; // Total de items gravados (precio con ISV incluido)
 
   items.forEach((it) => {
     const cantidad = parseFloat(it.cantidad) || 0;
@@ -131,20 +131,22 @@ const DetallesFactura = ({
     const total_linea = cantidad * precio;
 
     if (tiene_impuesto) {
-      //EL PRECIO YA INCLUYE EL ISV, YA VIENE DEL MODULO DE PRODUCTOS  (ej: 230), extraemos la base sin ISV (230/1.15 = 200)
-      subtotal_gravado_sin_isv += total_linea / 1.15;
+      //EL PRECIO YA INCLUYE EL ISV (ej: 115 ya tiene el 15% incluido)
+      subtotal_gravado_con_isv += total_linea;
     } else {
       subtotal_exento_total += total_linea;
     }
   });
 
   const SUBTOTAL_EXENTO = subtotal_exento_total;
-  const SUBTOTAL_GRAVADO = subtotal_gravado_sin_isv; //BASE SIN ISV
-  const IMPUESTO = SUBTOTAL_GRAVADO * 0.15; //15 DE LA BASE
+  // Para items gravados: extraer la base sin ISV para mostrar en desglose
+  const SUBTOTAL_GRAVADO = subtotal_gravado_con_isv / 1.15; //BASE SIN ISV
+  const IMPUESTO = SUBTOTAL_GRAVADO * 0.15; //15% DE LA BASE
 
+  // El TOTAL ya no suma el impuesto porque ya está incluido en subtotal_gravado_con_isv
   const TOTAL_FINAL = Math.max(
     0,
-    SUBTOTAL_EXENTO + SUBTOTAL_GRAVADO + IMPUESTO + TOTAL_AJUSTE - DESCUENTO
+    SUBTOTAL_EXENTO + subtotal_gravado_con_isv + TOTAL_AJUSTE - DESCUENTO
   );
 
   const SALDO = TOTAL_FINAL;

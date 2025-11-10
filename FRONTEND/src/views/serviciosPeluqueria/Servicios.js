@@ -28,7 +28,7 @@ const Servicios = () => {
     if (modalServicioAbierto) {
       // Obtener el ancho de la scrollbar antes de ocultarla
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-      
+
       document.body.style.overflow = 'hidden';
       // Compensar el ancho de la scrollbar para evitar saltos
       document.body.style.paddingRight = `${scrollbarWidth}px`;
@@ -72,6 +72,21 @@ const Servicios = () => {
   };
 
   const abrirModalServicio = (servicio = null) => {
+    //VALIDAR ROL DEL USUARIO ACTUAL
+    const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
+    const rolActual = usuarioActual?.rol?.toLowerCase();
+
+    //SI NO ES ADMINISTRADOR U OPERADOR DE INVENTARIO, MOSTRAR MENSAJE
+    if (rolActual !== 'administrador' && rolActual !== 'operador de inventario') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acceso Denegado',
+        text: 'No tienes permisos para modificar servicios',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
     setServicioEditando(servicio);
     setModalServicioAbierto(true);
   };
@@ -124,6 +139,21 @@ const Servicios = () => {
   };
 
   const actualizarEstadoServicio = async (servicio) => {
+    //VALIDAR ROL DEL USUARIO ACTUAL
+    const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
+    const rolActual = usuarioActual?.rol?.toLowerCase();
+
+    //SI NO ES ADMINISTRADOR U OPERADOR DE INVENTARIO, MOSTRAR MENSAJE
+    if (rolActual !== 'administrador' && rolActual !== 'operador de inventario') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acceso Denegado',
+        text: 'No tienes permisos para cambiar el estado de servicios',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
     try {
       const nuevoEstado = !servicio.activo;
 
@@ -170,6 +200,21 @@ const Servicios = () => {
   };
 
   const handleEliminarServicio = async (servicio) => {
+    //VALIDAR ROL DEL USUARIO ACTUAL
+    const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
+    const rolActual = usuarioActual?.rol?.toLowerCase();
+
+    //SI NO ES ADMINISTRADOR U OPERADOR DE INVENTARIO, MOSTRAR MENSAJE
+    if (rolActual !== 'administrador' && rolActual !== 'operador de inventario') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acceso Denegado',
+        text: 'No tienes permisos para eliminar servicios',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
     const result = await Swal.fire({
       title: '¿Eliminar servicio?',
       html: `
