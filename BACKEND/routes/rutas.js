@@ -43,6 +43,7 @@ router.get ('/clientes/ver', verificarToken, clientes.ver);
 router.post('/clientes/insertar',verificarToken, clientes.crear);
 router.delete ('/clientes/eliminar', verificarToken, clientes.eliminar);
 router.put('/clientes/actualizar', verificarToken, clientes.actualizar);
+router.get ('/clientes/historial-compras', verificarToken, clientes.historialCompras);
 
 //========== RUTAS DE MÓDULO DE EMPRESA (EMPRESA, SUCURSALES, USUARIOS) ==========
 router.post('/empresa/insertar', verificarToken, empresa.crear);
@@ -56,6 +57,7 @@ router.get ('/facturacion/catalogoItems', verificarToken, facturas.catalogoItems
 router.get ('/facturacion/buscarCliente', verificarToken,facturas.buscarClientesPorIdentidad);
 router.get ('/facturacion/usuarioFacturacion', verificarToken, facturas.usuarioFactura);
 router.get ('/facturacion/estilistasFacturacion', verificarToken, facturas.buscarEstilistas);
+
 
 router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFactura)
 router.get  ('/facturacion/verFacturas', facturas.historialFacturas);
@@ -89,6 +91,8 @@ router.post('/estilistas/insertar', verificarToken, estilistas.crear);
 router.get ('/estilistas/ver', verificarToken, estilistas.ver);
 router.put('/estilistas/actualizar', verificarToken, estilistas.actualizar);
 router.delete ('/estilistas/eliminar', verificarToken, estilistas.eliminar);
+router.get ('/estilistas/bonificaciones', verificarToken, estilistas.conteoMascotasPorEstilista);
+
 
 //========== RUTAS DE RECORDATORIOS ==========
 router.post('/recordatorios/crear', recordatorios.crear);

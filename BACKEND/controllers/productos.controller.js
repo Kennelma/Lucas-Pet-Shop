@@ -270,6 +270,14 @@ exports.crear = async (req, res) => {
                     origen_movimiento: 'COMPRA'
                 });
 
+                //ACTUALIZAR EL STOCK DEL PRODUCTO SUMANDO EL NUEVO LOTE
+                await conn.query(
+                    `UPDATE tbl_productos
+                    SET stock = stock + ?
+                    WHERE id_producto_pk = ?`,
+                    [req.body.stock_lote, req.body.id_producto]
+                );
+
                 break;
 
             default:
@@ -879,8 +887,5 @@ exports.favoritos = async (req, res) => {
         });
 
     }
-
-
-
 
 };
