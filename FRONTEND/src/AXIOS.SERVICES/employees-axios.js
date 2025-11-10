@@ -1,8 +1,6 @@
-import axiosInstance from './axiosConfig';
-
+import axiosInstance from "./axiosConfig";
 
 const API_URL = "/estilistas";
-
 
 //SERVICIO PARA VER ESTILISTAS
 export const verEstilistas = async () => {
@@ -10,7 +8,7 @@ export const verEstilistas = async () => {
     const res = await axiosInstance.get(`${API_URL}/ver`);
     return res.data.estilistas || [];
   } catch (err) {
-    console.error('Error al traer estilistas:', err);
+    console.error("Error al traer estilistas:", err);
     return [];
   }
 };
@@ -21,7 +19,7 @@ export const insertarEstilista = async (datosEstilista) => {
     const res = await axiosInstance.post(`${API_URL}/insertar`, datosEstilista);
     return res.data;
   } catch (err) {
-    console.error('Error al insertar estilista:', err);
+    console.error("Error al insertar estilista:", err);
     return { Consulta: false, error: err.message };
   }
 };
@@ -29,23 +27,46 @@ export const insertarEstilista = async (datosEstilista) => {
 //SERVICIO PARA ACTUALIZAR ESTILISTAS
 export const actualizarEstilista = async (datosEstilista) => {
   try {
-    const res = await axiosInstance.put(`${API_URL}/actualizar`, datosEstilista);
+    const res = await axiosInstance.put(
+      `${API_URL}/actualizar`,
+      datosEstilista
+    );
     return res.data;
   } catch (err) {
-    console.error('Error al actualizar estilista:', err);
+    console.error("Error al actualizar estilista:", err);
     return { Consulta: false, error: err.message };
   }
 };
 
 //SERVICIO PARA ELIMINAR ESTILISTA
-export const eliminarEstilista = async (id) => { 
+export const eliminarEstilista = async (id) => {
   try {
     const res = await axiosInstance.delete(`${API_URL}/eliminar`, {
-      data: { id }
+      data: { id },
     });
     return res.data;
   } catch (err) {
-    console.error('Error al eliminar estilista:', err);
+    console.error("Error al eliminar estilista:", err);
     return { Consulta: false, error: err.message };
+  }
+};
+
+//SERVICIO PARA VER BONIFICACIONES DE ESTILISTAS
+export const verBonificacionesEstilistas = async (fecha_inicio, fecha_fin) => {
+  try {
+    const res = await axiosInstance.get(`${API_URL}/bonificaciones`, {
+      params: { fecha_inicio, fecha_fin }
+    });
+
+    if (res.data.Consulta) {
+      return res.data.bonificaciones || [];
+    } else {
+      console.warn('Consulta fallida:', res.data.error);
+      return [];
+    }
+
+  } catch (err) {
+    console.error('Error al traer bonificaciones de estilistas:', err);
+    return [];
   }
 };
