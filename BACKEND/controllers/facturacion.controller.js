@@ -787,7 +787,8 @@ exports.historialFacturas = async (req, res) => {
             INNER JOIN tbl_usuarios u ON f.id_usuario_fk = u.id_usuario_pk
             INNER JOIN tbl_sucursales s ON f.id_sucursal_fk = s.id_sucursal_pk
             INNER JOIN cat_estados c ON f.id_estado_fk = c.id_estado_pk
-            LEFT JOIN tbl_clientes cl ON f.id_cliente_fk = cl.id_cliente_pk`
+            LEFT JOIN tbl_clientes cl ON f.id_cliente_fk = cl.id_cliente_pk
+            ORDER BY f.id_factura_pk DESC`
         );
 
         res.status(200).json({
