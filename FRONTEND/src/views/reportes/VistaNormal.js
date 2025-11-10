@@ -56,22 +56,6 @@ const VistaNormal = ({ totalIngresos, totalGastos, gananciaTotal }) => {
           </div>
         </div>
       </div>
-
-      <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-amber-400 rounded-r-2xl p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-amber-900 mb-3">
-          ⚠️ INSTRUCCIONES IMPORTANTES
-        </h3>
-        <ul className="text-sm text-amber-800 space-y-2">
-          <li>• 1. Importa tus módulos al inicio del archivo</li>
-          <li>• 2. Modifica la función cargarDatos() para cargar datos reales</li>
-          <li>• 3. Estructura requerida: Array de 12 objetos con {`{ mes: 'Enero', monto: número }`}</li>
-          <li>• 4. Ingresos: Totales de la tabla de facturas por cada mes</li>
-          <li>• 5. Gastos: Totales de la tabla de gastos por cada mes</li>
-          <li>• 6. El gráfico muestra ingresos y gastos en dos semestres para mejor visualización</li>
-          <li>• 7. La tabla muestra el detalle mensual con las ganancias calculadas</li>
-          <li>• 8. Usa el botón "Descargar PDF" para exportar el reporte completo</li>
-        </ul>
-      </div>
     </div>
   );
 };
