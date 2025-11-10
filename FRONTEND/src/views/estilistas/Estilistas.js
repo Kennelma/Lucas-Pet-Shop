@@ -60,11 +60,7 @@ const Estilistas = () => {
   };
 
   const handleEliminar = async (id) => {
-<<<<<<< HEAD
-    console.log('ID a eliminar:', id);
-=======
    
->>>>>>> ed0b2392b75611cb3505aa3dec69e9c9e7cb9d48
     
     // Buscar información del estilista para mostrar en la confirmación
     const estilista = estilistas.find(e => e.id_estilista_pk === id);

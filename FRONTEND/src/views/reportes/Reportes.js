@@ -177,12 +177,34 @@ const Reportes = () => {
               />
             </div>
 
-            <div ref={graficaRef}>
-              <Grafica 
-                ingresos={ingresos}
-                gastos={gastos}
-                meses={meses}
-              />
+            <div className="flex gap-6">
+              {/* Gráfico principal */}
+              <div 
+                ref={graficaRef}
+                className="w-1/2 aspect-square" // Media pantalla y forma cuadrada
+              >
+                <Grafica 
+                  ingresos={ingresos}
+                  gastos={gastos}
+                  meses={meses}
+                />
+              </div>
+
+              {/* Div al lado del gráfico */}
+              <div className="w-1/2 aspect-square bg-white rounded-lg shadow-lg p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Información Adicional</h3>
+                <div className="space-y-4">
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <p className="text-blue-700 font-medium">Resumen Financiero</p>
+                  </div>
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <p className="text-green-700 font-medium">Estadísticas</p>
+                  </div>
+                  <div className="p-4 bg-purple-50 rounded-lg">
+                    <p className="text-purple-700 font-medium">Métricas Clave</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div ref={tablaRef}>
