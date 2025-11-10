@@ -83,23 +83,22 @@ const Grafica = ({ ingresos = [], gastos = [], meses = [
     scales: {
       y: {
         beginAtZero: true,
+        min: 0,
         ticks: {
-          stepSize: 10000, // siempre de 10,000 en 10,000
+          stepSize: 10000, // Incrementos de 10,000: 0, 10000, 20000, 30000, etc.
           callback: function(value) {
-            return 'L ' + Number(value).toLocaleString();
+            return 'L ' + value.toLocaleString();
           },
-          font: { size: 12 },
-          padding: 8
+          font: {
+            size: 5
+          },
+          padding: 30
         },
         grid: {
-          color: 'rgba(0,0,0,0.06)',
+          color: 'rgba(0,0,0,0.1)',
           lineWidth: 1
-        }
-      },
-      x: {
-        grid: { display: false },
-        ticks: { font: { size: 13, weight: '600' } }
-      }
+        }
+      },
     },
     layout: { padding: { top: 8, bottom: 8, left: 8, right: 8 } }
   };
