@@ -40,7 +40,9 @@ const DetallesFactura = ({
   onCancel,
   RTN,
   id_cliente,
+  setActiveTab,
 }) => {
+
   //====================ESTADOS====================
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentData, setPaymentData] = useState(null);
@@ -151,22 +153,6 @@ const DetallesFactura = ({
 
   const SALDO = TOTAL_FINAL;
 
-  // AGREGA ESTOS CONSOLE.LOG:
-  console.log(
-    "🔍 DEBUG ITEMS:",
-    items.map((it) => ({
-      nombre: it.item,
-      precio: it.precio,
-      tiene_impuesto: it.tiene_impuesto,
-      tipo: it.tipo,
-    }))
-  );
-
-  console.log("📊 SUBTOTAL_EXENTO:", SUBTOTAL_EXENTO);
-  console.log("📊 SUBTOTAL_GRAVADO:", SUBTOTAL_GRAVADO);
-  console.log("📊 IMPUESTO:", IMPUESTO);
-  console.log("📊 TOTAL_FINAL:", TOTAL_FINAL);
-
   //====================FUNCIÓN PARA GUARDAR FACTURA SIN ABRIR PAGOS====================
   const handleGuardarFacturaSinPago = async () => {
     // VALIDACIONES
@@ -215,8 +201,6 @@ const DetallesFactura = ({
       })),
     };
 
-    console.log("📤 Guardando factura sin pagos:", datosFactura);
-
     try {
       const response = await crearFactura(datosFactura); // ← Mismo servicio axios
 
@@ -231,7 +215,7 @@ const DetallesFactura = ({
         });
       }
     } catch (error) {
-      console.error("❌ Error al crear factura:", error);
+      console.error("Error al crear factura:", error);
       alert("Error inesperado al crear la factura");
     } finally {
       setLoading(false);
@@ -286,18 +270,10 @@ const DetallesFactura = ({
       })),
     };
 
-    console.log("📤 Enviando factura con pagos:", datosFactura);
-
     try {
       const response = await crearFactura(datosFactura);
 
-      console.log("📥 Respuesta:", response);
-
       if (response.success) {
-        alert(
-          `✅ Factura ${response.data.numero_factura} creada exitosamente!\nTotal: L ${response.data.total}\nSaldo: L ${response.data.saldo}`
-        );
-
         const datos = {
           id_factura: response.data.id_factura,
           numero_factura: response.data.numero_factura,
@@ -308,14 +284,13 @@ const DetallesFactura = ({
           saldo: parseFloat(response.data.saldo),
         };
 
-        console.log("💳 Datos de pago a enviar:", datos);
         setPaymentData(datos);
         setShowPaymentModal(true);
       } else {
-        alert(`❌ Error: ${response.mensaje}`);
+        alert(`Error: ${response.mensaje}`);
       }
     } catch (error) {
-      console.error("❌ Error al crear factura:", error);
+      console.error("Error al crear factura:", error);
       alert("Error inesperado al crear la factura");
     } finally {
       setLoading(false);
@@ -330,8 +305,6 @@ const DetallesFactura = ({
 
   const handlePaymentSuccess = async (datosPago) => {
     try {
-      console.log("💳 Procesando pago:", datosPago);
-      // LLAMAR AL SERVICIO PARA PROCESAR EL PAGO
       const response = await procesarPago(datosPago);
 
       if (response.success) {
@@ -354,8 +327,10 @@ const DetallesFactura = ({
             text: response.mensaje || "Pago procesado exitosamente",
             confirmButtonColor: "#3085d6",
           });
-          // Redirigir solo si el saldo es cero (pago total)
-          window.location.href = "/facturas";
+        }
+        // CAMBIAR A LA PESTAÑA DE HISTORIAL DE FACTURAS
+        if (setActiveTab) {
+          setActiveTab("facturas");
         }
       } else {
         await Swal.fire({

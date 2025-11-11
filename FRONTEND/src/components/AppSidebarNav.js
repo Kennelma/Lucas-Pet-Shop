@@ -56,7 +56,7 @@ export const AppSidebarNav = ({ items }) => {
   }
 
   const navItem = (item, index, indent = false) => {
-    const { component, name, badge, icon, ...rest } = item
+    const { component, name, badge, icon, rolesPermitidos, ...rest } = item
     const Component = component
     return (
       <Component as="div" key={index}>

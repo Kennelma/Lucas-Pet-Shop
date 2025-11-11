@@ -30,6 +30,7 @@ const getNavigation = () => {
 
   //DEFINICIÓN COMPLETA DE TODOS LOS ITEMS DEL SIDEBAR
   const navCompleto = [
+    
     //DASHBOARD - VISIBLE PARA TODOS LOS ROLES
     {
       component: CNavItem,
