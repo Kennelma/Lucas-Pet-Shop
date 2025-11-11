@@ -16,14 +16,23 @@ export default function Empresa() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="w-full px-6">
-        {/* Título */}
-        <div className="bg-gradient-to-br from-blue-50 rounded-xl p-6 shadow-sm border border-gray-200 mb-3">
+         {/* Título */}
+      <div className="rounded-xl p-6 mb-3"
+        style={{
+          backgroundImage: 'url("/H8.jpg")',
+          backgroundColor: '#C0E0DD',
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'left center',
+          boxShadow: '0 0 8px #C4D3AB40, 0 0 0 1px #C4D3AB33'
+        }}
+      >
         <div className="flex justify-center items-center">
-          <h2 className="text-2xl font-black text-center uppercase text-gray-800">
+          <h2 className="text-2xl font-black text-center uppercase text-black">
             GESTIÓN EMPRESARIAL
           </h2>
         </div>
-        <p className="text-center text-gray-600 italic">Administra la información de tu empresa y sucursales</p>
+        <p className="text-center text-black italic mt-2">Administra la información de tu empresa y sucursales</p>
       </div>
 
         <div className="bg-white rounded-2xl overflow-hidden" style={{boxShadow: '0 0 8px #1c04f440, 0 0 0 1px #4e33ea33'}}>

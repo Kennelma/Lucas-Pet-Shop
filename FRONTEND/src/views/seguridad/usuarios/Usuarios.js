@@ -215,20 +215,14 @@ export default function Usuarios() {
 
     if (roles.toLowerCase().includes('administrador')) {
       colorClasses = 'bg-blue-100 text-blue-800';
-    } else if (roles.toLowerCase().includes('gerente')) {
-      colorClasses = 'bg-orange-100 text-orange-800';
     } else if (roles.toLowerCase().includes('empleado')) {
       colorClasses = 'bg-blue-100 text-blue-800';
-    } else if (roles.toLowerCase().includes('cajero')) {
-      colorClasses = 'bg-green-100 text-green-800';
     } else if (roles.toLowerCase().includes('vendedor')) {
-      colorClasses = 'bg-orange-100 text-orange-800';
-    } else if (roles.toLowerCase().includes('estilista')) {
-      colorClasses = 'bg-pink-100 text-pink-800';
-    } else if (roles.toLowerCase().includes('veterinario')) {
-      colorClasses = 'bg-teal-100 text-teal-800';
+      colorClasses = 'bg-purple-100 text-purple-800';
     } else if (roles === 'Sin roles') {
       colorClasses = 'bg-gray-100 text-gray-800';
+    } else if (roles.toLowerCase().includes('operador de inventario')) {
+      colorClasses = 'bg-rose-100 text-rose-800';
     }
 
     return (
@@ -372,24 +366,28 @@ export default function Usuarios() {
       `}</style>
 
       <div className="min-h-screen p-6 bg-gray-50">
-        <div
-          className="rounded-xl p-6 mb-3"
-          style={{
-            backgroundColor: '#E0F2FE',
-            boxShadow: '0 0 8px #3B82F640, 0 0 0 1px #3B82F633'
-          }}
-        >
-          <div className="flex justify-center items-center">
-            <h2 className="text-2xl font-black text-center uppercase text-black">
-              GESTIÓN DE USUARIOS
-            </h2>
-          </div>
-          <p className="text-center text-black italic mt-2">
-            Administra los usuarios y permisos del sistema
-          </p>
+        {/* Título */}
+      <div className="rounded-xl p-6 mb-3"
+        style={{
+          backgroundImage: 'url("/h7.jpg")',
+          backgroundColor: '#E4B389',
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'left center',
+          boxShadow: '0 0 8px #E4B38940, 0 0 0 1px #E4B38933'
+        }}
+      >
+        <div className="flex justify-center items-center">
+          <h2 className="text-2xl font-black text-center uppercase text-black">
+            GESTION DE SEGURIDAD 
+          </h2>
         </div>
+        <p className="text-center text-black italic mt-2">
+          Administra los usuarios del sistema y sus permisos
+        </p>
+      </div>
 
-        <div className="bg-white rounded-xl p-6 mb-6" style={{boxShadow: '0 0 8px #60A5FA40, 0 0 0 1px #60A5FA33'}}>
+        <div className="bg-white rounded-xl p-6 mb-6" style={{boxShadow: '0 0 8px #E4B38940, 0 0 0 1px #E4B38933'}}>
           <div className="flex justify-between items-center mb-6">
             <div className="relative w-80">
               <input
@@ -408,7 +406,7 @@ export default function Usuarios() {
               )}
             </div>
             <button
-              className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition-colors flex items-center gap-2"
+              className="bg-[#E5B489] text-black px-6 py-2 rounded hover:bg-[#C29874] transition-colors flex items-center gap-2"
               onClick={() => {
                 // Validar rol del usuario actual
                 const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
