@@ -2,9 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Download, 
   AlertCircle, 
-  TrendingUp, 
-  TrendingDown, 
-  Wallet 
+  Calendar,
+  ArrowUpRight,
+  ArrowDownRight,
+  Wallet,
+  BarChart3,
+  FileText
 } from 'lucide-react';
 import Grafica from './Grafica.js';
 import Tabla from './Tabla.js';
@@ -128,40 +131,46 @@ const Reportes = () => {
   const gananciaTotal = totalIngresos - totalGastos;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6" style={{ fontFamily: 'Poppins, sans-serif' }}>
       <div className="max-w-7xl mx-auto">
         
         {/* Encabezado */}
-        <div className="bg-white rounded-2xl shadow-md p-6 mb-6 border border-purple-100">
-          <h1 className="text-3xl font-bold text-slate-700 mb-1">📊 Reportes Financieros</h1>
-          <p className="text-slate-500">
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-200">
+          <div className="flex items-center gap-3 mb-2">
+            <BarChart3 className="w-7 h-7 text-green-600" />
+            <h1 className="text-2xl font-semibold text-gray-800">Reportes Financieros</h1>
+          </div>
+          <p className="text-sm text-gray-600 ml-10">
             Gráficas y resumen del año actual | Tabla del año {anioSeleccionado}
           </p>
         </div>
 
         {/* Tarjetas del Mes Actual (SIEMPRE año actual) */}
         <div className="mb-6">
-          <h2 className="text-xl font-bold text-slate-700 mb-4 flex items-center gap-2">
-            📅 Resumen de {nombreMesActual} {anioActual} (Actual)
-          </h2>
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="w-5 h-5 text-gray-700" />
+            <h2 className="text-base font-semibold text-gray-800">
+              Resumen de {nombreMesActual} {anioActual} (Actual)
+            </h2>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <TarjetaFinanciera 
               color="green" 
               titulo="Ingresos" 
               valor={ingresosMesActual} 
-              icon={<TrendingUp className="w-7 h-7 text-green-600" />} 
+              icon={<ArrowUpRight className="w-6 h-6" />} 
             />
             <TarjetaFinanciera 
               color="red" 
               titulo="Gastos" 
               valor={gastosMesActual} 
-              icon={<TrendingDown className="w-7 h-7 text-red-600" />} 
+              icon={<ArrowDownRight className="w-6 h-6" />} 
             />
             <TarjetaFinanciera 
               color={gananciaMesActual >= 0 ? "blue" : "orange"} 
               titulo="Ganancia" 
               valor={gananciaMesActual} 
-              icon={<Wallet className={`w-7 h-7 ${gananciaMesActual >= 0 ? "text-blue-600" : "text-orange-600"}`} />} 
+              icon={<Wallet className="w-6 h-6" />} 
             />
           </div>
         </div>
@@ -169,26 +178,26 @@ const Reportes = () => {
         {/* Estados de carga y error */}
         {cargando && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-center gap-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            <p className="text-blue-700 font-medium">Cargando datos del año actual...</p>
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+            <p className="text-sm text-blue-700 font-medium">Cargando datos del año actual...</p>
           </div>
         )}
 
         {cargandoTabla && (
-          <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6 flex items-center gap-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
-            <p className="text-purple-700 font-medium">Cargando datos del año {anioSeleccionado}...</p>
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 flex items-center gap-4">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-green-600"></div>
+            <p className="text-sm text-green-700 font-medium">Cargando datos del año {anioSeleccionado}...</p>
           </div>
         )}
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center gap-4">
-            <AlertCircle className="w-6 h-6 text-red-600" />
+            <AlertCircle className="w-5 h-5 text-red-600" />
             <div className="flex-1">
-              <p className="text-red-700 font-medium">{error}</p>
+              <p className="text-sm text-red-700 font-medium">{error}</p>
               <button 
                 onClick={cargarDatosActual}
-                className="text-red-600 underline text-sm mt-1 hover:text-red-800"
+                className="text-sm text-red-600 underline mt-1 hover:text-red-800"
               >
                 Reintentar
               </button>
@@ -215,22 +224,25 @@ const Reportes = () => {
 
         {/* Tabla Compacta (cambia según año seleccionado) */}
         {!cargando && (
-          <div className="bg-white rounded-2xl shadow-md border border-purple-100 overflow-hidden">
-            <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-100">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-slate-700">
-                  📋 Detalle Mensual - Año {anioSeleccionado}
-                  {anioSeleccionado !== anioActual && (
-                    <span className="text-sm font-normal text-purple-600 ml-2">
-                      (Histórico)
-                    </span>
-                  )}
-                </h2>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="p-5 bg-gray-50 border-b border-gray-200">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-5 h-5 text-gray-700" />
+                  <h2 className="text-base font-semibold text-gray-800">
+                    Detalle Mensual - Año {anioSeleccionado}
+                    {anioSeleccionado !== anioActual && (
+                      <span className="text-sm font-normal text-green-600 ml-2">
+                        (Histórico)
+                      </span>
+                    )}
+                  </h2>
+                </div>
                 <div className="flex items-center gap-3">
                   <select 
                     value={anioSeleccionado}
                     onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
-                    className="px-4 py-2 border-2 border-purple-200 rounded-lg focus:outline-none focus:border-purple-400 bg-white"
+                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 bg-white"
                   >
                     {aniosDisponibles.map(anio => (
                       <option key={anio} value={anio}>
@@ -240,7 +252,7 @@ const Reportes = () => {
                   </select>
                   <button
                     onClick={() => descargarPDF(datosTabla, totalIngresos, totalGastos, gananciaTotal)}
-                    className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
                   >
                     <Download className="w-4 h-4" />
                     PDF {anioSeleccionado}
@@ -251,24 +263,24 @@ const Reportes = () => {
             
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50 border-b-2 border-slate-200">
+                <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Mes</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Mes</th>
                     <th className="px-4 py-3 text-right text-sm font-semibold text-green-700">Ingresos</th>
                     <th className="px-4 py-3 text-right text-sm font-semibold text-red-700">Gastos</th>
                     <th className="px-4 py-3 text-right text-sm font-semibold text-blue-700">Ganancia</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-gray-100">
                   {datosTabla.map((dato, index) => {
                     const esMesActual = index === mesActual && anioSeleccionado === anioActual;
                     return (
                       <tr 
                         key={index} 
-                        className={`hover:bg-slate-50 transition-colors ${esMesActual ? 'bg-purple-50 font-semibold' : ''}`}
+                        className={`hover:bg-gray-50 transition-colors ${esMesActual ? 'bg-green-50 font-medium' : ''}`}
                       >
-                        <td className="px-4 py-3 text-sm text-slate-700">
-                          {dato.mes} {esMesActual && <span className="text-purple-600">● Actual</span>}
+                        <td className="px-4 py-3 text-sm text-gray-700">
+                          {dato.mes} {esMesActual && <span className="text-green-600 font-semibold">● Actual</span>}
                         </td>
                         <td className="px-4 py-3 text-sm text-right text-green-700">
                           L {dato.ingreso.toLocaleString('es-HN')}
@@ -283,9 +295,9 @@ const Reportes = () => {
                     );
                   })}
                 </tbody>
-                <tfoot className="bg-slate-100 border-t-2 border-slate-300">
-                  <tr className="font-bold">
-                    <td className="px-4 py-3 text-sm text-slate-800">TOTAL {anioSeleccionado}</td>
+                <tfoot className="bg-gray-100 border-t-2 border-gray-300">
+                  <tr className="font-semibold">
+                    <td className="px-4 py-3 text-sm text-gray-800">TOTAL {anioSeleccionado}</td>
                     <td className="px-4 py-3 text-sm text-right text-green-800">
                       L {totalIngresos.toLocaleString('es-HN')}
                     </td>
@@ -308,47 +320,51 @@ const Reportes = () => {
   );
 };
 
-// Componente de tarjeta financiera (sin cambios)
+// Componente de tarjeta financiera
 const TarjetaFinanciera = ({ color, titulo, valor, icon }) => {
   const colorMap = {
     green: {
-      bg: 'from-green-50 to-emerald-50',
+      bg: 'bg-green-50',
       border: 'border-green-200',
       text: 'text-green-700',
-      value: 'text-green-800'
+      value: 'text-green-800',
+      icon: 'text-green-600'
     },
     red: {
-      bg: 'from-red-50 to-rose-50',
+      bg: 'bg-red-50',
       border: 'border-red-200',
       text: 'text-red-700',
-      value: 'text-red-800'
+      value: 'text-red-800',
+      icon: 'text-red-600'
     },
     blue: {
-      bg: 'from-blue-50 to-cyan-50',
+      bg: 'bg-blue-50',
       border: 'border-blue-200',
       text: 'text-blue-700',
-      value: 'text-blue-800'
+      value: 'text-blue-800',
+      icon: 'text-blue-600'
     },
     orange: {
-      bg: 'from-orange-50 to-amber-50',
+      bg: 'bg-orange-50',
       border: 'border-orange-200',
       text: 'text-orange-700',
-      value: 'text-orange-800'
+      value: 'text-orange-800',
+      icon: 'text-orange-600'
     }
   };
 
   const colors = colorMap[color];
 
   return (
-    <div className={`bg-gradient-to-br ${colors.bg} rounded-2xl shadow-lg p-5 border ${colors.border}`}>
+    <div className={`${colors.bg} rounded-xl shadow-sm p-5 border ${colors.border}`}>
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <p className={`${colors.text} text-xs font-medium mb-1`}>{titulo}</p>
-          <p className={`text-2xl font-bold ${colors.value}`}>
+          <p className={`${colors.text} text-xs font-medium mb-2`}>{titulo}</p>
+          <p className={`text-xl font-semibold ${colors.value}`}>
             L {valor.toLocaleString('es-HN')}
           </p>
         </div>
-        <div className="bg-white rounded-full p-3 shadow-md">
+        <div className={`${colors.icon} bg-white rounded-lg p-3 shadow-sm`}>
           {icon}
         </div>
       </div>

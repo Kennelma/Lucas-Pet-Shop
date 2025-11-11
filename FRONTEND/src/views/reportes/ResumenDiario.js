@@ -51,10 +51,10 @@ const ResumenDiario = ({ verResumenDiario }) => {
 
   if (cargando) {
     return (
-      <div className="h-full flex items-center justify-center bg-white rounded-2xl shadow-lg p-8">
+      <div className="h-full flex items-center justify-center bg-white rounded-xl shadow-sm p-8 border border-gray-200">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Cargando resumen...</p>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600 mx-auto mb-3"></div>
+          <p className="text-sm text-gray-600 font-medium">Cargando resumen...</p>
         </div>
       </div>
     );
@@ -62,10 +62,10 @@ const ResumenDiario = ({ verResumenDiario }) => {
 
   if (error) {
     return (
-      <div className="h-full flex items-center justify-center bg-white rounded-2xl shadow-lg p-8">
+      <div className="h-full flex items-center justify-center bg-white rounded-xl shadow-sm p-8 border border-gray-200">
         <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600 font-medium">{error}</p>
+          <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-3" />
+          <p className="text-sm text-red-600 font-medium">{error}</p>
         </div>
       </div>
     );
@@ -74,20 +74,20 @@ const ResumenDiario = ({ verResumenDiario }) => {
   const saldoPositivo = datos?.saldo_neto_dia >= 0;
 
   return (
-    <div className="h-full bg-white rounded-2xl shadow-lg p-8 border border-slate-200">
+    <div className="h-full bg-white rounded-xl shadow-sm p-6 border border-gray-200">
       {/* Header */}
-      <div className="mb-8 pb-6 border-b-2 border-slate-100">
-        <h3 className="text-3xl font-bold text-slate-800 mb-2">
+      <div className="mb-6 pb-4 border-b border-gray-200">
+        <h3 className="text-xl font-semibold text-gray-800 mb-2">
           Resumen Financiero
         </h3>
-        <div className="flex items-center gap-2 text-slate-500">
+        <div className="flex items-center gap-2 text-gray-600">
           <Calendar className="w-4 h-4" />
-          <p className="capitalize text-sm">{obtenerFechaHoy()}</p>
+          <p className="capitalize text-xs">{obtenerFechaHoy()}</p>
         </div>
       </div>
 
       {/* Grid de métricas */}
-      <div className="space-y-6">
+      <div className="space-y-5">
         
         {/* Ingresos */}
         <div className="group">
@@ -95,12 +95,12 @@ const ResumenDiario = ({ verResumenDiario }) => {
             <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
               <ArrowUpRight className="w-5 h-5 text-green-600" />
             </div>
-            <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">
+            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
               Ingresos
             </span>
           </div>
           <div className="ml-11">
-            <p className="text-4xl font-bold text-green-600">
+            <p className="text-3xl font-bold text-green-600">
               {formatearMoneda(datos?.total_ingresos_netos || 0)}
             </p>
           </div>
@@ -112,19 +112,19 @@ const ResumenDiario = ({ verResumenDiario }) => {
             <div className="p-2 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
               <ArrowDownRight className="w-5 h-5 text-red-600" />
             </div>
-            <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">
+            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
               Gastos
             </span>
           </div>
           <div className="ml-11">
-            <p className="text-4xl font-bold text-red-600">
+            <p className="text-3xl font-bold text-red-600">
               {formatearMoneda(datos?.total_gastos || 0)}
             </p>
           </div>
         </div>
 
         {/* Separador */}
-        <div className="border-t-2 border-dashed border-slate-200 my-6"></div>
+        <div className="border-t-2 border-dashed border-gray-200 my-4"></div>
 
         {/* Saldo Neto */}
         <div className="group">
@@ -132,26 +132,26 @@ const ResumenDiario = ({ verResumenDiario }) => {
             <div className={`p-2 ${saldoPositivo ? 'bg-blue-100' : 'bg-orange-100'} rounded-lg ${saldoPositivo ? 'group-hover:bg-blue-200' : 'group-hover:bg-orange-200'} transition-colors`}>
               <Wallet className={`w-5 h-5 ${saldoPositivo ? 'text-blue-600' : 'text-orange-600'}`} />
             </div>
-            <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">
+            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
               Saldo Neto
             </span>
           </div>
           <div className="ml-11">
-            <p className={`text-5xl font-bold ${saldoPositivo ? 'text-blue-600' : 'text-orange-600'}`}>
+            <p className={`text-4xl font-bold ${saldoPositivo ? 'text-blue-600' : 'text-orange-600'}`}>
               {formatearMoneda(datos?.saldo_neto_dia || 0)}
             </p>
           </div>
         </div>
 
         {/* Badge de estado */}
-        <div className="mt-8 pt-6 border-t border-slate-100">
-          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${
+        <div className="mt-6 pt-4 border-t border-gray-100">
+          <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold ${
             saldoPositivo 
               ? 'bg-blue-50 text-blue-700 border border-blue-200' 
               : 'bg-orange-50 text-orange-700 border border-orange-200'
           }`}>
             <div className={`w-2 h-2 rounded-full ${saldoPositivo ? 'bg-blue-500' : 'bg-orange-500'} animate-pulse`}></div>
-            <span className="text-sm font-semibold">
+            <span>
               {saldoPositivo ? 'Balance positivo' : 'Balance negativo'}
             </span>
           </div>
