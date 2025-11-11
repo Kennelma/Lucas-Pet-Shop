@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { FilterMatchMode } from 'primereact/api';
 import TablaEstilistas from './tabla-estilistas';
 import ModalAgregarEstilista from './modal-agregar';
 import ModalActualizarEstilista from './modal-actualizar';
