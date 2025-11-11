@@ -207,6 +207,21 @@ const Animales = () => {
   };
 
   const abrirModal = (animal = null) => {
+    //VALIDAR ROL DEL USUARIO ACTUAL
+    const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
+    const rolActual = usuarioActual?.rol?.toLowerCase();
+
+    //SI NO ES ADMINISTRADOR U OPERADOR DE INVENTARIO, MOSTRAR MENSAJE
+    if (rolActual !== 'administrador' && rolActual !== 'operador de inventario') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acceso Denegado',
+        text: 'No tienes permisos para modificar productos',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
     setAnimalEditando(animal);
     setModalAbierto(true);
   };
@@ -222,6 +237,21 @@ const Animales = () => {
   };
 
   const handleEliminar = async (animal) => {
+    //VALIDAR ROL DEL USUARIO ACTUAL
+    const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
+    const rolActual = usuarioActual?.rol?.toLowerCase();
+
+    //SI NO ES ADMINISTRADOR U OPERADOR DE INVENTARIO, MOSTRAR MENSAJE
+    if (rolActual !== 'administrador' && rolActual !== 'operador de inventario') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acceso Denegado',
+        text: 'No tienes permisos para eliminar productos',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
     const result = await Swal.fire({
       title: "¿Eliminar animal?",
       html: `
@@ -265,8 +295,23 @@ const Animales = () => {
       }
     }
   };
-// Función para actualizar el estado activo/inactivo de un animal
+//FUNCIÓN PARA ACTUALIZAR EL ESTADO ACTIVO/INACTIVO DE UN ANIMAL
   const actualizarEstadoAnimal = async (animal, nuevoEstado) => {
+    //VALIDAR ROL DEL USUARIO ACTUAL
+    const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
+    const rolActual = usuarioActual?.rol?.toLowerCase();
+
+    //SI NO ES ADMINISTRADOR U OPERADOR DE INVENTARIO, MOSTRAR MENSAJE
+    if (rolActual !== 'administrador' && rolActual !== 'operador de inventario') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acceso Denegado',
+        text: 'No tienes permisos para cambiar el estado de productos',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
     try {
       const payload = {
         id_producto: animal.id_producto,
@@ -361,7 +406,7 @@ const Animales = () => {
           {/* BOTÓN PARA ABRIR EL MODAL DE NUEVO ANIMAL, TEXTO EN NEGRO */}
           <button
             className="bg-orange-300 text-black px-6 py-2 rounded hover:bg-orange-400 transition-colors flex items-center gap-2"
-            
+
             onClick={() => abrirModal()}
           >
             <FontAwesomeIcon icon={faPlus} />

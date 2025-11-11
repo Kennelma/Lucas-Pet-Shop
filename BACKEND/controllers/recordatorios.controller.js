@@ -66,81 +66,71 @@ exports.verCatalogo = async (req, res) => {
 
 
 //CREAR RECORDATORIO
+// CREAR RECORDATORIO - VERSIÓN CORREGIDA
 exports.crear = async (req, res) => {
-
     const conn = await mysqlConnection.getConnection();
-
     await conn.beginTransaction();
+
     try {
         const { tipo_item, frecuencia, programada_para, mensaje } = req.body;
 
-        const [estado] = await conn.query(`
+        // ========================================================================
+        // 1) OBTENER ESTADO "PENDIENTE"
+        // ========================================================================
+        const [estadoRows] = await conn.query(`
             SELECT id_estado_pk AS id
             FROM cat_estados
             WHERE dominio = 'RECORDATORIO' AND nombre_estado = 'PENDIENTE'
             LIMIT 1
         `);
 
-        const [frecuenciaInfo] = await conn.query(`
-            SELECT
-                dias_intervalo
+        if (!estadoRows || estadoRows.length === 0) {
+            throw new Error('No se encontró el estado PENDIENTE');
+        }
+
+        const estadoId = estadoRows[0].id;
+
+        // ========================================================================
+        // 2) OBTENER INFORMACIÓN DE LA FRECUENCIA
+        // ========================================================================
+        const [frecuenciaRows] = await conn.query(`
+            SELECT dias_intervalo
             FROM cat_frecuencia_recordatorio
             WHERE id_frecuencia_record_pk = ?
             LIMIT 1
         `, [frecuencia]);
 
-        const diasIntervalo = frecuenciaInfo?.[0]?.dias_intervalo;
+        if (!frecuenciaRows || frecuenciaRows.length === 0) {
+            throw new Error('Frecuencia no encontrada');
+        }
 
-        let result;
+        const diasIntervalo = frecuenciaRows[0].dias_intervalo;
 
-        if (diasIntervalo === 1) { //UN DIA
-
-            result = await conn.query(
+        // ========================================================================
+        // 3) INSERTAR RECORDATORIO
+        // ========================================================================
+        const [result] = await conn.query(
             `INSERT INTO tbl_recordatorios (
                 mensaje_recordatorio,
                 programada_para,
-                proximo_envio, -- mismo día que programada para
+                proximo_envio,
                 id_estado_programacion_fk,
                 id_tipo_item_fk,
                 id_frecuencia_fk
-            ) VALUES (?, ?, ?, ?, ?, ?)`,
+            ) VALUES (?, ?, DATE_ADD(?, INTERVAL ? DAY), ?, ?, ?)`,
             [
                 mensaje,
                 programada_para,
                 programada_para,
-                estado[0].estado,
+                diasIntervalo,
+                estadoId,
                 tipo_item,
                 frecuencia
-            ]);
-
-        } else {
-
-            const diasIntervalo = frecuenciaInfo?.[0]?.dias_intervalo || 0;
-
-            //EL PROXIMO ENVIO se calcula como:  programada_para + días de intervalo
-            result = await conn.query(
-                `INSERT INTO tbl_recordatorios (
-                    mensaje_recordatorio,
-                    programada_para,
-                    proximo_envio,
-                    id_estado_programacion_fk,
-                    id_tipo_item_fk,
-                    id_frecuencia_fk
-                ) VALUES (?, ?, DATE_ADD(?, INTERVAL ? DAY), ?, ?, ?)`,
-                [
-                    mensaje,
-                    programada_para,
-                    programada_para,
-                    diasIntervalo,
-                    estado[0].id,
-                    tipo_item,
-                    frecuencia
-                ]
-            );
-
-        }
+            ]
+        );
 
         await conn.commit();
+
         res.status(200).json({
             Consulta: true,
             mensaje: 'Recordatorio creado con éxito',
@@ -149,12 +139,14 @@ exports.crear = async (req, res) => {
 
     } catch (err) {
         await conn.rollback();
-        res.status(500).json({ Consulta: false, error: err.message });
+        res.status(500).json({
+            Consulta: false,
+            error: err.message
+        });
     } finally {
         conn.release();
     }
 };
-
 // ╔════════════════════════════════════════════════════════════════════════════╗
 // ║                        VER LISTA DE RECORDATORIOS                        ║
 // ╚════════════════════════════════════════════════════════════════════════════╝
@@ -211,6 +203,16 @@ exports.actualizar = async (req, res) => {
 
     if (!id_recordatorio) throw new Error('id_recordatorio es requerido');
 
+    // Obtener el estado PENDIENTE
+    const [estadoPendiente] = await conn.query(`
+      SELECT id_estado_pk
+      FROM cat_estados
+      WHERE dominio = 'RECORDATORIO' AND nombre_estado = 'PENDIENTE'
+      LIMIT 1
+    `);
+
+    const idEstadoPendiente = estadoPendiente?.[0]?.id_estado_pk;
+
     // Recalcula proximo_envio si llega programada_para o id_frecuencia_fk
     await conn.query(`
       UPDATE tbl_recordatorios r
@@ -222,6 +224,9 @@ exports.actualizar = async (req, res) => {
         r.id_tipo_item_fk     = COALESCE(?, r.id_tipo_item_fk),
         r.id_frecuencia_fk    = COALESCE(?, r.id_frecuencia_fk),
         r.activo              = COALESCE(?, r.activo),
+        r.id_estado_programacion_fk = ?,
+        r.intentos = 0,
+        r.ultimo_envio = NULL,
         r.proximo_envio       = CASE
           WHEN ? IS NOT NULL OR ? IS NOT NULL
             THEN DATE_ADD(COALESCE(?, r.programada_para), INTERVAL f.dias_intervalo DAY)
@@ -235,6 +240,7 @@ exports.actualizar = async (req, res) => {
         id_tipo_item_fk ?? null,
         id_frecuencia_fk ?? null,
         (activo === 0 || activo === 1) ? activo : null,
+        idEstadoPendiente,
         programada_para ?? null,
         id_frecuencia_fk ?? null,
         programada_para ?? null,
