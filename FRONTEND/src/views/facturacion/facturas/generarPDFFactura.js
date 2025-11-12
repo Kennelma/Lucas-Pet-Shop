@@ -1,29 +1,32 @@
+//IMPORTACIONES
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+//FUNCION_PRINCIPAL_PARA_GENERAR_PDF_DE_FACTURA
 export const generarPDFFactura = (datosFactura) => {
 
   const { factura, items, empresa, pagos } = datosFactura;
 
-
+  //CALCULAR_ALTURA_DINAMICA_DEL_PDF
   const alturaBase = 150;
   const alturaPorItem = 5;
   const alturaCalculada = alturaBase + (items.length * alturaPorItem) + (pagos ? pagos.length * 10 : 0);
   const alturaFinal = Math.max(alturaCalculada, 200);
 
-  //SE CREA EL DOCUMENTO PDF
+  //CREAR_DOCUMENTO_PDF_(FORMATO_TICKET_80MM)
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
     format: [80, alturaFinal]
   });
 
+  //CONSTANTES_DE_DISEÑO
   const pageWidth = 80;
   const margin = 5;
   const contentWidth = pageWidth - (margin * 2);
   let yPos = 5;
 
-  // Función auxiliar para agregar texto centrado
+  //FUNCION_AUXILIAR_TEXTO_CENTRADO
   const addCenteredText = (text, fontSize = 10, isBold = false, spacing = 1) => {
     doc.setFontSize(fontSize);
     doc.setFont(undefined, isBold ? 'bold' : 'normal');
@@ -31,7 +34,7 @@ export const generarPDFFactura = (datosFactura) => {
     yPos += fontSize * 0.5 + spacing;
   };
 
-  // Función auxiliar para agregar línea separadora
+  //FUNCION_AUXILIAR_LINEA_SEPARADORA
   const addSeparator = () => {
     yPos += 3;
     doc.setLineWidth(0.3);
@@ -39,12 +42,19 @@ export const generarPDFFactura = (datosFactura) => {
     yPos += 4;
   };
 
-  const img = 'images/logo.png';
-  const width = 30;
-  const height = 30; // usa el mismo valor para mantener la proporción aproximada
-  doc.addImage(img, 'PNG', pageWidth / 2 - width / 2, yPos + 5, width, height);
-  yPos += 40;
-  //====================ENCABEZADO - INFORMACIÓN DE LA EMPRESA====================
+  //CARGAR_LOGO_DE_EMPRESA_(CON_MANEJO_DE_ERRORES)
+  try {
+    const logoPath = '/images_LP/logo.png';
+    const width = 30;
+    const height = 30;
+    doc.addImage(logoPath, 'PNG', pageWidth / 2 - width / 2, yPos + 5, width, height);
+    yPos += 40;
+  } catch (error) {
+    console.warn('No se pudo cargar el logo:', error.message);
+    yPos += 5;
+  }
+
+  //INFORMACION_DE_LA_EMPRESA
   addCenteredText(empresa.nombre_empresa || 'MI EMPRESA', 13, true, 2);
   yPos += 1;
 
@@ -61,69 +71,100 @@ export const generarPDFFactura = (datosFactura) => {
     yPos += 5;
   }
 
-  doc.text(`RTN: ${empresa.rtn_empresa || 'PRUEBA'}`, pageWidth / 2, yPos, { align: 'center' });
-
-
+  doc.text(`RTN: ${empresa.rtn_empresa || ''}`, pageWidth / 2, yPos, { align: 'center' });
   yPos += 8;
-  //====================TÍTULO FACTURA====================
+
+  //TITULO_FACTURA
   addCenteredText('FACTURA DE VENTA', 12, true, 2);
 
-  //====================INFORMACIÓN DE LA FACTURA====================
+  //VENDEDOR_Y_SUCURSAL
+  doc.setFontSize(6);
+  doc.text(`${factura.nombre_sucursal || ''}`, pageWidth / 2, yPos, { align: 'center' });
+  yPos += 3;
+  doc.text(`Vendedor: ${factura.vendedor || ''}`, pageWidth / 2, yPos, { align: 'center' });
+  yPos += 5;
+
+  //INFORMACION_DE_FACTURA
   doc.setFontSize(8);
   doc.setFont(undefined, 'normal');
 
-  doc.text(`No: ${factura.numero_factura}`, margin, yPos);
-  yPos += 5;
-
   const fecha = new Date(factura.fecha_emision).toLocaleDateString('es-HN');
-  doc.text(`Fecha: ${fecha}`, margin, yPos);
+  doc.text(`No: ${factura.numero_factura}`, margin, yPos);
+  doc.text(`Fecha: ${fecha}`, pageWidth - margin, yPos, { align: 'right' });
   yPos += 5;
-
 
   if (factura.RTN) {
     doc.text(`RTN Cliente: ${factura.RTN}`, margin, yPos);
     yPos += 5;
   }
 
-  //====================INFORMACIÓN DEL CLIENTE====================
+  //INFORMACION_DEL_CLIENTE
   doc.setFontSize(5);
   doc.setFont(undefined, 'bold');
   doc.text('CLIENTE:', margin, yPos);
 
   doc.setFont(undefined, 'normal');
-  doc.setFontSize(8);
+  doc.setFontSize(6.5);
   const nombreCliente = `${factura.nombre_cliente || ''} ${factura.apellido_cliente || ''}`.trim();
-  doc.text(nombreCliente || 'Consumidor General', margin + 15, yPos);
+  doc.text(nombreCliente || 'Consumidor General', margin + 12, yPos);
+  yPos += 3;
 
-  yPos += 2;
+  doc.setFontSize(8);
+  if (factura.identidad_cliente && !factura.RTN) {
+    yPos += 1;
+    doc.text(`ID: ${factura.identidad_cliente}`, margin, yPos);
+    yPos += 3;
+  }
 
+  //ESTILISTAS_ASIGNADOS
+  if (items && items.length > 0) {
+    const estilistasMascotas = new Map();
+    items.forEach(item => {
+      if (item.estilistas && item.estilistas.length > 0) {
+        item.estilistas.forEach(estilista => {
+          const nombreCompleto = `${estilista.nombre_estilista} ${estilista.apellido_estilista}`;
+          const mascotas = parseInt(estilista.num_mascotas_atendidas) || 0;
+          if (estilistasMascotas.has(nombreCompleto)) {
+            estilistasMascotas.set(nombreCompleto, estilistasMascotas.get(nombreCompleto) + mascotas);
+          } else {
+            estilistasMascotas.set(nombreCompleto, mascotas);
+          }
+        });
+      }
+    });
 
-  if (factura.telefono_cliente) {
-    yPos +=2;
-    doc.text(`Tel: ${factura.telefono_cliente}`, margin, yPos);
+    if (estilistasMascotas.size > 0) {
+      yPos += 1;
+      doc.setFontSize(7);
+      doc.setFont(undefined, 'normal');
+      const estilistasList = Array.from(estilistasMascotas).map(([nombre, cantidad]) =>
+        `${nombre} (${cantidad} mascotas)`
+      ).join(', ');
+      doc.text(`Pet groomer: ${estilistasList}`, margin, yPos);
+      yPos += 4;
+      doc.setFont(undefined, 'normal');
+    }
   }
 
   addSeparator();
 
-  //====================ITEMS - FORMATO COMPACTO====================
+  //ENCABEZADO_DE_ITEMS
   doc.setFontSize(7);
   doc.setFont(undefined, 'bold');
   yPos += 1;
 
-  // Encabezado simple
   doc.text('CANT', margin, yPos);
   doc.text('DESCRIPCIÓN', margin + 10, yPos);
-  doc.text('P.UNIT', pageWidth - 32, yPos, { align: 'right' });
-  doc.text('AJUSTE', pageWidth - 18, yPos, { align: 'right' });
+  doc.text('P.UNIT', pageWidth - 33, yPos, { align: 'right' });
+  doc.text('AJUSTE', pageWidth - 19, yPos, { align: 'right' });
   doc.text('SUBTOTAL', pageWidth - margin, yPos, { align: 'right' });
   yPos += 3;
 
-  // Línea debajo de encabezados
   doc.setLineWidth(0.2);
   doc.line(margin, yPos, pageWidth - margin, yPos);
   yPos += 4;
 
-  // ITEMS
+  //LISTADO_DE_ITEMS
   doc.setFont(undefined, 'normal');
   doc.setFontSize(6.5);
 
@@ -134,102 +175,109 @@ export const generarPDFFactura = (datosFactura) => {
     const ajuste = parseFloat(item.ajuste_precio || 0).toFixed(2);
     const total = parseFloat(item.total_linea).toFixed(2);
 
-    // Primera línea: Cantidad + Descripción
-    const lineasNombre = doc.splitTextToSize(nombre, 38);
+    //CALCULAR_ANCHO_DISPONIBLE_PARA_DESCRIPCION
+    const anchoDisponible = pageWidth - 33 - (margin + 10) - 2; //RESTAR POSICION DE PRECIO Y MARGEN
+    const lineasNombre = doc.splitTextToSize(nombre, anchoDisponible);
+
+    //PRIMERA_LINEA_CON_TODOS_LOS_DATOS
     doc.text(`${cantidad}`, margin, yPos);
     doc.text(lineasNombre[0], margin + 10, yPos);
-
-    // Valores alineados a la derecha
-    doc.text(`L${precio}`, pageWidth - 32, yPos, { align: 'right' });
-    doc.text(`L${ajuste}`, pageWidth - 18, yPos, { align: 'right' });
+    doc.text(`L${precio}`, pageWidth - 33, yPos, { align: 'right' });
+    doc.text(`L${ajuste}`, pageWidth - 19, yPos, { align: 'right' });
     doc.text(`L${total}`, pageWidth - margin, yPos, { align: 'right' });
-
     yPos += 3.5;
 
-    // Si la descripción es larga, agregar líneas adicionales
+    //LINEAS_ADICIONALES_SI_DESCRIPCION_ES_LARGA
     for (let i = 1; i < lineasNombre.length; i++) {
       doc.text(lineasNombre[i], margin + 10, yPos);
       yPos += 3;
     }
 
-    yPos += 0.5; // Separación entre items
+    yPos += 0.5;
   });
 
   addSeparator();
 
-  //====================RESUMEN DE TOTALES====================
+  //RESUMEN_DE_TOTALES
   doc.setFontSize(7);
   doc.setFont(undefined, 'normal');
 
-  {/*ddoc.text('Subtotal:', margin, yPos);
-  doc.text(`L ${parseFloat(factura.subtotal).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
-  yPos += 3;*/}
+  doc.text('Subtotal Exento:', margin, yPos);
+  doc.text(`L ${parseFloat(factura.subtotal_exento || 0).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
+  yPos += 3;
+
+  doc.text('Subtotal Gravado:', margin, yPos);
+  doc.text(`L ${parseFloat(factura.subtotal_gravado || 0).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
+  yPos += 3;
+
+  doc.text('Impuesto (15%):', margin, yPos);
+  doc.text(`L ${parseFloat(factura.impuesto || 0).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
+  yPos += 3;
 
   doc.text('Descuento:', margin, yPos);
   doc.text(`L ${parseFloat(factura.descuento).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
   yPos += 3;
 
-  {/*doc.text('Impuesto (15%):', margin, yPos);
-  doc.text(`L ${parseFloat(factura.impuesto).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
-  yPos += 4; */}
-
-
-  // TOTAL en negrita pero mismo tamaño (7)
   doc.setFont(undefined, 'bold');
-  doc.setFontSize(7);
   doc.text('TOTAL A PAGAR:', margin, yPos);
   doc.text(`L ${parseFloat(factura.total).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
-  yPos +=1;
-  doc.line(margin, yPos, pageWidth - margin, yPos);
-
-  yPos += 4;
-
-  doc.setFont(undefined, 'normal');
-
-
-  //====================HISTORIAL DE PAGOS (SI EXISTEN)====================
-
-  if (pagos && pagos.length > 0) {
-  doc.setFontSize(7);
-  doc.setFont(undefined, 'bold');
-  doc.text('METODOS DE PAGOS:', margin, yPos);
-  yPos += 4;
-
-  doc.setFont(undefined, 'normal');
-  doc.setFontSize(6);
-
-  pagos.forEach(pago => {
-    const fechaPago = new Date(pago.fecha_pago).toLocaleDateString('es-HN', {
-      day: '2-digit',
-      month: '2-digit'
-    }); // Solo día/mes (ej: 03/11)
-
-    doc.text(`${fechaPago}`, margin, yPos);
-    doc.text(`${pago.metodo_pago}`, margin + 15, yPos);
-    doc.text(`L${parseFloat(pago.monto_pagado).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
-    yPos += 3;
-  });
-
   yPos += 1;
-  doc.setLineWidth(0.2);
   doc.line(margin, yPos, pageWidth - margin, yPos);
-  yPos += 3;
-}
+  yPos += 4;
 
-  //====================PIE DE PÁGINA====================
+  doc.setFont(undefined, 'normal');
+
+  //HISTORIAL_DE_PAGOS_(SI_EXISTEN)
+  if (pagos && pagos.length > 0) {
+    doc.setFontSize(7);
+    doc.setFont(undefined, 'bold');
+    doc.text('HISTORIAL DE PAGOS:', margin, yPos);
+    yPos += 4;
+
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(6);
+
+    pagos.forEach(pago => {
+      const fechaPago = new Date(pago.fecha_pago).toLocaleDateString('es-HN', {
+        day: '2-digit',
+        month: '2-digit'
+      });
+
+      doc.text(`${fechaPago}`, margin, yPos);
+      doc.text(`${pago.metodo_pago}`, margin + 15, yPos);
+      doc.text(`L${parseFloat(pago.monto_pagado).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
+      yPos += 3;
+    });
+
+    yPos += 1;
+    doc.setLineWidth(0.2);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 3;
+
+    //TOTAL_PAGADO_Y_SALDO_PENDIENTE
+    doc.setFont(undefined, 'bold');
+    doc.text('Total Pagado:', margin, yPos);
+    doc.text(`L${factura.total_pagado}`, pageWidth - margin, yPos, { align: 'right' });
+    yPos += 3;
+
+    doc.text('Saldo Pendiente:', margin, yPos);
+    doc.text(`L${factura.saldo_pendiente}`, pageWidth - margin, yPos, { align: 'right' });
+    yPos += 2;
+  }
+
+  //PIE_DE_PAGINA
   yPos += 6;
   doc.setFontSize(8);
   doc.setFont(undefined, 'italic');
-  doc.text('Gracias por su compra!', pageWidth / 2, yPos, { align: 'center' });
+  doc.text('¡Gracias por su compra!', pageWidth / 2, yPos, { align: 'center' });
   yPos += 5;
   doc.setFont(undefined, 'normal');
   doc.text('Conserve este ticket', pageWidth / 2, yPos, { align: 'center' });
 
-  //====================RETORNAR DOCUMENTO====================
   return doc;
 };
 
-//====================DESCARGAR PDF====================
+//FUNCION_PARA_DESCARGAR_PDF
 export const descargarPDFFactura = (datosFactura) => {
   const doc = generarPDFFactura(datosFactura);
   doc.save(`Factura-${datosFactura.factura.numero_factura}.pdf`);

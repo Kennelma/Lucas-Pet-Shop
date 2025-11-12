@@ -1,5 +1,4 @@
 const express = require('express');
-//ENDPOINT PARA LOS GRAFICOS
 const mysqlConnection = require('../config/conexion');
 
 // ENDPOINT PARA LOS GRÁFICOS
@@ -174,7 +173,7 @@ exports.registrosGastos = async (req, res) => {
 
     const id_usuario = req.usuario?.id_usuario_pk;
     const { anio, mes } = req.query;
-    
+
     let query = `
       SELECT
         g.id_gasto_pk,
@@ -187,7 +186,7 @@ exports.registrosGastos = async (req, res) => {
       INNER JOIN tbl_usuarios u ON g.id_usuario_fk = u.id_usuario_pk
       WHERE g.id_usuario_fk = ?
     `;
-    
+
     const params = [];
 
     if (anio && mes) {
@@ -319,14 +318,14 @@ exports.resumenGraficos = async (req, res) => {
 
     // 3. Combinar y completar los 12 meses
     const mesesCompletos = [];
-    
+
     for (let mes = 1; mes <= 12; mes++) {
       const ingreso = ingresos.find(i => i.mes === mes);
       const gasto = gastos.find(g => g.mes === mes);
-      
+
       const ingresosNetos = ingreso ? Number(ingreso.neto_ing) : 0;
       const gastosTotal = gasto ? Number(gasto.total_gasto) : 0;
-      
+
       mesesCompletos.push({
         anio: anioConsulta,
         mes: mes,
@@ -341,17 +340,17 @@ exports.resumenGraficos = async (req, res) => {
       });
     }
 
-    return res.status(200).json({ 
-      ok: true, 
-      modo: 'mensual', 
-      anio: anioConsulta, 
-      data: mesesCompletos 
+    return res.status(200).json({
+      ok: true,
+      modo: 'mensual',
+      anio: anioConsulta,
+      data: mesesCompletos
     });
 
   } catch (err) {
     console.error('❌ Error en resumenGraficos:', err);
-    return res.status(500).json({ 
-      ok: false, 
+    return res.status(500).json({
+      ok: false,
       msg: 'Error interno al consultar finanzas.',
       error: err.message
     });

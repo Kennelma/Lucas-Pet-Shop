@@ -164,7 +164,7 @@ const Accesorios = () => {
         activo: item.activo === 1 || item.activo === "1" ? 1 : 0,
         categoria: item.tipo_accesorio || "No especificada",
         sku: item.sku || "",
-        // 💡 AGREGANDO CAMPOS DE IMPUESTO 
+        // 💡 AGREGANDO CAMPOS DE IMPUESTO
         tiene_impuesto: item.tiene_impuesto || 0,
         tasa_impuesto: item.tasa_impuesto
       }));
@@ -181,12 +181,25 @@ const Accesorios = () => {
     }
   };
 
-  const abrirModal = (accesorio = null) => {
-    setAccesorioEditando(accesorio);
-    setModalAbierto(true);
-  };
+  const abrirModal = (accesorio = null) => {
+    //VALIDAR ROL DEL USUARIO ACTUAL
+    const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
+    const rolActual = usuarioActual?.rol?.toLowerCase();
 
-  const cerrarModal = () => {
+    //SI NO ES ADMINISTRADOR U OPERADOR DE INVENTARIO, MOSTRAR MENSAJE
+    if (rolActual !== 'administrador' && rolActual !== 'operador de inventario') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acceso Denegado',
+        text: 'No tienes permisos para modificar accesorios',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
+    setAccesorioEditando(accesorio);
+    setModalAbierto(true);
+  };  const cerrarModal = () => {
     setModalAbierto(false);
     setAccesorioEditando(null);
   };
@@ -196,8 +209,23 @@ const Accesorios = () => {
     cerrarModal();
   };
 
-  const handleEliminar = async (accesorio) => {
-    const result = await Swal.fire({
+  const handleEliminar = async (accesorio) => {
+    //VALIDAR ROL DEL USUARIO ACTUAL
+    const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
+    const rolActual = usuarioActual?.rol?.toLowerCase();
+
+    //SI NO ES ADMINISTRADOR U OPERADOR DE INVENTARIO, MOSTRAR MENSAJE
+    if (rolActual !== 'administrador' && rolActual !== 'operador de inventario') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acceso Denegado',
+        text: 'No tienes permisos para eliminar accesorios',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
+    const result = await Swal.fire({
       title: "¿Eliminar accesorio?",
       html: `
         <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
@@ -242,12 +270,27 @@ const Accesorios = () => {
   };
 
   const actualizarEstadoAccesorio = async (accesorio, nuevoEstado) => {
+    //VALIDAR ROL DEL USUARIO ACTUAL
+    const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
+    const rolActual = usuarioActual?.rol?.toLowerCase();
+
+    //SI NO ES ADMINISTRADOR U OPERADOR DE INVENTARIO, MOSTRAR MENSAJE
+    if (rolActual !== 'administrador' && rolActual !== 'operador de inventario') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acceso Denegado',
+        text: 'No tienes permisos para cambiar el estado de accesorios',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
     try {
       const payload = {
         id_producto: accesorio.id_producto,
         tipo_producto: "ACCESORIOS",
         activo: nuevoEstado ? 1 : 0,
-        // Incluir la data existente 
+        // Incluir la data existente
         nombre_producto: accesorio.nombre,
         tipo_accesorio: accesorio.categoria,
         stock: accesorio.stock,
@@ -298,7 +341,7 @@ const Accesorios = () => {
   };
 
   return (
-    
+   
       <div className="min-h-screen p-6 bg-gray-50">
   {/* Título */}
       <div className="rounded-xl p-6 mb-3"
@@ -320,7 +363,7 @@ const Accesorios = () => {
           Administra accesorios para mascotas disponibles
         </p>
       </div>
-      {/* Componente de Accesorios Más Vendidos */} 
+      {/* Componente de Accesorios Más Vendidos */}
       <AccesoriosMasVendidos accesorios={accesorios} />
 
 

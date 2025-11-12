@@ -7,10 +7,7 @@ const VerDetallesFactura = ({ numFactura, onClose }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    console.log("🟦 useEffect ejecutado con numFactura:", numFactura);
-    
     if (!numFactura) {
-      console.warn("⚠️ No se recibió numFactura válido. Abortando petición.");
       setError("Número de factura no proporcionado");
       setCargando(false);
       return;
@@ -21,10 +18,7 @@ const VerDetallesFactura = ({ numFactura, onClose }) => {
         setCargando(true);
         setError(null);
 
-        console.log("📡 Solicitando detalle para:", numFactura);
         const respuesta = await obtenerDetalleFacturaSeleccionada(numFactura);
-        console.log("🟢 Detalle recibido del servicio:", respuesta);
-        console.log("🟢 Datos completos:", JSON.stringify(respuesta.data, null, 2));
 
         if (respuesta.success && respuesta.data) {
           setDatosFactura(respuesta.data);
@@ -33,7 +27,6 @@ const VerDetallesFactura = ({ numFactura, onClose }) => {
           setDatosFactura([]);
         }
       } catch (error) {
-        console.error("❌ Error en cargarDetallesFactura:", error);
         setError("Error de conexión");
         setDatosFactura([]);
       } finally {
@@ -47,10 +40,7 @@ const VerDetallesFactura = ({ numFactura, onClose }) => {
   const items = datosFactura || [];
   const factura = items[0] || {};
 
-  console.log("📊 Datos de factura para totales:", factura);
-
   const calcularTotales = () => {
-    // Usar los valores directamente del primer registro (factura)
     const exento = Number(factura.subtotal_exento || 0);
     const gravado = Number(factura.subtotal_gravado || 0);
     const descuento = Number(factura.descuento || 0);
@@ -58,13 +48,11 @@ const VerDetallesFactura = ({ numFactura, onClose }) => {
     const total = Number(factura.total || 0);
     const saldo = Number(factura.saldo || 0);
 
-    console.log("💰 Valores calculados:", { exento, gravado, descuento, impuesto, total, saldo });
-
     return {
       exento: exento.toFixed(2),
       gravado: gravado.toFixed(2),
       descuento: descuento.toFixed(2),
-      impuesto: (0.15*total).toFixed(2),
+      impuesto: impuesto.toFixed(2),
       total: total.toFixed(2),
       saldo: saldo.toFixed(2)
     };
@@ -85,7 +73,7 @@ const VerDetallesFactura = ({ numFactura, onClose }) => {
       <div className="max-w-xl mx-auto bg-white p-3 rounded-lg shadow-lg text-center font-['Poppins']">
         <p className="text-red-500 text-sm">{error}</p>
         {onClose && (
-          <button 
+          <button
             onClick={onClose}
             className="mt-3 bg-red-500 text-white px-3 py-1.5 text-sm rounded hover:bg-red-600"
           >

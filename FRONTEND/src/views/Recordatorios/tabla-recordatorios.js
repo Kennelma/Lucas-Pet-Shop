@@ -1,23 +1,20 @@
-// ╔════════════════════════════════════════════════════════════════════════════╗
-// ║                              IMPORTS                                     ║
-// ╚════════════════════════════════════════════════════════════════════════════╝
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import ConexionWhatsApp from './conexionWhatsApp.js';
-import Swal from 'sweetalert2';
-import ModalRecordatorio from './modal-agregar-recordatorio';
-import ModalActualizarRecordatorio from './modal-actualizar-recordatorio';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { InputSwitch } from 'primereact/inputswitch';
 import { Dialog } from 'primereact/dialog';
+import Swal from 'sweetalert2';
+import ConexionWhatsApp from './conexionWhatsApp.js';
+import ModalRecordatorio from './modal-agregar-recordatorio';
+import ModalActualizarRecordatorio from './modal-actualizar-recordatorio';
 import { verRecordatorios, actualizarRecordatorio } from '../../AXIOS.SERVICES/reminders-axios';
 
-// ╔════════════════════════════════════════════════════════════════════════════╗
-// ║                  MENÚ DE ACCIONES POR REGISTRO (COMPONENTE)              ║
-// ╚════════════════════════════════════════════════════════════════════════════╝
-const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
+// ════════════════════════════════════════════════════════════════════════════
+//                        MENÚ DE ACCIONES POR REGISTRO
+// ════════════════════════════════════════════════════════════════════════════
+const ActionMenu = ({ rowData, onEditar, onEliminar }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
@@ -91,11 +88,11 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
   );
 };
 
-// ╔════════════════════════════════════════════════════════════════════════════╗
-// ║                        TABLA PRINCIPAL COMPONENTE                        ║
-// ╚════════════════════════════════════════════════════════════════════════════╝
+// ════════════════════════════════════════════════════════════════════════════
+//                        COMPONENTE TABLA PRINCIPAL
+// ════════════════════════════════════════════════════════════════════════════
 const TablaRecordatorios = ({ tipoServicio = [], frecuencias = [], loading: loadingProp = false }) => {
-  // ──────────────── ESTADOS PRINCIPALES ────────────────
+  // ESTADOS
   const [recordatorios, setRecordatorios] = useState([]);
   const [loading, setLoading] = useState(loadingProp);
   const [showWhatsApp, setShowWhatsApp] = useState(false);
@@ -104,11 +101,9 @@ const TablaRecordatorios = ({ tipoServicio = [], frecuencias = [], loading: load
   const [recordatorioAEditar, setRecordatorioAEditar] = useState(null);
   const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
   const [recordatorioAEliminar, setRecordatorioAEliminar] = useState(null);
-
-  // Para bloquear el switch mientras persiste
   const [savingId, setSavingId] = useState(null);
 
-  // ──────────────── CARGA INICIAL DE DATOS ────────────────
+  // CARGAR DATOS
   const recargar = async () => {
     setLoading(true);
     const datos = await verRecordatorios();
@@ -120,7 +115,7 @@ const TablaRecordatorios = ({ tipoServicio = [], frecuencias = [], loading: load
     recargar();
   }, []);
 
-  // ──────────────── UTILIDAD: FORMATO FECHA PARA INPUT ────────────────
+  // FORMATO FECHA PARA INPUT
   const toDateTimeInputValue = (dt) => {
     if (!dt) return '';
     const d = new Date(dt);
@@ -128,7 +123,22 @@ const TablaRecordatorios = ({ tipoServicio = [], frecuencias = [], loading: load
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
 
-  // ──────────────── ACCIÓN: EDITAR RECORDATORIO ────────────────
+  // FORMATO FECHA PARA TABLA
+  const formatFecha = (fecha) => {
+    if (!fecha) return '';
+    const d = new Date(fecha);
+    return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  };
+
+  // CALCULAR PRÓXIMO ENVÍO
+  const calcularProximoEnvio = (programadaPara, diasIntervalo) => {
+    if (!programadaPara || !diasIntervalo) return '';
+    const fecha = new Date(programadaPara);
+    fecha.setDate(fecha.getDate() + Number(diasIntervalo));
+    return formatFecha(fecha);
+  };
+
+  // EDITAR RECORDATORIO
   const handleActualizarRecordatorio = (row) => {
     setRecordatorioAEditar({
       id_recordatorio_pk: row.id_recordatorio_pk,
@@ -140,7 +150,7 @@ const TablaRecordatorios = ({ tipoServicio = [], frecuencias = [], loading: load
     setOpenModalActualizar(true);
   };
 
-  // ──────────────── ACCIÓN: ELIMINAR RECORDATORIO ────────────────
+  // ELIMINAR RECORDATORIO
   const handleEliminar = async () => {
     setConfirmDialogVisible(false);
     await Swal.fire({
@@ -148,17 +158,14 @@ const TablaRecordatorios = ({ tipoServicio = [], frecuencias = [], loading: load
       title: 'Recordatorio eliminado correctamente',
       confirmButtonColor: '#3085d6',
     });
-    // Si implementas eliminar, aquí puedes llamar al endpoint y luego:
-    // await recargar();
   };
 
-  // ──────────────── ACCIÓN: TOGGLE ACTIVO (OPTIMISTIC + BLOQUEO) ────────────────
+  // TOGGLE ACTIVO/INACTIVO
   const handleToggleActivo = async (rowData) => {
     const id = rowData.id_recordatorio_pk;
     const nuevoActivo = rowData.activo ? 0 : 1;
     const snapshot = recordatorios.find(r => r.id_recordatorio_pk === id);
 
-    // Optimistic UI
     setRecordatorios(prev =>
       prev.map(r => r.id_recordatorio_pk === id ? { ...r, activo: nuevoActivo } : r)
     );
@@ -179,7 +186,6 @@ const TablaRecordatorios = ({ tipoServicio = [], frecuencias = [], loading: load
         timer: 2500
       });
     } catch (e) {
-      // revertir
       setRecordatorios(prev => prev.map(r => r.id_recordatorio_pk === id ? snapshot : r));
       Swal.fire({ icon: 'error', title: 'Error', text: e.message || 'Intente de nuevo.' });
     } finally {
@@ -187,24 +193,43 @@ const TablaRecordatorios = ({ tipoServicio = [], frecuencias = [], loading: load
     }
   };
 
-  // ──────────────── ACCIONES DE FILA (MENÚ) ────────────────
-  const actionBotones = (rowData) => {
-    const rowIndex = recordatorios.indexOf(rowData);
+  // COLUMNAS DE ACCIONES
+  const actionBotones = (rowData) => (
+    <ActionMenu
+      rowData={rowData}
+      onEditar={handleActualizarRecordatorio}
+      onEliminar={(recordatorio) => {
+        setRecordatorioAEliminar(recordatorio);
+        setConfirmDialogVisible(true);
+      }}
+    />
+  );
+
+  // COLUMNA DE ESTADO CON COLORES
+  const estadoTemplate = (rowData) => {
+    const estado = rowData.nombre_estado?.toUpperCase();
+    let bgColor = 'bg-gray-200';
+    let textColor = 'text-gray-700';
+
+    if (estado === 'PENDIENTE') {
+      bgColor = 'bg-yellow-200';
+      textColor = 'text-yellow-800';
+    } else if (estado === 'ENVIADO') {
+      bgColor = 'bg-green-200';
+      textColor = 'text-green-800';
+    } else if (estado === 'FALLIDO') {
+      bgColor = 'bg-red-200';
+      textColor = 'text-red-800';
+    }
+
     return (
-      <ActionMenu
-        rowData={rowData}
-        rowIndex={rowIndex}
-        totalRows={recordatorios.length}
-        onEditar={handleActualizarRecordatorio}
-        onEliminar={(recordatorio) => {
-          setRecordatorioAEliminar(recordatorio);
-          setConfirmDialogVisible(true);
-        }}
-      />
+      <span className={`px-2 py-1 rounded text-xs font-semibold ${bgColor} ${textColor}`}>
+        {rowData.nombre_estado}
+      </span>
     );
   };
 
-  // ──────────────── RENDER PRINCIPAL ────────────────
+  // RENDER
   return (
     <>
       <div
@@ -240,7 +265,7 @@ const TablaRecordatorios = ({ tipoServicio = [], frecuencias = [], loading: load
               text: 'El recordatorio se ha registrado correctamente',
             });
             setOpenModal(false);
-            await recargar(); // 🔁 recarga después de crear
+            await recargar();
           }}
           tipoServicio={tipoServicio}
           frecuencias={frecuencias}
@@ -266,8 +291,6 @@ const TablaRecordatorios = ({ tipoServicio = [], frecuencias = [], loading: load
               });
               setOpenModalActualizar(false);
               setRecordatorioAEditar(null);
-
-              // 🔁 recargar para reflejar datos frescos (frecuencia_nombre, dias_intervalo, estado, etc.)
               await recargar();
             } else {
               Swal.fire({
@@ -279,7 +302,7 @@ const TablaRecordatorios = ({ tipoServicio = [], frecuencias = [], loading: load
           }}
         />
 
-        {/* TABLA PRINCIPAL */}
+        {/* TABLA */}
         {recordatorios.length === 0 && !loading ? (
           <div className="text-center py-8">
             <p className="text-gray-500 text-lg">No hay recordatorios registrados</p>
@@ -299,40 +322,24 @@ const TablaRecordatorios = ({ tipoServicio = [], frecuencias = [], loading: load
             size="small"
             rowClassName={() => 'hover:bg-gray-100 cursor-pointer'}
           >
-            {/* ID DEL RECORDATORIO */}
             <Column field="id_recordatorio_pk" header="ID" sortable className="text-sm" />
-            {/* MENSAJE DEL RECORDATORIO */}
             <Column field="mensaje_recordatorio" header="MENSAJE" className="text-sm" />
-            {/* FECHA PROGRAMADA PARA ENVIAR */}
             <Column
-              header="PROGRAMADA PARA ENVIAR"
+              header="PROGRAMADA PARA"
               className="text-sm"
-              body={(rowData) => {
-                if (!rowData.programada_para) return '';
-                const d = new Date(rowData.programada_para);
-                return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-              }}
+              body={(rowData) => formatFecha(rowData.programada_para)}
             />
-            {/* INTERVALO Y FRECUENCIA UNIDOS */}
             <Column
-              header="INTERVALO Y FRECUENCIA"
+              header="FRECUENCIA"
               className="text-sm"
               body={(rowData) => `${rowData.dias_intervalo ?? ''} días - ${rowData.frecuencia_nombre ?? ''}`}
             />
-            {/* PRÓXIMO ENVÍO (si usas columna calculada en FE) */}
             <Column
               header="PRÓXIMO ENVÍO"
               className="text-sm"
-              body={(rowData) => {
-                if (!rowData.programada_para || !rowData.dias_intervalo) return '';
-                const fecha = new Date(rowData.programada_para);
-                fecha.setDate(fecha.getDate() + Number(rowData.dias_intervalo));
-                return `${fecha.getDate().toString().padStart(2, '0')}/${(fecha.getMonth() + 1).toString().padStart(2, '0')}/${fecha.getFullYear()} ${fecha.getHours().toString().padStart(2, '0')}:${fecha.getMinutes().toString().padStart(2, '0')}`;
-              }}
+              body={(rowData) => calcularProximoEnvio(rowData.programada_para, rowData.dias_intervalo)}
             />
-            {/* NOMBRE DEL ESTADO */}
-            <Column field="nombre_estado" header="ESTADO" className="text-sm" />
-            {/* ESTADO ACTIVO */}
+            <Column header="ESTADO" className="text-sm" body={estadoTemplate} />
             <Column
               field="activo"
               header="ACTIVO"
@@ -345,13 +352,12 @@ const TablaRecordatorios = ({ tipoServicio = [], frecuencias = [], loading: load
                 />
               )}
             />
-            {/* ACCIONES */}
             <Column header="ACCIONES" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm" />
           </DataTable>
         )}
       </div>
 
-      {/* DIÁLOGO DE CONFIRMACIÓN DE ELIMINACIÓN */}
+      {/* DIÁLOGO DE CONFIRMACIÓN */}
       <Dialog
         header="Confirmar eliminación"
         visible={confirmDialogVisible}

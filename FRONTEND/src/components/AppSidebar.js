@@ -10,7 +10,7 @@ import {
   useColorModes
 } from '@coreui/react'
 import { AppSidebarNav } from './AppSidebarNav'
-import navigation from '../sidebar-components'
+import getNavigation from '../sidebar-components'
 import logo from '../assets/brand/logo-empresa.png'
 
 const AppSidebar = () => {
@@ -20,6 +20,9 @@ const AppSidebar = () => {
 
   const { colorMode } = useColorModes('coreui-free-react-admin-template-theme')
   const sidebarColorScheme = colorMode === 'light' ? 'light' : 'dark'
+
+  //OBTENER LA NAVEGACIÓN FILTRADA SEGÚN EL ROL ACTUAL
+  const navigation = getNavigation()
 
   return (
     <CSidebar
@@ -32,8 +35,8 @@ const AppSidebar = () => {
     >
       {/* HEADER */}
       <CSidebarHeader className="border-bottom flex justify-between items-center">
-        <CSidebarBrand 
-          to="/" 
+        <CSidebarBrand
+          to="/"
           className="flex items-center no-underline"
           style={{ textDecoration: 'none' }} // quitar subrayado
         >
