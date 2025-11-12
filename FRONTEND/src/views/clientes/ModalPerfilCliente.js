@@ -50,8 +50,6 @@ const ModalPerfilCliente = ({ isOpen, cliente, onClose }) => {
   };
 
   if (!cliente) return null;
-
-  // Obtener las últimas 3 compras SOLO para mostrar en la lista
   // Obtener TODAS las compras del último mes
   const recentPurchases = historialCompras.map(factura => ({
     id: factura.numero_factura,
@@ -65,7 +63,7 @@ const ModalPerfilCliente = ({ isOpen, cliente, onClose }) => {
       visible={isOpen}
       onHide={onClose}
       className="rounded-[20px] overflow-hidden"
-      style={{ width: '28rem' }}
+      style={{ width: '40rem' }}
       modal
       closable={true}
       position="center"
@@ -97,99 +95,129 @@ const ModalPerfilCliente = ({ isOpen, cliente, onClose }) => {
           </div>
         </div>
 
-        {/* Content */}
+        {/* Content - Layout horizontal */}
         <div className="px-6 pb-4">
           {/* Profile Name */}
           <h2 className="text-center text-base font-semibold text-black mb-4">
             {cliente.nombre_cliente} {cliente.apellido_cliente}
           </h2>
 
-          {/* Últimas Compras */}
-          <div className="mb-3">
-            <div className="flex items-center gap-1.5 mb-2">
-              <i className="pi pi-shopping-bag text-black" style={{ fontSize: '14px' }}></i>
-              <h3 className="font-bold text-black" style={{ fontSize: '11px' }}>Últimas Compras (Último Mes)</h3>
-            </div>
-            {loading ? (
-              <div className="text-center py-4">
-                <i className="pi pi-spin pi-spinner text-teal-600" style={{ fontSize: '24px' }}></i>
+          {/* Layout de 2 columnas */}
+          <div className="flex gap-4">
+            {/* Columna Izquierda - Datos del Cliente */}
+            <div className="flex-shrink-0" style={{ width: '180px' }}>
+              {/* Total de Compras */}
+              <div className="bg-gray-50 rounded-lg p-3 mb-3 text-center border border-gray-200">
+                <p className="text-xs text-gray-600 mb-1">Total de Compras</p>
+                <p className="text-2xl font-bold text-gray-900">{totalOrders}</p>
               </div>
-            ) : recentPurchases.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2">
-                {recentPurchases.map((order) => (
-                  <div key={order.id}>
-                    <div className="bg-gray-50 rounded-lg p-2 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-center mb-0.5">
-                        <span className="font-bold text-black" style={{ fontSize: '11px' }}>{order.id}</span>
-                        <div className="flex items-center gap-1">
-                          <span className="font-bold text-black" style={{ fontSize: '11px' }}>{order.date}</span>
-                          <button
-                            onClick={() => toggleFactura(order.id)}
-                            className="w-5 h-5 flex items-center justify-center rounded-full bg-teal-100 hover:bg-teal-200 transition-colors"
-                            title="Ver productos"
-                          >
-                            <i className={`pi ${expandedFactura === order.id ? 'pi-eye-slash' : 'pi-eye'} text-teal-700`} style={{ fontSize: '10px' }}></i>
-                          </button>
-                        </div>
-                      </div>
-                      <p className="font-bold text-black" style={{ fontSize: '11px' }}>
-                        L {order.total.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                    </div>
-                    
-                    {/* Detalles expandibles */}
-                    {expandedFactura === order.id && (
-                      <div className="mt-1 bg-white rounded-lg border border-teal-200 shadow-sm p-2 animate-fadeIn">
-                        <p className="font-bold text-teal-700 mb-1.5" style={{ fontSize: '10px' }}>Productos:</p>
-                        <div className="space-y-1 max-h-32 overflow-y-auto">
-                          {order.detalles.map((detalle, idx) => (
-                            <div key={idx} className="flex justify-between items-start text-gray-700 border-b border-gray-100 last:border-0 pb-1 last:pb-0">
-                              <div className="flex-1 pr-2">
-                                <p className="font-medium leading-tight" style={{ fontSize: '9px' }}>
-                                  {detalle.nombre_item}
-                                </p>
-                                <p className="text-gray-500" style={{ fontSize: '8px' }}>
-                                  {detalle.cantidad_item} x L {parseFloat(detalle.precio_item).toLocaleString('es-HN', { minimumFractionDigits: 2 })}
-                                </p>
-                              </div>
-                              <p className="font-bold text-gray-900 flex-shrink-0" style={{ fontSize: '9px' }}>
-                                L {parseFloat(detalle.total_item).toLocaleString('es-HN', { minimumFractionDigits: 2 })}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <p className="text-gray-500" style={{ fontSize: '11px' }}>
-                  No hay compras en el último mes
+
+              {/* Total Gastado */}
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 text-center border border-green-200">
+                <p className="text-xs text-green-700 mb-1 font-medium">Total Gastado (Mes)</p>
+                <p className="text-lg font-bold text-green-800">
+                  L {totalSpent.toLocaleString('es-HN', { minimumFractionDigits: 2 })}
                 </p>
               </div>
-            )}
-          </div>
-
-          {/* TOTAL GASTADO */}
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-1.5 mb-2 border border-green-200">
-            <p className="font-bold text-green-700" style={{ fontSize: '11px' }}>
-              Total Gastado (Mes): L {totalSpent.toLocaleString('es-HN', { minimumFractionDigits: 2 })}
-            </p>
-          </div>
-
-          {/* Stats */}
-          <div className="flex justify-around pt-2 pb-1 border-t border-gray-200">
-            <div className="text-center">
-              <p className="text-base font-semibold text-gray-900">{totalOrders}</p>
-              <p className="text-xs text-gray-600">Compras (Mes)</p>
             </div>
-            <div className="text-center">
-              <p className="text-base font-semibold text-gray-900">
-                {cliente.fecha_registro ? new Date(cliente.fecha_registro).getFullYear() : 'N/A'}
-              </p>
-              <p className="text-xs text-gray-600">Cliente desde</p>
+
+            {/* Columna Derecha - Facturas */}
+            <div className="flex-1">
+              <div className="flex items-center gap-1.5 mb-2">
+                <i className="pi pi-shopping-bag text-black" style={{ fontSize: '14px' }}></i>
+                <h3 className="font-bold text-black" style={{ fontSize: '12px' }}>Facturas de ese Cliente</h3>
+              </div>
+              
+              {loading ? (
+                <div className="text-center py-8">
+                  <i className="pi pi-spin pi-spinner text-teal-600" style={{ fontSize: '24px' }}></i>
+                </div>
+              ) : recentPurchases.length > 0 ? (
+                <div className="bg-white border-2 border-gray-300 rounded-lg p-3 max-h-80 overflow-y-auto">
+                  <div className="space-y-2">
+                    {recentPurchases.map((order) => (
+                      <div key={order.id} className="relative">
+                        <div className="bg-gray-50 rounded-lg p-2.5 shadow-sm hover:shadow-md transition-shadow border border-gray-200">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="font-bold text-black" style={{ fontSize: '12px' }}>{order.id}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-black" style={{ fontSize: '12px' }}>{order.date}</span>
+                              <button
+                                onClick={() => toggleFactura(order.id)}
+                                className="w-6 h-6 flex items-center justify-center rounded-full bg-teal-100 hover:bg-teal-200 transition-colors relative z-10"
+                                title="Ver productos"
+                              >
+                                <i className={`pi ${expandedFactura === order.id ? 'pi-times' : 'pi-eye'} text-teal-700`} style={{ fontSize: '11px' }}></i>
+                              </button>
+                            </div>
+                          </div>
+                          <p className="font-bold text-black" style={{ fontSize: '12px' }}>
+                            L {order.total.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </p>
+                        </div>
+                        
+                        {/* Mini-modal flotante con detalles */}
+                        {expandedFactura === order.id && (
+                          <>
+                            {/* Overlay semi-transparente */}
+                            <div 
+                              className="fixed inset-0 bg-black/20 z-40 animate-fadeIn"
+                              onClick={() => setExpandedFactura(null)}
+                            ></div>
+                            
+                            {/* Mini-modal */}
+                            <div className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-xl border-2 border-teal-300 shadow-2xl p-4 animate-scaleIn overflow-hidden" style={{ width: '380px', maxHeight: '500px' }}>
+                              <div className="flex justify-between items-center mb-3 border-b border-gray-200 pb-2">
+                                <div>
+                                  <p className="font-bold text-teal-700" style={{ fontSize: '13px' }}>Factura {order.id}</p>
+                                  <p className="text-gray-500" style={{ fontSize: '10px' }}>{order.date}</p>
+                                </div>
+                                <button
+                                  onClick={() => setExpandedFactura(null)}
+                                  className="w-7 h-7 flex items-center justify-center rounded-full bg-red-100 hover:bg-red-200 transition-colors"
+                                >
+                                  <i className="pi pi-times text-red-600" style={{ fontSize: '12px' }}></i>
+                                </button>
+                              </div>
+                              
+                              <p className="font-bold text-gray-700 mb-2" style={{ fontSize: '11px' }}>Productos:</p>
+                              <div className="space-y-2 overflow-y-auto" style={{ maxHeight: '340px', paddingRight: '8px' }}>
+                                {order.detalles.map((detalle, idx) => (
+                                  <div key={idx} className="bg-gray-50 rounded-lg p-2.5 border border-gray-200">
+                                    <div className="flex justify-between items-start gap-3">
+                                      <p className="font-medium leading-tight flex-1 break-words overflow-hidden" style={{ fontSize: '11px', wordBreak: 'break-word' }}>
+                                        {detalle.nombre_item} ({detalle.cantidad_item})
+                                      </p>
+                                      <p className="font-bold text-gray-900 flex-shrink-0 whitespace-nowrap" style={{ fontSize: '11px', minWidth: 'fit-content' }}>
+                                        L {parseFloat(detalle.total_item).toLocaleString('es-HN', { minimumFractionDigits: 2 })}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                              
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <div className="flex justify-between items-center">
+                                  <p className="font-bold text-gray-700" style={{ fontSize: '12px' }}>Total:</p>
+                                  <p className="font-bold text-teal-700 text-lg">
+                                    L {order.total.toLocaleString('es-HN', { minimumFractionDigits: 2 })}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gray-50 rounded-lg p-8 text-center border-2 border-gray-300">
+                  <p className="text-gray-500" style={{ fontSize: '12px' }}>
+                    No hay compras registradas
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -199,15 +227,42 @@ const ModalPerfilCliente = ({ isOpen, cliente, onClose }) => {
         @keyframes fadeIn {
           from {
             opacity: 0;
-            transform: translateY(-5px);
           }
           to {
             opacity: 1;
-            transform: translateY(0);
+          }
+        }
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
           }
         }
         .animate-fadeIn {
           animation: fadeIn 0.2s ease-out;
+        }
+        .animate-scaleIn {
+          animation: scaleIn 0.2s ease-out;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+          background: #f1f5f9;
+          border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #14b8a6;
+          border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #0d9488;
         }
       `}</style>
     </Dialog>
