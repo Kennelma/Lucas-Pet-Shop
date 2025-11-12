@@ -64,7 +64,7 @@ const VerDetallesFactura = ({ numFactura, onClose }) => {
       exento: exento.toFixed(2),
       gravado: gravado.toFixed(2),
       descuento: descuento.toFixed(2),
-      impuesto: (0.15*total).toFixed(2),
+      impuesto: impuesto.toFixed(2),
       total: total.toFixed(2),
       saldo: saldo.toFixed(2)
     };
