@@ -1,17 +1,22 @@
-import { jsPDF } from 'jspdf';
+import { jsPDF } from 'jspdf';  // ← Correcto
 
-export const descargarPDF = (datosTabla, totalIngresos, totalGastos, gananciaTotal) => {
+export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananciaTotal, anio, mesFiltrado = null) => {
   const doc = new jsPDF();
 
-  // ========== ENCABEZADO MODERNO (sin degradado fuerte) ==========
-  doc.setFillColor(245, 247, 250); // Fondo gris claro suave
+  // ========== ENCABEZADO MODERNO ==========
+  doc.setFillColor(245, 247, 250);
   doc.rect(0, 0, 210, 45, 'F');
 
   // Título principal
   doc.setFontSize(26);
-  doc.setTextColor(33, 37, 41); // Negro suave (gris oscuro)
+  doc.setTextColor(33, 37, 41);
   doc.setFont(undefined, 'bold');
-  doc.text('Reporte Financiero Anual', 105, 22, { align: 'center' });
+  
+  const titulo = mesFiltrado 
+    ? `Reporte Financiero - ${mesFiltrado} ${anio}`
+    : `Reporte Financiero Anual ${anio}`;
+  
+  doc.text(titulo, 105, 22, { align: 'center' });
 
   // Subtítulo con fecha
   doc.setFontSize(11);
@@ -42,7 +47,7 @@ export const descargarPDF = (datosTabla, totalIngresos, totalGastos, gananciaTot
 
   doc.setFontSize(15);
   doc.setTextColor(22, 163, 74);
-  doc.text(`L ${totalIngresos.toLocaleString()}`, 43, cardY + 20, { align: 'center' });
+  doc.text(`L ${totalIngresos.toLocaleString('es-HN')}`, 43, cardY + 20, { align: 'center' });
 
   // Gastos (Rojo)
   doc.setFillColor(255, 240, 240);
@@ -56,7 +61,7 @@ export const descargarPDF = (datosTabla, totalIngresos, totalGastos, gananciaTot
 
   doc.setFontSize(15);
   doc.setTextColor(220, 38, 38);
-  doc.text(`L ${totalGastos.toLocaleString()}`, 105, cardY + 20, { align: 'center' });
+  doc.text(`L ${totalGastos.toLocaleString('es-HN')}`, 105, cardY + 20, { align: 'center' });
 
   // Ganancia (Azul si positiva, Naranja si negativa)
   const isPositive = gananciaTotal >= 0;
@@ -76,13 +81,18 @@ export const descargarPDF = (datosTabla, totalIngresos, totalGastos, gananciaTot
 
   doc.setFontSize(15);
   doc.setTextColor(isPositive ? 25 : 220, isPositive ? 80 : 50, isPositive ? 190 : 20);
-  doc.text(`L ${gananciaTotal.toLocaleString()}`, 167, cardY + 20, { align: 'center' });
+  doc.text(`L ${gananciaTotal.toLocaleString('es-HN')}`, 167, cardY + 20, { align: 'center' });
 
   // ========== TABLA DE DETALLE ==========
   doc.setFontSize(14);
   doc.setTextColor(33, 37, 41);
   doc.setFont(undefined, 'bold');
-  doc.text('Detalle Mensual', 105, 105, { align: 'center' });
+  
+  const tituloTabla = mesFiltrado 
+    ? `Detalle de ${mesFiltrado}`
+    : 'Detalle Mensual';
+  
+  doc.text(tituloTabla, 105, 105, { align: 'center' });
 
   const tableY = 115;
 
@@ -111,14 +121,14 @@ export const descargarPDF = (datosTabla, totalIngresos, totalGastos, gananciaTot
     doc.text(fila.mes, 30, y, { align: 'left' });
 
     doc.setTextColor(22, 163, 74);
-    doc.text(`L ${fila.ingreso.toLocaleString()}`, 85, y, { align: 'center' });
+    doc.text(`L ${fila.ingreso.toLocaleString('es-HN')}`, 85, y, { align: 'center' });
 
     doc.setTextColor(220, 38, 38);
-    doc.text(`L ${fila.gasto.toLocaleString()}`, 130, y, { align: 'center' });
+    doc.text(`L ${fila.gasto.toLocaleString('es-HN')}`, 130, y, { align: 'center' });
 
     const isProfitable = fila.ganancia >= 0;
     doc.setTextColor(isProfitable ? 37 : 234, isProfitable ? 99 : 88, isProfitable ? 235 : 0);
-    doc.text(`L ${fila.ganancia.toLocaleString()}`, 175, y, { align: 'center' });
+    doc.text(`L ${fila.ganancia.toLocaleString('es-HN')}`, 175, y, { align: 'center' });
 
     y += 9;
     if (y > 270 && index < datosTabla.length - 1) {
@@ -147,6 +157,9 @@ export const descargarPDF = (datosTabla, totalIngresos, totalGastos, gananciaTot
   }
 
   // ========== GUARDAR ==========
-  const nombreArchivo = `Reporte-Financiero-${new Date().getFullYear()}.pdf`;
+  const nombreArchivo = mesFiltrado 
+    ? `Reporte-${mesFiltrado}-${anio}.pdf`
+    : `Reporte-Financiero-${anio}.pdf`;
+  
   doc.save(nombreArchivo);
 };

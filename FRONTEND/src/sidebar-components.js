@@ -19,6 +19,8 @@ import {
   faShower,
   faStore,
   faShield,
+  faChartArea,
+  faBorderAll
 } from '@fortawesome/free-solid-svg-icons'
 
 
@@ -154,15 +156,27 @@ const _nav = [
   },
 
 
-  //REPORTES
-  {
-    component: CNavItem,
-    name: 'Reportes',
-    to: '/reportes',
-    icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
-
-  },
-
+{
+  component: CNavGroup,
+  name: 'Reportes',
+  icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
+  items: [
+    {
+      component: CNavItem,
+      name: 'Grafica',          // ← Muestra Reportes.js
+      to: '/reportes',
+      style: { paddingLeft: '65px' },
+      icon: <FontAwesomeIcon icon={faChartArea} className="nav-icon" />,
+    },
+    {
+      component: CNavItem,
+      name: 'Tabla',             // ← Muestra Tabla.js
+      to: '/reportes/Tabla',
+      style: { paddingLeft: '65px' },
+      icon: <FontAwesomeIcon icon={faBorderAll} className="nav-icon" />,
+    }
+  ]
+}
 
   
 
