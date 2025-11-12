@@ -226,15 +226,30 @@ const Tabla = () => {
     <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins, sans-serif' }}>
       <div className="max-w-7xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>
         
-        {/* Encabezado */}
-        <div className="bg-white rounded-xl shadow-sm p-8 mb-8 border border-gray-200">
-          <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">
-            HISTORIAL DE REPORTES
-          </h1>
-          <p className="text-center text-gray-600 italic" style={{ fontSize: '15px' }}>
+        {/* Titulo */}
+        <div
+          className="rounded-xl shadow-sm p-8 mb-8 border border-gray-200"
+          style={{
+            backgroundImage: 'url("/h101.png")', // 👉 cambia la ruta si tu imagen está en otra carpeta
+            backgroundColor: '#FFF6B3', // 🎨 color pastel de respaldo
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'left center',
+            boxShadow: '0 0 8px #FFF6B340, 0 0 0 1px #FFF6B333'
+          }}
+        >
+          <h2 className="text-2xl font-black text-center uppercase text-black">
+                    HISTORIAL DE REPORTES
+                  </h2>
+          <p
+            className="text-center text-gray-700 italic"
+            style={{ fontSize: '15px' }}
+          >
             Registro detallado de movimientos financieros
           </p>
         </div>
+
+
 
         {/* Estados de carga y error */}
         {cargando && (
@@ -261,115 +276,138 @@ const Tabla = () => {
           </div>
         )}
 
-        {/* Tabla */}
-        {!cargando && (
-          <div className="bg-white rounded-xl shadow-lg border-2 border-gray-200 overflow-hidden">
-            <div className="p-6 bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <FileText className="w-6 h-6 text-green-700" />
-                  </div>
-                  <h2 className="text-lg font-bold text-gray-800">
-                    {mesSeleccionado === 'todos' 
-                      ? `Resumen Anual`
-                      : `${meses[parseInt(mesSeleccionado)]} (Días)`
-                    }
-                  </h2>
-                </div>
-                
-                <div className="flex items-center gap-3 flex-wrap">
-                  {/* Selector de año */}
-                  
-                  {/* Selector de mes */}
-                  <select 
-                    value={mesSeleccionado}
-                    onChange={(e) => setMesSeleccionado(e.target.value)}
-                    className="text-sm px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500 bg-white font-medium shadow-sm"
-                  >
-                    <option value="todos">Ver todos los meses</option>
-                    {meses.map((mes, index) => (
-                      <option key={index} value={index}>
-                        {mes}
-                      </option>
-                    ))}
-                  </select>
-
-                  {/* Botón de descarga PDF general */}
-                  <button
-                    onClick={() => descargarPDFTabla(
-                      datosTabla, 
-                      totalIngresos, 
-                      totalGastos, 
-                      totalGeneral,
-                      anioSeleccionado,
-                      mesSeleccionado !== 'todos' ? meses[parseInt(mesSeleccionado)] : null
-                    )}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg"
-                  >
-                    <Download className="w-5 h-5" />
-                    Descargar PDF General
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            {/* Tabla con PrimeReact */}
-            <div className="p-8">
-              <DataTable
-                value={datosTabla}
-                className="font-poppins"
-                showGridlines
-                responsiveLayout="scroll"
-                emptyMessage="No hay datos disponibles para el período seleccionado"
-                rowClassName={(rowData, index) => 
-                  index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'
-                }
-              >
-                <Column 
-                  header="ID" 
-                  body={bodyId} 
-                  className="text-base font-medium py-4" 
-                  style={{ width: '80px', padding: '1rem' }}
-                />
-                <Column 
-                  header="Período" 
-                  body={bodyPeriodo} 
-                  footer={footerPeriodo} 
-                  className="text-base font-medium py-4" 
-                  style={{ padding: '1rem' }}
-                />
-                <Column 
-                  header="Ingresos" 
-                  body={bodyIngresos} 
-                  footer={footerIngresos} 
-                  className="text-base text-right py-4" 
-                  style={{ padding: '1rem' }}
-                />
-                <Column 
-                  header="Gastos" 
-                  body={bodyGastos} 
-                  footer={footerGastos} 
-                  className="text-base text-right py-4" 
-                  style={{ padding: '1rem' }}
-                />
-                <Column 
-                  header="Total" 
-                  body={bodyTotal} 
-                  footer={footerTotal} 
-                  className="text-base text-right py-4" 
-                  style={{ padding: '1rem' }}
-                />
-                <Column 
-                  header="Acciones" 
-                  body={bodyAcciones} 
-                  className="text-base py-4" 
-                  style={{ width: '150px', padding: '1rem' }}
-                />
-              </DataTable>
-            </div>
+      {/* Tabla compacta */}
+{!cargando && (
+  <div className="bg-white rounded-xl shadow-lg border-2 border-gray-200 overflow-hidden">
+    {/* Encabezado */}
+    <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-green-100 rounded-lg">
+            <FileText className="w-5 h-5 text-green-700" />
           </div>
-        )}
+          <h2 className="text-base font-bold text-gray-800">
+            {mesSeleccionado === "todos"
+              ? `Resumen Anual`
+              : `${meses[parseInt(mesSeleccionado)]} (Días)`
+            }
+          </h2>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Selector de mes */}
+          <select
+            value={mesSeleccionado}
+            onChange={(e) => setMesSeleccionado(e.target.value)}
+            className="text-sm px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 bg-white font-medium shadow-sm"
+          >
+            <option value="todos">Ver todos los meses</option>
+            {meses.map((mes, index) => (
+              <option key={index} value={index}>
+                {mes}
+              </option>
+            ))}
+          </select>
+
+          {/* Botón de descarga PDF general */}
+          <button
+            onClick={() =>
+              descargarPDFTabla(
+                datosTabla,
+                totalIngresos,
+                totalGastos,
+                totalGeneral,
+                anioSeleccionado,
+                mesSeleccionado !== "todos" ? meses[parseInt(mesSeleccionado)] : null
+              )
+            }
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-semibold transition-all shadow-sm hover:shadow-md border border-green-700/40"
+          >
+            <Download className="w-4 h-4" />
+            Descargar PDF
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {/* Tabla con PrimeReact */}
+    <div className="p-4 tabla-local">
+      <style>{`
+        /* Alinear texto a la izquierda en celdas */
+        .tabla-local .p-datatable-thead > tr > th,
+        .tabla-local .p-datatable-tbody > tr > td {
+          text-align: left !important;
+          vertical-align: middle !important;
+        }
+
+        /* Bordes redondeados para todos los botones */
+        .tabla-local button, 
+        .tabla-local .p-button {
+          border-radius: 8px !important;
+          border: 1px solid #d1d5db !important; /* gris claro */
+        }
+
+        .tabla-local button:hover,
+        .tabla-local .p-button:hover {
+          border-color: #9ca3af !important; /* gris medio al pasar el ratón */
+        }
+      `}</style>
+
+      <DataTable
+        value={datosTabla}
+        className="font-poppins text-sm"
+        showGridlines
+        responsiveLayout="scroll"
+        emptyMessage="No hay datos disponibles para el período seleccionado"
+        rowClassName={(rowData, index) =>
+          index % 2 === 0 ? "bg-white" : "bg-slate-50/50"
+        }
+      >
+        <Column
+          header="ID"
+          body={bodyId}
+          className="text-sm font-medium"
+          style={{ width: "70px", padding: "0.4rem" }}
+        />
+        <Column
+          header="Período"
+          body={bodyPeriodo}
+          footer={footerPeriodo}
+          className="text-sm font-medium"
+          style={{ padding: "0.4rem" }}
+        />
+        <Column
+          header="Ingresos"
+          body={bodyIngresos}
+          footer={footerIngresos}
+          className="text-sm"
+          style={{ padding: "0.4rem" }}
+        />
+        <Column
+          header="Gastos"
+          body={bodyGastos}
+          footer={footerGastos}
+          className="text-sm"
+          style={{ padding: "0.4rem" }}
+        />
+        <Column
+          header="Balance"
+          body={bodyTotal}
+          footer={footerTotal}
+          className="text-sm"
+          style={{ padding: "0.4rem" }}
+        />
+        <Column
+          header="Acciones"
+          body={bodyAcciones}
+          className="text-sm"
+          style={{ width: "130px", padding: "0.4rem" }}
+        />
+      </DataTable>
+    </div>
+  </div>
+)}
+
       </div>
     </div>
   );

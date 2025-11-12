@@ -71,16 +71,33 @@ const Reportes = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins, sans-serif' }}>
       <div className="max-w-7xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>
-        
-        {/* Encabezado */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-200">
-          <h1 className="text-3xl font-bold text-gray-800 text-center mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
-            REPORTES FINANCIEROS
-          </h1>
-          <p className="text-center text-gray-600 italic" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '15px' }}>
+
+        {/* Titulo */}
+        <div
+          className="rounded-xl p-6 mb-6"
+          style={{
+            backgroundImage: 'url("/h100.png")', // 👉 cambia la ruta si usas otra imagen
+            backgroundColor: '#79c2faff',
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'left center',
+            boxShadow: '0 0 8px #F4B6C240, 0 0 0 1px #F4B6C233'
+          }}
+        >
+          <div className="flex justify-center items-center">
+            <h2 className="text-2xl font-black text-center uppercase text-black">
+                    REPORTES FINANCIEROS
+                  </h2>
+          </div>
+          <p
+            className="text-center text-gray-700 italic mt-2"
+            style={{ fontFamily: 'Poppins, sans-serif', fontSize: '15px' }}
+          >
             Gráficas y resumen del año actual
           </p>
         </div>
+
+
 
         {/* Resumen Financiero del Día - HORIZONTAL */}
         <div className="mb-8">
