@@ -7,7 +7,7 @@ import TablaClientes from "./tabla-clientes.js";
 const Clientes = () => {
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
+    <div className="min-h-screen p-6 ">
       {/* Título */}
       <div className="rounded-xl p-6 mb-3"
         style={{

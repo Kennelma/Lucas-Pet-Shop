@@ -379,7 +379,7 @@ export default function Usuarios() {
       >
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-black">
-            GESTION DE SEGURIDAD 
+            GESTN DE SEGURIDAD 
           </h2>
         </div>
         <p className="text-center text-black italic mt-2">

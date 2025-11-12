@@ -67,7 +67,7 @@ const ModalAgregarEmpresa = ({
             {errores.nombre_empresa && <p className="text-xs text-red-600 mt-1">{errores.nombre_empresa}</p>}
           </span>
 
-          {/* Dirección */}
+          {/* Direcciónn */}
           <span>
             <label htmlFor="direccion_empresa" className="text-xs font-semibold text-gray-700 mb-1">DIRECCIÓN</label>
             <InputText
