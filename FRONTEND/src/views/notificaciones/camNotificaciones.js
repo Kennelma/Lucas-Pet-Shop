@@ -219,12 +219,12 @@ const CamNotificaciones = () => {
       icon: icono,
       title: titulo,
       text: mensaje,
-      timer: 4000,
-      timerProgressBar: true,
       showConfirmButton: true,
       confirmButtonText: 'Entendido',
       showCancelButton: true,
       cancelButtonText: 'Ver todas',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
       customClass: {
         confirmButton: 'swal2-confirm swal2-styled',
         cancelButton: 'swal2-cancel swal2-styled'
