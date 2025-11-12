@@ -15,75 +15,203 @@ const CamNotificaciones = () => {
   const [modalVisible, setModalVisible] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
-  const audioRef = useRef(null)
   const prevNotificacionesRef = useRef([])
   const navigate = useNavigate()
 
+  // ============== UTILIDADES ==============
   const getTituloNotificacion = (tipo, mensaje) => {
     if (tipo === 'STOCK_BAJOS') {
-      if (mensaje.includes('30 DÍAS') || mensaje.includes('30 días')) {
-        return 'Stock crítico'
-      }
-      return 'STOCK BAJO'
+      return 'Stock Bajo'
     }
     
     if (tipo === 'LOTE_VENCIDO') {
-      return 'Lote vencido'
+      return 'Lote Vencido'
     }
     
     if (tipo === 'LOTE_PROXIMO_VENCER') {
-      if (mensaje.includes('30 DÍAS') || mensaje.includes('30 días')) {
-        return 'Lote por vencer pronto'
-      }
-      if (mensaje.includes('60 DÍAS') || mensaje.includes('60 días')) {
-        return 'Lote próximo a vencer'
-      }
-      if (mensaje.includes('90 DÍAS') || mensaje.includes('90 días')) {
-        return 'Recordatorio de vencimiento'
-      }
+      if (mensaje.includes('30 DÍAS')) return 'Vence en 30 días'
+      if (mensaje.includes('60 DÍAS')) return 'Vence en 60 días'
+      if (mensaje.includes('90 DÍAS')) return 'Vence en 90 días'
+      return 'Lote por Vencer'
     }
     
     return 'Notificación'
   }
 
-  const formatearMensajeLimpio = (mensaje, tipo) => {
+  const formatearMensaje = (mensaje, tipo) => {
     if (tipo === 'STOCK_BAJOS') {
       const match = mensaje.match(/EL PRODUCTO (.+?) TIENE UN STOCK = (\d+)/i)
       if (match) {
-        const producto = match[1].trim()
-        const stock = match[2]
-        return `El producto ${producto} tiene un stock de ${stock} unidades. Es necesario reabastecer.`
+        const [, producto, stock] = match
+        return `El producto ${producto.trim()} tiene ${stock} unidades. Es necesario reabastecer.`
       }
-    } else if (tipo === 'LOTE_VENCIDO') {
+    }
+    
+    if (tipo === 'LOTE_VENCIDO') {
       const match = mensaje.match(/EL MEDICAMENTO (.+?), TIENE EL (.+?) VENCIDO/i)
       if (match) {
-        const medicamento = match[1].trim()
-        const lote = match[2].trim()
-        return `El medicamento ${medicamento} tiene el lote ${lote} vencido. Es necesario tomar acción inmediata.`
+        const [, medicamento, lote] = match
+        return `El medicamento ${medicamento.trim()} tiene el lote ${lote.trim()} vencido. Tome acción inmediata.`
       }
-    } else if (tipo === 'LOTE_PROXIMO_VENCER') {
+    }
+    
+    if (tipo === 'LOTE_PROXIMO_VENCER') {
       const match = mensaje.match(/EL MEDICAMENTO (.+?) CON EL (.+?), SE VENCE EN (\d+) DÍAS/i)
       if (match) {
-        const medicamento = match[1].trim()
-        const lote = match[2].trim()
-        const dias = match[3]
-        return `El medicamento ${medicamento} con el lote ${lote} se vence en ${dias} días. Planifique en consecuencia.`
+        const [, medicamento, lote, dias] = match
+        return `El medicamento ${medicamento.trim()} con el lote ${lote.trim()} se vence en ${dias} días.`
       }
     }
     
     return mensaje
   }
 
+  const getIcono = (tipo) => {
+    if (tipo === 'STOCK_BAJOS') return '⚠️'
+    if (tipo === 'LOTE_VENCIDO') return '🚨'
+    if (tipo === 'LOTE_PROXIMO_VENCER') return '⏰'
+    return '🔔'
+  }
+
+  const determinarPlantilla = (tipo, mensaje) => {
+    if (tipo === 'LOTE_VENCIDO') return 4
+    
+    if (tipo === 'LOTE_PROXIMO_VENCER') {
+      if (mensaje.includes('30 DÍAS')) return 1
+      if (mensaje.includes('60 DÍAS')) return 2
+      if (mensaje.includes('90 DÍAS')) return 3
+    }
+
+    if (tipo === 'STOCK_BAJOS') return 1
+    
+    return 0
+  }
+
+  const reproducirSonido = () => {
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+      const oscillator = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
+      
+      oscillator.connect(gainNode)
+      gainNode.connect(audioContext.destination)
+      
+      oscillator.frequency.value = 800
+      oscillator.type = 'sine'
+      
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime)
+      gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.1)
+      gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3)
+      
+      oscillator.start(audioContext.currentTime)
+      oscillator.stop(audioContext.currentTime + 0.3)
+      
+      setTimeout(() => audioContext.close(), 400)
+    } catch (error) {
+      console.error('Error al reproducir sonido:', error)
+    }
+  }
+
+  // ============== EFECTOS ==============
+  useEffect(() => {
+    cargarNotificaciones()
+    
+    const interval = setInterval(() => {
+      cargarNotificaciones()
+    }, 10000) // Cada 10 segundos
+    
+    return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    const prevCount = parseInt(localStorage.getItem('notif_count') || '0')
+    
+    if (noLeidas > prevCount && prevCount >= 0) {
+      setAnimarCampana(true)
+      setTimeout(() => setAnimarCampana(false), 500)
+      reproducirSonido()
+    }
+    
+    localStorage.setItem('notif_count', noLeidas.toString())
+  }, [noLeidas])
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false)
+      }
+    }
+
+    if (dropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [dropdownOpen])
+
+  // ============== FUNCIONES PRINCIPALES ==============
+  const cargarNotificaciones = async () => {
+    try {
+      const response = await obtenerNotificaciones()
+      
+      if (!response.Consulta) {
+        throw new Error(response.mensaje || 'Error al cargar notificaciones')
+      }
+      
+      // Adaptamos las notificaciones del backend
+      const notificacionesAdaptadas = (response.notificaciones || []).map(notif => ({
+        id_notificacion_pk: notif.id_notificacion_pk,
+        nombre_notificacion: notif.mensaje_notificacion, // CORRECCIÓN: usar mensaje_notificacion
+        nombre_tipo_notificacion: notif.nombre_tipo_notificacion,
+        fecha_creacion: notif.fecha_creacion || new Date().toISOString(),
+        plantilla_id_fk: determinarPlantilla(
+          notif.nombre_tipo_notificacion, 
+          notif.mensaje_notificacion
+        ),
+        leida: false
+      }))
+      
+      // Ordenar por ID descendente (más recientes primero)
+      notificacionesAdaptadas.sort((a, b) => b.id_notificacion_pk - a.id_notificacion_pk)
+      
+      // Detectar notificaciones nuevas
+      const prevIds = prevNotificacionesRef.current.map(n => n.id_notificacion_pk)
+      const notificacionesNuevas = notificacionesAdaptadas.filter(n => !prevIds.includes(n.id_notificacion_pk))
+      
+      if (notificacionesNuevas.length > 0) {
+        mostrarSwalNotificacion(notificacionesNuevas[0])
+      }
+      
+      prevNotificacionesRef.current = notificacionesAdaptadas
+      
+      setNotificaciones(notificacionesAdaptadas)
+      setNoLeidas(notificacionesAdaptadas.length)
+      setError(null)
+      setLoading(false)
+    } catch (error) {
+      console.error('Error al cargar notificaciones:', error)
+      setError('No se pudieron cargar las notificaciones')
+      setNotificaciones([])
+      setNoLeidas(0)
+      setLoading(false)
+    }
+  }
+
   const mostrarSwalNotificacion = (notificacion) => {
-    const titulo = getTituloNotificacion(notificacion.nombre_tipo_notificacion, notificacion.nombre_notificacion)
-    const mensaje = formatearMensajeLimpio(notificacion.nombre_notificacion, notificacion.nombre_tipo_notificacion)
+    const titulo = getTituloNotificacion(
+      notificacion.nombre_tipo_notificacion, 
+      notificacion.nombre_notificacion
+    )
+    const mensaje = formatearMensaje(
+      notificacion.nombre_notificacion, 
+      notificacion.nombre_tipo_notificacion
+    )
     
     let icono = 'info'
     if (notificacion.nombre_tipo_notificacion === 'LOTE_VENCIDO') {
       icono = 'error'
-    } else if (notificacion.nombre_tipo_notificacion === 'STOCK_BAJOS') {
-      icono = 'warning'
-    } else if (notificacion.nombre_tipo_notificacion === 'LOTE_PROXIMO_VENCER') {
+    } else if (notificacion.nombre_tipo_notificacion === 'STOCK_BAJOS' || 
+               notificacion.nombre_tipo_notificacion === 'LOTE_PROXIMO_VENCER') {
       icono = 'warning'
     }
 
@@ -108,191 +236,37 @@ const CamNotificaciones = () => {
     })
   }
 
-  const getIconoAvatar = (tipo) => {
-    if (tipo === 'STOCK_BAJOS') return '⚠️'
-    if (tipo === 'LOTE_VENCIDO') return '🚨'
-    if (tipo === 'LOTE_PROXIMO_VENCER') return '⏰'
-    return '🔔'
-  }
-
-  const determinarPlantilla = (nombre_tipo_notificacion, mensaje) => {
-    if (nombre_tipo_notificacion === 'LOTE_VENCIDO') {
-      return 4
-    }
-    
-    if (nombre_tipo_notificacion === 'LOTE_PROXIMO_VENCER') {
-      if (mensaje.includes('30 DÍAS') || mensaje.includes('30 días')) return 1
-      if (mensaje.includes('60 DÍAS') || mensaje.includes('60 días')) return 2
-      if (mensaje.includes('90 DÍAS') || mensaje.includes('90 días')) return 3
-    }
-
-    if (nombre_tipo_notificacion === 'STOCK_BAJOS') {
-      return 1
-    }
-    
-    return 0
-  }
-
-  const reproducirSonido = () => {
-    try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)()
-      
-      const oscillator = audioContext.createOscillator()
-      const gainNode = audioContext.createGain()
-      
-      oscillator.connect(gainNode)
-      gainNode.connect(audioContext.destination)
-      
-      oscillator.frequency.value = 800
-      oscillator.type = 'sine'
-      
-      gainNode.gain.setValueAtTime(0, audioContext.currentTime)
-      gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.1)
-      gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3)
-      
-      oscillator.start(audioContext.currentTime)
-      oscillator.stop(audioContext.currentTime + 0.3)
-      
-      setTimeout(() => {
-        audioContext.close()
-      }, 400)
-      
-      console.log('🔊 Sonido de notificación reproducido')
-    } catch (error) {
-      console.error('Error al reproducir sonido:', error)
-    }
-  }
-
-  useEffect(() => {
-    cargarNotificaciones()
-    
-    const interval = setInterval(() => {
-      console.log('🔍 Verificando nuevas notificaciones...', new Date().toLocaleTimeString())
-      cargarNotificaciones()
-    }, 10000)
-    
-    return () => clearInterval(interval)
-  }, [])
-
-  useEffect(() => {
-    const prevCount = parseInt(localStorage.getItem('notif_count') || '0')
-    
-    console.log('📊 Cambio detectado - Anterior:', prevCount, 'Actual:', noLeidas)
-    
-    if (noLeidas > prevCount && prevCount >= 0) {
-      console.log('🆕 ¡Nueva notificación detectada!')
-      setAnimarCampana(true)
-      setTimeout(() => setAnimarCampana(false), 500)
-      
-      reproducirSonido()
-    }
-    
-    localStorage.setItem('notif_count', noLeidas.toString())
-  }, [noLeidas])
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false)
-      }
-    }
-
-    if (dropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [dropdownOpen])
-
-  const cargarNotificaciones = async () => {
-    try {
-      console.log('📡 Llamando API de notificaciones...')
-      const response = await obtenerNotificaciones()
-      
-      console.log('📦 Respuesta recibida:', response)
-      
-      if (!response.Consulta) {
-        throw new Error(response.mensaje || 'Error al cargar notificaciones')
-      }
-      
-      const notificacionesAdaptadas = response.notificaciones.map(notif => {
-        const plantilla_id_fk = determinarPlantilla(
-          notif.nombre_tipo_notificacion, 
-          notif.mensaje_notificacion
-        )
-        
-        return {
-          id_notificacion_pk: notif.id_notificacion_pk,
-          nombre_notificacion: notif.mensaje_notificacion,
-          plantilla_id_fk: plantilla_id_fk,
-          leida: false,
-          fecha_creacion: notif.fecha_creacion,
-          nombre_tipo_notificacion: notif.nombre_tipo_notificacion,
-          id_lote_fk: null
-        }
-      })
-      
-      notificacionesAdaptadas.sort((a, b) => {
-        return b.id_notificacion_pk - a.id_notificacion_pk
-      })
-      
-      const prevIds = prevNotificacionesRef.current.map(n => n.id_notificacion_pk)
-      const notificacionesNuevas = notificacionesAdaptadas.filter(n => !prevIds.includes(n.id_notificacion_pk))
-      
-      if (notificacionesNuevas.length > 0) {
-        console.log('🎉 ¡Notificaciones nuevas detectadas!:', notificacionesNuevas)
-        mostrarSwalNotificacion(notificacionesNuevas[0])
-      }
-      
-      prevNotificacionesRef.current = notificacionesAdaptadas
-      
-      setNotificaciones(notificacionesAdaptadas)
-      setNoLeidas(notificacionesAdaptadas.length)
-      setError(null)
-      setLoading(false)
-    } catch (error) {
-      console.error('❌ Error al cargar notificaciones:', error)
-      setError('No se pudieron cargar las notificaciones')
-      setNotificaciones([])
-      setNoLeidas(0)
-      setLoading(false)
-    }
-  }
-
   const marcarComoLeida = async (id_notificacion_pk) => {
     const notifAnterior = notificaciones.find(n => n.id_notificacion_pk === id_notificacion_pk)
     
-    if (notifAnterior && !notifAnterior.leida) {
-      setNotificaciones(notificaciones.map(n => 
-        n.id_notificacion_pk === id_notificacion_pk ? { ...n, leida: true } : n
-      ))
-      setNoLeidas(prev => Math.max(0, prev - 1))
+    if (!notifAnterior || notifAnterior.leida) return
+    
+    // Actualización optimista
+    setNotificaciones(prev => prev.map(n => 
+      n.id_notificacion_pk === id_notificacion_pk ? { ...n, leida: true } : n
+    ))
+    setNoLeidas(prev => Math.max(0, prev - 1))
+    
+    try {
+      const response = await marcarNotificacionLeida(id_notificacion_pk)
       
-      try {
-        const response = await marcarNotificacionLeida(id_notificacion_pk)
-        
-        if (!response.Consulta) {
-          throw new Error(response.mensaje || 'Error al marcar como leída')
-        }
-        
-        setTimeout(() => {
-          setNotificaciones(prev => prev.filter(n => n.id_notificacion_pk !== id_notificacion_pk))
-        }, 500)
-        
-      } catch (error) {
-        console.error('Error al marcar notificación como leída:', error)
-        setNotificaciones(notificaciones.map(n => 
-          n.id_notificacion_pk === id_notificacion_pk ? { ...n, leida: false } : n
-        ))
-        setNoLeidas(prev => prev + 1)
+      if (!response.Consulta) {
+        throw new Error(response.mensaje || 'Error al marcar como leída')
       }
+      
+      // Remover de la lista después de 500ms
+      setTimeout(() => {
+        setNotificaciones(prev => prev.filter(n => n.id_notificacion_pk !== id_notificacion_pk))
+      }, 500)
+      
+    } catch (error) {
+      console.error('Error al marcar notificación:', error)
+      // Revertir en caso de error
+      setNotificaciones(prev => prev.map(n => 
+        n.id_notificacion_pk === id_notificacion_pk ? { ...n, leida: false } : n
+      ))
+      setNoLeidas(prev => prev + 1)
     }
-  }
-
-  const manejarClickNotificacion = async (notif) => {
-    await marcarComoLeida(notif.id_notificacion_pk)
   }
 
   const marcarTodasComoLeidas = async (e) => {
@@ -303,17 +277,12 @@ const CamNotificaciones = () => {
     const notificacionesAnteriores = [...notificaciones]
     const noLeidasAnterior = noLeidas
     
-    setNotificaciones(notificaciones.map(n => ({ ...n, leida: true })))
+    setNotificaciones(prev => prev.map(n => ({ ...n, leida: true })))
     setNoLeidas(0)
     
     try {
       const promesas = notificaciones.map(n => marcarNotificacionLeida(n.id_notificacion_pk))
-      const resultados = await Promise.allSettled(promesas)
-      
-      const errores = resultados.filter(r => r.status === 'rejected')
-      if (errores.length > 0) {
-        console.error('Algunos errores al marcar notificaciones:', errores)
-      }
+      await Promise.allSettled(promesas)
       
       setTimeout(() => {
         setNotificaciones([])
@@ -337,6 +306,7 @@ const CamNotificaciones = () => {
     setModalVisible(true)
   }
 
+  // ============== RENDER ==============
   return (
     <div className="nav-item" ref={dropdownRef} style={{ position: 'relative' }}>
       <button
@@ -344,10 +314,7 @@ const CamNotificaciones = () => {
           setDropdownOpen(!dropdownOpen)
           if (!dropdownOpen) {
             const ctx = new (window.AudioContext || window.webkitAudioContext)()
-            ctx.resume().then(() => {
-              console.log('🔓 Audio activado por interacción del usuario')
-              ctx.close()
-            })
+            ctx.resume().then(() => ctx.close())
           }
         }}
         className="nav-link border-0 bg-transparent"
@@ -388,18 +355,16 @@ const CamNotificaciones = () => {
             zIndex: 1050
           }}
         >
+          {/* Header */}
           <div className="bg-light border-bottom px-3 py-2 d-flex justify-content-between align-items-center">
-            <div>
-              <span className="fw-semibold" style={{ color: '#000' }}>
-                Tienes {noLeidas} {noLeidas === 1 ? 'notificación' : 'notificaciones'}
-              </span>
-            </div>
+            <span className="fw-semibold" style={{ color: '#000' }}>
+              {noLeidas} {noLeidas === 1 ? 'notificación' : 'notificaciones'}
+            </span>
             <div className="d-flex gap-2">
               {noLeidas > 0 && (
                 <CIcon 
                   icon={cilCheckAlt} 
                   size="lg" 
-                  className="cursor-pointer" 
                   style={{ cursor: 'pointer', color: '#000' }}
                   onClick={marcarTodasComoLeidas}
                   title="Marcar todas como leídas"
@@ -415,6 +380,7 @@ const CamNotificaciones = () => {
             </div>
           </div>
 
+          {/* Contenido */}
           <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
             {loading ? (
               <div className="text-center py-4" style={{ color: '#000' }}>
@@ -439,7 +405,7 @@ const CamNotificaciones = () => {
                 <div className="mb-2" style={{ fontSize: '3rem' }}>🔔</div>
                 <div className="fw-semibold">No hay notificaciones</div>
                 <small className="text-muted d-block mt-1">
-                  Cuando haya lotes por vencer o stock bajo, aparecerán aquí
+                  Las notificaciones de stock bajo y lotes por vencer aparecerán aquí
                 </small>
               </div>
             ) : (
@@ -451,15 +417,15 @@ const CamNotificaciones = () => {
                     cursor: 'pointer',
                     backgroundColor: !notif.leida ? '#eff6ff' : 'white',
                     transition: 'all 0.2s',
-  opacity: notif.leida ? 0.5 : 1 
+                    opacity: notif.leida ? 0.5 : 1 
                   }}
-                  onClick={(e) => manejarClickNotificacion(notif, e)}
+                  onClick={() => marcarComoLeida(notif.id_notificacion_pk)}
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = !notif.leida ? '#eff6ff' : 'white'}
                 >
                   <div className="d-flex gap-3">
                     <div style={{ flexShrink: 0, fontSize: '1rem', marginTop: '2px' }}>
-                      {getIconoAvatar(notif.nombre_tipo_notificacion)}
+                      {getIcono(notif.nombre_tipo_notificacion)}
                     </div>
 
                     <div style={{ flexGrow: 1, minWidth: 0 }}>
@@ -471,12 +437,12 @@ const CamNotificaciones = () => {
                           <span 
                             className="bg-primary rounded-circle ms-2"
                             style={{ width: '8px', height: '8px', flexShrink: 0 }}
-                          ></span>
+                          />
                         )}
                       </div>
                       
                       <div style={{ fontSize: '0.7rem', lineHeight: '1.4', color: '#000' }}>
-                        {formatearMensajeLimpio(notif.nombre_notificacion, notif.nombre_tipo_notificacion)}
+                        {formatearMensaje(notif.nombre_notificacion, notif.nombre_tipo_notificacion)}
                       </div>
                     </div>
                   </div>
@@ -485,6 +451,7 @@ const CamNotificaciones = () => {
             )}
           </div>
 
+          {/* Footer */}
           {notificaciones.length > 0 && (
             <div className="border-top text-center">
               <button
