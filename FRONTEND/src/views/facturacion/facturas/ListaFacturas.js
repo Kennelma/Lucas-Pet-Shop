@@ -25,8 +25,6 @@ const ListaFacturas = () => {
 
   //====================CARGAR_FACTURAS_AL_MONTAR_COMPONENTE====================
   useEffect(() => {
-    console.log("🟩 ID enviado a VerDetallesFactura:", facturaVista);
-
     cargarFacturas();
   }, []);
 
@@ -37,11 +35,10 @@ const ListaFacturas = () => {
       if (response.success) {
         setFacturas(response.data);
       } else {
-        console.error('Error al cargar facturas:', response.mensaje);
         setFacturas([]);
       }
     } catch (error) {
-      console.error('Error inesperado al cargar facturas:', error);
+      console.error('Error al cargar facturas:', error);
       setFacturas([]);
     } finally {
       setLoading(false);
@@ -127,29 +124,26 @@ const ListaFacturas = () => {
 
   const handlePagoExitoso = async (datosPago) => {
     try {
-      //MOSTRAR EN CONSOLA QUÉ SE VA A ENVIAR
-      console.log('📤 DATOS A ENVIAR AL BACKEND:', JSON.stringify(datosPago, null, 2));
-
-      //LLAMAR AL SERVICIO PARA PROCESAR EL PAGO
       const response = await procesarPago(datosPago);
 
-      console.log('📥 RESPUESTA DEL BACKEND:', response);
-
       if (response.success) {
-        //MOSTRAR MENSAJE DE ÉXITO
         alert(response.mensaje || 'Pago procesado exitosamente');
 
-        //CERRAR MODAL Y LIMPIAR SELECCIONES
-        setShowModalPago(false);
-        setFacturaSeleccionada(null);
+        if (facturaSeleccionada) {
+          await handleDescargarFactura(facturaSeleccionada);
+        }
 
-        //RECARGAR FACTURAS PARA VER CAMBIOS
-        cargarFacturas();
+        setShowModalPago(false);
+        setShowDetallesFactura(false);
+        setFacturaSeleccionada(null);
+        setFacturaVista(null);
+
+        await cargarFacturas();
       } else {
         alert(response.mensaje || 'Error al procesar el pago');
       }
     } catch (error) {
-      console.error('❌ ERROR AL PROCESAR PAGO:', error);
+      console.error('Error al procesar pago:', error);
       alert('Error al procesar el pago: ' + (error.response?.data?.mensaje || error.message));
     }
   };
@@ -160,6 +154,7 @@ const ListaFacturas = () => {
     try {
       const response = await obtenerDatosFacturaPDF(factura.numero_factura);
       if (response.success) {
+
         //Generar el PDF
         const doc = generarPDFFactura(response.data);
 
@@ -167,7 +162,7 @@ const ListaFacturas = () => {
         const pdfBlob = doc.output('blob');
         const url = URL.createObjectURL(pdfBlob);
 
-        // Mostrar en modal
+        //Mostrar en modal
         setPdfUrl(url);
         setShowPDFPreview(true);
       } else {
@@ -203,12 +198,9 @@ const ListaFacturas = () => {
     }
   };
 
-// ✅ BIEN - usa numero_factura que es lo que espera el backend
+//ANTES CON ID_FACTURA, ESTA VEZ CON EL NUMERO DE FACTURA DE LA FILA
 const handleVerFactura = (factura) => {
-  console.log("🔍 Objeto factura completo:", factura);
-  console.log("🟩 Enviando numero_factura:", factura.numero_factura);
-  
-  setFacturaVista(factura.numero_factura);  // ← Esto es "FAC-2025-001"
+  setFacturaVista(factura.numero_factura); 
   setShowDetallesFactura(true);
 };
 
@@ -507,13 +499,13 @@ const handleVerFactura = (factura) => {
           </div>
         </div>
       )}
-{/* MODAL DE DETALLES FACTURA - VERSIÓN CORREGIDA */}
+        {/* MODAL DE DETALLES FACTURA - VERSIÓN CORREGIDA */}
       {showDetallesFactura && (
-        <div 
+        <div
           className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-50"
           onClick={() => setShowDetallesFactura(false)} // Cerrar al hacer clic fuera
         >
-          <div 
+          <div
             className="relative"
             onClick={(e) => e.stopPropagation()} // Evitar cerrar al hacer clic dentro
           >
@@ -523,7 +515,7 @@ const handleVerFactura = (factura) => {
             />
           </div>
         </div>
-      )}      
+      )}
 
     </div>
   );

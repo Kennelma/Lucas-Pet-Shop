@@ -14,7 +14,7 @@ const NuevaFactura = (props) => {
   const [identidad, setIdentidad] = useState("");
   const [nombreCliente, setNombreCliente] = useState("");
   const [RTN, setRTN] = useState("");
-  const [id_cliente, setIdCliente] = useState(null); // ⭐ NUEVO
+  const [id_cliente, setIdCliente] = useState(null); 
 
   //====================ESTADOS_DEL_USUARIO====================
   const [vendedor, setVendedor] = useState("");
@@ -205,9 +205,10 @@ const NuevaFactura = (props) => {
           onItemChange={handleItemChange}
           estilistas={estilistas}
           onCancel={handleCancel}
-          identidad={identidad} // ⭐ NUEVO
-          RTN={RTN} // ⭐ NUEVO
-          id_cliente={id_cliente} // ⭐ NUEVO
+          identidad={identidad}
+          RTN={RTN}
+          id_cliente={id_cliente}
+          setActiveTab={props.setActiveTab}
         />
 
         {isLoading && (

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import PropTypes from 'prop-types'
 
@@ -9,6 +9,19 @@ import { CBadge, CNavLink, CSidebarNav } from '@coreui/react'
 
 export const AppSidebarNav = ({ items }) => {
   const location = useLocation()
+  //ESTADO PARA MANTENER TODOS LOS GRUPOS SIEMPRE ABIERTOS
+  const [openGroups, setOpenGroups] = useState({})
+
+  //INICIALIZAR TODOS LOS GRUPOS COMO ABIERTOS
+  useEffect(() => {
+    const initialState = {}
+    items?.forEach((item, index) => {
+      if (item.items) {
+        initialState[index] = true
+      }
+    })
+    setOpenGroups(initialState)
+  }, [items])
 
   // Función para verificar si un grupo tiene un hijo activo
   const isGroupActive = (item) => {
@@ -43,7 +56,7 @@ export const AppSidebarNav = ({ items }) => {
   }
 
   const navItem = (item, index, indent = false) => {
-    const { component, name, badge, icon, ...rest } = item
+    const { component, name, badge, icon, rolesPermitidos, ...rest } = item
     const Component = component
     return (
       <Component as="div" key={index}>
@@ -66,14 +79,19 @@ export const AppSidebarNav = ({ items }) => {
     const { component, name, icon, items, to, ...rest } = item
     const Component = component
     const hasActiveChild = isGroupActive(item)
-    
+
     return (
-      <Component 
-        compact 
-        as="div" 
-        key={index} 
-        toggler={navLink(name, icon)} 
+      <Component
+        compact
+        as="div"
+        key={index}
+        toggler={navLink(name, icon)}
         className={hasActiveChild ? 'active' : ''}
+        visible={openGroups[index] !== undefined ? openGroups[index] : true}
+        onVisibleChange={(visible) => {
+          //FORZAR QUE SIEMPRE ESTÉ ABIERTO
+          setOpenGroups(prev => ({ ...prev, [index]: true }))
+        }}
         {...rest}
       >
         {items?.map((item, index) =>

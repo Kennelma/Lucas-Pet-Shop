@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { Button } from 'primereact/button';
 import { insertarRecordatorio } from "../../AXIOS.SERVICES/reminders-axios";
@@ -10,6 +10,16 @@ const ModalRecordatorio = ({ isOpen, onClose, onGuardar, tipoServicio = [], frec
   const [mensaje, setMensaje] = useState('');
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Al abrir el modal, por defecto usar la fecha/hora del sistema
+  useEffect(() => {
+    if (isOpen) {
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const localDatetime = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      setFechaProgramacion(localDatetime);
+    }
+  }, [isOpen]);
 
   const limpiar = () => {
     setTipoItem('');
@@ -39,12 +49,15 @@ const ModalRecordatorio = ({ isOpen, onClose, onGuardar, tipoServicio = [], frec
       return;
     }
 
-    const datosRegistro = {
-      tipo_item: Number(tipoItem),
-      frecuencia: Number(frecuencia),
-      programada_para: fechaProgramacion, // formato YYYY-MM-DD
-      mensaje: mensaje.trim(),
-    };
+     // CONVERTIR FORMATO DE FECHA
+      const fechaFormateada = fechaProgramacion.replace('T', ' ') + ':00';
+
+      const datosRegistro = {
+        tipo_item: Number(tipoItem),
+        frecuencia: Number(frecuencia),
+        programada_para: fechaFormateada, // <-- Formato correcto
+        mensaje: mensaje.trim(),
+      };
 
     try {
       setSaving(true);

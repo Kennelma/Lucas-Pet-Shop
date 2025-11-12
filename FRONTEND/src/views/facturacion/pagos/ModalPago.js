@@ -38,6 +38,7 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
   };
 
   const handleConfirm = (datosPago) => {
+    console.log('🎯 ModalPago.handleConfirm - INICIO');
     // Agregar los datos completos de la factura y tipo de pago
     const datosCompletos = {
       numero_factura: factura?.numero_factura,
@@ -47,13 +48,18 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
       ...datosPago
     };
 
+    console.log('📦 Datos completos a enviar:', datosCompletos);
+
     if (onPagoConfirmado) {
+      console.log('📤 Llamando a onPagoConfirmado (handlePagoExitoso)');
       onPagoConfirmado(datosCompletos);
     }
+    console.log('🔄 Limpiando y cerrando modal...');
     handleBack();
     if (onClose) {
       onClose();
     }
+    console.log('✅ ModalPago.handleConfirm - FIN');
   };
 
   const handleCloseModal = () => {
@@ -105,7 +111,7 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
               ) : (
                 <div className="space-y-3">
                   <p className="text-xs font-medium text-gray-700 mb-2">Seleccione el tipo de pago</p>
-                  
+
                   {/* PAGO TOTAL */}
                   {tiposPago.find(tipo => tipo.tipo_pago === 'TOTAL') && (
                     <div className="bg-blue-50 border-2 border-blue-500 rounded-2xl p-3 shadow-sm">
@@ -125,7 +131,7 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
                       </button>
                     </div>
                   )}
-                  
+
                   {/* PAGO PARCIAL */}
                   {tiposPago.find(tipo => tipo.tipo_pago === 'PARCIAL') && (
                     <div className="bg-orange-50 border-2 border-orange-400 rounded-2xl p-3 shadow-sm">

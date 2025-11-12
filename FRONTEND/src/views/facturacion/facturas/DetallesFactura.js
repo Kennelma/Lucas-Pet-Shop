@@ -40,7 +40,9 @@ const DetallesFactura = ({
   onCancel,
   RTN,
   id_cliente,
+  setActiveTab,
 }) => {
+
   //====================ESTADOS====================
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentData, setPaymentData] = useState(null);
@@ -121,7 +123,7 @@ const DetallesFactura = ({
   const DESCUENTO = Math.max(0, parseInt(descuentoValor, 10) || 0);
 
   let subtotal_exento_total = 0;
-  let subtotal_gravado_sin_isv = 0;
+  let subtotal_gravado_con_isv = 0; // Total de items gravados (precio con ISV incluido)
 
   items.forEach((it) => {
     const cantidad = parseFloat(it.cantidad) || 0;
@@ -131,39 +133,25 @@ const DetallesFactura = ({
     const total_linea = cantidad * precio;
 
     if (tiene_impuesto) {
-      //EL PRECIO YA INCLUYE EL ISV, YA VIENE DEL MODULO DE PRODUCTOS  (ej: 230), extraemos la base sin ISV (230/1.15 = 200)
-      subtotal_gravado_sin_isv += total_linea / 1.15;
+      //EL PRECIO YA INCLUYE EL ISV (ej: 115 ya tiene el 15% incluido)
+      subtotal_gravado_con_isv += total_linea;
     } else {
       subtotal_exento_total += total_linea;
     }
   });
 
   const SUBTOTAL_EXENTO = subtotal_exento_total;
-  const SUBTOTAL_GRAVADO = subtotal_gravado_sin_isv; //BASE SIN ISV
-  const IMPUESTO = SUBTOTAL_GRAVADO * 0.15; //15 DE LA BASE
+  // Para items gravados: extraer la base sin ISV para mostrar en desglose
+  const SUBTOTAL_GRAVADO = subtotal_gravado_con_isv / 1.15; //BASE SIN ISV
+  const IMPUESTO = SUBTOTAL_GRAVADO * 0.15; //15% DE LA BASE
 
+  // El TOTAL ya no suma el impuesto porque ya está incluido en subtotal_gravado_con_isv
   const TOTAL_FINAL = Math.max(
     0,
-    SUBTOTAL_EXENTO + SUBTOTAL_GRAVADO + IMPUESTO + TOTAL_AJUSTE - DESCUENTO
+    SUBTOTAL_EXENTO + subtotal_gravado_con_isv + TOTAL_AJUSTE - DESCUENTO
   );
 
   const SALDO = TOTAL_FINAL;
-
-  // AGREGA ESTOS CONSOLE.LOG:
-  console.log(
-    "🔍 DEBUG ITEMS:",
-    items.map((it) => ({
-      nombre: it.item,
-      precio: it.precio,
-      tiene_impuesto: it.tiene_impuesto,
-      tipo: it.tipo,
-    }))
-  );
-
-  console.log("📊 SUBTOTAL_EXENTO:", SUBTOTAL_EXENTO);
-  console.log("📊 SUBTOTAL_GRAVADO:", SUBTOTAL_GRAVADO);
-  console.log("📊 IMPUESTO:", IMPUESTO);
-  console.log("📊 TOTAL_FINAL:", TOTAL_FINAL);
 
   //====================FUNCIÓN PARA GUARDAR FACTURA SIN ABRIR PAGOS====================
   const handleGuardarFacturaSinPago = async () => {
@@ -213,8 +201,6 @@ const DetallesFactura = ({
       })),
     };
 
-    console.log("📤 Guardando factura sin pagos:", datosFactura);
-
     try {
       const response = await crearFactura(datosFactura); // ← Mismo servicio axios
 
@@ -229,7 +215,7 @@ const DetallesFactura = ({
         });
       }
     } catch (error) {
-      console.error("❌ Error al crear factura:", error);
+      console.error("Error al crear factura:", error);
       alert("Error inesperado al crear la factura");
     } finally {
       setLoading(false);
@@ -284,18 +270,10 @@ const DetallesFactura = ({
       })),
     };
 
-    console.log("📤 Enviando factura con pagos:", datosFactura);
-
     try {
       const response = await crearFactura(datosFactura);
 
-      console.log("📥 Respuesta:", response);
-
       if (response.success) {
-        alert(
-          `✅ Factura ${response.data.numero_factura} creada exitosamente!\nTotal: L ${response.data.total}\nSaldo: L ${response.data.saldo}`
-        );
-
         const datos = {
           id_factura: response.data.id_factura,
           numero_factura: response.data.numero_factura,
@@ -306,14 +284,13 @@ const DetallesFactura = ({
           saldo: parseFloat(response.data.saldo),
         };
 
-        console.log("💳 Datos de pago a enviar:", datos);
         setPaymentData(datos);
         setShowPaymentModal(true);
       } else {
-        alert(`❌ Error: ${response.mensaje}`);
+        alert(`Error: ${response.mensaje}`);
       }
     } catch (error) {
-      console.error("❌ Error al crear factura:", error);
+      console.error("Error al crear factura:", error);
       alert("Error inesperado al crear la factura");
     } finally {
       setLoading(false);
@@ -328,8 +305,6 @@ const DetallesFactura = ({
 
   const handlePaymentSuccess = async (datosPago) => {
     try {
-      console.log("💳 Procesando pago:", datosPago);
-      // LLAMAR AL SERVICIO PARA PROCESAR EL PAGO
       const response = await procesarPago(datosPago);
 
       if (response.success) {
@@ -352,8 +327,10 @@ const DetallesFactura = ({
             text: response.mensaje || "Pago procesado exitosamente",
             confirmButtonColor: "#3085d6",
           });
-          // Redirigir solo si el saldo es cero (pago total)
-          window.location.href = "/facturas";
+        }
+        // CAMBIAR A LA PESTAÑA DE HISTORIAL DE FACTURAS
+        if (setActiveTab) {
+          setActiveTab("facturas");
         }
       } else {
         await Swal.fire({

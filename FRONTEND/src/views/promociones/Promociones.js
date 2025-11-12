@@ -56,6 +56,21 @@ const Promociones = () => {
   };
 
   const abrirModalPromocion = (promocion = null) => {
+    // Validar rol del usuario actual
+    const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
+    const rolActual = usuarioActual?.rol?.toLowerCase();
+
+    // Si no es administrador u operador de inventario, mostrar mensaje
+    if (rolActual !== 'administrador' && rolActual !== 'operador de inventario') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acceso Denegado',
+        text: 'No tienes permisos para modificar promociones',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
     setPromocionSeleccionada(promocion);
     setModalAbierto(true);
   };
@@ -111,6 +126,21 @@ const Promociones = () => {
   };
 
   const actualizarEstadoPromocion = async (promocion) => {
+    // Validar rol del usuario actual
+    const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
+    const rolActual = usuarioActual?.rol?.toLowerCase();
+
+    // Si no es administrador u operador de inventario, mostrar mensaje
+    if (rolActual !== 'administrador' && rolActual !== 'operador de inventario') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acceso Denegado',
+        text: 'No tienes permisos para cambiar el estado de promociones',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
     try {
       const nuevoEstado = !promocion.activo;
 
@@ -159,6 +189,21 @@ const Promociones = () => {
   };
 
   const eliminarPromocion = async (promocion) => {
+    // Validar rol del usuario actual
+    const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
+    const rolActual = usuarioActual?.rol?.toLowerCase();
+
+    // Si no es administrador u operador de inventario, mostrar mensaje
+    if (rolActual !== 'administrador' && rolActual !== 'operador de inventario') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acceso Denegado',
+        text: 'No tienes permisos para eliminar promociones',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
     try {
       const result = await Swal.fire({
         title: '¿Eliminar promoción?',

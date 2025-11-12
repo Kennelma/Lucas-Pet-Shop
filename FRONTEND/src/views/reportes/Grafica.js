@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { TrendingUp, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 // Componente personalizado para el tooltip
 const CustomTooltip = ({ active, payload, label }) => {
@@ -7,15 +8,21 @@ const CustomTooltip = ({ active, payload, label }) => {
     return (
       <div className="bg-white p-3 border border-gray-300 rounded-lg shadow-md">
         <p className="font-semibold text-gray-800">{label}</p>
-        <p className="text-green-600">Ingresos: L {payload[0].value.toLocaleString()}</p>
-        <p className="text-red-600">Gastos: L {payload[1].value.toLocaleString()}</p>
+        <p className="text-blue-600 flex items-center gap-1">
+          <ArrowUpRight className="w-4 h-4" />
+          Ingresos: L {payload[0].value.toLocaleString()}
+        </p>
+        <p className="text-red-600 flex items-center gap-1">
+          <ArrowDownRight className="w-4 h-4" />
+          Gastos: L {payload[1].value.toLocaleString()}
+        </p>
       </div>
     );
   }
   return null;
 };
 
-const GraficaRecharts = ({
+const Grafica = ({
   ingresos = [],
   gastos = [],
   meses = [
@@ -61,19 +68,28 @@ const GraficaRecharts = ({
   }, [ingresos, gastos, indicesUltimos3, meses]);
 
   return (
-    // Gráfico principal
-    <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+    <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold text-gray-900">Comparativa Mensual</h3>
-        <div className="flex gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-green-500 rounded"></div>
-            <span className="text-gray-600">Ingresos</span>
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-blue-50 rounded-lg">
+            <TrendingUp className="w-6 h-6 text-blue-600" />
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-red-500 rounded"></div>
-            <span className="text-gray-600">Gastos</span>
-          </div>
+          <h3 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            Comparativa Mensual de los Últimos 3 Meses
+          </h3>
+        </div>
+      </div>
+
+      <div className="flex gap-6 text-sm mb-4">
+        <div className="flex items-center gap-2">
+          <ArrowUpRight className="w-4 h-4 text-blue-600" />
+          <div className="w-4 h-4 bg-blue-600 rounded"></div>
+          <span className="text-gray-600 font-medium">Ingresos</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <ArrowDownRight className="w-4 h-4 text-red-600" />
+          <div className="w-4 h-4 bg-red-600 rounded"></div>
+          <span className="text-gray-600 font-medium">Gastos</span>
         </div>
       </div>
 
@@ -82,27 +98,32 @@ const GraficaRecharts = ({
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
           <XAxis 
             dataKey="mes" 
-            tick={{ fill: '#6b7280' }}
+            tick={{ fill: '#6b7280', fontFamily: 'Poppins, sans-serif' }}
             axisLine={{ stroke: '#d1d5db' }}
           />
           <YAxis 
-            tick={{ fill: '#6b7280' }}
+            tick={{ fill: '#6b7280', fontFamily: 'Poppins, sans-serif' }}
             axisLine={{ stroke: '#d1d5db' }}
             tickFormatter={(value) => `L ${(value / 1000).toFixed(0)}K`}
             domain={[0, 100000]}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend 
-            wrapperStyle={{ paddingTop: '20px' }}
+            wrapperStyle={{ paddingTop: '20px', fontFamily: 'Poppins, sans-serif' }}
             iconType="square"
           />
-          <ReferenceLine y={100000} stroke="#ef4444" strokeDasharray="3 3" label={{ value: 'Límite L 100K', position: 'right', fill: '#ef4444' }} />
-          <Bar dataKey="ingresos" fill="#24b910ff" radius={[8, 8, 0, 0]} />
-          <Bar dataKey="gastos" fill="#ef4444" radius={[8, 8, 0, 0]} />
+          <ReferenceLine 
+            y={100000} 
+            stroke="#dc2626" 
+            strokeDasharray="3 3" 
+            label={{ value: 'Límite L 100K', position: 'right', fill: '#dc2626', fontFamily: 'Poppins, sans-serif' }} 
+          />
+          <Bar dataKey="ingresos" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+          <Bar dataKey="gastos" fill="#dc2626" radius={[8, 8, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
   );
 };
 
-export default GraficaRecharts;
+export default Grafica;

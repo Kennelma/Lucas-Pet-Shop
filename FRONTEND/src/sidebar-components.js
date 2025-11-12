@@ -1,18 +1,19 @@
+//IMPORTACIONES DE COMPONENTES DE COREUI PARA EL SIDEBAR
 import { CNavGroup, CNavItem, CNavTitle} from '@coreui/react'
 
+//IMPORTACIONES DE FONTAWESOME PARA LOS ICONOS
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faGaugeHigh,
   faUsers,
-  faBoxesStacked ,
+  faBoxesStacked,
   faCut,
   faTags,
   faBell,
   faDollarSign,
-  faChartPie ,
+  faChartPie,
   faCapsules,
   faDog,
-  faUser,
   faGift,
   faBone,
   faCoins,
@@ -23,103 +24,107 @@ import {
   faBorderAll
 } from '@fortawesome/free-solid-svg-icons'
 
+//FUNCIÓN PARA OBTENER LA NAVEGACIÓN FILTRADA SEGÚN EL ROL DEL USUARIO
+const getNavigation = () => {
+  //OBTENER EL USUARIO LOGUEADO DEL SESSION STORAGE
+  const usuarioActual = JSON.parse(sessionStorage.getItem('usuario') || '{}');
+  const rolActual = usuarioActual?.rol?.toLowerCase();
 
-const _nav = [
-  {
-    component: CNavItem,
-    name: 'Dashboard',
-    to: '/dashboard',
-    icon: <FontAwesomeIcon icon={faGaugeHigh} className="nav-icon" />,
-    badge: {
-      color: 'info',
+  //DEFINICIÓN COMPLETA DE TODOS LOS ITEMS DEL SIDEBAR
+  const navCompleto = [
+    
+    //DASHBOARD - VISIBLE PARA TODOS LOS ROLES
+    {
+      component: CNavItem,
+      name: 'Dashboard',
+      to: '/dashboard',
+      icon: <FontAwesomeIcon icon={faGaugeHigh} className="nav-icon" />,
+      badge: {
+        color: 'info',
+      },
     },
-  },
 
-  {
-    component: CNavTitle,
-    name: 'MODULOS',
-  },
+    //TÍTULO DE SECCIÓN
+    {
+      component: CNavTitle,
+      name: 'MODULOS',
+    },
 
-  //FACTURACIÓN
-  {
-    component: CNavItem,
-    name: 'Facturación',
-    to: '/facturacion',
-    icon: <FontAwesomeIcon icon={faDollarSign} className="nav-icon" />,
+    //FACTURACIÓN - VISIBLE PARA TODOS LOS ROLES
+    {
+      component: CNavItem,
+      name: 'Facturación',
+      to: '/facturacion',
+      icon: <FontAwesomeIcon icon={faDollarSign} className="nav-icon" />,
+    },
 
-  },
+    //CLIENTES - VISIBLE PARA TODOS LOS ROLES
+    {
+      component: CNavItem,
+      name: 'Clientes',
+      to: '/clientes',
+      icon: <FontAwesomeIcon icon={faUsers} className="nav-icon" />,
+    },
 
-  //CLIENTES
-  {
-    component: CNavItem,
-    name: 'Clientes',
-    to: '/clientes',
-    icon: <FontAwesomeIcon icon={faUsers} className="nav-icon" />,
-  },
+    //GRUPO DE PRODUCTOS CON SUBMENÚ - VISIBLE PARA TODOS LOS ROLES
+    {
+      component: CNavGroup,
+      name: 'Productos',
+      icon: <FontAwesomeIcon icon={faBoxesStacked} className="nav-icon" />,
+      items: [
+        {
+          component: CNavItem,
+          name: 'Alimentos',
+          to: '/productos/alimentos',
+          style: { paddingLeft: '65px' },
+          icon: <FontAwesomeIcon icon={faBone} className="nav-icon" />,
+        },
+        {
+          component: CNavItem,
+          name: 'Medicamentos',
+          to: '/productos/medicamentos',
+          style: { paddingLeft: '65px' },
+          icon: <FontAwesomeIcon icon={faCapsules} className="nav-icon" />,
+        },
+        {
+          component: CNavItem,
+          name: 'Accesorios',
+          to: '/productos/accesorios',
+          style: { paddingLeft: '65px' },
+          icon: <FontAwesomeIcon icon={faGift} className="nav-icon" />,
+        },
+        {
+          component: CNavItem,
+          name: 'Animales',
+          to: '/productos/animales',
+          style: { paddingLeft: '65px' },
+          icon: <FontAwesomeIcon icon={faDog} className="nav-icon" />,
+        },
+      ],
+    },
 
-
-  //GRUPO DE PRODUCTOS EN EL SIDEBAR
-  {
-    component: CNavGroup,
-    name: 'Productos',
-    icon: <FontAwesomeIcon icon={faBoxesStacked } className="nav-icon" />,
-    items: [
-      {
-        component: CNavItem,
-        name: 'Alimentos',
-        to: '/productos/alimentos',
-        style: { paddingLeft: '65px' },
-        icon: <FontAwesomeIcon icon={faBone} className="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Medicamentos',
-        to: '/productos/medicamentos',
-        style: { paddingLeft: '65px' },
-        icon: <FontAwesomeIcon icon={faCapsules} className="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Accesorios',
-        to: '/productos/accesorios',
-        style: { paddingLeft: '65px' },
-        icon: <FontAwesomeIcon icon={faGift} className="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Animales',
-        to: '/productos/animales',
-        style: { paddingLeft: '65px' },
-        icon: <FontAwesomeIcon icon={faDog} className="nav-icon" />,
-      },
-  ],
-  },
-
-
-  //GRUPO DE PELUQUERIA CANINA
-  {
-    component: CNavGroup,
-    name: 'Peluqueria Canina',
-    icon: <FontAwesomeIcon icon={faCut} className="nav-icon" />,
-    items: [
-      {
-        component: CNavItem,
-        name: 'Servicios',
-        style: { paddingLeft: '65px' },
-        icon: <FontAwesomeIcon icon={faShower} className="nav-icon" />,
-         to: '/peluqueria_canina/servicios',
-
-      },
-      {
-        component: CNavItem,
-        name: 'Promociones',
-        to: '/peluqueria_canina/promociones',
-        style: { paddingLeft: '65px' },
-        icon: <FontAwesomeIcon icon={faTags} className="nav-icon" />,
-
-      },
-    ],
-  },
+    //GRUPO DE PELUQUERÍA CANINA CON SUBMENÚ - VISIBLE PARA TODOS LOS ROLES
+    {
+      component: CNavGroup,
+      name: 'Peluqueria Canina',
+      icon: <FontAwesomeIcon icon={faCut} className="nav-icon" />,
+      items: [
+        {
+          component: CNavItem,
+          name: 'Servicios',
+          style: { paddingLeft: '65px' },
+          icon: <FontAwesomeIcon icon={faShower} className="nav-icon" />,
+          to: '/peluqueria_canina/servicios',
+        },
+        {
+          component: CNavItem,
+          name: 'Promociones',
+          to: '/peluqueria_canina/promociones',
+          style: { paddingLeft: '65px' },
+          icon: <FontAwesomeIcon icon={faTags} className="nav-icon" />,
+        },
+      ],
+    },
 
   //EMPRESA
   {
@@ -176,14 +181,24 @@ const _nav = [
       icon: <FontAwesomeIcon icon={faBorderAll} className="nav-icon" />,
     }
   ]
-}
+},
 
   
 
 
 
 
-]
+];
+  //FILTRAR LOS ITEMS DEL NAV SEGÚN EL ROL DEL USUARIO
+  return navCompleto.filter(item => {
+    //SI EL ITEM NO TIENE RESTRICCIÓN DE ROLES, MOSTRARLO A TODOS
+    if (!item.rolesPermitidos) {
+      return true;
+    }
+    //SI TIENE RESTRICCIÓN, VERIFICAR SI EL ROL DEL USUARIO ESTÁ EN LA LISTA PERMITIDA
+    return item.rolesPermitidos.includes(rolActual);
+  });
+};
 
-export default _nav
-
+//EXPORTAR LA FUNCIÓN DIRECTAMENTE PARA QUE SE EJECUTE CADA VEZ QUE SE NECESITE
+export default getNavigation;

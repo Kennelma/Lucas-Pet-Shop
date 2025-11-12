@@ -69,8 +69,8 @@ const Reportes = () => {
   const gananciaMesActual = ingresosMesActual - gastosMesActual;
 
   return (
-    <div className="reportes-module min-h-screen p-6 bg-gray-50">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins, sans-serif' }}>
+      <div className="max-w-7xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>
         
         {/* Encabezado */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-200">
@@ -82,33 +82,71 @@ const Reportes = () => {
           </p>
         </div>
 
-        {/* Tarjetas del Mes Actual */}
-        <div className="mb-6">
+        {/* Resumen Financiero del Día - HORIZONTAL */}
+        <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <Calendar className="w-5 h-5 text-gray-700" />
-            <h2 className="text-base font-semibold text-gray-800">
-              Resumen de {nombreMesActual} {anioActual}
+            <h2 className="text-lg font-semibold text-gray-800">
+              Resumen Financiero del Día
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <TarjetaFinanciera 
-              color="green" 
-              titulo="Ingresos" 
-              valor={ingresosMesActual} 
-              icon={<ArrowUpRight className="w-6 h-6" />} 
-            />
-            <TarjetaFinanciera 
-              color="red" 
-              titulo="Gastos" 
-              valor={gastosMesActual} 
-              icon={<ArrowDownRight className="w-6 h-6" />} 
-            />
-            <TarjetaFinanciera 
-              color={gananciaMesActual >= 0 ? "blue" : "orange"} 
-              titulo="Ganancia" 
-              valor={gananciaMesActual} 
-              icon={<Wallet className="w-6 h-6" />} 
-            />
+          
+          {/* Tarjetas en línea horizontal */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-around gap-8">
+              
+              {/* Gastos */}
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-red-50 rounded-xl">
+                  <ArrowDownRight className="w-7 h-7 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-red-600 uppercase tracking-wide mb-1">
+                    Gastos
+                  </p>
+                  <p className="text-2xl font-bold text-red-700">
+                    L {gastosMesActual.toLocaleString('es-HN')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Separador vertical */}
+              <div className="h-16 w-px bg-gray-300"></div>
+
+              {/* Ingresos */}
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-green-50 rounded-xl">
+                  <ArrowUpRight className="w-7 h-7 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-green-600 uppercase tracking-wide mb-1">
+                    Ingresos
+                  </p>
+                  <p className="text-2xl font-bold text-green-700">
+                    L {ingresosMesActual.toLocaleString('es-HN')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Separador vertical */}
+              <div className="h-16 w-px bg-gray-300"></div>
+
+              {/* Saldo Neto */}
+              <div className="flex items-center gap-4">
+                <div className={`p-3 rounded-xl ${gananciaMesActual >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
+                  <Wallet className={`w-7 h-7 ${gananciaMesActual >= 0 ? 'text-blue-600' : 'text-orange-600'}`} />
+                </div>
+                <div>
+                  <p className={`text-xs font-medium uppercase tracking-wide mb-1 ${gananciaMesActual >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                    Saldo Neto
+                  </p>
+                  <p className={`text-2xl font-bold ${gananciaMesActual >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
+                    L {gananciaMesActual.toLocaleString('es-HN')}
+                  </p>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
 

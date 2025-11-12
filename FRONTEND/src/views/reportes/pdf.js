@@ -1,4 +1,4 @@
-import { jsPDF } from 'jspdf';  // ← Correcto
+import { jsPDF } from 'jspdf';
 
 export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananciaTotal, anio, mesFiltrado = null) => {
   const doc = new jsPDF();
@@ -7,14 +7,21 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
   doc.setFillColor(245, 247, 250);
   doc.rect(0, 0, 210, 45, 'F');
 
-  // Título principal
+  // Título principal según el tipo de reporte
   doc.setFontSize(26);
   doc.setTextColor(33, 37, 41);
   doc.setFont(undefined, 'bold');
   
-  const titulo = mesFiltrado 
-    ? `Reporte Financiero - ${mesFiltrado} ${anio}`
-    : `Reporte Financiero Anual ${anio}`;
+  let titulo = '';
+  if (mesFiltrado) {
+    // Determinar si es reporte mensual o diario
+    const esDiario = datosTabla.length > 12;
+    titulo = esDiario 
+      ? `Reporte Diario - ${mesFiltrado} ${anio}`
+      : `Reporte Mensual - ${mesFiltrado} ${anio}`;
+  } else {
+    titulo = `Reporte Anual ${anio}`;
+  }
   
   doc.text(titulo, 105, 22, { align: 'center' });
 
@@ -77,7 +84,7 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
 
   doc.setFontSize(9);
   doc.setTextColor(isPositive ? 37 : 234, isPositive ? 99 : 88, isPositive ? 235 : 0);
-  doc.text('GANANCIA TOTAL', 167, cardY + 8, { align: 'center' });
+  doc.text('TOTAL GENERAL', 167, cardY + 8, { align: 'center' });
 
   doc.setFontSize(15);
   doc.setTextColor(isPositive ? 25 : 220, isPositive ? 80 : 50, isPositive ? 190 : 20);
@@ -90,7 +97,7 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
   
   const tituloTabla = mesFiltrado 
     ? `Detalle de ${mesFiltrado}`
-    : 'Detalle Mensual';
+    : 'Detalle Anual';
   
   doc.text(tituloTabla, 105, 105, { align: 'center' });
 
@@ -101,10 +108,10 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
   doc.roundedRect(15, tableY, 180, 10, 2, 2, 'F');
   doc.setFontSize(10);
   doc.setTextColor(60, 60, 70);
-  doc.text('Mes', 30, tableY + 7, { align: 'left' });
+  doc.text('Período', 30, tableY + 7, { align: 'left' });
   doc.text('Ingresos', 85, tableY + 7, { align: 'center' });
   doc.text('Gastos', 130, tableY + 7, { align: 'center' });
-  doc.text('Ganancia', 175, tableY + 7, { align: 'center' });
+  doc.text('Total', 175, tableY + 7, { align: 'center' });
 
   let y = tableY + 18;
   datosTabla.forEach((fila, index) => {
@@ -118,7 +125,7 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
 
     doc.setFontSize(9);
     doc.setTextColor(70, 70, 85);
-    doc.text(fila.mes, 30, y, { align: 'left' });
+    doc.text(fila.periodo || fila.mes, 30, y, { align: 'left' });
 
     doc.setTextColor(22, 163, 74);
     doc.text(`L ${fila.ingreso.toLocaleString('es-HN')}`, 85, y, { align: 'center' });
@@ -126,9 +133,10 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
     doc.setTextColor(220, 38, 38);
     doc.text(`L ${fila.gasto.toLocaleString('es-HN')}`, 130, y, { align: 'center' });
 
-    const isProfitable = fila.ganancia >= 0;
+    const isProfitable = fila.total >= 0 || fila.ganancia >= 0;
+    const totalValue = fila.total || fila.ganancia || 0;
     doc.setTextColor(isProfitable ? 37 : 234, isProfitable ? 99 : 88, isProfitable ? 235 : 0);
-    doc.text(`L ${fila.ganancia.toLocaleString('es-HN')}`, 175, y, { align: 'center' });
+    doc.text(`L ${totalValue.toLocaleString('es-HN')}`, 175, y, { align: 'center' });
 
     y += 9;
     if (y > 270 && index < datosTabla.length - 1) {
@@ -136,10 +144,10 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
       doc.setFillColor(235, 235, 245);
       doc.roundedRect(15, 20, 180, 10, 2, 2, 'F');
       doc.setTextColor(60, 60, 70);
-      doc.text('Mes', 30, 27, { align: 'left' });
+      doc.text('Período', 30, 27, { align: 'left' });
       doc.text('Ingresos', 85, 27, { align: 'center' });
       doc.text('Gastos', 130, 27, { align: 'center' });
-      doc.text('Ganancia', 175, 27, { align: 'center' });
+      doc.text('Total', 175, 27, { align: 'center' });
       y = 38;
     }
   });
@@ -157,9 +165,16 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
   }
 
   // ========== GUARDAR ==========
-  const nombreArchivo = mesFiltrado 
-    ? `Reporte-${mesFiltrado}-${anio}.pdf`
-    : `Reporte-Financiero-${anio}.pdf`;
+  const esDiario = datosTabla.length > 12;
+  let nombreArchivo = '';
+  
+  if (mesFiltrado) {
+    nombreArchivo = esDiario 
+      ? `Reporte-Diario-${mesFiltrado}-${anio}.pdf`
+      : `Reporte-Mensual-${mesFiltrado}-${anio}.pdf`;
+  } else {
+    nombreArchivo = `Reporte-Anual-${anio}.pdf`;
+  }
   
   doc.save(nombreArchivo);
 };
