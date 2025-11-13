@@ -20,6 +20,8 @@ import {
   faShower,
   faStore,
   faShield,
+  faChartArea,
+  faBorderAll
 } from '@fortawesome/free-solid-svg-icons'
 
 //FUNCIÓN PARA OBTENER LA NAVEGACIÓN FILTRADA SEGÚN EL ROL DEL USUARIO
@@ -124,51 +126,69 @@ const getNavigation = () => {
       ],
     },
 
-    //EMPRESA Y SUCURSALES - SOLO VISIBLE PARA ADMINISTRADOR
-    {
-      component: CNavItem,
-      name: 'Empresa y sucursales',
-      icon: <FontAwesomeIcon icon={faStore} className="nav-icon" />,
-      to: '/empresa',
-      rolesPermitidos: ['administrador'],
-    },
+  //EMPRESA
+  {
+    component: CNavItem,
+    name: 'Empresa y sucursales',
+    icon: <FontAwesomeIcon icon={faStore} className="nav-icon" />,
+    to: '/empresa',
+  },
 
-    //RECORDATORIOS - VISIBLE PARA TODOS LOS ROLES
-    {
-      component: CNavItem,
-      name: 'Recordatorios',
-      to: '/recordatorios',
-      icon: <FontAwesomeIcon icon={faBell} className="nav-icon" />,
-    },
+  //RECORDATORIOS
+  {
+    component: CNavItem,
+    name: 'Recordatorios',
+    to: '/recordatorios',
+    icon: <FontAwesomeIcon icon={faBell} className="nav-icon" />,
+  },
 
-    //SEGURIDAD - SOLO VISIBLE PARA ADMINISTRADOR
-    {
-      component: CNavItem,
-      name: 'Seguridad',
-      to: '/seguridad',
-      icon: <FontAwesomeIcon icon={faShield} className="nav-icon" />,
-      rolesPermitidos: ['administrador'],
-    },
+  //SEGURIDAD
+  {
+    component: CNavItem,
+    name: 'Seguridad',
+    to: '/seguridad',
+    icon: <FontAwesomeIcon icon={faShield} className="nav-icon" />,
+  },
 
-    //ESTILISTAS Y BONIFICACIONES - SOLO VISIBLE PARA ADMINISTRADOR
-    {
-      component: CNavItem,
-      name: 'Estilistas',
-      to: '/estilistas',
-      icon: <FontAwesomeIcon icon={faCoins} className="nav-icon" />,
-      rolesPermitidos: ['administrador'],
-    },
 
-    //REPORTES - SOLO VISIBLE PARA ADMINISTRADOR
+
+  //ESTILISTAS Y BONIFICACIONES
+  {
+    component: CNavItem,
+    name: 'Estilistas',
+    to: '/estilistas',
+    icon: <FontAwesomeIcon icon={faCoins} className="nav-icon" />,
+  },
+
+
+{
+  component: CNavGroup,
+  name: 'Reportes',
+  icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
+  items: [
     {
       component: CNavItem,
-      name: 'Reportes',
+      name: 'Grafica',          // ← Muestra Reportes.js
       to: '/reportes',
-      icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
-      rolesPermitidos: ['administrador'],
+      style: { paddingLeft: '65px' },
+      icon: <FontAwesomeIcon icon={faChartArea} className="nav-icon" />,
     },
-  ];
+    {
+      component: CNavItem,
+      name: 'Tabla',             // ← Muestra Tabla.js
+      to: '/reportes/Tabla',
+      style: { paddingLeft: '65px' },
+      icon: <FontAwesomeIcon icon={faBorderAll} className="nav-icon" />,
+    }
+  ]
+},
 
+  
+
+
+
+
+];
   //FILTRAR LOS ITEMS DEL NAV SEGÚN EL ROL DEL USUARIO
   return navCompleto.filter(item => {
     //SI EL ITEM NO TIENE RESTRICCIÓN DE ROLES, MOSTRARLO A TODOS
@@ -182,4 +202,3 @@ const getNavigation = () => {
 
 //EXPORTAR LA FUNCIÓN DIRECTAMENTE PARA QUE SE EJECUTE CADA VEZ QUE SE NECESITE
 export default getNavigation;
-
