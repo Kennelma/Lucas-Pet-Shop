@@ -6,7 +6,7 @@ import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
-
+import ModalPerfilCliente from "./ModalPerfilCliente.js";
 
 import { verClientes, eliminarCliente } from "../../AXIOS.SERVICES/clients-axios.js";
 

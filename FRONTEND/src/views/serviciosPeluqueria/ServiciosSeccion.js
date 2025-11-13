@@ -19,7 +19,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
       const rect = buttonRef.current.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
       const menuHeight = 80; // Altura aproximada del menú
-      
+
       // Si no hay espacio suficiente abajo, mostrar arriba
       const showAbove = rect.bottom + menuHeight > viewportHeight - 50;
       setShouldShowAbove(showAbove);
@@ -79,14 +79,14 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
       </button>
 
       {isOpen && (
-        <div 
+        <div
           className="fixed bg-white border border-gray-200 rounded-lg shadow-xl min-w-[140px]"
           style={{
             zIndex: 99999,
             position: 'fixed',
             left: buttonRef.current ? buttonRef.current.getBoundingClientRect().right - 140 : 'auto',
-            top: shouldShowAbove ? 
-              (buttonRef.current ? buttonRef.current.getBoundingClientRect().top - 80 : 'auto') : 
+            top: shouldShowAbove ?
+              (buttonRef.current ? buttonRef.current.getBoundingClientRect().top - 80 : 'auto') :
               (buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 5 : 'auto')
           }}
         >
@@ -225,7 +225,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
             rows={5}
             rowsPerPageOptions={[5, 10, 20, 25]}
             paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-            tableStyle={{ 
+            tableStyle={{
               width: '970px',
               tableLayout: 'fixed'
             }}
@@ -243,13 +243,13 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
               className="text-sm"
               style={{ width: '50px' }}
             />
-            <Column 
-              field="nombre_servicio_peluqueria" 
-              header="SERVICIO" 
-              sortable 
+            <Column
+              field="nombre_servicio_peluqueria"
+              header="SERVICIO"
+              sortable
               className="text-sm"
               style={{ width: '150px' }}
-              bodyStyle={{ 
+              bodyStyle={{
                 whiteSpace: 'normal',
                 wordWrap: 'break-word',
                 overflow: 'hidden',
@@ -258,13 +258,13 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
                 padding: '8px 10px'
               }}
             />
-            <Column 
-              field="descripcion_servicio" 
-              header="DESCRIPCIÓN" 
+            <Column
+              field="descripcion_servicio"
+              header="DESCRIPCIÓN"
               className="text-sm"
               style={{ width: '210px' }}
               headerStyle={{ padding: '8px 12px' }}
-              bodyStyle={{ 
+              bodyStyle={{
                 whiteSpace: 'normal',
                 wordWrap: 'break-word',
                 overflow: 'hidden',
@@ -282,7 +282,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
               dataType="numeric"
               className="text-sm"
               style={{ width: '90px' }}
-              bodyStyle={{ 
+              bodyStyle={{
                 padding: '8px 8px'
               }}
             />
@@ -296,18 +296,18 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
               className="text-sm"
               style={{ width: '110px' }}
               headerStyle={{ padding: '8px 16px' }}
-              bodyStyle={{ 
+              bodyStyle={{
                 padding: '8px 16px'
               }}
             />
-            <Column 
-              field="requisitos" 
-              header="REQUISITOS" 
+            <Column
+              field="requisitos"
+              header="REQUISITOS"
               body={(rowData) => rowData.requisitos && rowData.requisitos.trim() !== '' ? rowData.requisitos : 'N/A'}
               className="text-sm"
               style={{ width: '160px' }}
               headerStyle={{ padding: '8px 18px' }}
-              bodyStyle={{ 
+              bodyStyle={{
                 whiteSpace: 'normal',
                 wordWrap: 'break-word',
                 overflow: 'hidden',
@@ -324,15 +324,15 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
               sortField="activo"
               className="text-sm"
               style={{ width: '120px' }}
-              bodyStyle={{ 
+              bodyStyle={{
                 padding: '8px 8px'
               }}
             />
-            <Column 
-              header="ACCIONES" 
-              body={actionBotones} 
-              bodyStyle={{ 
-                textAlign: 'center', 
+            <Column
+              header="ACCIONES"
+              body={actionBotones}
+              bodyStyle={{
+                textAlign: 'center',
                 padding: '8px'
               }}
               className="text-sm"

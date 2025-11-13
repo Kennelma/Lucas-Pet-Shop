@@ -424,7 +424,7 @@ const Alimentos = () => {
             )}
           </div>
           <button
-            className="bg-rose-300 text-white px-6 py-2 rounded hover:bg-rose-600 transition-colors flex items-center gap-2"
+            className="bg-rose-300 text-text px-6 py-2 rounded hover:bg-rose-600 transition-colors flex items-center gap-2"
             onClick={() => abrirModal()}
           >
             <FontAwesomeIcon icon={faPlus} />
