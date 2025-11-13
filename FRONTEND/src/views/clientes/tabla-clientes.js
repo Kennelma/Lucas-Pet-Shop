@@ -216,7 +216,7 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                 `}
             </style>
 
-            <div className="bg-white rounded-xl p-6 max-w-5xl mx-auto font-poppins" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+            <div className="bg-white rounded-xl p-6 font-poppins" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
                 <div className="flex justify-end items-center mb-4">
                     <button
                         className="text-black px-3 py-1 text-sm rounded transition-colors flex items-center gap-2 uppercase"

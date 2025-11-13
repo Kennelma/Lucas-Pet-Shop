@@ -284,17 +284,17 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
     
     if (medicamentoEditando) {
       if (validarPaso1()) {
-        console.log('✅ Validación Paso 1 exitosa (edición)');
+        console.log(' Validación Paso 1 exitosa (edición)');
         onSave(dataConImpuesto);
       } else {
-        console.log('❌ Error en validación Paso 1 (edición)');
+        console.log('Error en validación Paso 1 (edición)');
       }
     } else {
       if (validarPaso2()) {
-        console.log('✅ Validación Paso 2 exitosa (creación)');
+        console.log('Validación Paso 2 exitosa (creación)');
         onSave(dataConImpuesto);
       } else {
-        console.log('❌ Error en validación Paso 2 (creación)');
+        console.log('Error en validación Paso 2 (creación)');
       }
     }
   };
@@ -361,7 +361,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
       header={<div className="w-full text-center text-lg font-bold">{medicamentoEditando ? 'EDITAR MEDICAMENTO' : 'NUEVO MEDICAMENTO'}</div>}
       visible={isOpen}
       style={medicamentoEditando ? 
-        { width: '30rem', maxHeight: '90vh', borderRadius: '1.5rem' } : 
+        { width: '30rem', maxHeight: '85vh', borderRadius: '1.5rem' } : 
         { width: '28rem', borderRadius: '1.5rem' }
       }
       modal
@@ -372,7 +372,11 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
       dismissableMask={false}
       draggable={false}
       resizable={false}
-      contentStyle={medicamentoEditando ? { overflowY: 'visible', padding: '1rem' } : {}}
+      contentStyle={medicamentoEditando ? { 
+        overflowY: 'auto', 
+        padding: '1rem', 
+        maxHeight: 'calc(85vh - 120px)' 
+      } : {}}
     >
       {/* Indicador de pasos */}
       {!medicamentoEditando && (

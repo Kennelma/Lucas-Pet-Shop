@@ -132,11 +132,14 @@ exports.actualizar = async (req, res) => {
                         telefono_empresa  = COALESCE(?, telefono_empresa),
                         correo_empresa    = COALESCE(?, correo_empresa),
                         rtn_empresa       = COALESCE(?, rtn_empresa)
+                        correo_empresa    = COALESCE(?, correo_empresa),
+                        rtn_empresa       = COALESCE(?, rtn_empresa)
                     WHERE id_empresa_pk = ?`,
                     [
                         req.body.nombre_empresa || null,
                         req.body.telefono_empresa || null,
                         req.body.correo_empresa || null,
+                        req.body.rtn_empresa || null,
                         req.body.rtn_empresa || null,
                         id
                     ]
@@ -262,7 +265,8 @@ exports.ver = async (req, res) => {
                         id_empresa_pk,
                         nombre_empresa,
                         telefono_empresa,
-                        correo_empresa
+                        correo_empresa,
+                        rtn_empresa
                     FROM tbl_empresa`);
 
                 break;
@@ -284,6 +288,8 @@ exports.ver = async (req, res) => {
 
             case 'GASTOS':
 
+                const fecha_hoy = new Date();
+
                 [registros] = await conn.query(
 
                 `SELECT
@@ -292,9 +298,10 @@ exports.ver = async (req, res) => {
                     monto_gasto,
                     fecha_registro_gasto
                 FROM tbl_gastos
-                WHERE fecha_registro_gasto >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-                ORDER BY fecha_registro_gasto DESC, id_gasto_pk DESC`
-            );
+                WHERE DATE(fecha_registro_gasto) = ?
+                ORDER BY fecha_registro_gasto DESC, id_gasto_pk DESC;
+                `, [fecha_hoy]
+                );
     break;
 
 
