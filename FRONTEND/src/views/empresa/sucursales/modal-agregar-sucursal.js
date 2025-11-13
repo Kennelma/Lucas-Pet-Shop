@@ -14,7 +14,8 @@ const ModalAgregarSucursal = ({
   loading, 
   editando, 
   errores,
-  empresas 
+  empresas,
+  onBlur
 }) => {
 
   return (
@@ -63,6 +64,7 @@ const ModalAgregarSucursal = ({
               value={formData.id_empresa_fk}
               options={empresas}
               onChange={(e) => onChange({ target: { name: 'id_empresa_fk', value: e.value } })}
+              onBlur={() => onBlur({ target: { name: 'id_empresa_fk', value: formData.id_empresa_fk } })}
               optionLabel="nombre_empresa"
               optionValue="id_empresa_pk"
               placeholder="Seleccionar empresa..."
@@ -80,6 +82,7 @@ const ModalAgregarSucursal = ({
               name="nombre_sucursal"
               value={formData.nombre_sucursal}
               onChange={onChange}
+              onBlur={onBlur}
               className="w-full rounded-xl h-9 text-sm uppercase"
               placeholder="Ej: Sucursal Norte"
             />
@@ -94,6 +97,7 @@ const ModalAgregarSucursal = ({
               name="direccion_sucursal"
               value={formData.direccion_sucursal}
               onChange={onChange}
+              onBlur={onBlur}
               className="w-full rounded-xl h-9 text-sm uppercase"
               placeholder="Ej: Barrio El Carmen"
             />
@@ -108,6 +112,7 @@ const ModalAgregarSucursal = ({
               name="telefono_sucursal"
               value={formData.telefono_sucursal}
               onChange={onChange}
+              onBlur={onBlur}
               className="w-full rounded-xl h-9 text-sm uppercase"
               placeholder="Ej: 9999-8888"
             />

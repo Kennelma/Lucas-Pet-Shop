@@ -883,67 +883,110 @@ exports.detalleFacturaSeleccionada = async (req, res) => {
 
 
 
-//ENDPOINT PARA IMPRESIÓN DE FACTURA DETALLADA (MEJORAR)
+//ENDPOINT_PARA_IMPRESION_DE_FACTURA_DETALLADA
 exports.ImpresionFactura = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
 
     try {
         const { numero_factura } = req.query;
 
-        //DATOS DE LA FACTURA
+        if (!numero_factura) {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'Número de factura es requerido'
+            });
+        }
+
+        //CONSULTA_PRINCIPAL_DE_FACTURA_CON_TODOS_LOS_DATOS
         const [factura] = await conn.query(
             `SELECT
                 f.id_factura_pk,
                 f.numero_factura,
                 f.fecha_emision,
                 f.RTN,
-                (f.subtotal_exento + f.subtotal_gravado) as subtotal,
+                f.subtotal_exento,
+                f.subtotal_gravado,
                 f.descuento,
                 f.impuesto,
                 f.total,
                 f.saldo,
                 c.nombre_estado as estado,
+                cl.id_cliente_pk,
                 cl.nombre_cliente,
                 cl.apellido_cliente,
-                cl.telefono_cliente
+                cl.identidad_cliente,
+                cl.telefono_cliente,
+                u.usuario as vendedor,
+                s.nombre_sucursal,
+                s.direccion_sucursal,
+                s.telefono_sucursal
             FROM tbl_facturas f
             INNER JOIN cat_estados c ON f.id_estado_fk = c.id_estado_pk
+            INNER JOIN tbl_usuarios u ON f.id_usuario_fk = u.id_usuario_pk
+            INNER JOIN tbl_sucursales s ON f.id_sucursal_fk = s.id_sucursal_pk
             LEFT JOIN tbl_clientes cl ON f.id_cliente_fk = cl.id_cliente_pk
             WHERE f.numero_factura = ?`,
             [numero_factura]
         );
 
-        //ITEMS DE LA FACTURA
+        if (!factura || factura.length === 0) {
+            return res.status(404).json({
+                success: false,
+                mensaje: `Factura ${numero_factura} no encontrada`
+            });
+        }
+
+        const id_factura = factura[0].id_factura_pk;
+
+        //ITEMS_DE_LA_FACTURA_CON_DETALLES_DE_ESTILISTAS
         const [items] = await conn.query(
             `SELECT
+                df.id_detalle_pk,
                 df.nombre_item,
                 df.cantidad_item,
                 df.precio_item,
                 df.ajuste_precio,
                 df.total_linea,
+                df.tiene_impuesto,
                 ct.nombre_tipo_item AS tipo_item
             FROM tbl_detalles_facturas df
             LEFT JOIN cat_tipo_item ct ON df.id_tipo_item_fk = ct.id_tipo_item_pk
             WHERE df.id_factura_fk = ?
             ORDER BY df.id_detalle_pk`,
-            [factura[0].id_factura_pk]
+            [id_factura]
         );
 
-        //ESTA INFORMACION TIENE QUE VENIR DEL MIDDLEWARE DEL USUARIO (REVISAR)
-        //INFORMACIÓN DE LA EMPRESA
+        //OBTENER_ESTILISTAS_POR_CADA_ITEM_(SI_APLICA)
+        for (let item of items) {
+            const [estilistas] = await conn.query(
+                `SELECT
+                    ec.nombre_estilista,
+                    ec.apellido_estilista,
+                    dfe.num_mascotas_atendidas
+                FROM tbl_detalle_factura_estilistas dfe
+                INNER JOIN tbl_estilistas_caninos ec ON dfe.id_estilista_fk = ec.id_estilista_pk
+                WHERE dfe.id_detalle_fk = ?`,
+                [item.id_detalle_pk]
+            );
+            item.estilistas = estilistas;
+        }
+
+        //INFORMACION_DE_LA_EMPRESA
         const [empresa] = await conn.query(
             `SELECT
                 nombre_empresa,
                 direccion_empresa,
                 telefono_empresa,
-                correo_empresa
+                correo_empresa,
+                rtn_empresa
             FROM tbl_empresa
             LIMIT 1`
         );
 
-        //HISTORIAL DE PAGOS
+        //HISTORIAL_DE_PAGOS_APLICADOS_A_LA_FACTURA
         const [pagos] = await conn.query(
             `SELECT
+                p.id_pago_pk,
                 p.fecha_pago,
                 p.monto_pagado,
                 mp.metodo_pago,
@@ -954,21 +997,35 @@ exports.ImpresionFactura = async (req, res) => {
             INNER JOIN cat_tipo_pago tp ON p.id_tipo_pago_fk = tp.id_tipo_pago_pk
             WHERE pa.id_factura_fk = ?
             ORDER BY p.fecha_pago DESC`,
-            [factura[0].id_factura_pk]
+            [id_factura]
         );
 
+        //CALCULAR_TOTAL_PAGADO_Y_SALDO_PENDIENTE
+        const total_pagado = pagos.reduce((sum, pago) => sum + parseFloat(pago.monto_pagado), 0);
+        const saldo_pendiente = parseFloat(factura[0].total) - total_pagado;
+
+        //RESPUESTA_COMPLETA_CON_TODOS_LOS_DATOS
         res.status(200).json({
             success: true,
             data: {
-                factura: factura[0],
+                factura: {
+                    ...factura[0],
+                    total_pagado: total_pagado.toFixed(2),
+                    saldo_pendiente: saldo_pendiente.toFixed(2)
+                },
                 items: items,
                 empresa: empresa[0] || {},
-                pagos: pagos
+                pagos: pagos,
+                resumen: {
+                    cantidad_items: items.length,
+                    cantidad_pagos: pagos.length,
+                    porcentaje_pagado: ((total_pagado / parseFloat(factura[0].total)) * 100).toFixed(2)
+                }
             }
         });
 
     } catch (error) {
-        console.error("Error al obtener detalle de factura:", error);
+        console.error("Error al obtener detalle de factura para impresión:", error);
         res.status(500).json({
             success: false,
             mensaje: 'Error al obtener detalle de factura',

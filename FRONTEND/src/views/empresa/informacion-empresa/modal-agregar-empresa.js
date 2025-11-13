@@ -12,7 +12,8 @@ const ModalAgregarEmpresa = ({
   onSave, 
   loading, 
   editando, 
-  errores 
+  errores,
+  onBlur
 }) => {
 
   return (
@@ -61,24 +62,11 @@ const ModalAgregarEmpresa = ({
               name="nombre_empresa"
               value={formData.nombre_empresa}
               onChange={onChange}
+              onBlur={onBlur}
               className="w-full rounded-xl h-9 text-sm uppercase"
               placeholder="Ej: Tech Solutions SA"
             />
             {errores.nombre_empresa && <p className="text-xs text-red-600 mt-1">{errores.nombre_empresa}</p>}
-          </span>
-
-          {/* Direcciónn */}
-          <span>
-            <label htmlFor="direccion_empresa" className="text-xs font-semibold text-gray-700 mb-1">DIRECCIÓN</label>
-            <InputText
-              id="direccion_empresa"
-              name="direccion_empresa"
-              value={formData.direccion_empresa}
-              onChange={onChange}
-              className="w-full rounded-xl h-9 text-sm uppercase"
-              placeholder="Ej: Av. Principal 123"
-            />
-            {errores.direccion_empresa && <p className="text-xs text-red-600 mt-1">{errores.direccion_empresa}</p>}
           </span>
 
           {/* Teléfono */}
@@ -89,6 +77,7 @@ const ModalAgregarEmpresa = ({
               name="telefono_empresa"
               value={formData.telefono_empresa}
               onChange={onChange}
+              onBlur={onBlur}
               className="w-full rounded-xl h-9 text-sm uppercase"
               placeholder="Ej: 2222-3333"
             />
@@ -103,11 +92,27 @@ const ModalAgregarEmpresa = ({
               name="correo_empresa"
               value={formData.correo_empresa}
               onChange={onChange}
+              onBlur={onBlur}
               className="w-full rounded-xl h-9 text-sm lowercase"
               placeholder="Ej: contacto@empresa.com"
               type="email"
             />
             {errores.correo_empresa && <p className="text-xs text-red-600 mt-1">{errores.correo_empresa}</p>}
+          </span>
+
+          {/* RTN Empresa */}
+          <span>
+            <label htmlFor="rtn_empresa" className="text-xs font-semibold text-gray-700 mb-1">RTN EMPRESA</label>
+            <InputText
+              id="rtn_empresa"
+              name="rtn_empresa"
+              value={formData.rtn_empresa}
+              onChange={onChange}
+              onBlur={onBlur}
+              className="w-full rounded-xl h-9 text-sm uppercase"
+              placeholder="Ej: 08019012345678"
+            />
+            {errores.rtn_empresa && <p className="text-xs text-red-600 mt-1">{errores.rtn_empresa}</p>}
           </span>
         </div>
       </div>

@@ -11,12 +11,14 @@ import ModalNuevoUsuario from './modal-agregar-usuarios';
 import ModalActualizarUsuario from './modal-actualizar-usuario';
 import { verUsuarios, eliminarUsuario } from "../../../AXIOS.SERVICES/security-axios";
 
+//COMPONENTE_MENU_DE_ACCIONES_CON_POSICIONAMIENTO_DINAMICO
 const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [shouldShowAbove, setShouldShowAbove] = useState(false);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
 
+  //CALCULAR_POSICION_DEL_MENU_SEGUN_ESPACIO_DISPONIBLE
   const checkPosition = () => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
@@ -31,6 +33,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
     }
   };
 
+  //CERRAR_MENU_AL_HACER_CLIC_FUERA_O_AL_REDIMENSIONAR_VENTANA
   React.useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -123,6 +126,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
 };
 
 export default function Usuarios() {
+  //ESTADOS_DEL_COMPONENTE
   const [usuarios, setUsuarios] = useState([]);
   const [filtro, setFiltro] = useState('');
   const [loading, setLoading] = useState(true);
@@ -136,12 +140,14 @@ export default function Usuarios() {
     cargarUsuarios();
   }, []);
 
+  //OBTENER_LISTA_DE_USUARIOS_DESDE_EL_BACKEND
   const cargarUsuarios = async () => {
     setLoading(true);
     try {
       const response = await verUsuarios();
       const data = response?.datos || response?.entidad || response || [];
 
+      //NORMALIZAR_DATOS_DE_USUARIOS_PARA_COMPATIBILIDAD
       const normalizados = (Array.isArray(data) ? data : []).map(u => ({
         id_usuario_pk: u.id_usuario_pk,
         usuario: u.usuario || '',
@@ -152,7 +158,7 @@ export default function Usuarios() {
         nombreSucursal: u.nombre_sucursal || 'Sin sucursal',
         cat_estado_fk: u.cat_estado_fk,
         estado: u.nombre_estado || 'Desconocido',
-        id_rol_fk: u.id_roles ? parseInt(u.id_roles.split(',')[0]) : null, // Tomar el primer rol
+        id_rol_fk: u.id_roles ? parseInt(u.id_roles.split(',')[0]) : null,
         roles: u.roles || 'Sin roles'
       }));
 
@@ -232,15 +238,12 @@ export default function Usuarios() {
     );
   };
 
+  //ABRIR_MODAL_DE_EDICION_SOLO_SI_ES_ADMINISTRADOR
   const handleEditar = (usuario) => {
-    // Validar rol del usuario actual
     const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
     const rolActual = usuarioActual?.rol?.toLowerCase();
 
-    console.log('Usuario actual:', usuarioActual);
-    console.log('Rol actual:', rolActual);
-
-    // Si no es administrador, mostrar mensaje
+    //VALIDAR_PERMISOS_DE_ADMINISTRADOR
     if (rolActual !== 'administrador') {
       Swal.fire({
         icon: 'warning',
@@ -255,6 +258,7 @@ export default function Usuarios() {
     setOpenEditarUsuario(true);
   };
 
+  //CALLBACK_AL_CREAR_NUEVO_USUARIO
   const handleUsuarioCreado = () => {
     Swal.fire({
       icon: 'success',
@@ -265,6 +269,7 @@ export default function Usuarios() {
     cargarUsuarios();
   };
 
+  //CALLBACK_AL_ACTUALIZAR_USUARIO
   const handleUsuarioActualizado = () => {
     Swal.fire({
       icon: 'success',
@@ -275,15 +280,12 @@ export default function Usuarios() {
     cargarUsuarios();
   };
 
+  //ELIMINAR_USUARIO_CON_VALIDACION_DE_PERMISOS_Y_CONFIRMACION
   const handleEliminar = async (usuario) => {
-    // Validar rol del usuario actual
     const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
     const rolActual = usuarioActual?.rol?.toLowerCase();
 
-    console.log('Usuario actual:', usuarioActual);
-    console.log('Rol actual:', rolActual);
-
-    // Si no es administrador, mostrar mensaje
+    //VALIDAR_PERMISOS_DE_ADMINISTRADOR
     if (rolActual !== 'administrador') {
       Swal.fire({
         icon: 'warning',
@@ -294,6 +296,7 @@ export default function Usuarios() {
       return;
     }
 
+    //MOSTRAR_DIALOGO_DE_CONFIRMACION_CON_DATOS_DEL_USUARIO
     const result = await Swal.fire({
       title: '¿Eliminar usuario?',
       html: `
@@ -379,7 +382,7 @@ export default function Usuarios() {
       >
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-black">
-            GESTN DE SEGURIDAD 
+            GESTION DE SEGURIDAD
           </h2>
         </div>
         <p className="text-center text-black italic mt-2">
