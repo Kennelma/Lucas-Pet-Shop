@@ -6,7 +6,7 @@ import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
-
+import ModalPerfilCliente from "./ModalPerfilCliente.js";
 
 import { verClientes, eliminarCliente } from "../../AXIOS.SERVICES/clients-axios.js";
 
@@ -314,44 +314,12 @@ const TablaClientes = () => {
                 />
             )}
 
-            {/*MODAL PARA VER PERFIL DEL CLIENTE*/}
-            {clientePerfil && (
-                <Dialog
-                    header={<div className="w-full text-center text-lg font-bold">PERFIL DE CLIENTE</div>}
-                    visible={openModalPerfil}
-                    style={{ width: '28rem', borderRadius: '1.5rem' }}
-                    modal
-                    closable={false}
-                    onHide={() => setOpenModalPerfil(false)}
-                    footer={
-                        <div className="flex justify-center mt-2">
-                            <Button
-                                label="Cerrar"
-                                icon="pi pi-times"
-                                className="p-button-text p-button-rounded"
-                                onClick={() => setOpenModalPerfil(false)}
-                            />
-                        </div>
-                    }
-                    position="center"
-                    dismissableMask={false}
-                    draggable={false}
-                    resizable={false}
-                >
-                    <div className="mt-0">
-
-                        {/* Información del cliente */}
-                        <div className="flex flex-col gap-3">
-                            <div>
-                                <label className="text-xs font-semibold text-gray-700 mb-1 block">NOMBRE COMPLETO</label>
-                                <div className="w-full rounded-xl h-9 text-sm bg-gray-100 flex items-center px-3 border">
-                                    {clientePerfil.nombre_cliente} {clientePerfil.apellido_cliente}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </Dialog>
-            )}
+            {/* MODAL PARA VER PERFIL DEL CLIENTE */}
+<ModalPerfilCliente
+  isOpen={openModalPerfil}
+  cliente={clientePerfil}
+  onClose={() => setOpenModalPerfil(false)}
+/>
 
             {/*DIALOG PARA ELIMINAR CLIENTE*/}
             <Dialog
