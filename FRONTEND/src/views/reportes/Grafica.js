@@ -68,60 +68,56 @@ const Grafica = ({
   }, [ingresos, gastos, indicesUltimos3, meses]);
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-50 rounded-lg">
-            <TrendingUp className="w-6 h-6 text-blue-600" />
+    <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-200 h-full flex flex-col">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-blue-50 rounded-lg">
+            <TrendingUp className="w-4 h-4 text-blue-600" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Poppins, sans-serif' }}>
-            Comparativa Mensual de los Últimos 3 Meses
+          <h3 className="text-sm font-bold text-gray-900" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            Comparativa Últimos 3 Meses
           </h3>
         </div>
       </div>
 
-      <div className="flex gap-6 text-sm mb-4">
-        <div className="flex items-center gap-2">
-          <ArrowUpRight className="w-4 h-4 text-blue-600" />
-          <div className="w-4 h-4 bg-blue-600 rounded"></div>
-          <span className="text-gray-600 font-medium">Ingresos</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <ArrowDownRight className="w-4 h-4 text-red-600" />
-          <div className="w-4 h-4 bg-red-600 rounded"></div>
-          <span className="text-gray-600 font-medium">Gastos</span>
-        </div>
+      <div className="flex-1" style={{ minHeight: 0 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={datos} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis 
+              dataKey="mes" 
+              tick={{ fill: '#6b7280', fontFamily: 'Poppins, sans-serif', fontSize: 11 }}
+              axisLine={{ stroke: '#d1d5db' }}
+            />
+            <YAxis 
+              tick={{ fill: '#6b7280', fontFamily: 'Poppins, sans-serif', fontSize: 10 }}
+              axisLine={{ stroke: '#d1d5db' }}
+              tickFormatter={(value) => `L ${(value / 1000).toFixed(0)}K`}
+              domain={[0, 100000]}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <ReferenceLine 
+              y={100000} 
+              stroke="#dc2626" 
+              strokeDasharray="3 3" 
+              label={{ value: 'Límite L 100K', position: 'right', fill: '#dc2626', fontFamily: 'Poppins, sans-serif', fontSize: 10 }} 
+            />
+            <Bar dataKey="ingresos" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+            <Bar dataKey="gastos" fill="#dc2626" radius={[8, 8, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
-      <ResponsiveContainer width="100%" height={400}>
-        <BarChart data={datos} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis 
-            dataKey="mes" 
-            tick={{ fill: '#6b7280', fontFamily: 'Poppins, sans-serif' }}
-            axisLine={{ stroke: '#d1d5db' }}
-          />
-          <YAxis 
-            tick={{ fill: '#6b7280', fontFamily: 'Poppins, sans-serif' }}
-            axisLine={{ stroke: '#d1d5db' }}
-            tickFormatter={(value) => `L ${(value / 1000).toFixed(0)}K`}
-            domain={[0, 100000]}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Legend 
-            wrapperStyle={{ paddingTop: '20px', fontFamily: 'Poppins, sans-serif' }}
-            iconType="square"
-          />
-          <ReferenceLine 
-            y={100000} 
-            stroke="#dc2626" 
-            strokeDasharray="3 3" 
-            label={{ value: 'Límite L 100K', position: 'right', fill: '#dc2626', fontFamily: 'Poppins, sans-serif' }} 
-          />
-          <Bar dataKey="ingresos" fill="#3b82f6" radius={[8, 8, 0, 0]} />
-          <Bar dataKey="gastos" fill="#dc2626" radius={[8, 8, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
+      <div className="flex justify-center gap-4 text-xs mt-3">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 bg-blue-600 rounded"></div>
+          <span className="text-gray-600 font-medium uppercase">Ingresos</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 bg-red-600 rounded"></div>
+          <span className="text-gray-600 font-medium uppercase">Gastos</span>
+        </div>
+      </div>
     </div>
   );
 };
