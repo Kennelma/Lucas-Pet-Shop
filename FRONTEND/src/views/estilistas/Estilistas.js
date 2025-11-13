@@ -190,13 +190,24 @@ const Estilistas = () => {
       ) : (
         <>
           {/* Título */}
-          <div className="bg-gradient-to-r from-purple-50 rounded-xl p-6 mb-3" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+          <div className="rounded-xl p-6 mb-3"
+            style={{
+              backgroundImage: 'url("/H11.jpg")',
+              backgroundColor: '#F8E6A4',
+              backgroundSize: 'contain',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right center',
+              boxShadow: '0 0 8px #f8e6a440, 0 0 0 1px #f8e6a433'
+            }}
+          >
             <div className="flex justify-center items-center">
-              <h2 className="text-2xl font-black text-center uppercase text-gray-800">
+              <h2 className="text-2xl font-black text-center uppercase text-black">
                 GESTIÓN DE ESTILISTAS
               </h2>
             </div>
-            <p className="text-center text-gray-600 italic">Administra el personal de peluquería y sus bonificaciones</p>
+            <p className="text-center text-black italic mt-2">
+              Administra los estilistas disponibles en el sistema para su gestión
+            </p>
           </div>
 
           {/* Dashboard Estadístico */}
@@ -207,7 +218,7 @@ const Estilistas = () => {
           />
 
           {/* Header con búsqueda, botón y tabla */}
-          <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+          <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #F8E6A440, 0 0 0 1PX #F8E6A433'}}>
             {/* Barra de búsqueda + botón Nuevo */}
             <div className="flex justify-between items-center mb-6">
               <div className="relative w-80">
@@ -228,7 +239,7 @@ const Estilistas = () => {
               </div>
 
               <button
-                className="bg-purple-500 hover:bg-purple-700 text-white px-6 py-2 rounded transition-colors flex items-center gap-2"
+                className="bg-yellow-200 hover:bg-yellow-300 text-black px-6 py-2 rounded transition-colors flex items-center gap-2"
                 onClick={abrirModalAgregar}
               >
                 <FontAwesomeIcon icon={faPlus} />

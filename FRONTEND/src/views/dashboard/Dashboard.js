@@ -29,9 +29,7 @@ const Dashboard = () => {
   }, [token, navigate]);
 
   const getHondurasDate = () => {
-    const now = new Date();
-    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-    return new Date(utc + 3600000 * -6);
+    return new Date();
   };
 
   const today = getHondurasDate();
@@ -44,14 +42,16 @@ const Dashboard = () => {
       if (Array.isArray(data)) {
         setExpenses(
           data.map((item) => {
+         // solución temporal para ajuste de zona horaria (pendiente)
             let dateObj = new Date(item.fecha_registro_gasto || Date.now());
-            //horario de honduras
-            dateObj = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 0, 0, 0);
+            dateObj.setTime(dateObj.getTime() - 24 * 60 * 60 * 1000);
+            const normalizedDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 0, 0, 0);
+            
             return {
               id: item.id_gasto_pk,
               description: item.detalle_gasto,
               amount: Number(item.monto_gasto),
-              date: dateObj
+              date: normalizedDate
             };
           })
         );
@@ -96,23 +96,23 @@ const Dashboard = () => {
     }
   };
   
-  // Filtrar gastos por fecha seleccionada
+  // Filtrar gastos por fecha seleccionada usando hora local
   const filteredExpenses = expenses.filter(expense => {
     const d1 = expense.date;
     const d2 = filterDate;
     
     if (viewMode === 'monthly') {
-      // Vista mensual: filtrar por año y mes
+      // Vista mensual: filtrar por año y mes en hora local
       return (
-        d1.getUTCFullYear() === d2.getUTCFullYear() &&
-        d1.getUTCMonth() === d2.getUTCMonth()
+        d1.getFullYear() === d2.getFullYear() &&
+        d1.getMonth() === d2.getMonth()
       );
     } else {
-      // Vista diaria: filtrar por año, mes y día
+      // Vista diaria: filtrar por año, mes y día en hora local
       return (
-        d1.getUTCFullYear() === d2.getUTCFullYear() &&
-        d1.getUTCMonth() === d2.getUTCMonth() &&
-        d1.getUTCDate() === d2.getUTCDate()
+        d1.getFullYear() === d2.getFullYear() &&
+        d1.getMonth() === d2.getMonth() &&
+        d1.getDate() === d2.getDate()
       );
     }
   });

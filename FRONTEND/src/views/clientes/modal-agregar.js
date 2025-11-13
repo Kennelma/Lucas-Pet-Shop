@@ -28,6 +28,8 @@ export default function FormularioCliente({
         telefono_cliente: false
     });
 
+    const [errorTelefonoDuplicado, setErrorTelefonoDuplicado] = useState(false);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         let nuevoValor = value;
@@ -38,6 +40,10 @@ export default function FormularioCliente({
         setNuevoCliente({ ...nuevoCliente, [name]: nuevoValor });
         if (nuevoValor.trim() !== "") {
             setErrores({ ...errores, [name]: false });
+            // Limpiar error de teléfono duplicado cuando el usuario modifica el campo
+            if (name === "telefono_cliente") {
+                setErrorTelefonoDuplicado(false);
+            }
         }
     };
 
@@ -66,7 +72,7 @@ export default function FormularioCliente({
             );
             
             if (telefonoDuplicado) {
-                alert('Ya existe un cliente con este número de teléfono');
+                setErrorTelefonoDuplicado(true);
                 return;
             }
         } catch (error) {
@@ -106,6 +112,7 @@ export default function FormularioCliente({
             identidad_cliente: false,
             telefono_cliente: false
         });
+        setErrorTelefonoDuplicado(false);
         setNuevoCliente({
             nombre_cliente: "",
             apellido_cliente: "",
@@ -143,6 +150,7 @@ export default function FormularioCliente({
                 });
             }
             setErrores({});
+            setErrorTelefonoDuplicado(false);
         }
     }, [isOpen, identidadInicial]);
 
@@ -237,6 +245,7 @@ export default function FormularioCliente({
                                     setNuevoCliente({ ...nuevoCliente, telefono_cliente: e.value });
                                     if (e.value && e.value.trim() !== "-") {
                                         setErrores({ ...errores, telefono_cliente: false });
+                                        setErrorTelefonoDuplicado(false);
                                     }
                                 }}
                                 mask="9999-9999"
@@ -245,6 +254,7 @@ export default function FormularioCliente({
                                 autoComplete="off"
                             />
                             {errores.telefono_cliente && <p className="text-xs text-red-600 mt-1">El teléfono es requerido</p>}
+                            {errorTelefonoDuplicado && <p className="text-xs text-red-600 mt-1">Ya existe un cliente con este número de teléfono</p>}
                         </span>
                     </div>
                 </div>
