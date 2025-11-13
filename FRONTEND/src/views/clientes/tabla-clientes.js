@@ -6,7 +6,7 @@ import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
-
+import ModalPerfilCliente from "./ModalPerfilCliente.js";
 
 import { verClientes, eliminarCliente } from "../../AXIOS.SERVICES/clients-axios.js";
 
@@ -293,7 +293,14 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                 />
             )}
 
-            {/*DIALOG_PARA_ELIMINAR_CLIENTE*/}
+            {/* MODAL PARA VER PERFIL DEL CLIENTE */}
+<ModalPerfilCliente
+  isOpen={openModalPerfil}
+  cliente={clientePerfil}
+  onClose={() => setOpenModalPerfil(false)}
+/>
+
+            {/*DIALOG PARA ELIMINAR CLIENTE*/}
             <Dialog
                 header="Confirmar eliminación"
                 visible={confirmDialogVisible}

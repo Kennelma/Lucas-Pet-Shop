@@ -1,17 +1,29 @@
 import { jsPDF } from 'jspdf';
 
-export const descargarPDF = (datosTabla, totalIngresos, totalGastos, gananciaTotal) => {
+export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananciaTotal, anio, mesFiltrado = null) => {
   const doc = new jsPDF();
 
-  // ========== ENCABEZADO MODERNO (sin degradado fuerte) ==========
-  doc.setFillColor(245, 247, 250); // Fondo gris claro suave
+  // ========== ENCABEZADO MODERNO ==========
+  doc.setFillColor(245, 247, 250);
   doc.rect(0, 0, 210, 45, 'F');
 
-  // Título principal
+  // Título principal según el tipo de reporte
   doc.setFontSize(26);
-  doc.setTextColor(33, 37, 41); // Negro suave (gris oscuro)
+  doc.setTextColor(33, 37, 41);
   doc.setFont(undefined, 'bold');
-  doc.text('Reporte Financiero Anual', 105, 22, { align: 'center' });
+  
+  let titulo = '';
+  if (mesFiltrado) {
+    // Determinar si es reporte mensual o diario
+    const esDiario = datosTabla.length > 12;
+    titulo = esDiario 
+      ? `Reporte Diario - ${mesFiltrado} ${anio}`
+      : `Reporte Mensual - ${mesFiltrado} ${anio}`;
+  } else {
+    titulo = `Reporte Anual ${anio}`;
+  }
+  
+  doc.text(titulo, 105, 22, { align: 'center' });
 
   // Subtítulo con fecha
   doc.setFontSize(11);
@@ -42,7 +54,7 @@ export const descargarPDF = (datosTabla, totalIngresos, totalGastos, gananciaTot
 
   doc.setFontSize(15);
   doc.setTextColor(22, 163, 74);
-  doc.text(`L ${totalIngresos.toLocaleString()}`, 43, cardY + 20, { align: 'center' });
+  doc.text(`L ${totalIngresos.toLocaleString('es-HN')}`, 43, cardY + 20, { align: 'center' });
 
   // Gastos (Rojo)
   doc.setFillColor(255, 240, 240);
@@ -56,7 +68,7 @@ export const descargarPDF = (datosTabla, totalIngresos, totalGastos, gananciaTot
 
   doc.setFontSize(15);
   doc.setTextColor(220, 38, 38);
-  doc.text(`L ${totalGastos.toLocaleString()}`, 105, cardY + 20, { align: 'center' });
+  doc.text(`L ${totalGastos.toLocaleString('es-HN')}`, 105, cardY + 20, { align: 'center' });
 
   // Ganancia (Azul si positiva, Naranja si negativa)
   const isPositive = gananciaTotal >= 0;
@@ -72,17 +84,22 @@ export const descargarPDF = (datosTabla, totalIngresos, totalGastos, gananciaTot
 
   doc.setFontSize(9);
   doc.setTextColor(isPositive ? 37 : 234, isPositive ? 99 : 88, isPositive ? 235 : 0);
-  doc.text('GANANCIA TOTAL', 167, cardY + 8, { align: 'center' });
+  doc.text('TOTAL GENERAL', 167, cardY + 8, { align: 'center' });
 
   doc.setFontSize(15);
   doc.setTextColor(isPositive ? 25 : 220, isPositive ? 80 : 50, isPositive ? 190 : 20);
-  doc.text(`L ${gananciaTotal.toLocaleString()}`, 167, cardY + 20, { align: 'center' });
+  doc.text(`L ${gananciaTotal.toLocaleString('es-HN')}`, 167, cardY + 20, { align: 'center' });
 
   // ========== TABLA DE DETALLE ==========
   doc.setFontSize(14);
   doc.setTextColor(33, 37, 41);
   doc.setFont(undefined, 'bold');
-  doc.text('Detalle Mensual', 105, 105, { align: 'center' });
+  
+  const tituloTabla = mesFiltrado 
+    ? `Detalle de ${mesFiltrado}`
+    : 'Detalle Anual';
+  
+  doc.text(tituloTabla, 105, 105, { align: 'center' });
 
   const tableY = 115;
 
@@ -91,10 +108,10 @@ export const descargarPDF = (datosTabla, totalIngresos, totalGastos, gananciaTot
   doc.roundedRect(15, tableY, 180, 10, 2, 2, 'F');
   doc.setFontSize(10);
   doc.setTextColor(60, 60, 70);
-  doc.text('Mes', 30, tableY + 7, { align: 'left' });
+  doc.text('Período', 30, tableY + 7, { align: 'left' });
   doc.text('Ingresos', 85, tableY + 7, { align: 'center' });
   doc.text('Gastos', 130, tableY + 7, { align: 'center' });
-  doc.text('Ganancia', 175, tableY + 7, { align: 'center' });
+  doc.text('Total', 175, tableY + 7, { align: 'center' });
 
   let y = tableY + 18;
   datosTabla.forEach((fila, index) => {
@@ -108,17 +125,18 @@ export const descargarPDF = (datosTabla, totalIngresos, totalGastos, gananciaTot
 
     doc.setFontSize(9);
     doc.setTextColor(70, 70, 85);
-    doc.text(fila.mes, 30, y, { align: 'left' });
+    doc.text(fila.periodo || fila.mes, 30, y, { align: 'left' });
 
     doc.setTextColor(22, 163, 74);
-    doc.text(`L ${fila.ingreso.toLocaleString()}`, 85, y, { align: 'center' });
+    doc.text(`L ${fila.ingreso.toLocaleString('es-HN')}`, 85, y, { align: 'center' });
 
     doc.setTextColor(220, 38, 38);
-    doc.text(`L ${fila.gasto.toLocaleString()}`, 130, y, { align: 'center' });
+    doc.text(`L ${fila.gasto.toLocaleString('es-HN')}`, 130, y, { align: 'center' });
 
-    const isProfitable = fila.ganancia >= 0;
+    const isProfitable = fila.total >= 0 || fila.ganancia >= 0;
+    const totalValue = fila.total || fila.ganancia || 0;
     doc.setTextColor(isProfitable ? 37 : 234, isProfitable ? 99 : 88, isProfitable ? 235 : 0);
-    doc.text(`L ${fila.ganancia.toLocaleString()}`, 175, y, { align: 'center' });
+    doc.text(`L ${totalValue.toLocaleString('es-HN')}`, 175, y, { align: 'center' });
 
     y += 9;
     if (y > 270 && index < datosTabla.length - 1) {
@@ -126,10 +144,10 @@ export const descargarPDF = (datosTabla, totalIngresos, totalGastos, gananciaTot
       doc.setFillColor(235, 235, 245);
       doc.roundedRect(15, 20, 180, 10, 2, 2, 'F');
       doc.setTextColor(60, 60, 70);
-      doc.text('Mes', 30, 27, { align: 'left' });
+      doc.text('Período', 30, 27, { align: 'left' });
       doc.text('Ingresos', 85, 27, { align: 'center' });
       doc.text('Gastos', 130, 27, { align: 'center' });
-      doc.text('Ganancia', 175, 27, { align: 'center' });
+      doc.text('Total', 175, 27, { align: 'center' });
       y = 38;
     }
   });
@@ -147,6 +165,16 @@ export const descargarPDF = (datosTabla, totalIngresos, totalGastos, gananciaTot
   }
 
   // ========== GUARDAR ==========
-  const nombreArchivo = `Reporte-Financiero-${new Date().getFullYear()}.pdf`;
+  const esDiario = datosTabla.length > 12;
+  let nombreArchivo = '';
+  
+  if (mesFiltrado) {
+    nombreArchivo = esDiario 
+      ? `Reporte-Diario-${mesFiltrado}-${anio}.pdf`
+      : `Reporte-Mensual-${mesFiltrado}-${anio}.pdf`;
+  } else {
+    nombreArchivo = `Reporte-Anual-${anio}.pdf`;
+  }
+  
   doc.save(nombreArchivo);
 };

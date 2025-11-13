@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Building2, Plus, Edit2, Trash2, Search } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Building2, Plus, Edit2, Trash2, Search, MoreHorizontal } from 'lucide-react';
 import { ver, insertar, actualizarRegistro } from '../../AXIOS.SERVICES/empresa-axios';
 
 // Importar modales reales
@@ -9,6 +9,95 @@ import ModalAgregarSucursal from './sucursales/modal-agregar-sucursal';
 // Importar funciones de eliminación existentes
 import { eliminarEmpresa } from './informacion-empresa/modal-eliminar-empresa';
 import { eliminarSucursal } from './sucursales/modal-eliminar-sucursal';
+
+// Componente ActionMenu para los tres puntos
+const ActionMenu = ({ actions, rowIndex, totalRows }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [shouldShowAbove, setShouldShowAbove] = useState(false);
+  const menuRef = useRef(null);
+  const buttonRef = useRef(null);
+
+  const checkPosition = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const menuHeight = actions.length * 40; // Altura aproximada por acción
+      
+      const showAbove = rect.bottom + menuHeight > viewportHeight - 50;
+      setShouldShowAbove(showAbove);
+    }
+  };
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleResize = () => setIsOpen(false);
+    const handleScroll = () => setIsOpen(false);
+
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleScroll, true);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, []);
+
+  const handleToggleMenu = (e) => {
+    e.stopPropagation();
+    if (!isOpen) {
+      checkPosition();
+    }
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <div className="relative flex justify-center" ref={menuRef}>
+      <button
+        ref={buttonRef}
+        className="w-8 h-8 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center transition-colors"
+        onClick={handleToggleMenu}
+        title="Más opciones"
+      >
+        <MoreHorizontal size={16} className="text-white" />
+      </button>
+
+      {isOpen && (
+        <div 
+          className="fixed bg-white border border-gray-200 rounded-lg shadow-xl min-w-[140px] z-50"
+          style={{
+            position: 'fixed',
+            left: buttonRef.current ? buttonRef.current.getBoundingClientRect().right - 140 : 'auto',
+            top: shouldShowAbove ? 
+              (buttonRef.current ? buttonRef.current.getBoundingClientRect().top - (actions.length * 40) : 'auto') : 
+              (buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 5 : 'auto')
+          }}
+        >
+          {actions.map((action, index) => (
+            <div
+              key={index}
+              className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer flex items-center gap-2 transition-colors first:rounded-t-lg last:rounded-b-lg"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsOpen(false);
+                action.onClick();
+              }}
+            >
+              {action.icon}
+              {action.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function GestionEmpresa() {
   const [empresas, setEmpresas] = useState([]);
@@ -357,13 +446,7 @@ export default function GestionEmpresa() {
       <Building2 className="w-16 h-16 mx-auto mb-4 text-gray-400" />
       <h3 className="text-lg font-semibold text-gray-700 mb-2 uppercase">No hay empresas</h3>
       <p className="text-gray-500 mb-6">Crea tu primera empresa para gestionar el negocio.</p>
-      <button
-        className="bg-purple-500 text-white px-6 py-3 rounded hover:bg-purple-600 transition-colors inline-flex items-center gap-2"
-        onClick={() => abrirModalEmpresa('create')}
-      >
-        <Plus size={16} />
-        NUEVA EMPRESA
-      </button>
+      
     </div>
   );
 
@@ -378,7 +461,7 @@ export default function GestionEmpresa() {
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'right center',
-          boxShadow: '0 0 8px #FF9A9840, 0 0 0 1px #FF9A9833'
+          boxShadow: '0 0 8px #C7E4E240, 0 0 0 1px #C7E4E233'
         }}
       >
         <div className="flex justify-center items-center">
@@ -392,7 +475,7 @@ export default function GestionEmpresa() {
       </div>
 
       {/* Sección Principal */}
-      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #FF9A9840, 0 0 0 1px #FF9A9833'}}>
+      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #C7E4E240, 0 0 0 1px #C7E4E233'}}>
         {/* Barra de búsqueda + botones */}
         <div className="flex justify-between items-center mb-6">
           <div className="relative w-80">
@@ -414,7 +497,7 @@ export default function GestionEmpresa() {
 
           <div className="flex gap-2">
             <button
-              className="bg-rose-300 text-black px-6 py-2 rounded hover:bg-rose-600 transition-colors flex items-center gap-2"
+              className="bg-[#C7E4E2] text-black px-6 py-2 rounded hover:bg-[#A3D2CA4] transition-colors flex items-center gap-2"
               onClick={() => abrirModalEmpresa('create')}
             >
               <Plus size={16} />
@@ -433,7 +516,7 @@ export default function GestionEmpresa() {
               className={`${
                 !empresas?.length 
                   ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-rose-300 hover:bg-rose-600'
+                  : 'bg-[#C7E4E2] hover:bg-[#A3D2CA]'
               } text-black px-6 py-2 rounded transition-colors flex items-center gap-2`}
             >
               <Plus size={16} />
@@ -464,15 +547,15 @@ export default function GestionEmpresa() {
               </div>
             )
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-lg border border-gray-200">
               <table className="w-full">
                 <thead className="bg-blue-600 text-white">
                   <tr>
-                    <th className="px-6 py-4 text-left font-semibold">Empresa</th>
+                    <th className="px-6 py-4 text-left font-semibold first:rounded-tl-lg">Empresa</th>
                     <th className="px-6 py-4 text-left font-semibold">Sucursal</th>
                     <th className="px-6 py-4 text-left font-semibold">Dirección</th>
                     <th className="px-6 py-4 text-left font-semibold">Teléfono</th>
-                    <th className="px-6 py-4 text-center font-semibold">Acciones</th>
+                    <th className="px-6 py-4 text-center font-semibold last:rounded-tr-lg">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -507,22 +590,22 @@ export default function GestionEmpresa() {
                           <td className="px-6 py-4 text-gray-500">-</td>
                           <td className="px-6 py-4 text-gray-500">-</td>
                           <td className="px-6 py-4 text-center">
-                            <div className="flex justify-center gap-2">
-                              <button 
-                                onClick={() => abrirModalEmpresa('edit', empresa)}
-                                className="text-blue-600 hover:text-blue-800 p-1 rounded transition-colors"
-                                title="Editar empresa"
-                              >
-                                <Edit2 size={16} />
-                              </button>
-                              <button 
-                                onClick={() => manejarEliminarEmpresa(empresa)}
-                                className="text-red-600 hover:text-red-800 p-1 rounded transition-colors"
-                                title="Eliminar empresa"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
+                            <ActionMenu
+                              rowIndex={0}
+                              totalRows={1}
+                              actions={[
+                                {
+                                  label: 'Editar empresa',
+                                  icon: <Edit2 size={14} className="text-blue-600" />,
+                                  onClick: () => abrirModalEmpresa('edit', empresa)
+                                },
+                                {
+                                  label: 'Eliminar empresa',
+                                  icon: <Trash2 size={14} className="text-red-600" />,
+                                  onClick: () => manejarEliminarEmpresa(empresa)
+                                }
+                              ]}
+                            />
                           </td>
                         </tr>
                       );
@@ -566,48 +649,36 @@ export default function GestionEmpresa() {
                               {sucursal.telefono_sucursal}
                             </td>
                             <td className="px-6 py-4 text-center">
-                              <div className="flex justify-center gap-1">
-                                {/* Acciones de Sucursal */}
-                                <div className="flex gap-1 mr-1">
-                                  <button 
-                                    onClick={() => abrirModalSucursal('edit', sucursal, empresa)}
-                                    className="text-blue-600 hover:text-blue-800 p-1 rounded transition-colors" 
-                                    title="Editar sucursal"
-                                  >
-                                    <Edit2 size={16} />
-                                  </button>
-                                  <button 
-                                    onClick={() => manejarEliminarSucursal(sucursal)}
-                                    className="text-red-600 hover:text-red-800 p-1 rounded transition-colors"
-                                    title="Eliminar sucursal"
-                                  >
-                                    <Trash2 size={16} />
-                                  </button>
-                                </div>
-                                
-                                {/* Acciones de Empresa (solo en la primera fila) */}
-                                {idx === 0 && (
-                                  <>
-                                    <div className="w-px h-6 bg-gray-300 mx-1"></div>
-                                    <div className="flex gap-1">
-                                      <button 
-                                        onClick={() => abrirModalEmpresa('edit', empresa)}
-                                        className="text-green-600 hover:text-green-800 p-1 rounded transition-colors"
-                                        title="Editar empresa"
-                                      >
-                                        <Building2 size={16} />
-                                      </button>
-                                      <button 
-                                        onClick={() => manejarEliminarEmpresa(empresa)}
-                                        className="text-red-700 hover:text-red-900 p-1 rounded transition-colors"
-                                        title="Eliminar empresa"
-                                      >
-                                        <Building2 size={16} />
-                                      </button>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
+                              <ActionMenu
+                                rowIndex={idx}
+                                totalRows={empresa.sucursales?.length || 1}
+                                actions={[
+                                  // Acciones de Sucursal
+                                  {
+                                    label: 'Editar sucursal',
+                                    icon: <Edit2 size={14} className="text-blue-600" />,
+                                    onClick: () => abrirModalSucursal('edit', sucursal, empresa)
+                                  },
+                                  {
+                                    label: 'Eliminar sucursal',
+                                    icon: <Trash2 size={14} className="text-red-600" />,
+                                    onClick: () => manejarEliminarSucursal(sucursal)
+                                  },
+                                  // Acciones de Empresa (solo en la primera fila)
+                                  ...(idx === 0 ? [
+                                    {
+                                      label: 'Editar empresa',
+                                      icon: <Edit2 size={14} className="text-green-600" />,
+                                      onClick: () => abrirModalEmpresa('edit', empresa)
+                                    },
+                                    {
+                                      label: 'Eliminar empresa',
+                                      icon: <Trash2 size={14} className="text-red-700" />,
+                                      onClick: () => manejarEliminarEmpresa(empresa)
+                                    }
+                                  ] : [])
+                                ]}
+                              />
                             </td>
                           </tr>
                         );

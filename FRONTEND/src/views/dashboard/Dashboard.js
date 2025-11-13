@@ -29,9 +29,7 @@ const Dashboard = () => {
   }, [token, navigate]);
 
   const getHondurasDate = () => {
-    const now = new Date();
-    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-    return new Date(utc + 3600000 * -6); // Honduras CST (UTC-6)
+    return new Date();
   };
 
   const today = getHondurasDate();

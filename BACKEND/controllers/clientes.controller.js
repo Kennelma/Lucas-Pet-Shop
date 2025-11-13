@@ -197,11 +197,16 @@ exports.historialCompras = async (req, res) => {
             factura.detalles.push({
                 nombre_item: fila.nombre_item,
                 cantidad_item: fila.cantidad_item,
-                precio_item: fila.precio_item,
-                total_item: fila.total_item
+                precio_item: parseFloat(fila.precio_item),
+                total_item: parseFloat(fila.total_item)
             });
-            factura.total_factura += fila.total_item;
+            factura.total_factura += parseFloat(fila.total_item);
         }
+
+        // Asegurar que los totales estén redondeados a 2 decimales
+        agrupadas.forEach(factura => {
+            factura.total_factura = parseFloat(factura.total_factura.toFixed(2));
+        });
 
         res.status(200).json({
             Consulta: true,
