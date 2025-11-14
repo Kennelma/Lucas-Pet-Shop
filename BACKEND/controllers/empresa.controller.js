@@ -25,14 +25,14 @@ exports.crear = async (req, res) => {
                 await conn.query (
                     `INSERT INTO tbl_empresa (
                     nombre_empresa,
-                    direccion_empresa,
                     telefono_empresa,
-                    correo_empresa) VALUES (?,?,?,?)`,
+                    correo_empresa,
+                    rtn_empresa) VALUES (?,?,?,?)`,
                     [
                         req.body.nombre_empresa,
-                        req.body.direccion_empresa,
                         req.body.telefono_empresa,
-                        req.body.correo_empresa
+                        req.body.correo_empresa,
+                        req.body.rtn_empresa
                     ]);
                 break;
 
@@ -123,15 +123,15 @@ exports.actualizar = async (req, res) => {
                     `UPDATE tbl_empresa
                     SET
                         nombre_empresa    = COALESCE(?, nombre_empresa),
-                        direccion_empresa = COALESCE(?, direccion_empresa),
                         telefono_empresa  = COALESCE(?, telefono_empresa),
-                        correo_empresa    = COALESCE(?, correo_empresa)
+                        correo_empresa    = COALESCE(?, correo_empresa),
+                        rtn_empresa       = COALESCE(?, rtn_empresa)
                     WHERE id_empresa_pk = ?`,
                     [
                         req.body.nombre_empresa || null,
-                        req.body.direccion_empresa || null,
                         req.body.telefono_empresa || null,
                         req.body.correo_empresa || null,
+                        req.body.rtn_empresa || null,
                         id
                     ]
                 );
@@ -255,9 +255,9 @@ exports.ver = async (req, res) => {
                     `SELECT
                         id_empresa_pk,
                         nombre_empresa,
-                        direccion_empresa,
                         telefono_empresa,
-                        correo_empresa
+                        correo_empresa,
+                        rtn_empresa
                     FROM tbl_empresa`);
 
                 break;
@@ -280,7 +280,7 @@ exports.ver = async (req, res) => {
             case 'GASTOS':
 
                 [registros] = await conn.query(
-     
+
         `SELECT
             id_gasto_pk,
             detalle_gasto,

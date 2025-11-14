@@ -17,6 +17,7 @@ const Tabla = () => {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
   const [anioSeleccionado, setAnioSeleccionado] = useState(new Date().getFullYear());
+  const [mesSeleccionado, setMesSeleccionado] = useState('todos'); // 'todos' o índice del mes
 
   const anioActual = new Date().getFullYear();
   const mesActual = new Date().getMonth();
@@ -73,12 +74,38 @@ const Tabla = () => {
   const totalGastos = datosTabla.reduce((sum, d) => sum + (d?.gasto || 0), 0);
   const totalGeneral = totalIngresos - totalGastos;
 
+  // Función para descargar PDF
+  const handleDescargarPDF = () => {
+    if (mesSeleccionado === 'todos') {
+      // Descargar PDF anual
+      descargarPDFTabla(
+        datosTabla,
+        totalIngresos,
+        totalGastos,
+        totalGeneral,
+        anioSeleccionado,
+        null
+      );
+    } else {
+      // Descargar PDF de un mes específico
+      const mesData = datosTabla.find(m => m.mesIndex === parseInt(mesSeleccionado));
+      if (mesData) {
+        descargarPDFTabla(
+          [mesData],
+          mesData.ingreso,
+          mesData.gasto,
+          mesData.total,
+          anioSeleccionado,
+          mesData.mes
+        );
+      }
+    }
+  };
+
   // Columna ID
   const bodyId = (rowData) => (
     <div className="flex items-center justify-center">
-      <div className="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">
-        <span className="text-blue-700 font-bold text-xs">{rowData.id}</span>
-      </div>
+      <span className="text-gray-800 font-semibold text-sm">{rowData.id}</span>
     </div>
   );
 
@@ -102,7 +129,7 @@ const Tabla = () => {
 
   // Columna Ingresos
   const bodyIngresos = (rowData) => (
-    <div className="flex items-center justify-end gap-1.5">
+    <div className="flex items-center gap-1.5">
       <TrendingUp className="w-3.5 h-3.5 text-green-600" />
       <span className="text-green-700 font-bold text-sm">
         L {rowData.ingreso.toLocaleString('es-HN')}
@@ -112,7 +139,7 @@ const Tabla = () => {
 
   // Columna Gastos
   const bodyGastos = (rowData) => (
-    <div className="flex items-center justify-end gap-1.5">
+    <div className="flex items-center gap-1.5">
       <DollarSign className="w-3.5 h-3.5 text-red-600" />
       <span className="text-red-700 font-bold text-sm">
         L {rowData.gasto.toLocaleString('es-HN')}
@@ -122,23 +149,10 @@ const Tabla = () => {
 
   // Columna Total
   const bodyTotal = (rowData) => (
-    <div className="flex items-center justify-end">
+    <div className="flex items-center">
       <span className={`font-bold text-sm ${rowData.total >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
         L {rowData.total.toLocaleString('es-HN')}
       </span>
-    </div>
-  );
-
-  // Columna Acciones
-  const bodyAcciones = (rowData) => (
-    <div className="flex items-center justify-center">
-      <button
-        onClick={() => descargarPDFMes(rowData)}
-        className="p-1.5 bg-green-50 hover:bg-green-100 text-green-600 rounded-md transition-colors"
-        title="Descargar PDF del mes"
-      >
-        <Download className="w-4 h-4" />
-      </button>
     </div>
   );
 
@@ -158,61 +172,62 @@ const Tabla = () => {
     </span>
   );
 
-  // Funciones de acciones
-  const descargarPDFMes = (rowData) => {
-    console.log('Descargar PDF del mes:', rowData);
-    // TODO: Aquí se generará el PDF con los días del mes seleccionado
-    alert(`Generando PDF de ${rowData.mes} ${anioSeleccionado}\n\nMostrará ingresos por día.\n(Pendiente: integrar con endpoint)`);
-  };
-
   return (
-    <div className="min-h-screen p-4 bg-gray-50" style={{ fontFamily: 'Poppins, sans-serif' }}>
-      <div className="max-w-7xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>
-        
-        {/* Estados de carga y error */}
-        {cargando && (
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-4 flex items-center gap-3">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-            <p className="text-sm text-blue-700 font-medium">Cargando datos...</p>
-          </div>
-        )}
+    <>
+      <style>
+        {`
+          .datatable-compact .p-datatable-tbody > tr > td {
+            padding: 0.5rem 0.5rem !important;
+          }
+          .datatable-compact .p-datatable-thead > tr > th {
+            padding: 0.5rem 0.5rem !important;
+          }
+          .datatable-compact .p-datatable-tfoot > tr > td {
+            padding: 0.5rem 0.5rem !important;
+          }
+        `}
+      </style>
 
-        {error && (
-          <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 mb-4 flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600" />
-            <div className="flex-1">
-              <p className="text-sm text-red-700 font-medium">{error}</p>
-              <button 
-                onClick={cargarDatos}
-                className="text-sm text-red-600 underline mt-1 hover:text-red-800"
-              >
-                Reintentar
-              </button>
+      <div className="min-h-screen p-4 bg-gray-50" style={{ fontFamily: 'Poppins, sans-serif' }}>
+        <div className="max-w-7xl mx-auto">
+          
+          {/* Estados de carga y error */}
+          {cargando && (
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-4 flex items-center gap-3">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+              <p className="text-sm text-blue-700 font-medium">Cargando datos...</p>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Tabla compacta */}
-        {!cargando && (
-          <div className="bg-white rounded-xl shadow-lg border-2 border-gray-200 overflow-hidden">
-            {/* Encabezado compacto */}
-            <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-green-100 rounded-lg">
-                    <FileText className="w-4 h-4 text-green-700" />
-                  </div>
-                  <h2 className="text-sm font-bold text-gray-800">
+          {error && (
+            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 mb-4 flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600" />
+              <div className="flex-1">
+                <p className="text-sm text-red-700 font-medium">{error}</p>
+                <button 
+                  onClick={cargarDatos}
+                  className="text-sm text-red-600 underline mt-1 hover:text-red-800"
+                >
+                  Reintentar
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-4">
+            {/* Tabla principal */}
+            <div className="flex-1">
+              <div className="bg-white rounded-xl p-6 font-poppins" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-base font-bold text-gray-800">
                     Resumen Mensual {anioSeleccionado}
                   </h2>
-                </div>
-
-                <div className="flex items-center gap-2">
+                  
                   {/* Selector de año */}
                   <select 
                     value={anioSeleccionado}
                     onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
-                    className="text-xs px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:border-green-500 bg-white font-medium shadow-sm"
+                    className="text-xs px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500 bg-white font-medium shadow-sm"
                   >
                     {aniosDisponibles.map(anio => (
                       <option key={anio} value={anio}>
@@ -220,102 +235,160 @@ const Tabla = () => {
                       </option>
                     ))}
                   </select>
-
-                  {/* Botón PDF general */}
-                  <button
-                    onClick={() => descargarPDFTabla(
-                      datosTabla,
-                      totalIngresos,
-                      totalGastos,
-                      totalGeneral,
-                      anioSeleccionado,
-                      null
-                    )}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md text-xs font-semibold transition-all shadow-sm"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    PDF Anual
-                  </button>
                 </div>
+
+                {datosTabla.length === 0 && !cargando ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 text-lg">No hay datos disponibles</p>
+                    <p className="text-gray-400 text-sm mt-2">Seleccione otro año o verifique la conexión</p>
+                  </div>
+                ) : (
+                  <DataTable
+                    value={datosTabla}
+                    loading={cargando}
+                    showGridlines
+                    tableStyle={{ width: '100%' }}
+                    className="font-poppins datatable-gridlines datatable-compact"
+                    size="small"
+                    rowClassName={() => 'hover:bg-blue-50 cursor-pointer'}
+                  >
+                    <Column 
+                      field="id" 
+                      header="ID" 
+                      body={bodyId}
+                      sortable 
+                      className="text-sm text-center"
+                      style={{ width: '60px' }}
+                    />
+                    <Column 
+                      field="mes" 
+                      header="MES" 
+                      body={bodyMes}
+                      footer={footerMes}
+                      sortable 
+                      className="text-sm"
+                    />
+                    <Column 
+                      field="ingreso" 
+                      header="INGRESOS" 
+                      body={bodyIngresos}
+                      footer={footerIngresos}
+                      className="text-sm"
+                      style={{ width: 'auto' }}
+                    />
+                    <Column 
+                      field="gasto" 
+                      header="GASTOS" 
+                      body={bodyGastos}
+                      footer={footerGastos}
+                      className="text-sm"
+                      style={{ width: 'auto' }}
+                    />
+                    <Column 
+                      field="total" 
+                      header="BALANCE" 
+                      body={bodyTotal}
+                      footer={footerTotal}
+                      className="text-sm"
+                      style={{ width: 'auto' }}
+                    />
+                  </DataTable>
+                )}
               </div>
             </div>
 
-            {/* Tabla compacta */}
-            <div className="p-3">
-              <style>{`
-                .tabla-compacta .p-datatable-thead > tr > th,
-                .tabla-compacta .p-datatable-tbody > tr > td,
-                .tabla-compacta .p-datatable-tfoot > tr > td {
-                  padding: 0.4rem 0.5rem !important;
-                  font-size: 0.813rem !important;
-                }
-                
-                .tabla-compacta .p-datatable-thead > tr > th {
-                  background: #f9fafb !important;
-                  font-weight: 600 !important;
-                  border-bottom: 2px solid #e5e7eb !important;
-                }
+            {/* Panel lateral de descarga */}
+            <div className="w-80">
+              <div className="bg-white rounded-xl p-6 font-poppins sticky top-4" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+                <div className="flex items-center gap-2 mb-4">
+                  <FileText className="w-5 h-5 text-purple-600" />
+                  <h3 className="text-base font-bold text-gray-800">
+                    Descargar Reporte
+                  </h3>
+                </div>
 
-                .tabla-compacta .p-datatable-tfoot > tr > td {
-                  background: #f3f4f6 !important;
-                  border-top: 2px solid #d1d5db !important;
-                  font-weight: 700 !important;
-                }
+                <div className="space-y-4">
+                  {/* Selector de mes */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Seleccionar Período
+                    </label>
+                    <select 
+                      value={mesSeleccionado}
+                      onChange={(e) => setMesSeleccionado(e.target.value)}
+                      className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500 bg-white font-medium shadow-sm"
+                    >
+                      <option value="todos">📅 Todo el año {anioSeleccionado}</option>
+                      <optgroup label="Meses individuales">
+                        {meses.map((mes, index) => (
+                          <option key={index} value={index}>
+                            {mes}
+                          </option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  </div>
 
-                .tabla-compacta button {
-                  border-radius: 0.375rem !important;
-                }
-              `}</style>
+                  {/* Vista previa de totales */}
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600">Ingresos:</span>
+                      <span className="font-bold text-green-700">
+                        L {mesSeleccionado === 'todos' 
+                          ? totalIngresos.toLocaleString('es-HN')
+                          : (datosTabla[parseInt(mesSeleccionado)]?.ingreso || 0).toLocaleString('es-HN')
+                        }
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600">Gastos:</span>
+                      <span className="font-bold text-red-700">
+                        L {mesSeleccionado === 'todos' 
+                          ? totalGastos.toLocaleString('es-HN')
+                          : (datosTabla[parseInt(mesSeleccionado)]?.gasto || 0).toLocaleString('es-HN')
+                        }
+                      </span>
+                    </div>
+                    <div className="pt-2 border-t border-gray-200">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-700 font-semibold">Balance:</span>
+                        <span className={`font-bold ${
+                          (mesSeleccionado === 'todos' ? totalGeneral : datosTabla[parseInt(mesSeleccionado)]?.total || 0) >= 0
+                            ? 'text-blue-700'
+                            : 'text-orange-700'
+                        }`}>
+                          L {mesSeleccionado === 'todos' 
+                            ? totalGeneral.toLocaleString('es-HN')
+                            : (datosTabla[parseInt(mesSeleccionado)]?.total || 0).toLocaleString('es-HN')
+                          }
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-              <DataTable
-                value={datosTabla}
-                className="tabla-compacta font-poppins"
-                showGridlines
-                responsiveLayout="scroll"
-                emptyMessage="No hay datos disponibles"
-                rowClassName={(rowData, index) =>
-                  index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                }
-              >
-                <Column
-                  header="ID"
-                  body={bodyId}
-                  style={{ width: "60px", textAlign: "center" }}
-                />
-                <Column
-                  header="MES"
-                  body={bodyMes}
-                  footer={footerMes}
-                />
-                <Column
-                  header="INGRESOS"
-                  body={bodyIngresos}
-                  footer={footerIngresos}
-                  style={{ textAlign: "right" }}
-                />
-                <Column
-                  header="GASTOS"
-                  body={bodyGastos}
-                  footer={footerGastos}
-                  style={{ textAlign: "right" }}
-                />
-                <Column
-                  header="BALANCE"
-                  body={bodyTotal}
-                  footer={footerTotal}
-                  style={{ textAlign: "right" }}
-                />
-                <Column
-                  header="ACCIONES"
-                  body={bodyAcciones}
-                  style={{ width: "80px", textAlign: "center" }}
-                />
-              </DataTable>
+                  {/* Botón de descarga */}
+                  <button
+                    onClick={handleDescargarPDF}
+                    disabled={cargando || datosTabla.length === 0}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Download className="w-4 h-4" />
+                    Descargar PDF {mesSeleccionado === 'todos' ? 'Anual' : meses[parseInt(mesSeleccionado)]}
+                  </button>
+
+                  <p className="text-xs text-gray-500 text-center italic">
+                    {mesSeleccionado === 'todos' 
+                      ? 'Se descargará el reporte completo del año'
+                      : 'Se descargará el reporte del mes seleccionado'
+                    }
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

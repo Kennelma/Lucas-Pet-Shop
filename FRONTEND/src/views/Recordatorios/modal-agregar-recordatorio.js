@@ -10,11 +10,20 @@ const ModalRecordatorio = ({ isOpen, onClose, onGuardar, tipoServicio = [], frec
   const [mensaje, setMensaje] = useState('');
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  
+  // Estados para errores individuales por campo
+  const [errores, setErrores] = useState({
+    tipoItem: false,
+    frecuencia: false,
+    fechaProgramacion: false,
+    mensaje: false
+  });
 
-  // Al abrir el modal, por defecto usar la fecha/hora del sistema
+  // Al abrir el modal, por defecto usar la fecha/hora del sistema + 1 hora
   useEffect(() => {
     if (isOpen) {
       const now = new Date();
+      now.setHours(now.getHours() + 1); // Agregar 1 hora para que sea fecha futura
       const pad = (n) => String(n).padStart(2, '0');
       const localDatetime = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
       setFechaProgramacion(localDatetime);
@@ -27,6 +36,12 @@ const ModalRecordatorio = ({ isOpen, onClose, onGuardar, tipoServicio = [], frec
     setFechaProgramacion('');
     setMensaje('');
     setErrorMsg('');
+    setErrores({
+      tipoItem: false,
+      frecuencia: false,
+      fechaProgramacion: false,
+      mensaje: false
+    });
   };
 
   // Intenta inferir el objeto recordatorio que devuelve tu backend
@@ -40,12 +55,66 @@ const ModalRecordatorio = ({ isOpen, onClose, onGuardar, tipoServicio = [], frec
     );
   };
 
+  // Función para validar todos los campos
+  const validarFormulario = () => {
+    const nuevosErrores = {
+      tipoItem: !tipoItem,
+      frecuencia: !frecuencia,
+      fechaProgramacion: !fechaProgramacion,
+      mensaje: !mensaje.trim()
+    };
+
+    // Validación adicional para fecha (debe ser futura)
+    if (fechaProgramacion) {
+      const fechaSeleccionada = new Date(fechaProgramacion);
+      const ahora = new Date();
+      if (fechaSeleccionada <= ahora) {
+        nuevosErrores.fechaProgramacion = true;
+      }
+    }
+
+    setErrores(nuevosErrores);
+    return !Object.values(nuevosErrores).some(error => error === true);
+  };
+
+  // Funciones para manejar cambios y limpiar errores
+  const handleTipoItemChange = (value) => {
+    setTipoItem(value);
+    if (value) {
+      setErrores(prev => ({ ...prev, tipoItem: false }));
+    }
+  };
+
+  const handleFrecuenciaChange = (value) => {
+    setFrecuencia(value);
+    if (value) {
+      setErrores(prev => ({ ...prev, frecuencia: false }));
+    }
+  };
+
+  const handleFechaChange = (value) => {
+    setFechaProgramacion(value);
+    if (value) {
+      const fechaSeleccionada = new Date(value);
+      const ahora = new Date();
+      if (fechaSeleccionada > ahora) {
+        setErrores(prev => ({ ...prev, fechaProgramacion: false }));
+      }
+    }
+  };
+
+  const handleMensajeChange = (value) => {
+    setMensaje(value);
+    if (value.trim()) {
+      setErrores(prev => ({ ...prev, mensaje: false }));
+    }
+  };
+
   const handleGuardar = async () => {
     setErrorMsg('');
 
-    // Validaciones simples
-    if (!tipoItem || !frecuencia || !fechaProgramacion || !mensaje.trim()) {
-      setErrorMsg('Completa todos los campos antes de guardar.');
+    // Validar todos los campos
+    if (!validarFormulario()) {
       return;
     }
 
@@ -101,12 +170,12 @@ const ModalRecordatorio = ({ isOpen, onClose, onGuardar, tipoServicio = [], frec
 
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            Recordatorio para clientes que han comprado:
+            Recordatorio para clientes que han comprado: <span className="text-red-500">*</span>
           </label>
           <select
-            className="w-full border rounded px-3 py-2 text-sm"
+            className={`w-full border rounded px-3 py-2 text-sm ${errores.tipoItem ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
             value={tipoItem}
-            onChange={e => setTipoItem(e.target.value)}
+            onChange={e => handleTipoItemChange(e.target.value)}
           >
             <option value="">Seleccionar tipo</option>
             {tipoServicio.map(t => (
@@ -115,16 +184,17 @@ const ModalRecordatorio = ({ isOpen, onClose, onGuardar, tipoServicio = [], frec
               </option>
             ))}
           </select>
+          {errores.tipoItem && <p className="text-xs text-red-600 mt-1">Este campo es obligatorio</p>}
         </div>
 
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            Frecuencia de envío del recordatorio:
+            Frecuencia de envío del recordatorio: <span className="text-red-500">*</span>
           </label>
           <select
-            className="w-full border rounded px-3 py-2 text-sm"
+            className={`w-full border rounded px-3 py-2 text-sm ${errores.frecuencia ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
             value={frecuencia}
-            onChange={e => setFrecuencia(e.target.value)}
+            onChange={e => handleFrecuenciaChange(e.target.value)}
             disabled={frecuencias.length === 0}
           >
             <option value="">Seleccionar frecuencia</option>
@@ -134,30 +204,39 @@ const ModalRecordatorio = ({ isOpen, onClose, onGuardar, tipoServicio = [], frec
               </option>
             ))}
           </select>
+          {errores.frecuencia && <p className="text-xs text-red-600 mt-1">Este campo es obligatorio</p>}
         </div>
 
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            Fecha y hora para enviar recordatorio:
+            Fecha y hora para enviar recordatorio: <span className="text-red-500">*</span>
           </label>
           <input
             type="datetime-local"
-            className="w-full border rounded px-3 py-2 text-sm"
+            className={`w-full border rounded px-3 py-2 text-sm ${errores.fechaProgramacion ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
             value={fechaProgramacion}
-            onChange={e => setFechaProgramacion(e.target.value)}
+            onChange={e => handleFechaChange(e.target.value)}
+            min={(() => {
+              const now = new Date();
+              const pad = (n) => String(n).padStart(2, '0');
+              return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+            })()}
           />
+          {errores.fechaProgramacion && <p className="text-xs text-red-600 mt-1">Selecciona una fecha y hora futura</p>}
         </div>
 
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            Mensaje
+            Mensaje <span className="text-red-500">*</span>
           </label>
           <textarea
-            className="w-full border rounded px-3 py-2 text-sm"
+            className={`w-full border rounded px-3 py-2 text-sm ${errores.mensaje ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
             value={mensaje}
-            onChange={e => setMensaje(e.target.value)}
+            onChange={e => handleMensajeChange(e.target.value)}
             rows={3}
+            placeholder="Escribe el mensaje que se enviará como recordatorio..."
           />
+          {errores.mensaje && <p className="text-xs text-red-600 mt-1">El mensaje es obligatorio</p>}
         </div>
 
         <div className="flex justify-end gap-3 mt-4">

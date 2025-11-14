@@ -13,7 +13,7 @@ import { verClientes, eliminarCliente } from "../../AXIOS.SERVICES/clients-axios
 import FormularioCliente from "./modal-agregar.js";
 import FormularioActualizarCliente from "./modal-actualizar.js";
 
-const ActionMenu = ({ rowData, onEditar, onVerPerfil, onEliminar, rowIndex, totalRows }) => {
+const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [shouldShowAbove, setShouldShowAbove] = useState(false);
   const menuRef = useRef(null);
@@ -85,18 +85,6 @@ const ActionMenu = ({ rowData, onEditar, onVerPerfil, onEliminar, rowIndex, tota
             <span className="uppercase">Editar</span>
           </div>
 
-          <div
-            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-cyan-50 hover:text-cyan-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsOpen(false);
-              onVerPerfil(rowData);
-            }}
-          >
-            <i className="pi pi-eye text-xs"></i>
-            <span className="uppercase">Ver Perfil</span>
-          </div>
-
           <hr className="my-0 border-gray-200" />
 
           <div
@@ -116,20 +104,17 @@ const ActionMenu = ({ rowData, onEditar, onVerPerfil, onEliminar, rowIndex, tota
   );
 };
 
-const TablaClientes = () => {
 
-    //ESTADOS A UTILIZAR
+const TablaClientes = ({ setClienteSeleccionado }) => {
+
+    //ESTADOS_A_UTILIZAR
     const [clientes, setClientes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [openModal, setOpenModal] = useState(false);
     const [openModalActualizar, setOpenModalActualizar] = useState(false);
     const [clienteAEditar, setClienteAEditar] = useState(null);
 
-    //ESTADO PARA EL MODAL DE PERFIL
-    const [openModalPerfil, setOpenModalPerfil] = useState(false);
-    const [clientePerfil, setClientePerfil] = useState(null);
-
-    //CONSTANTES PARA LA ELIMINACION DE CLIENTES
+    //CONSTANTES_PARA_LA_ELIMINACION_DE_CLIENTES
     const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
     const [clienteAEliminar, setClienteAEliminar] = useState(null);
 
@@ -137,9 +122,7 @@ const TablaClientes = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                console.log('Obteniendo clientes...');
                 const data = await verClientes();
-                console.log('Datos obtenidos:', data);
                 setClientes(data);
             } catch (error) {
                 console.error('Error al obtener clientes:', error);
@@ -150,27 +133,26 @@ const TablaClientes = () => {
         fetchData();
     }, []);
 
-    //EVITA EL SCROLL EN LOS MODALES
+    //EVITA_EL_SCROLL_EN_LOS_MODALES
     useEffect(() => {
-        if (openModal || openModalActualizar || openModalPerfil) {
+        if (openModal || openModalActualizar) {
             document.body.classList.add('overflow-hidden');
         } else {
             document.body.classList.remove('overflow-hidden');
         }
-    }, [openModal, openModalActualizar, openModalPerfil]);
+    }, [openModal, openModalActualizar]);
 
 
     //CONSTANTE PARA ABRIR LOS MODALES DE AGREGAR Y ACTUALIZAR CLIENTES
     const handleAgregarCliente = () => setOpenModal(true);
     const handleActualizarCliente = (cliente, index) => {
-        setClienteAEditar({ ...cliente, indexVisual: index + 1 }); //SE AGREGA EL ID VISUAL
+        setClienteAEditar({ ...cliente, indexVisual: index + 1 });
         setOpenModalActualizar(true);
     };
 
-    //CONSTANTE PARA ABRIR EL MODAL DE PERFIL DEL CLIENTE
-    const handleVerPerfil = (cliente) => {
-        setClientePerfil(cliente);
-        setOpenModalPerfil(true);
+    //MANEJAR_HOVER_SOBRE_FILA_PARA_MOSTRAR_PERFIL
+    const handleRowHover = (e) => {
+        setClienteSeleccionado(e.data);
     };
 
     //ESTADO DE ELIMINACION, AQUI SE MANEJA LOS TOAST DE CONFIRMACION
@@ -213,7 +195,6 @@ const TablaClientes = () => {
                 rowIndex={rowIndex}
                 totalRows={clientes.length}
                 onEditar={(cliente) => handleActualizarCliente(cliente, rowIndex)}
-                onVerPerfil={handleVerPerfil}
                 onEliminar={(cliente) => {
                     setClienteAEliminar(cliente);
                     setConfirmDialogVisible(true);
@@ -224,11 +205,26 @@ const TablaClientes = () => {
 
     return (
         <>
+            <style>
+                {`
+                    .datatable-compact .p-datatable-tbody > tr > td {
+                        padding: 0.5rem 0.5rem !important;
+                    }
+                    .datatable-compact .p-datatable-thead > tr > th {
+                        padding: 0.5rem 0.5rem !important;
+                    }
+                `}
+            </style>
 
-            <div className="bg-white rounded-xl p-6 max-w-5xl mx-auto font-poppins" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+            <div className="bg-white rounded-xl p-6 font-poppins" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
                 <div className="flex justify-end items-center mb-4">
-                    <button className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 text-sm rounded transition-colors flex items-center gap-2 uppercase"
-                        onClick={handleAgregarCliente}>
+                    <button
+                        className="text-black px-3 py-1 text-sm rounded transition-colors flex items-center gap-2 uppercase"
+                        style={{ backgroundColor: 'rgb(165, 204, 139)' }}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = 'rgb(145, 184, 119)'}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = 'rgb(165, 204, 139)'}
+                        onClick={handleAgregarCliente}
+                    >
                         <FontAwesomeIcon icon={faUserPlus} />
                         AGREGAR NUEVO CLIENTE
                     </button>
@@ -248,34 +244,17 @@ const TablaClientes = () => {
                         rows={5}
                         rowsPerPageOptions={[5, 10, 15]}
                         paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-                        tableStyle={{ minWidth: '50rem' }}
-                        className="font-poppins datatable-gridlines"
+                        tableStyle={{ width: '100%' }}
+                        className="font-poppins datatable-gridlines datatable-compact"
                         size="small"
-                        rowClassName={() => 'hover:bg-gray-100 cursor-pointer'}
+                        rowClassName={() => 'hover:bg-blue-50 cursor-pointer'}
+                        onRowMouseEnter={handleRowHover}
                     >
-                        <Column field="id_cliente_pk" header="ID" body={(rowData) => clientes.length - clientes.indexOf(rowData)} sortable className="text-sm"/>
-                        <Column field="nombre_cliente" header="NOMBRE" sortable className="text-sm" />
-                        <Column field="apellido_cliente" header="APELLIDO" sortable className="text-sm" />
-                        <Column field="identidad_cliente" header="IDENTIDAD" className="text-sm" />
-                        <Column field="telefono_cliente" header="TELÉFONO" className="text-sm" />
-                        <Column
-                            field="fecha_registro"
-                            header="FECHA DE REGISTRO"
-                            className="text-sm"
-                            body={(rowData) => {
-                                const fecha = new Date(rowData.fecha_registro);
-                                return fecha.toLocaleString('es-HN', {
-                                timeZone: 'America/Tegucigalpa',
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit',
-                                });
-                            }}
-                            />
-                        <Column header="ACCIONES" body={actionBotones} className="py-2 pr-9 pl-1 border-b text-sm" />
+                        <Column field="id_cliente_pk" header="ID" body={(rowData) => clientes.length - clientes.indexOf(rowData)} sortable className="text-sm px-2" style={{ width: '60px' }} />
+                        <Column field="nombre_cliente" header="NOMBRE" sortable className="text-sm px-2" style={{ width: 'auto' }} />
+                        <Column field="apellido_cliente" header="APELLIDO" sortable className="text-sm px-2" style={{ width: 'auto' }} />
+                        <Column field="telefono_cliente" header="TELÉFONO" body={(rowData) => `+504 ${rowData.telefono_cliente}`} sortable className="text-sm px-2" style={{ width: 'auto' }} />
+                        <Column header="ACCIONES" body={actionBotones} className="text-sm text-center px-2" style={{ width: '80px' }} />
                     </DataTable>
                 )}
             </div>

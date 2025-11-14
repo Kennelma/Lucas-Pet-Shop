@@ -12,23 +12,23 @@ const EstadisticasEstilistas = () => {
   const [loadingBonificaciones, setLoadingBonificaciones] = useState(false);
   const [chartType, setChartType] = useState('bar');
 
-  //PALETA_DE_COLORES_PARA_GRAFICOS
+  // Paleta de colores para gráficos
   const colores = [
-    '#DC2626',
-    '#2563EB',
-    '#059669',
-    '#D97706',
-    '#7C3AED',
-    '#DB2777',
-    '#0891B2',
-    '#EA580C',
-    '#65A30D',
-    '#4F46E5',
-    '#BE123C',
-    '#0D9488',
-    '#CA8A04',
-    '#9333EA',
-    '#C026D3'
+    '#E91E63',
+    '#4CAF50',
+    '#FF7043',
+    '#2196F3',
+    '#FFC107',
+    '#EC407A',
+    '#26C6DA',
+    '#FF5722',
+    '#8BC34A',
+    '#F06292',
+    '#4DD0E1',
+    '#FFB74D',
+    '#9575CD',
+    '#4DB6AC',
+    '#FF8A65'
   ];
 
   //EFFECT_PARA_CARGAR_FECHAS_INICIALES_(MES_ACTUAL)
@@ -96,7 +96,7 @@ const EstadisticasEstilistas = () => {
 
   //TRANSFORMAR_DATOS_PARA_GRAFICOS
   const data = bonificaciones.map((b, index) => ({
-    estilista: b.nombre_estilista || 'Sin nombre',
+    estilista: `${b.nombre_estilista || 'Sin nombre'} ${b.apellido_estilista || ''}`.trim(),
     mascotas: parseInt(b.cantidad_mascotas) || 0,
     color: colores[index % colores.length]
   }));
@@ -109,7 +109,7 @@ const EstadisticasEstilistas = () => {
       <div className="max-w-7xl mx-auto">
 
         {/*FILTROS_DE_FECHA*/}
-        <div className="bg-white rounded-lg shadow-lg p-4 mb-6">
+        <div className="bg-white rounded-lg p-4 mb-6" style={{boxShadow: '0 0 8px #F8E6A440, 0 0 0 1px #F8E6A433'}}>
           <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
             <label className="text-sm font-medium text-gray-700">Desde:</label>
             <input
@@ -137,14 +137,14 @@ const EstadisticasEstilistas = () => {
             </div>
           </div>
         ) : data.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+          <div className="bg-white rounded-lg p-12 text-center" style={{boxShadow: '0 0 8px #F8E6A440, 0 0 0 1px #F8E6A433'}}>
             <p className="text-gray-500 text-lg">No hay datos disponibles para el rango seleccionado</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             {/*SECCION_GRAFICOS*/}
-            <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="bg-white rounded-lg p-6" style={{boxShadow: '0 0 8px #F8E6A440, 0 0 0 1px #F8E6A433'}}>
 
               {/*BOTONES_DE_SELECCION_DE_GRAFICO*/}
               <div className="flex gap-2 mb-6">
@@ -178,10 +178,11 @@ const EstadisticasEstilistas = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                       <XAxis
                         dataKey="estilista"
-                        angle={-45}
-                        textAnchor="end"
-                        height={100}
-                        tick={{ fill: '#6b7280', fontSize: 12 }}
+                        angle={0}
+                        textAnchor="middle"
+                        height={60}
+                        tick={{ fill: '#6b7280', fontSize: 11 }}
+                        interval={0}
                       />
                       <YAxis tick={{ fill: '#6b7280' }} />
                       <Tooltip
@@ -220,21 +221,32 @@ const EstadisticasEstilistas = () => {
                             return `${item.estilista} (${item.mascotas})`;
                           }
                         }}
-                        outerRadius={60}
+                        outerRadius={100}
                         fill="#8884d8"
                         dataKey="mascotas"
                       >
                         {data.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={entry.color}
+                          />
                         ))}
                       </Pie>
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: '#fff',
+                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
                           border: '1px solid #e5e7eb',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                          borderRadius: '6px',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                          color: '#374151',
+                          fontSize: '11px',
+                          padding: '6px 8px'
                         }}
+                        formatter={(value, name, props) => [
+                          `${value} mascotas (${((value / totalMascotas) * 100).toFixed(1)}%)`,
+                          props.payload.estilista
+                        ]}
+                        labelStyle={{ color: '#374151', fontWeight: 'normal', fontSize: '11px' }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -243,13 +255,13 @@ const EstadisticasEstilistas = () => {
             </div>
 
             {/*SECCION_TABLA_DE_DETALLES*/}
-            <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="bg-white rounded-lg p-6" style={{boxShadow: '0 0 8px #F8E6A440, 0 0 0 1px #F8E6A433'}}>
               <h2 className="text-lg font-bold text-gray-800 mb-4">Detalle por Estilista</h2>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b-2 border-gray-200">
-                      <th className="text-left py-2 px-3 font-semibold text-gray-700 text-sm">Estilista</th>
+                      <th className="text-left py-2 px-3 font-semibold text-gray-700 text-sm">Nombre y Apellido</th>
                       <th className="text-center py-2 px-3 font-semibold text-gray-700 text-sm">Mascotas</th>
                       <th className="text-center py-2 px-3 font-semibold text-gray-700 text-sm">%</th>
                     </tr>
