@@ -5,7 +5,8 @@ import {
   Calendar,
   FileText,
   TrendingUp,
-  DollarSign
+  DollarSign,
+  CalendarDays
 } from 'lucide-react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -18,7 +19,6 @@ const Tabla = () => {
   const [error, setError] = useState(null);
   const [anioSeleccionado, setAnioSeleccionado] = useState(new Date().getFullYear());
   const [mesSeleccionado, setMesSeleccionado] = useState('todos'); // 'todos' o índice del mes
-
   const anioActual = new Date().getFullYear();
   const mesActual = new Date().getMonth();
   const aniosDisponibles = Array.from({ length: 5 }, (_, i) => anioActual - i);
@@ -318,7 +318,7 @@ const Tabla = () => {
                       onChange={(e) => setMesSeleccionado(e.target.value)}
                       className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500 bg-white font-medium shadow-sm"
                     >
-                      <option value="todos">📅 Todo el año {anioSeleccionado}</option>
+                      <option value="todos">Todo el año {anioSeleccionado}</option>
                       <optgroup label="Meses individuales">
                         {meses.map((mes, index) => (
                           <option key={index} value={index}>

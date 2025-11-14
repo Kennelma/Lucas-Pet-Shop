@@ -71,6 +71,31 @@ const Reportes = () => {
     <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins, sans-serif' }}>
       <div className="max-w-7xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>
 
+        {/* Titulo */}
+        <div
+          className="rounded-xl p-6 mb-6"
+          style={{
+            backgroundImage: 'url("/h100.png")',
+            backgroundColor: '#79c2faff',
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'left center',
+            boxShadow: '0 0 8px #F4B6C240, 0 0 0 1px #F4B6C233'
+          }}
+        >
+          <div className="flex justify-center items-center">
+            <h2 className="text-2xl font-black text-center uppercase text-black">
+              REPORTES FINANCIEROS
+            </h2>
+          </div>
+          <p
+            className="text-center text-gray-700 italic mt-2"
+            style={{ fontFamily: 'Poppins, sans-serif', fontSize: '15px' }}
+          >
+            Gráficas y resumen del año actual
+          </p>
+        </div>
+
         {/* Pestañas de navegación */}
         <div className="mb-6">
           <div className="flex gap-2 bg-white rounded-xl shadow-sm border border-gray-200 p-1.5">
@@ -102,31 +127,6 @@ const Reportes = () => {
         {/* Contenido según pestaña activa */}
         {pestanaActiva === 'reportes' ? (
           <>
-            {/* Titulo */}
-            <div
-              className="rounded-xl p-6 mb-6"
-              style={{
-                backgroundImage: 'url("/h100.png")',
-                backgroundColor: '#79c2faff',
-                backgroundSize: 'contain',
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'left center',
-                boxShadow: '0 0 8px #F4B6C240, 0 0 0 1px #F4B6C233'
-              }}
-            >
-              <div className="flex justify-center items-center">
-                <h2 className="text-2xl font-black text-center uppercase text-black">
-                  REPORTES FINANCIEROS
-                </h2>
-              </div>
-              <p
-                className="text-center text-gray-700 italic mt-2"
-                style={{ fontFamily: 'Poppins, sans-serif', fontSize: '15px' }}
-              >
-                Gráficas y resumen del año actual
-              </p>
-            </div>
-
             {/* Resumen Financiero del Día - HORIZONTAL */}
             <div className="mb-6">
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
