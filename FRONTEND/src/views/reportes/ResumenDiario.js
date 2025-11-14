@@ -76,7 +76,7 @@ const ResumenDiario = ({ verResumenDiario }) => {
       {/* Header */}
       <div className="mb-6 pb-4 border-b border-gray-200">
         <h3 className="text-xl font-bold text-gray-800 mb-2">
-          Resumen Financiero del Día
+          Resumen de productos 
         </h3>
         <div className="flex items-center gap-2 text-gray-600">
           <Calendar className="w-4 h-4" />
