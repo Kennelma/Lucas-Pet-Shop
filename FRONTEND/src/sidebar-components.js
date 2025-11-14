@@ -162,25 +162,10 @@ const getNavigation = () => {
 
 
 {
-  component: CNavGroup,
+  component: CNavItem,
   name: 'Reportes',
+  to: '/reportes',
   icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
-  items: [
-    {
-      component: CNavItem,
-      name: 'Grafica',          // ← Muestra Reportes.js
-      to: '/reportes',
-      style: { paddingLeft: '65px' },
-      icon: <FontAwesomeIcon icon={faChartArea} className="nav-icon" />,
-    },
-    {
-      component: CNavItem,
-      name: 'Tabla',             // ← Muestra Tabla.js
-      to: '/reportes/Tabla',
-      style: { paddingLeft: '65px' },
-      icon: <FontAwesomeIcon icon={faBorderAll} className="nav-icon" />,
-    }
-  ]
 },
 
   
