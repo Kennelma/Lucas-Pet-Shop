@@ -66,7 +66,6 @@ exports.verCatalogo = async (req, res) => {
 
 
 //CREAR RECORDATORIO
-// CREAR RECORDATORIO - VERSIÓN CORREGIDA
 exports.crear = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
     await conn.beginTransaction();
@@ -74,41 +73,31 @@ exports.crear = async (req, res) => {
     try {
         const { tipo_item, frecuencia, programada_para, mensaje } = req.body;
 
-        // ========================================================================
-        // 1) OBTENER ESTADO "PENDIENTE"
-        // ========================================================================
-        const [estadoRows] = await conn.query(`
-            SELECT id_estado_pk AS id
+        //TRAIGO EL ID DEL ESTADO PENDIENTE
+        const [estados] = await conn.query(`
+            SELECT id_estado_pk
             FROM cat_estados
             WHERE dominio = 'RECORDATORIO' AND nombre_estado = 'PENDIENTE'
             LIMIT 1
         `);
 
-        if (!estadoRows || estadoRows.length === 0) {
-            throw new Error('No se encontró el estado PENDIENTE');
-        }
+        const pendiente_id = estados[0].id_estado_pk;
 
-        const estadoId = estadoRows[0].id;
-
-        // ========================================================================
-        // 2) OBTENER INFORMACIÓN DE LA FRECUENCIA
-        // ========================================================================
-        const [frecuenciaRows] = await conn.query(`
+        const [frecuency] = await conn.query(`
             SELECT dias_intervalo
             FROM cat_frecuencia_recordatorio
             WHERE id_frecuencia_record_pk = ?
             LIMIT 1
         `, [frecuencia]);
 
-        if (!frecuenciaRows || frecuenciaRows.length === 0) {
-            throw new Error('Frecuencia no encontrada');
-        }
 
-        const diasIntervalo = frecuenciaRows[0].dias_intervalo;
+        const diasIntervalo = frecuency[0].dias_intervalo;
 
-        // ========================================================================
-        // 3) INSERTAR RECORDATORIO
-        // ========================================================================
+
+
+
+
+
         const [result] = await conn.query(
             `INSERT INTO tbl_recordatorios (
                 mensaje_recordatorio,

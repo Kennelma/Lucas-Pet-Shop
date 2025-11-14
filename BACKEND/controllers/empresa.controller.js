@@ -288,8 +288,6 @@ exports.ver = async (req, res) => {
 
             case 'GASTOS':
 
-                const fecha_hoy = new Date();
-
                 [registros] = await conn.query(
 
                 `SELECT
@@ -298,9 +296,7 @@ exports.ver = async (req, res) => {
                     monto_gasto,
                     fecha_registro_gasto
                 FROM tbl_gastos
-                WHERE fecha_registro_gasto = ?
-                ORDER BY fecha_registro_gasto DESC, id_gasto_pk DESC;
-                `, [fecha_hoy]
+                ORDER BY fecha_registro_gasto DESC, id_gasto_pk DESC`
                 );
 
                 break;

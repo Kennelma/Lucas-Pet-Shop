@@ -209,9 +209,11 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                 {`
                     .datatable-compact .p-datatable-tbody > tr > td {
                         padding: 0.5rem 0.5rem !important;
+                        border: 1px solid #e5e7eb !important;
                     }
                     .datatable-compact .p-datatable-thead > tr > th {
                         padding: 0.5rem 0.5rem !important;
+                        border: 1px solid #e5e7eb !important;
                     }
                 `}
             </style>
