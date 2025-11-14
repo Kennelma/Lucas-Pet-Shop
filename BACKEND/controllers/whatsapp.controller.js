@@ -24,7 +24,7 @@ exports.obtenerQR = (req, res) => {
         return res.json({
             success: true,
             conectado: false,
-            qr: qr // ⭐ QR en base64
+            qr: qr 
         });
 
     } catch (error) {
@@ -153,7 +153,7 @@ exports.enviarRecordatoriosPendientes = async (req, res) => {
 
                 // Formatear número: 50412345678@s.whatsapp.net
                 const numero = record.telefono_cliente.replace(/\D/g, ''); // Quitar caracteres no numéricos
-                const jid = `504${numero}@s.whatsapp.net`; 
+                const jid = `504${numero}@s.whatsapp.net`;
                 // Enviar mensaje
                 await sock.sendMessage(jid, {
                     text: record.mensaje_recordatorio

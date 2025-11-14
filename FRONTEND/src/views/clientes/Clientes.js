@@ -21,7 +21,7 @@ const Clientes = () => {
             <div className="rounded-xl p-6 mb-3"
                 style={{
                     backgroundImage: 'url("/H2.jpg")',
-                    backgroundColor: '#A5CC8B',
+                    backgroundColor: '#DEFFAD',
                     backgroundSize: 'contain',
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'left center',

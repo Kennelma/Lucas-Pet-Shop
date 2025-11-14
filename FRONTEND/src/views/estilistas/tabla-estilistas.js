@@ -1,8 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
+
 
 const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
   const [isOpen, setIsOpen] = useState(false);

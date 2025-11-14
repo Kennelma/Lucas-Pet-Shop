@@ -15,11 +15,11 @@ const Dashboard = () => {
   const [modalEditarVisible, setModalEditarVisible] = useState(false);
   const [gastoSeleccionado, setGastoSeleccionado] = useState(null);
   const [expandedExpenses, setExpandedExpenses] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [, setSelectedDate] = useState(new Date());
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [filterDate, setFilterDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState('daily'); // 'daily' o 'monthly'
-  const [calendarViewMode, setCalendarViewMode] = useState('days'); // 'days' o 'months'
+  const [viewMode, setViewMode] = useState('daily'); 
+  const [calendarViewMode, setCalendarViewMode] = useState('days');
 
   const token = sessionStorage.getItem('token');
   const usuario = JSON.parse(sessionStorage.getItem('usuario'));
@@ -42,10 +42,7 @@ const Dashboard = () => {
       if (Array.isArray(data)) {
         setExpenses(
           data.map((item) => {
-         // solución temporal para ajuste de zona horaria (pendiente)
-            let dateObj = new Date(item.fecha_registro_gasto || Date.now());
-            dateObj.setTime(dateObj.getTime() - 24 * 60 * 60 * 1000);
-            const normalizedDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 0, 0, 0);
+            const normalizedDate = new Date(item.fecha_registro_gasto || Date.now());
             
             return {
               id: item.id_gasto_pk,
@@ -69,8 +66,27 @@ const Dashboard = () => {
 
   const recargarGastos = () => cargarGastos();
 
-  // 🔹 Eliminar gasto
-  const eliminarGasto = async (id) => {
+  // Eliminar gasto (solo del día actual)
+  const eliminarGasto = async (expense) => {
+    // Validar que sea del día actual
+    const fechaGasto = new Date(expense.date);
+    const fechaHoy = new Date();
+    
+    
+    const gastoNormalizado = new Date(fechaGasto.getFullYear(), fechaGasto.getMonth(), fechaGasto.getDate());
+    const hoyNormalizado = new Date(fechaHoy.getFullYear(), fechaHoy.getMonth(), fechaHoy.getDate());
+    // Compara si son la misma fecha
+    if (gastoNormalizado.getTime() !== hoyNormalizado.getTime()) {
+      Swal.fire({
+        title: 'Acción no permitida',
+        text: 'Solo se pueden eliminar gastos del día actual.',
+        icon: 'warning',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+      // Confirmar eliminación
     const confirm = await Swal.fire({
       title: '¿Eliminar gasto?',
       text: 'Esta acción no se puede deshacer.',
@@ -80,10 +96,10 @@ const Dashboard = () => {
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#d33',
     });
-
+      // Eliminar si confirmó
     if (confirm.isConfirmed) {
       try {
-        const res = await eliminarRegistro(id, 'GASTOS');
+        const res = await eliminarRegistro(expense.id, 'GASTOS');
         if (res.Consulta) {
           Swal.fire('Eliminado', 'El gasto fue eliminado correctamente.', 'success');
           cargarGastos();
@@ -464,6 +480,24 @@ const Dashboard = () => {
                                 <span className="font-medium text-gray-800">L. {expense.amount.toLocaleString()}</span>
                                 <button
                                   onClick={() => {
+                                    // Validar que sea del día actual antes de editar
+                                    const fechaGasto = new Date(expense.date);
+                                    const fechaHoy = new Date();
+                                    
+                                    const gastoNormalizado = new Date(fechaGasto.getFullYear(), fechaGasto.getMonth(), fechaGasto.getDate());
+                                    const hoyNormalizado = new Date(fechaHoy.getFullYear(), fechaHoy.getMonth(), fechaHoy.getDate());
+                                    
+                                    if (gastoNormalizado.getTime() !== hoyNormalizado.getTime()) {
+                                      Swal.fire({
+                                        title: 'Acción no permitida',
+                                        text: 'Solo se pueden editar gastos del día actual.',
+                                        icon: 'warning',
+                                        confirmButtonText: 'Entendido',
+                                        confirmButtonColor: '#3085d6'
+                                      });
+                                      return;
+                                    }
+                                    
                                     setGastoSeleccionado(expense);
                                     setModalEditarVisible(true);
                                   }}
@@ -473,7 +507,7 @@ const Dashboard = () => {
                                   <lucideReact.Edit3 className="w-4 h-4" />
                                 </button>
                                 <button
-                                  onClick={() => eliminarGasto(expense.id)}
+                                  onClick={() => eliminarGasto(expense)}
                                   className="text-gray-600 hover:text-red-600 transition-colors opacity-60 hover:opacity-100"
                                   title="Eliminar gasto"
                                 >
