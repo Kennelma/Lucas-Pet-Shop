@@ -188,8 +188,6 @@ const getNavigation = () => {
 
 
 
-
-
 ];
   //FILTRAR LOS ITEMS DEL NAV SEGÚN EL ROL DEL USUARIO
   return navCompleto.filter(item => {

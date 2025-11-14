@@ -298,11 +298,12 @@ exports.ver = async (req, res) => {
                     monto_gasto,
                     fecha_registro_gasto
                 FROM tbl_gastos
-                WHERE DATE(fecha_registro_gasto) = ?
+                WHERE fecha_registro_gasto = ?
                 ORDER BY fecha_registro_gasto DESC, id_gasto_pk DESC;
                 `, [fecha_hoy]
                 );
-    break;
+
+                break;
 
 
             default:

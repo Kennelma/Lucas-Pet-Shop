@@ -8,18 +8,18 @@ import { ver, eliminarRegistro } from '../../AXIOS.SERVICES/empresa-axios';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  
+
   const [expenses, setExpenses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalEditarVisible, setModalEditarVisible] = useState(false);
   const [gastoSeleccionado, setGastoSeleccionado] = useState(null);
   const [expandedExpenses, setExpandedExpenses] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [, setSelectedDate] = useState(new Date());
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [filterDate, setFilterDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState('daily'); // 'daily' o 'monthly'
-  const [calendarViewMode, setCalendarViewMode] = useState('days'); // 'days' o 'months'
+  const [viewMode, setViewMode] = useState('daily');
+  const [calendarViewMode, setCalendarViewMode] = useState('days');
 
   const token = sessionStorage.getItem('token');
   const usuario = JSON.parse(sessionStorage.getItem('usuario'));
@@ -42,11 +42,8 @@ const Dashboard = () => {
       if (Array.isArray(data)) {
         setExpenses(
           data.map((item) => {
-         // solución temporal para ajuste de zona horaria (pendiente)
-            let dateObj = new Date(item.fecha_registro_gasto || Date.now());
-            dateObj.setTime(dateObj.getTime() - 24 * 60 * 60 * 1000);
-            const normalizedDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 0, 0, 0);
-            
+            const normalizedDate = new Date(item.fecha_registro_gasto || Date.now());
+
             return {
               id: item.id_gasto_pk,
               description: item.detalle_gasto,
@@ -69,8 +66,27 @@ const Dashboard = () => {
 
   const recargarGastos = () => cargarGastos();
 
-  // 🔹 Eliminar gasto
-  const eliminarGasto = async (id) => {
+  // Eliminar gasto (solo del día actual)
+  const eliminarGasto = async (expense) => {
+    // Validar que sea del día actual
+    const fechaGasto = new Date(expense.date);
+    const fechaHoy = new Date();
+
+
+    const gastoNormalizado = new Date(fechaGasto.getFullYear(), fechaGasto.getMonth(), fechaGasto.getDate());
+    const hoyNormalizado = new Date(fechaHoy.getFullYear(), fechaHoy.getMonth(), fechaHoy.getDate());
+    // Compara si son la misma fecha
+    if (gastoNormalizado.getTime() !== hoyNormalizado.getTime()) {
+      Swal.fire({
+        title: 'Acción no permitida',
+        text: 'Solo se pueden eliminar gastos del día actual.',
+        icon: 'warning',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+      // Confirmar eliminación
     const confirm = await Swal.fire({
       title: '¿Eliminar gasto?',
       text: 'Esta acción no se puede deshacer.',
@@ -80,10 +96,10 @@ const Dashboard = () => {
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#d33',
     });
-
+      // Eliminar si confirmó
     if (confirm.isConfirmed) {
       try {
-        const res = await eliminarRegistro(id, 'GASTOS');
+        const res = await eliminarRegistro(expense.id, 'GASTOS');
         if (res.Consulta) {
           Swal.fire('Eliminado', 'El gasto fue eliminado correctamente.', 'success');
           cargarGastos();
@@ -95,12 +111,12 @@ const Dashboard = () => {
       }
     }
   };
-  
+
   // Filtrar gastos por fecha seleccionada usando hora local
   const filteredExpenses = expenses.filter(expense => {
     const d1 = expense.date;
     const d2 = filterDate;
-    
+
     if (viewMode === 'monthly') {
       // Vista mensual: filtrar por año y mes en hora local
       return (
@@ -116,7 +132,7 @@ const Dashboard = () => {
       );
     }
   });
-  
+
   // Calcular total asegurándose de que amount sea número
   const totalExpenses = filteredExpenses.reduce((total, expense) => {
     return total + (parseFloat(expense.amount) || 0);
@@ -221,7 +237,7 @@ const Dashboard = () => {
             <div className="text-xl font-bold text-gray-800 mb-1">ACCESOS RÁPIDOS</div>
             {/* Primera fila - 3 tarjetas */}
             <div className="grid grid-cols-3 gap-2 mb-2">
-              <button 
+              <button
                 onClick={() => navigate('/facturacion')}
                 className="group relative overflow-hidden bg-gray-50 p-3 rounded-lg transition-all hover:bg-gray-100"
               >
@@ -231,7 +247,7 @@ const Dashboard = () => {
                   <div className="text-sm text-gray-800 text-center">FACTURACIÓN</div>
                 </div>
               </button>
-              <button 
+              <button
                 onClick={() => navigate('/reportes')}
                 className="group relative overflow-hidden bg-gray-50 p-3 rounded-lg transition-all hover:bg-gray-100"
               >
@@ -241,7 +257,7 @@ const Dashboard = () => {
                   <div className="text-sm text-gray-800 text-center">REPORTES</div>
                 </div>
               </button>
-              <button 
+              <button
                 onClick={() => navigate('/clientes')}
                 className="group relative overflow-hidden bg-gray-50 p-3 rounded-lg transition-all hover:bg-gray-100"
               >
@@ -252,10 +268,10 @@ const Dashboard = () => {
                 </div>
               </button>
             </div>
-            
+
             {/* Segunda fila - 2 tarjetas centradas */}
             <div className="grid grid-cols-2 gap-2 max-w-md mx-auto">
-              <button 
+              <button
                 onClick={() => navigate('/recordatorios')}
                 className="group relative overflow-hidden bg-gray-50 p-3 rounded-lg transition-all hover:bg-gray-100"
               >
@@ -265,7 +281,7 @@ const Dashboard = () => {
                   <div className="text-sm text-gray-800 text-center">RECORDATORIOS</div>
                 </div>
               </button>
-              <button 
+              <button
                 onClick={() => navigate('/productos/alimentos')}
                 className="group relative overflow-hidden bg-gray-50 p-3 rounded-lg transition-all hover:bg-gray-100"
               >
@@ -290,11 +306,11 @@ const Dashboard = () => {
               VER Y AGREGAR GASTOS
             </button>
           </div>
-          
+
           {/* Calendario simplificado */}
           <div className="bg-white p-3 rounded-lg shadow border border-gray-200">
             <div className="flex items-center justify-between mb-2">
-              <button 
+              <button
                 onClick={() => {
                   if (calendarViewMode === 'days') {
                     setFilterDate(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1));
@@ -303,7 +319,7 @@ const Dashboard = () => {
                 }}
                 className="text-sm font-bold text-gray-800 hover:text-blue-600 transition-colors"
               >
-                {calendarViewMode === 'months' 
+                {calendarViewMode === 'months'
                   ? calendarMonth.getFullYear()
                   : calendarMonth.toLocaleString('default', { month: 'long', year: 'numeric' })
                 }
@@ -346,10 +362,10 @@ const Dashboard = () => {
                     key={monthIndex}
                     onClick={() => handleMonthClick(monthIndex)}
                     className={`p-3 text-sm font-medium rounded-lg border transition-colors ${
-                      viewMode === 'monthly' && 
+                      viewMode === 'monthly' &&
                       filterDate.getFullYear() === calendarMonth.getFullYear() &&
                       filterDate.getMonth() === monthIndex
-                        ? 'bg-yellow-400 text-gray-800 border-yellow-500' 
+                        ? 'bg-yellow-400 text-gray-800 border-yellow-500'
                         : 'bg-white text-gray-700 border-gray-200 hover:bg-yellow-50 hover:border-yellow-300'
                     }`}
                   >
@@ -386,7 +402,7 @@ const Dashboard = () => {
                     return weeks.flat().map((day, idx) => (
                       <div key={idx} className="h-8 flex items-center justify-center">
                         {day && (
-                          <button 
+                          <button
                             onClick={() => {
                               const newDate = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
                               setFilterDate(newDate);
@@ -395,11 +411,11 @@ const Dashboard = () => {
                               }
                             }}
                             className={`text-sm w-full h-full flex items-center justify-center rounded cursor-pointer transition-colors ${
-                              viewMode === 'daily' && 
+                              viewMode === 'daily' &&
                               filterDate.getFullYear() === calendarMonth.getFullYear() &&
                               filterDate.getMonth() === calendarMonth.getMonth() &&
                               filterDate.getDate() === day
-                                ? 'bg-blue-600 text-white font-bold' 
+                                ? 'bg-blue-600 text-white font-bold'
                                 : viewMode === 'monthly'
                                 ? 'text-gray-600 hover:bg-blue-100'
                                 : 'text-gray-600 hover:bg-gray-100'
@@ -423,7 +439,7 @@ const Dashboard = () => {
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-800">
-                    {viewMode === 'monthly' 
+                    {viewMode === 'monthly'
                       ? `Gastos de ${filterDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`
                       : `Gastos del ${filterDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}`
                     }
@@ -437,7 +453,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Contenido */}
-                <div 
+                <div
                   className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar"
                   style={{
                     scrollbarWidth: 'thin',
@@ -473,7 +489,7 @@ const Dashboard = () => {
                                   <lucideReact.Edit3 className="w-4 h-4" />
                                 </button>
                                 <button
-                                  onClick={() => eliminarGasto(expense.id)}
+                                  onClick={() => eliminarGasto(expense)}
                                   className="text-gray-600 hover:text-red-600 transition-colors opacity-60 hover:opacity-100"
                                   title="Eliminar gasto"
                                 >
@@ -485,7 +501,7 @@ const Dashboard = () => {
                         ))}
                       </div>
                     )}
-                    
+
                     {/* Línea sumatoria */}
                     {!isLoading && filteredExpenses.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-gray-300">
@@ -530,10 +546,10 @@ const Dashboard = () => {
       </div>
 
       {/* 🟢 Modal Agregar */}
-      <ModalAgregarGasto 
-        visible={modalVisible} 
-        onHide={() => setModalVisible(false)} 
-        onRefresh={recargarGastos} 
+      <ModalAgregarGasto
+        visible={modalVisible}
+        onHide={() => setModalVisible(false)}
+        onRefresh={recargarGastos}
       />
 
       {/* 🔵 Modal Editar */}

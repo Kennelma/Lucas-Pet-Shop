@@ -57,6 +57,7 @@ exports.registroIngresos = async (req, res) => {
     }
 };
 
+//GENERALES DEL MES
 exports.registrosGastos = async (req, res) => {
   let conn;
   try {
@@ -113,22 +114,26 @@ exports.resumenDiario = async (req, res) => {
         conn = await mysqlConnection.getConnection();
 
 
+        const fecha_hoy = new Date();
+        
         //SE OBTIENEN LOS INGRESOS DEL DIA ACTUAL
         const ingresosPromise = conn.query(`
             SELECT
                 COALESCE(SUM(total - descuento), 0) AS total_ingresos_netos
             FROM tbl_facturas
             WHERE id_estado_fk IS NOT NULL
-            AND DATE(fecha_emision) = CURDATE()`);
+            AND DATE(fecha_emision) = `);
 
 
         //SE OBTIENEN LOS GASTOS DEL DIA ACTUAL
+
+
         const gastosPromise = conn.query(`
             SELECT
                 COALESCE(SUM(monto_gasto), 0) AS total_gastos
             FROM tbl_gastos
-            WHERE DATE(fecha_registro_gasto) = CURDATE()
-        `);
+            WHERE DATE(fecha_registro_gasto) = ?`, [fecha_hoy]
+        );
 
         //SE EJECUTAN AMBAS PROMESAS EN PARALELO
         const [ [ingresos], [gastos] ] = await Promise.all([
