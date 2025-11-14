@@ -113,8 +113,7 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
     const [openModal, setOpenModal] = useState(false);
     const [openModalActualizar, setOpenModalActualizar] = useState(false);
     const [clienteAEditar, setClienteAEditar] = useState(null);
-
-    //CONSTANTES_PARA_LA_ELIMINACION_DE_CLIENTES
+    const [selectedClienteId, setSelectedClienteId] = useState(null);
     const [confirmDialogVisible, setConfirmDialogVisible] = useState(false);
     const [clienteAEliminar, setClienteAEliminar] = useState(null);
 
@@ -124,6 +123,11 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
             try {
                 const data = await verClientes();
                 setClientes(data);
+                if (data && data.length > 0) {
+                    const ultimoCliente = data[data.length - 1];
+                    setClienteSeleccionado(ultimoCliente);
+                    setSelectedClienteId(ultimoCliente.id_cliente_pk);
+                }
             } catch (error) {
                 console.error('Error al obtener clientes:', error);
             } finally {
@@ -150,9 +154,9 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
         setOpenModalActualizar(true);
     };
 
-    //MANEJAR_HOVER_SOBRE_FILA_PARA_MOSTRAR_PERFIL
-    const handleRowHover = (e) => {
+    const handleRowClick = (e) => {
         setClienteSeleccionado(e.data);
+        setSelectedClienteId(e.data.id_cliente_pk);
     };
 
     //ESTADO DE ELIMINACION, AQUI SE MANEJA LOS TOAST DE CONFIRMACION
@@ -215,6 +219,12 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                         padding: 0.5rem 0.5rem !important;
                         border: 1px solid #e5e7eb !important;
                     }
+                    .p-datatable .p-datatable-tbody > tr.fila-seleccionada {
+                        background-color: #DBEAFE !important;
+                    }
+                    .p-datatable .p-datatable-tbody > tr.fila-seleccionada:hover {
+                        background-color: #BFDBFE !important;
+                    }
                 `}
             </style>
 
@@ -241,7 +251,6 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                     <DataTable
                         value={clientes}
                         loading={loading}
-                        showGridlines
                         paginator
                         rows={5}
                         rowsPerPageOptions={[5, 10, 15]}
@@ -249,8 +258,9 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                         tableStyle={{ width: '100%' }}
                         className="font-poppins datatable-gridlines datatable-compact"
                         size="small"
-                        rowClassName={() => 'hover:bg-blue-50 cursor-pointer'}
-                        onRowMouseEnter={handleRowHover}
+                        rowClassName={(rowData) => rowData.id_cliente_pk === selectedClienteId ? 'fila-seleccionada cursor-pointer' : 'hover:bg-blue-50 cursor-pointer'}
+                        onRowClick={handleRowClick}
+                        selectionMode="single"
                     >
                         <Column field="id_cliente_pk" header="ID" body={(rowData) => clientes.length - clientes.indexOf(rowData)} sortable className="text-sm px-2" style={{ width: '60px' }} />
                         <Column field="nombre_cliente" header="NOMBRE" sortable className="text-sm px-2" style={{ width: 'auto' }} />
