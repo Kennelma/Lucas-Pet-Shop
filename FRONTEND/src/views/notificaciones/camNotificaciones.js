@@ -6,7 +6,7 @@ import { TfiAlert } from "react-icons/tfi"
 import { AiFillAlert } from "react-icons/ai"
 import { obtenerNotificaciones, marcarNotificacionLeida } from '../../AXIOS.SERVICES/notifications-axios'
 import ModalNotificaciones from './ModalNotificaciones'
-import Swal from 'sweetalert2'
+import { Toast } from 'primereact/toast'
 
 const CamNotificaciones = () => {
   const [notificaciones, setNotificaciones] = useState([])
@@ -18,6 +18,7 @@ const CamNotificaciones = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
   const prevNotificacionesRef = useRef([])
+  const toast = useRef(null)
   const navigate = useNavigate()
 
   // ============== UTILIDADES ==============
@@ -45,7 +46,7 @@ const CamNotificaciones = () => {
       const match = mensaje.match(/EL PRODUCTO (.+?) TIENE UN STOCK = (\d+)/i)
       if (match) {
         const [, producto, stock] = match
-        return `El producto ${producto.trim()} tiene ${stock} unidades. Es necesario reabastecer.`
+        return `El producto ${producto.trim()} tiene ${stock} unidades.`
       }
     }
     
@@ -53,7 +54,7 @@ const CamNotificaciones = () => {
       const match = mensaje.match(/EL MEDICAMENTO (.+?), TIENE EL (.+?) VENCIDO/i)
       if (match) {
         const [, medicamento, lote] = match
-        return `El medicamento ${medicamento.trim()} tiene el lote ${lote.trim()} vencido. Tome acción inmediata.`
+        return `El medicamento ${medicamento.trim()} tiene el lote ${lote.trim()} vencido.`
       }
     }
     
@@ -187,7 +188,7 @@ const CamNotificaciones = () => {
       const notificacionesNuevas = notificacionesAdaptadas.filter(n => !prevIds.includes(n.id_notificacion_pk))
       
       if (notificacionesNuevas.length > 0) {
-        mostrarSwalNotificacion(notificacionesNuevas[0])
+        mostrarToastNotificacion(notificacionesNuevas[0])
       }
       
       prevNotificacionesRef.current = notificacionesAdaptadas
@@ -205,42 +206,13 @@ const CamNotificaciones = () => {
     }
   }
 
-  const mostrarSwalNotificacion = (notificacion) => {
-    const titulo = getTituloNotificacion(
-      notificacion.nombre_tipo_notificacion, 
-      notificacion.nombre_notificacion
-    )
-    const mensaje = formatearMensaje(
-      notificacion.nombre_notificacion, 
-      notificacion.nombre_tipo_notificacion
-    )
-    
-    let icono = 'info'
-    if (notificacion.nombre_tipo_notificacion === 'LOTE_VENCIDO') {
-      icono = 'error'
-    } else if (notificacion.nombre_tipo_notificacion === 'STOCK_BAJOS' || 
-               notificacion.nombre_tipo_notificacion === 'LOTE_PROXIMO_VENCER') {
-      icono = 'warning'
-    }
-
-    Swal.fire({
-      icon: icono,
-      title: titulo,
-      text: mensaje,
-      showConfirmButton: true,
-      confirmButtonText: 'Entendido',
-      showCancelButton: true,
-      cancelButtonText: 'Ver todas',
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      customClass: {
-        confirmButton: 'swal2-confirm swal2-styled',
-        cancelButton: 'swal2-cancel swal2-styled'
-      }
-    }).then((result) => {
-      if (result.dismiss === Swal.DismissReason.cancel) {
-        setModalVisible(true)
-      }
+  const mostrarToastNotificacion = (notificacion) => {
+    toast.current?.show({
+      severity: 'warn',
+      summary: 'NUEVAS NOTIFICACIONES',
+      detail: '',
+      sticky: true,
+      closable: true
     })
   }
 
@@ -316,171 +288,194 @@ const CamNotificaciones = () => {
 
   // ============== RENDER ==============
   return (
-    <div className="nav-item" ref={dropdownRef} style={{ position: 'relative' }}>
-      <button
-        onClick={() => {
-          setDropdownOpen(!dropdownOpen)
-          if (!dropdownOpen) {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)()
-            ctx.resume().then(() => ctx.close())
+    <>
+      <style>
+        {`
+          .p-toast .p-toast-message {
+            width: 280px !important;
+            min-width: 280px !important;
           }
-        }}
-        className="nav-link border-0 bg-transparent"
-        style={{ cursor: 'pointer', position: 'relative', padding: '0.3rem 1rem' }}
-      >
-        <div className={animarCampana ? 'animate-shake' : ''} style={{ display: 'inline-block', position: 'relative' }}>
-          <CIcon icon={cilBell} size="lg" />
-          {noLeidas > 0 && (
-            <span 
-              className="position-absolute badge rounded-pill bg-danger" 
-              style={{ 
-                fontSize: '0.5rem',
-                padding: '0.25rem 0.35rem', 
-                minWidth: '16px', 
-                height: '16px', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                top: '-6px',
-                right: '-8px'
-              }} 
-            >
-              {noLeidas > 9 ? '9+' : noLeidas}
-            </span>
-          )}
-        </div>
-      </button>
-
-      {dropdownOpen && (
-        <div
-          className="dropdown-menu shadow border show"
-          style={{
-            position: 'absolute',
-            right: 0,
-            top: '100%',
-            width: '360px',
-            maxWidth: '80vw',
-            zIndex: 1050
+          .p-toast .p-toast-message-content {
+            padding: 0.75rem !important;
+          }
+          .p-toast .p-toast-summary {
+            font-size: 0.9rem !important;
+            font-weight: 600 !important;
+          }
+          .p-toast.p-toast-bottom-right {
+            bottom: 20px !important;
+            right: 20px !important;
+          }
+        `}
+      </style>
+      <Toast ref={toast} position="bottom-right" />
+      
+      <div className="nav-item" ref={dropdownRef} style={{ position: 'relative' }}>
+        <button
+          onClick={() => {
+            setDropdownOpen(!dropdownOpen)
+            if (!dropdownOpen) {
+              const ctx = new (window.AudioContext || window.webkitAudioContext)()
+              ctx.resume().then(() => ctx.close())
+            }
           }}
+          className="nav-link border-0 bg-transparent"
+          style={{ cursor: 'pointer', position: 'relative', padding: '0.3rem 1rem' }}
         >
-          {/* Header */}
-          <div className="bg-light border-bottom px-3 py-2 d-flex justify-content-between align-items-center">
-            <span className="fw-semibold" style={{ color: '#000' }}>
-              {noLeidas} {noLeidas === 1 ? 'notificación' : 'notificaciones'}
-            </span>
-            <div className="d-flex gap-2">
-              {noLeidas > 0 && (
+          <div className={animarCampana ? 'animate-shake' : ''} style={{ display: 'inline-block', position: 'relative' }}>
+            <CIcon icon={cilBell} size="lg" />
+            {noLeidas > 0 && (
+              <span 
+                className="position-absolute badge rounded-pill bg-danger" 
+                style={{ 
+                  fontSize: '0.5rem',
+                  padding: '0.25rem 0.35rem', 
+                  minWidth: '16px', 
+                  height: '16px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  top: '-6px',
+                  right: '-8px'
+                }} 
+              >
+                {noLeidas > 9 ? '9+' : noLeidas}
+              </span>
+            )}
+          </div>
+        </button>
+
+        {dropdownOpen && (
+          <div
+            className="dropdown-menu shadow border show"
+            style={{
+              position: 'absolute',
+              right: 0,
+              top: '100%',
+              width: '360px',
+              maxWidth: '80vw',
+              zIndex: 1050
+            }}
+          >
+            {/* Header */}
+            <div className="bg-light border-bottom px-3 py-2 d-flex justify-content-between align-items-center">
+              <span className="fw-semibold" style={{ color: '#000' }}>
+                {noLeidas} {noLeidas === 1 ? 'notificación' : 'notificaciones'}
+              </span>
+              <div className="d-flex gap-2">
+                {noLeidas > 0 && (
+                  <CIcon 
+                    icon={cilCheckAlt} 
+                    size="lg" 
+                    style={{ cursor: 'pointer', color: '#000' }}
+                    onClick={marcarTodasComoLeidas}
+                    title="Marcar todas como leídas"
+                  />
+                )}
                 <CIcon 
-                  icon={cilCheckAlt} 
+                  icon={cilSettings} 
                   size="lg" 
                   style={{ cursor: 'pointer', color: '#000' }}
-                  onClick={marcarTodasComoLeidas}
-                  title="Marcar todas como leídas"
+                  onClick={abrirConfiguracion}
+                  title="Configuración"
                 />
-              )}
-              <CIcon 
-                icon={cilSettings} 
-                size="lg" 
-                style={{ cursor: 'pointer', color: '#000' }}
-                onClick={abrirConfiguracion}
-                title="Configuración"
-              />
+              </div>
             </div>
-          </div>
 
-          {/* Contenido */}
-          <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-            {loading ? (
-              <div className="text-center py-4" style={{ color: '#000' }}>
-                <div className="spinner-border spinner-border-sm me-2" role="status">
-                  <span className="visually-hidden">Cargando...</span>
+            {/* Contenido */}
+            <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+              {loading ? (
+                <div className="text-center py-4" style={{ color: '#000' }}>
+                  <div className="spinner-border spinner-border-sm me-2" role="status">
+                    <span className="visually-hidden">Cargando...</span>
+                  </div>
+                  Cargando notificaciones...
                 </div>
-                Cargando notificaciones...
-              </div>
-            ) : error ? (
-              <div className="text-center py-5" style={{ color: '#000' }}>
-                <div className="mb-2 fs-1">⚠️</div>
-                <div className="fw-semibold">{error}</div>
-                <button 
-                  className="btn btn-sm btn-primary mt-2"
-                  onClick={cargarNotificaciones}
-                >
-                  Reintentar
-                </button>
-              </div>
-            ) : notificaciones.length === 0 ? (
-              <div className="text-center py-5" style={{ color: '#000' }}>
-                <div className="mb-2" style={{ fontSize: '3rem' }}>🔔</div>
-                <div className="fw-semibold">No hay notificaciones</div>
-                <small className="text-muted d-block mt-1">
-                  Las notificaciones de stock bajo y lotes por vencer aparecerán aquí
-                </small>
-              </div>
-            ) : (
-              notificaciones.slice(0, 4).map((notif) => (
-                <div
-                  key={notif.id_notificacion_pk}
-                  className="px-3 py-3 border-bottom"
-                  style={{
-                    cursor: 'pointer',
-                    backgroundColor: !notif.leida ? '#eff6ff' : 'white',
-                    transition: 'all 0.2s',
-                    opacity: notif.leida ? 0.5 : 1 
-                  }}
-                  onClick={() => marcarComoLeida(notif.id_notificacion_pk)}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = !notif.leida ? '#eff6ff' : 'white'}
-                >
-                  <div className="d-flex gap-3">
-                    <div style={{ flexShrink: 0, marginTop: '2px' }}>
-                      {getIconoReact(notif.nombre_tipo_notificacion)}
-                    </div>
-
-                    <div style={{ flexGrow: 1, minWidth: 0 }}>
-                      <div className="d-flex justify-content-between align-items-center mb-1">
-                        <div className="fw-bold" style={{ fontSize: '0.875rem', color: '#000' }}>
-                          {getTituloNotificacion(notif.nombre_tipo_notificacion, notif.nombre_notificacion)}
-                        </div>
-                        {!notif.leida && (
-                          <span 
-                            className="bg-primary rounded-circle ms-2"
-                            style={{ width: '8px', height: '8px', flexShrink: 0 }}
-                          />
-                        )}
+              ) : error ? (
+                <div className="text-center py-5" style={{ color: '#000' }}>
+                  <div className="mb-2 fs-1">⚠️</div>
+                  <div className="fw-semibold">{error}</div>
+                  <button 
+                    className="btn btn-sm btn-primary mt-2"
+                    onClick={cargarNotificaciones}
+                  >
+                    Reintentar
+                  </button>
+                </div>
+              ) : notificaciones.length === 0 ? (
+                <div className="text-center py-5" style={{ color: '#000' }}>
+                  <div className="mb-2" style={{ fontSize: '3rem' }}>🔔</div>
+                  <div className="fw-semibold">No hay notificaciones</div>
+                  <small className="text-muted d-block mt-1">
+                    Las notificaciones de stock bajo y lotes por vencer aparecerán aquí
+                  </small>
+                </div>
+              ) : (
+                notificaciones.slice(0, 4).map((notif) => (
+                  <div
+                    key={notif.id_notificacion_pk}
+                    className="px-3 py-3 border-bottom"
+                    style={{
+                      cursor: 'pointer',
+                      backgroundColor: !notif.leida ? '#eff6ff' : 'white',
+                      transition: 'all 0.2s',
+                      opacity: notif.leida ? 0.5 : 1 
+                    }}
+                    onClick={() => marcarComoLeida(notif.id_notificacion_pk)}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = !notif.leida ? '#eff6ff' : 'white'}
+                  >
+                    <div className="d-flex gap-3">
+                      <div style={{ flexShrink: 0, marginTop: '2px' }}>
+                        {getIconoReact(notif.nombre_tipo_notificacion)}
                       </div>
-                      
-                      <div style={{ fontSize: '0.7rem', lineHeight: '1.4', color: '#000' }}>
-                        {formatearMensaje(notif.nombre_notificacion, notif.nombre_tipo_notificacion)}
+
+                      <div style={{ flexGrow: 1, minWidth: 0 }}>
+                        <div className="d-flex justify-content-between align-items-center mb-1">
+                          <div className="fw-bold" style={{ fontSize: '0.875rem', color: '#000' }}>
+                            {getTituloNotificacion(notif.nombre_tipo_notificacion, notif.nombre_notificacion)}
+                          </div>
+                          {!notif.leida && (
+                            <span 
+                              className="bg-primary rounded-circle ms-2"
+                              style={{ width: '8px', height: '8px', flexShrink: 0 }}
+                            />
+                          )}
+                        </div>
+                        
+                        <div style={{ fontSize: '0.7rem', lineHeight: '1.4', color: '#000' }}>
+                          {formatearMensaje(notif.nombre_notificacion, notif.nombre_tipo_notificacion)}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))
+                ))
+              )}
+            </div>
+
+            {/* Footer */}
+            {notificaciones.length > 0 && (
+              <div className="border-top text-center">
+                <button
+                  onClick={abrirModalNotificaciones}
+                  className="btn btn-link w-100 text-decoration-none py-2 fw-bold"
+                  style={{ fontSize: '0.875rem', color: '#000' }}
+                >
+                  Ver todas las notificaciones
+                </button>
+              </div>
             )}
           </div>
+        )}
 
-          {/* Footer */}
-          {notificaciones.length > 0 && (
-            <div className="border-top text-center">
-              <button
-                onClick={abrirModalNotificaciones}
-                className="btn btn-link w-100 text-decoration-none py-2 fw-bold"
-                style={{ fontSize: '0.875rem', color: '#000' }}
-              >
-                Ver todas las notificaciones
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      <ModalNotificaciones
-        isOpen={modalVisible}
-        onClose={() => setModalVisible(false)}
-        notificaciones={notificaciones}
-        onMarcarLeida={marcarComoLeida}
-      />
-    </div>
+        <ModalNotificaciones
+          isOpen={modalVisible}
+          onClose={() => setModalVisible(false)}
+          notificaciones={notificaciones}
+          onMarcarLeida={marcarComoLeida}
+        />
+      </div>
+    </>
   )
 }
 
