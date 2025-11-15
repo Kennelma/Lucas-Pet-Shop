@@ -232,8 +232,8 @@ const TablaRecordatorios = ({ tipoServicio = [], frecuencias = [], loading: load
   // RENDER
   return (
     <>
-      <div
-        className="bg-white rounded-xl p-6 max-w-5xl mx-auto font-poppins"
+      <div 
+        className="bg-white rounded-xl p-6"
         style={{ boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33' }}
       >
         {/* BOTONES SUPERIORES */}
@@ -304,10 +304,10 @@ const TablaRecordatorios = ({ tipoServicio = [], frecuencias = [], loading: load
 
         {/* TABLA */}
         {recordatorios.length === 0 && !loading ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500 text-lg">No hay recordatorios registrados</p>
-            <p className="text-gray-400 text-sm mt-2">Haz clic en el botón para agregar tu primer recordatorio</p>
-          </div>
+            <div className="text-center py-8">
+              <p className="text-gray-500 text-lg">No hay recordatorios registrados</p>
+              <p className="text-gray-400 text-sm mt-2">Haz clic en el botón para agregar tu primer recordatorio</p>
+            </div>
         ) : (
           <DataTable
             value={recordatorios}
@@ -315,12 +315,12 @@ const TablaRecordatorios = ({ tipoServicio = [], frecuencias = [], loading: load
             showGridlines
             paginator
             rows={5}
-            rowsPerPageOptions={[5, 10, 15]}
+            rowsPerPageOptions={[5, 10, 20, 25]}
             paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
             tableStyle={{ minWidth: '50rem' }}
-            className="font-poppins datatable-gridlines overflow-visible"
+            className="mt-4"
             size="small"
-            rowClassName={() => 'hover:bg-gray-100 cursor-pointer'}
+            rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
           >
             <Column field="id_recordatorio_pk" header="ID" sortable className="text-sm" />
             <Column field="mensaje_recordatorio" header="MENSAJE" className="text-sm" />

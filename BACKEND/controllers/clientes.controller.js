@@ -51,7 +51,9 @@ exports.ver = async (req, res) => {
 
     try {
         //SE EJECUTA EL PROCEDIMIENTO
-        const [clientes] = await conn.query(`SELECT * FROM tbl_clientes ORDER BY id_cliente_pk DESC`);
+        const [clientes] = await conn.query(`
+            SELECT * FROM tbl_clientes
+            ORDER BY id_cliente_pk DESC`);
 
         res.status(200).json({
             Consulta: true,

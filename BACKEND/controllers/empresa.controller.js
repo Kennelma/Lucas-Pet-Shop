@@ -286,7 +286,7 @@ exports.ver = async (req, res) => {
                     ORDER BY s.id_sucursal_pk DESC`);
                 break;
 
-           case 'GASTOS':
+            case 'GASTOS':
 
                 [registros] = await conn.query(
 
@@ -296,10 +296,10 @@ exports.ver = async (req, res) => {
                     monto_gasto,
                     fecha_registro_gasto
                 FROM tbl_gastos
-                ORDER BY fecha_registro_gasto DESC, id_gasto_pk DESC;
-                `
+                ORDER BY fecha_registro_gasto DESC, id_gasto_pk DESC`
                 );
-    break;
+
+                break;
 
 
             default:
