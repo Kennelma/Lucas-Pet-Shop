@@ -52,8 +52,7 @@ exports.reporteDiario = async (req, res) => {
 
 };
 
-//JAMES - TABLA DE REPORTES
-//ENDPOINT PARA CONSULTAS DE INGRESOS, GASTOS Y GANANCIAS ANUALES, TODO MEDIANTE EL CIFRADO
+//CRISTOFER - REGISTRO FINANCIERO DIARIO (GRAFICO DE BARRAS)
 exports.registroFinanciero = async (req, res) => {
 
   const conn = await mysqlConnection.getConnection();
@@ -141,4 +140,66 @@ exports.ventasDiarias = async (req, res) => {
   } finally {
     if (conn) conn.release();
   }
+};
+
+//JAMES - HISTORIAL DE REPORTES (ANAUALES, MENSUALES Y DIARIOS)
+exports.historialReportes = async (req, res) => {
+
+  const conn = await mysqlConnection.getConnection();
+
+  try {
+
+    await conn.beginTransaction();
+
+
+    const { anio, mes, dia } = req.query;
+
+
+    const [historial] = await conn.query(`
+      SELECT
+          YEAR(fecha) AS año,
+          MONTH(fecha) AS mes,
+          DAY(fecha) AS dia,
+          DATE(fecha) AS fecha_completa,
+          SUM(numero_factura) AS cantidad_facturas,
+          SUM(ingresos) AS total_ingresos,
+          SUM(gastos) AS total_gastos,
+          SUM(ingresos) - SUM(gastos) AS balance
+      FROM (
+          SELECT DATE(fecha_emision) AS fecha,
+                total AS ingresos,
+                0 AS gastos,
+              1 AS numero_factura
+          FROM tbl_facturas
+          UNION ALL
+          SELECT DATE(fecha_registro_gasto) AS fecha,
+                0 AS ingresos,
+                monto_gasto AS gastos,
+                0 AS numero_factura
+          FROM tbl_gastos
+      ) AS datos
+      WHERE YEAR(fecha) = ?
+        AND MONTH(fecha) = ?
+        AND DAY(fecha) = ?
+      GROUP BY YEAR(fecha), MONTH(fecha), DAY(fecha), DATE(fecha)
+      ORDER BY año, mes, dia`, [anio, mes, dia]);
+
+    res.status(200).json({
+      Consulta: true,
+      mensaje: 'HISTORIAL DE REPORTES CARGADO',
+      historial: historial || []
+    });
+
+
+  } catch (error) {
+
+    res.status(500).json({
+      Consulta: false,
+      error: error.message
+    });
+
+  } finally {
+    if (conn) conn.release();
+  }
+
 };

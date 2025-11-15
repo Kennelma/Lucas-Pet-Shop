@@ -58,11 +58,11 @@ const ModalActualizarGasto = ({ visible, onHide, gastoSeleccionado, onRefresh })
     <>
       <style>
         {`
-          .modal-actualizar-gasto .modal {
-            z-index: 2000 !important;
+          .modal-actualizar-gasto.modal {
+            z-index: 9999 !important;
           }
-          .modal-actualizar-gasto .modal-backdrop {
-            z-index: 1999 !important;
+          .modal-actualizar-gasto ~ .modal-backdrop {
+            z-index: 9998 !important;
           }
         `}
       </style>

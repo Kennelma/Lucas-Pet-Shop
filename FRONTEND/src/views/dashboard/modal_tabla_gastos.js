@@ -53,9 +53,20 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
   const handleEliminar = async (gasto) => {
     const fechaGasto = new Date(gasto.date);
     const fechaHoy = new Date();
+    const gastoNormalizado = new Date(fechaGasto.getFullYear(), fechaGasto.getMonth(), fechaGasto.getDate());
     const hoyNormalizado = new Date(fechaHoy.getFullYear(), fechaHoy.getMonth(), fechaHoy.getDate());
 
-   
+    if (gastoNormalizado.getTime() !== hoyNormalizado.getTime()) {
+      Swal.fire({
+        title: 'Acción no permitida',
+        text: 'Solo se pueden eliminar gastos del día actual.',
+        icon: 'warning',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#3085d6',
+      });
+      return;
+    }
+
     const confirm = await Swal.fire({
       title: '¿Eliminar gasto?',
       text: 'Esta acción no se puede deshacer.',
@@ -96,7 +107,7 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
           <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
         </svg>
       </button>
-      
+
       <button
         className="bg-red-500 hover:bg-red-700 text-white p-1.5 rounded"
         onClick={(e) => {
@@ -149,7 +160,7 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
         }
         visible={visible}
         onHide={onHide}
-        className="w-[55vw] max-w-[750px]"
+        className="modal-tabla-gastos-dialog w-[55vw] max-w-[750px]"
         breakpoints={{ '960px': '90vw' }}
         modal
         draggable={false}
@@ -163,51 +174,51 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
               <p className="text-gray-400 text-sm mt-2">Haz clic en el botón para agregar tu primer gasto</p>
             </div>
           ) : (
-           <DataTable
+            <DataTable
               value={gastos}
               loading={loading}
               showGridlines
               paginator
-              rows={8}
-              rowsPerPageOptions={[8, 15, 30]}
-              paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+              rows={5}
+              rowsPerPageOptions={[5, 10, 15]}
+              paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
               className="w-full text-xs"
               size="small"
               rowClassName={() => 'hover:bg-yellow-50'}
               pt={{ headerCell: { className: 'px-3' }, bodyCell: { className: 'px-3' } }}
             >
-            <Column
-              field="id"
-              header="ID"
-              body={(rowData) => gastos.length - gastos.indexOf(rowData)}
-              sortable
-              style={{ width: '80px' }}  
-           />
-            <Column
-              field="description"
-              header="DESCRIPCIÓN"
-              sortable
-              style={{ width: '200px' }}  
-           />
-            <Column
-              field="amount"
-              header="MONTO"
-              body={formatoMonto}
-              sortable
-              style={{ width: '130px' }}
-           />
-            <Column
-              field="date"
-              header="FECHA"
-              body={formatoFecha}
-              sortable
-              style={{ width: '130px' }}
-           />
-            <Column
-              header="ACCIONES"
-              body={actionBotones}
-              style={{ width: '120px' }}
-           />
+              <Column
+                field="id"
+                header="ID"
+                body={(rowData) => gastos.length - gastos.indexOf(rowData)}
+                sortable
+                style={{ width: '80px' }}
+              />
+              <Column
+                field="description"
+                header="DESCRIPCIÓN"
+                sortable
+                style={{ width: '200px' }}
+              />
+              <Column
+                field="amount"
+                header="MONTO"
+                body={formatoMonto}
+                sortable
+                style={{ width: '130px' }}
+              />
+              <Column
+                field="date"
+                header="FECHA"
+                body={formatoFecha}
+                sortable
+                style={{ width: '130px' }}
+              />
+              <Column
+                header="ACCIONES"
+                body={actionBotones}
+                style={{ width: '120px' }}
+              />
             </DataTable>
           )}
         </div>
