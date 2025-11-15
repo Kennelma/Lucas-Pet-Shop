@@ -22,7 +22,17 @@ export default defineConfig(() => {
         },
       },
     },
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react({
+        jsxImportSource: undefined,
+        babel: {
+          plugins: [
+            ['styled-jsx/babel', { optimizeForSpeed: true }]
+          ]
+        }
+      }),
+      tailwindcss()
+    ],
     resolve: {
       alias: [
         {

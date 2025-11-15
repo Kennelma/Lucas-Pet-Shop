@@ -11,7 +11,7 @@ import {
 import Grafica from './Grafica.js';
 import ResumenDiario from './ResumenDiario';
 import Tabla from './Tabla';
-import { verResumenDiario, verGraficosMensual } from '../../AXIOS.SERVICES/reports-axios.js';
+
 
 const Reportes = () => {
   const [pestanaActiva, setPestanaActiva] = useState('reportes');

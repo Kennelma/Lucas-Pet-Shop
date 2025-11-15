@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { verGraficosMensual } from '../../AXIOS.SERVICES/reports-axios.js';
+
 import { descargarPDFTabla } from './pdf.js';
 
 const Tabla = () => {
