@@ -96,7 +96,8 @@ const EstadisticasEstilistas = () => {
 
   //TRANSFORMAR_DATOS_PARA_GRAFICOS
   const data = bonificaciones.map((b, index) => ({
-    estilista: `${b.nombre_estilista || 'Sin nombre'} ${b.apellido_estilista || ''}`.trim(),
+    estilista: b.nombre_estilista || 'Sin nombre',
+    nombreCompleto: `${b.nombre_estilista || 'Sin nombre'} ${b.apellido_estilista || ''}`.trim(),
     mascotas: parseInt(b.cantidad_mascotas) || 0,
     color: colores[index % colores.length]
   }));
@@ -218,7 +219,7 @@ const EstadisticasEstilistas = () => {
                           fontSize: 11,
                           formatter: (value, entry, index) => {
                             const item = data[index];
-                            return `${item.estilista} (${item.mascotas})`;
+                            return `${item.estilista}`;
                           }
                         }}
                         outerRadius={100}
@@ -274,7 +275,7 @@ const EstadisticasEstilistas = () => {
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: item.color }}
                           />
-                          {item.estilista}
+                          {item.nombreCompleto}
                         </td>
                         <td className="text-center py-2 px-3 font-medium text-sm">{item.mascotas}</td>
                         <td className="text-center py-2 px-3 text-sm">
