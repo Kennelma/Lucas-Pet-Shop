@@ -2,23 +2,20 @@ import React, { useEffect, useState, useRef } from 'react';
 import Swal from 'sweetalert2';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { InputText } from 'primereact/inputtext';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
-import dayjs from 'dayjs';
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 import ModalNuevoUsuario from './modal-agregar-usuarios';
 import ModalActualizarUsuario from './modal-actualizar-usuario';
+import PerfilUsuario from './perfil-usuario';
 import { verUsuarios, eliminarUsuario } from "../../../AXIOS.SERVICES/security-axios";
 
-//COMPONENTE_MENU_DE_ACCIONES_CON_POSICIONAMIENTO_DINAMICO
 const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [shouldShowAbove, setShouldShowAbove] = useState(false);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
 
-  //CALCULAR_POSICION_DEL_MENU_SEGUN_ESPACIO_DISPONIBLE
   const checkPosition = () => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
@@ -33,7 +30,6 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
     }
   };
 
-  //CERRAR_MENU_AL_HACER_CLIC_FUERA_O_AL_REDIMENSIONAR_VENTANA
   React.useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -126,28 +122,25 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
 };
 
 export default function Usuarios() {
-  //ESTADOS_DEL_COMPONENTE
   const [usuarios, setUsuarios] = useState([]);
   const [filtro, setFiltro] = useState('');
   const [loading, setLoading] = useState(true);
   const [openNuevoUsuario, setOpenNuevoUsuario] = useState(false);
   const [openEditarUsuario, setOpenEditarUsuario] = useState(false);
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
-  const [first, setFirst] = useState(0);
-  const [rows, setRows] = useState(5);
+  const [usuarioPerfilSeleccionado, setUsuarioPerfilSeleccionado] = useState(null);
+  const [selectedUsuarioId, setSelectedUsuarioId] = useState(null);
 
   useEffect(() => {
     cargarUsuarios();
   }, []);
 
-  //OBTENER_LISTA_DE_USUARIOS_DESDE_EL_BACKEND
   const cargarUsuarios = async () => {
     setLoading(true);
     try {
       const response = await verUsuarios();
       const data = response?.datos || response?.entidad || response || [];
 
-      //NORMALIZAR_DATOS_DE_USUARIOS_PARA_COMPATIBILIDAD
       const normalizados = (Array.isArray(data) ? data : []).map(u => ({
         id_usuario_pk: u.id_usuario_pk,
         usuario: u.usuario || '',
@@ -163,6 +156,12 @@ export default function Usuarios() {
       }));
 
       setUsuarios(normalizados);
+
+      if (normalizados && normalizados.length > 0) {
+        const ultimoUsuario = normalizados[normalizados.length - 1];
+        setUsuarioPerfilSeleccionado(ultimoUsuario);
+        setSelectedUsuarioId(ultimoUsuario.id_usuario_pk);
+      }
     } catch (error) {
       console.error("Error cargando usuarios:", error);
       Swal.fire({
@@ -178,33 +177,19 @@ export default function Usuarios() {
 
   const filtroUsuarios = usuarios.filter(u => {
     const q = filtro.toLowerCase();
-    return (
-      u.usuario.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q) ||
-      u.nombreSucursal.toLowerCase().includes(q) ||
-      u.roles.toLowerCase().includes(q)
-    );
+    return u.usuario.toLowerCase().includes(q) ||
+           u.email_usuario.toLowerCase().includes(q) ||
+           u.nombreSucursal.toLowerCase().includes(q) ||
+           u.roles.toLowerCase().includes(q);
   });
-
-  const sucursalBody = (row) => {
-    return (
-      <div className="text-sm text-center">
-        <span className="text-gray-900">Principal</span>
-      </div>
-    );
-  };
 
   const estadoBody = (row) => {
     const estado = row.estado || 'Desconocido';
-    let colorClasses = 'bg-gray-100 text-gray-800'; // Color por defecto
+    let colorClasses = 'bg-gray-100 text-gray-800';
 
-    if (estado.toLowerCase() === 'activo') {
-      colorClasses = 'bg-green-100 text-green-800';
-    } else if (estado.toLowerCase() === 'bloqueado') {
-      colorClasses = 'bg-red-100 text-red-800';
-    } else if (estado.toLowerCase() === 'inactivo') {
-      colorClasses = 'bg-yellow-100 text-yellow-800';
-    }
+    if (estado.toLowerCase() === 'activo') colorClasses = 'bg-green-100 text-green-800';
+    else if (estado.toLowerCase() === 'bloqueado') colorClasses = 'bg-red-100 text-red-800';
+    else if (estado.toLowerCase() === 'inactivo') colorClasses = 'bg-yellow-100 text-yellow-800';
 
     return (
       <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClasses}`}>
@@ -215,21 +200,11 @@ export default function Usuarios() {
 
   const rolesBody = (row) => {
     const roles = row.roles || 'Sin roles';
+    let colorClasses = 'bg-purple-100 text-purple-800';
 
-    // Definir colores según el rol
-    let colorClasses = 'bg-purple-100 text-purple-800'; // Color por defecto
-
-    if (roles.toLowerCase().includes('administrador')) {
-      colorClasses = 'bg-blue-100 text-blue-800';
-    } else if (roles.toLowerCase().includes('empleado')) {
-      colorClasses = 'bg-blue-100 text-blue-800';
-    } else if (roles.toLowerCase().includes('vendedor')) {
-      colorClasses = 'bg-purple-100 text-purple-800';
-    } else if (roles === 'Sin roles') {
-      colorClasses = 'bg-gray-100 text-gray-800';
-    } else if (roles.toLowerCase().includes('operador de inventario')) {
-      colorClasses = 'bg-rose-100 text-rose-800';
-    }
+    if (roles.toLowerCase().includes('administrador') || roles.toLowerCase().includes('empleado')) colorClasses = 'bg-blue-100 text-blue-800';
+    else if (roles.toLowerCase().includes('operador de inventario')) colorClasses = 'bg-rose-100 text-rose-800';
+    else if (roles === 'Sin roles') colorClasses = 'bg-gray-100 text-gray-800';
 
     return (
       <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClasses}`}>
@@ -238,12 +213,10 @@ export default function Usuarios() {
     );
   };
 
-  //ABRIR_MODAL_DE_EDICION_SOLO_SI_ES_ADMINISTRADOR
   const handleEditar = (usuario) => {
     const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
     const rolActual = usuarioActual?.rol?.toLowerCase();
 
-    //VALIDAR_PERMISOS_DE_ADMINISTRADOR
     if (rolActual !== 'administrador') {
       Swal.fire({
         icon: 'warning',
@@ -258,7 +231,6 @@ export default function Usuarios() {
     setOpenEditarUsuario(true);
   };
 
-  //CALLBACK_AL_CREAR_NUEVO_USUARIO
   const handleUsuarioCreado = () => {
     Swal.fire({
       icon: 'success',
@@ -269,7 +241,6 @@ export default function Usuarios() {
     cargarUsuarios();
   };
 
-  //CALLBACK_AL_ACTUALIZAR_USUARIO
   const handleUsuarioActualizado = () => {
     Swal.fire({
       icon: 'success',
@@ -280,12 +251,10 @@ export default function Usuarios() {
     cargarUsuarios();
   };
 
-  //ELIMINAR_USUARIO_CON_VALIDACION_DE_PERMISOS_Y_CONFIRMACION
   const handleEliminar = async (usuario) => {
     const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
     const rolActual = usuarioActual?.rol?.toLowerCase();
 
-    //VALIDAR_PERMISOS_DE_ADMINISTRADOR
     if (rolActual !== 'administrador') {
       Swal.fire({
         icon: 'warning',
@@ -296,7 +265,6 @@ export default function Usuarios() {
       return;
     }
 
-    //MOSTRAR_DIALOGO_DE_CONFIRMACION_CON_DATOS_DEL_USUARIO
     const result = await Swal.fire({
       title: '¿Eliminar usuario?',
       html: `
@@ -344,9 +312,9 @@ export default function Usuarios() {
     }
   };
 
-  const onPageChange = (e) => {
-    setFirst(e.first);
-    setRows(e.rows);
+  const handleRowClick = (e) => {
+    setUsuarioPerfilSeleccionado(e.data);
+    setSelectedUsuarioId(e.data.id_usuario_pk);
   };
 
   return (
@@ -366,11 +334,20 @@ export default function Usuarios() {
           overflow: visible !important;
           position: relative !important;
         }
+        :global(.p-datatable .p-datatable-tbody > tr.fila-seleccionada) {
+          background-color: #FEF3C7 !important;
+        }
+        :global(.p-datatable .p-datatable-tbody > tr.fila-seleccionada:hover) {
+          background-color: #FDE68A !important;
+        }
+        :global(.p-datatable .p-datatable-thead > tr > th),
+        :global(.p-datatable .p-datatable-tbody > tr > td) {
+          padding: 0.75rem 1rem !important;
+        }
       `}</style>
 
       <div className="min-h-screen p-6 bg-gray-50">
-        {/* Título */}
-      <div className="rounded-xl p-6 mb-3"
+        <div className="rounded-xl p-6 mb-3"
         style={{
           backgroundImage: 'url("/h7.jpg")',
           backgroundColor: '#E4B389',
@@ -385,12 +362,14 @@ export default function Usuarios() {
             GESTION DE SEGURIDAD
           </h2>
         </div>
-        <p className="text-center text-black italic mt-2">
-          Administra los usuarios del sistema y sus permisos
-        </p>
-      </div>
+          <p className="text-center text-black italic mt-2">
+            Administra los usuarios del sistema y sus permisos
+          </p>
+        </div>
 
-        <div className="bg-white rounded-xl p-6 mb-6" style={{boxShadow: '0 0 8px #E4B38940, 0 0 0 1px #E4B38933'}}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div className="lg:col-span-8 bg-white border border-gray-300 rounded-xl overflow-hidden">
+            <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <div className="relative w-80">
               <input
@@ -411,11 +390,9 @@ export default function Usuarios() {
             <button
               className="bg-[#E5B489] text-black px-6 py-2 rounded hover:bg-[#C29874] transition-colors flex items-center gap-2"
               onClick={() => {
-                // Validar rol del usuario actual
                 const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
                 const rolActual = usuarioActual?.rol?.toLowerCase();
 
-                // Si no es administrador, mostrar mensaje
                 if (rolActual !== 'administrador') {
                   Swal.fire({
                     icon: 'warning',
@@ -450,55 +427,40 @@ export default function Usuarios() {
             rows={5}
             rowsPerPageOptions={[5, 10, 20, 25]}
             paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-            tableStyle={{ minWidth: '50rem' }}
+            tableStyle={{ minWidth: 'auto', tableLayout: 'auto' }}
             className="mt-4"
             size="small"
             selectionMode="single"
-            rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
+            rowClassName={(rowData) => rowData.id_usuario_pk === selectedUsuarioId ? 'fila-seleccionada cursor-pointer' : 'hover:bg-gray-50 cursor-pointer'}
+            onRowClick={handleRowClick}
+            scrollable={false}
           >
             <Column
               field="id_usuario_pk"
               header="ID"
               body={(rowData) => filtroUsuarios.length - filtroUsuarios.indexOf(rowData)}
               sortable
-              className="text-sm"
+              style={{ width: '90px' }}  
             />
             <Column
               field="usuario"
               header="USUARIO"
               sortable
-              className="text-sm"
-            />
-            <Column
-              field="email_usuario"
-              header="EMAIL"
-              sortable
-              className="text-sm"
-              body={(row) => (
-                <span className="block max-w-[220px] truncate" title={row.email_usuario}>
-                  {row.email_usuario}
-                </span>
-              )}
-            />
-            <Column
-              field="nombreSucursal"
-              header="SUCURSAL"
-              body={sucursalBody}
-              sortable
-              className="text-sm"
+              style={{ width: '90' }}  
             />
             <Column
               field="roles"
               header="ROLES"
               body={rolesBody}
               sortable
-              className="text-sm"
+              style={{ width: '90' }}
             />
             <Column
+              field="estado"
               header="ESTADO"
               body={estadoBody}
               sortable
-              className="text-sm"
+              style={{ width: '90' }}
             />
             <Column
               header="ACCIONES"
@@ -514,10 +476,16 @@ export default function Usuarios() {
                   />
                 );
               }}
-              className="py-2 pr-9 pl-1 border-b text-sm"
-              style={{ position: 'relative', overflow: 'visible' }}
+              className="py-2 border-b text-sm"
+              style={{ position: 'relative', overflow: 'visible', width: '120px' }}
             />
           </DataTable>
+            </div>
+          </div>
+
+          <div className="lg:col-span-4 bg-white border border-gray-300 rounded-xl overflow-hidden">
+            <PerfilUsuario usuarioSeleccionado={usuarioPerfilSeleccionado} />
+          </div>
         </div>
 
         {openNuevoUsuario && (

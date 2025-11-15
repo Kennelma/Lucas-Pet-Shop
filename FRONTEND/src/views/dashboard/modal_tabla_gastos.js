@@ -97,7 +97,10 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
     <div className="flex items-center gap-2 w-full justify-center">
       <button
         className="bg-blue-500 hover:bg-blue-700 text-white p-1.5 rounded"
-        onClick={() => handleEditar(rowData)}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleEditar(rowData);
+        }}
         title="Editar"
       >
         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -107,7 +110,10 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
       
       <button
         className="bg-red-500 hover:bg-red-700 text-white p-1.5 rounded"
-        onClick={() => handleEliminar(rowData)}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleEliminar(rowData);
+        }}
         title="Eliminar"
       >
         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -135,6 +141,16 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
 
   return (
     <>
+      <style>
+        {`
+          .modal-tabla-gastos-dialog .p-dialog {
+            z-index: 1500 !important;
+          }
+          .modal-tabla-gastos-dialog .p-dialog-mask {
+            z-index: 1499 !important;
+          }
+        `}
+      </style>
       <Dialog
         header={
           <div className="flex items-center gap-2">
@@ -149,6 +165,7 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
         modal
         draggable={false}
         style={{ zIndex: 1000 }}
+        baseZIndex={1000}
       >
         <div className="flex flex-col">
           {gastos.length === 0 && !loading ? (
@@ -225,7 +242,10 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
       {gastoAEditar && (
         <ModalActualizarGasto
           visible={openModalActualizar}
-          onHide={() => setOpenModalActualizar(false)}
+          onHide={() => {
+            setOpenModalActualizar(false);
+            setGastoAEditar(null);
+          }}
           gastoSeleccionado={gastoAEditar}
           onRefresh={async () => {
             await cargarGastos();
