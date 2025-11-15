@@ -2,6 +2,13 @@
 const express = require('express');
 const mysqlConnection = require('../config/conexion');
 
+  //VARIABLES GLOBALES
+    let fecha = new Date();
+    let anio = fecha.getFullYear();
+    let mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+    let dia = fecha.getDate().toString().padStart(2, '0');
+    let fecha_actual = `${anio}-${mes}-${dia}`;
+
 //CRISTOFER - RESUMEN DIARIO
 //ENDPOINT PARA LOS REPORTES DIARIOS
 exports.reporteDiario = async (req, res) => {
@@ -9,12 +16,6 @@ exports.reporteDiario = async (req, res) => {
   const conn = await mysqlConnection.getConnection();
 
   try{
-
-    let fecha = new Date();
-    let anio = fecha.getFullYear();
-    let mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
-    let dia = fecha.getDate().toString().padStart(2, '0');
-    let fecha_actual = `${anio}-${mes}-${dia}`;
 
     const [resultado] = await conn.query(`
       SELECT
@@ -104,3 +105,40 @@ exports.registroFinanciero = async (req, res) => {
   }
 };
 
+//ENDPOINT DE LAS VENTAS AL DIA DE HOY
+exports.ventasDiarias = async (req, res) => {
+
+  conn = await mysqlConnection.getConnection();
+
+  try {
+
+    const [ventas] = await conn.query(`
+      SELECT
+          df.nombre_item,
+          SUM(df.cantidad_item) AS total_vendido
+      FROM tbl_detalles_facturas df
+      INNER JOIN tbl_facturas f ON df.id_factura_fk = f.id_factura_pk
+      WHERE DATE(f.fecha_emision) = ?
+      GROUP BY df.nombre_item
+      ORDER BY total_vendido DESC
+      LIMIT 10
+      `, [fecha_actual]
+    );
+
+    res.status(200).json({
+      Consulta: true,
+      mensaje: 'REPORTE DE VENTAS DIARIAS CARGADO',
+      ventas: ventas || []
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      Consulta: false,
+      error: error.message
+    });
+
+  } finally {
+    if (conn) conn.release();
+  }
+};

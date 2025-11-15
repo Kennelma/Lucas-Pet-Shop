@@ -1,7 +1,7 @@
 // src/api/reportesService.js
-import axiosInstance from './axiosConfig';
+import axiosInstance from "./axiosConfig";
 
-const API_URL = '/reportes';
+const API_URL = "/reportes";
 
 //SERVICIOS DE AXIOS PARA EL REPORTES DIARIO AUTOMATICO
 export const obtenerReporteDiario = async () => {
@@ -13,13 +13,22 @@ export const obtenerReporteDiario = async () => {
   }
 };
 
-
 //SERVICIOS DE AXIOS PARA EL REGISTRO FINANCIERO DE GRAFICOS Y DE TABLAS
 export const obtenerRegistroFinanciero = async (anio) => {
   try {
     const response = await axiosInstance.get(`${API_URL}/registroFinanciero`, {
-      params: { anio }
+      params: { anio },
     });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+//SERVICIOS DE AXIOS PARA LAS VENTAS DIARIAS
+export const obtenerVentasDiarias = async () => {
+  try {
+    const response = await axiosInstance.get(`${API_URL}/ventasDiarias`);
     return response.data;
   } catch (error) {
     throw error;
