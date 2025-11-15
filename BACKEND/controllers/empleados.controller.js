@@ -11,16 +11,20 @@ exports.crear = async (req, res) => {
 
     try {
 
+        const fecha_ingreso = new Date();
+
         await conn.query(
         `INSERT INTO tbl_estilistas_caninos (
             nombre_estilista,
             apellido_estilista,
-            identidad_estilista
+            identidad_estilista,
+            fecha_ingreso
         ) VALUES (?, ?, ?);`,
         [
            req.body.nombre_estilista,
            req.body.apellido_estilista,
-           req.body.identidad_estilista
+           req.body.identidad_estilista,
+           fecha_ingreso
         ]
         );
 

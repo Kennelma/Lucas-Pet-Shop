@@ -44,14 +44,14 @@ export default function InformacionEmpresa() {
   const handleChangeEmpresa = (e) => {
     const copia = { ...formEmpresa };
     const { name, value } = e.target;
-    
+
     // Convertir a mayúsculas excepto el campo de correo electrónico
     if (name === 'correo_empresa') {
       copia[name] = value.toLowerCase(); // Correo en minúsculas
     } else {
       copia[name] = value.toUpperCase(); // Otros campos en mayúsculas
     }
-    
+
     setFormEmpresa(copia);
   };
 
@@ -69,7 +69,7 @@ export default function InformacionEmpresa() {
         }
         return empresa.nombre_empresa.toLowerCase() === formEmpresa.nombre_empresa.toLowerCase();
       });
-      
+
       if (nombreExiste) {
         nuevosErrores.nombre_empresa = 'Ya existe una empresa con este nombre';
       }
@@ -98,7 +98,7 @@ export default function InformacionEmpresa() {
         }
         return empresa.correo_empresa.toLowerCase() === formEmpresa.correo_empresa.toLowerCase();
       });
-      
+
       if (correoExiste && !nuevosErrores.correo_empresa) {
         nuevosErrores.correo_empresa = 'Ya existe una empresa con este correo electrónico';
       }
@@ -152,7 +152,7 @@ export default function InformacionEmpresa() {
     setLoading(true);
 
     try {
-      const datosEnviar = { 
+      const datosEnviar = {
         entidad: 'EMPRESA',
         ...formEmpresa,
         ...(modoEdicion && { id_empresa_pk: empresaEditando.id_empresa_pk })
@@ -161,10 +161,10 @@ export default function InformacionEmpresa() {
       if (modoEdicion) {
         // Actualizar empresa existente
         const resultado = await actualizarRegistro(empresaEditando.id_empresa_pk, 'EMPRESA', formEmpresa);
-        
+
         if (resultado?.Consulta) {
-          setEmpresas(empresas.map(emp => 
-            emp.id_empresa_pk === empresaEditando.id_empresa_pk 
+          setEmpresas(empresas.map(emp =>
+            emp.id_empresa_pk === empresaEditando.id_empresa_pk
               ? { ...emp, ...formEmpresa }
               : emp
           ));
@@ -186,7 +186,7 @@ export default function InformacionEmpresa() {
       } else {
         // Crear nueva empresa
         const resultado = await insertar('EMPRESA', formEmpresa);
-        
+
         if (resultado?.Consulta) {
           await traerListaEmpresas(); // Recargar la lista desde el servidor
           Swal.fire({
@@ -242,7 +242,7 @@ export default function InformacionEmpresa() {
             )}
           </div>
 
-          <BotonAgregarEmpresa 
+          <BotonAgregarEmpresa
             onClick={handleNuevaEmpresa}
             loading={loading}
           />
@@ -250,7 +250,7 @@ export default function InformacionEmpresa() {
 
         {/* Lista de empresas existentes */}
         <div className="space-y-4 mb-6">
-          {empresas.filter(empresa => 
+          {empresas.filter(empresa =>
             empresa.nombre_empresa.toLowerCase().includes(globalFilter.toLowerCase()) ||
             empresa.direccion_empresa.toLowerCase().includes(globalFilter.toLowerCase()) ||
             empresa.telefono_empresa.toLowerCase().includes(globalFilter.toLowerCase()) ||
@@ -274,11 +274,11 @@ export default function InformacionEmpresa() {
                     <span className="break-words">{empresa.correo_empresa}</span>
                   </div>
                   <div className="flex items-center gap-2 justify-end col-span-1">
-                    <BotonEditarEmpresa 
+                    <BotonEditarEmpresa
                       empresa={empresa}
                       onEdit={handleEditarEmpresa}
                     />
-                    <BotonEliminarEmpresa 
+                    <BotonEliminarEmpresa
                       empresa={empresa}
                       onReload={traerListaEmpresas}
                     />
@@ -288,8 +288,8 @@ export default function InformacionEmpresa() {
             </div>
           </div>
           ))}
-        
-          {empresas.filter(empresa => 
+
+          {empresas.filter(empresa =>
             empresa.nombre_empresa.toLowerCase().includes(globalFilter.toLowerCase()) ||
             empresa.direccion_empresa.toLowerCase().includes(globalFilter.toLowerCase()) ||
             empresa.telefono_empresa.toLowerCase().includes(globalFilter.toLowerCase()) ||
@@ -301,13 +301,13 @@ export default function InformacionEmpresa() {
               <p className="text-sm">Intenta con otros términos de búsqueda</p>
             </div>
           )}
-        
+
           {empresas.length === 0 && (
             <div className="text-center py-12">
               <FontAwesomeIcon icon={freeSolidSvgIcons.faBuilding} className="w-16 h-16 mx-auto mb-4 text-gray-400" />
               <h3 className="text-lg font-semibold text-gray-700 mb-2">No hay empresas registradas</h3>
               <p className="text-gray-500 mb-6">Crea tu primera empresa para comenzar.</p>
-              <BotonAgregarEmpresa 
+              <BotonAgregarEmpresa
                 onClick={handleNuevaEmpresa}
                 loading={loading}
               />
@@ -317,7 +317,7 @@ export default function InformacionEmpresa() {
       </div>
 
       {/* Modal Modular */}
-      <ModalAgregarEmpresa 
+      <ModalAgregarEmpresa
         visible={mostrarFormulario}
         onHide={handleClose}
         formData={formEmpresa}

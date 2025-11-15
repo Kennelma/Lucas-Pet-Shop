@@ -12,23 +12,23 @@ const ModalPerfilCliente = ({ isOpen, cliente, onClose }) => {
   useEffect(() => {
     const cargarHistorial = async () => {
       if (!cliente?.id_cliente_pk) return;
-      
+
       setLoading(true);
       try {
         const response = await verHistorialCompras(cliente.id_cliente_pk);
-        
+
         console.log('Respuesta del historial:', response);
-        
+
         if (response.Consulta && response.historial) {
           console.log('Historial recibido:', response.historial);
           setHistorialCompras(response.historial);
-          
+
           // Calcular total gastado de TODAS las facturas del mes
           const total = response.historial.reduce((acc, factura) => {
             const monto = parseFloat(factura.total_factura) || 0;
             return acc + monto;
           }, 0);
-          
+
           setTotalSpent(total);
           setTotalOrders(response.historial.length);
         }
@@ -83,7 +83,7 @@ const ModalPerfilCliente = ({ isOpen, cliente, onClose }) => {
 
         {/* Header Background */}
         <div className="absolute left-0 top-0 w-full h-24 bg-gradient-to-r from-teal-700 to-teal-600 rounded-t-[20px] z-0"></div>
-        
+
         {/* Profile Image */}
         <div className="relative flex justify-center pt-8 pb-3 z-10">
           <div className="w-24 h-24 rounded-full bg-white border-4 border-white shadow-lg overflow-hidden flex items-center justify-center">
@@ -127,7 +127,7 @@ const ModalPerfilCliente = ({ isOpen, cliente, onClose }) => {
                 <i className="pi pi-shopping-bag text-black" style={{ fontSize: '14px' }}></i>
                 <h3 className="font-bold text-black" style={{ fontSize: '12px' }}>Facturas de ese Cliente</h3>
               </div>
-              
+
               {loading ? (
                 <div className="text-center py-8">
                   <i className="pi pi-spin pi-spinner text-teal-600" style={{ fontSize: '24px' }}></i>
@@ -155,16 +155,16 @@ const ModalPerfilCliente = ({ isOpen, cliente, onClose }) => {
                             L {order.total.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </p>
                         </div>
-                        
+
                         {/* Mini-modal flotante con detalles */}
                         {expandedFactura === order.id && (
                           <>
                             {/* Overlay semi-transparente */}
-                            <div 
+                            <div
                               className="fixed inset-0 bg-black/20 z-40 animate-fadeIn"
                               onClick={() => setExpandedFactura(null)}
                             ></div>
-                            
+
                             {/* Mini-modal */}
                             <div className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-xl border-2 border-teal-300 shadow-2xl p-4 animate-scaleIn overflow-hidden" style={{ width: '380px', maxHeight: '500px' }}>
                               <div className="flex justify-between items-center mb-3 border-b border-gray-200 pb-2">
@@ -179,7 +179,7 @@ const ModalPerfilCliente = ({ isOpen, cliente, onClose }) => {
                                   <i className="pi pi-times text-red-600" style={{ fontSize: '12px' }}></i>
                                 </button>
                               </div>
-                              
+
                               <p className="font-bold text-gray-700 mb-2" style={{ fontSize: '11px' }}>Productos:</p>
                               <div className="space-y-2 overflow-y-auto" style={{ maxHeight: '340px', paddingRight: '8px' }}>
                                 {order.detalles.map((detalle, idx) => (
@@ -195,7 +195,7 @@ const ModalPerfilCliente = ({ isOpen, cliente, onClose }) => {
                                   </div>
                                 ))}
                               </div>
-                              
+
                               <div className="mt-3 pt-3 border-t border-gray-200">
                                 <div className="flex justify-between items-center">
                                   <p className="font-bold text-gray-700" style={{ fontSize: '12px' }}>Total:</p>
@@ -248,7 +248,7 @@ const ModalPerfilCliente = ({ isOpen, cliente, onClose }) => {
         .animate-scaleIn {
           animation: scaleIn 0.2s ease-out;
         }
-        
+
         /* Custom scrollbar */
         ::-webkit-scrollbar {
           width: 8px;

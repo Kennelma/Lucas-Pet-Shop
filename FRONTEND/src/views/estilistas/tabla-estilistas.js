@@ -156,8 +156,8 @@ const TablaEstilistas = ({ estilistas, loading, globalFilter, onEdit, onDelete, 
           rowsPerPageOptions={[5, 10, 15, 20]}
           paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
           tableStyle={{ minWidth: '60rem' }}
-          className="mt-6"
-          size="normal"
+          className="font-poppins datatable-gridlines"
+          size="small"
           selectionMode="single"
           selection={estilistaSeleccionado}
           onSelectionChange={(e) => onSelectionChange && onSelectionChange(e.value)}
@@ -171,28 +171,28 @@ const TablaEstilistas = ({ estilistas, loading, globalFilter, onEdit, onDelete, 
             header="ID"
             body={(rowData, options) => options.rowIndex + 1}
             sortable
-            className="text-sm py-3 px-4"
+            className="text-sm"
           />
           
           <Column
             field="nombre_estilista"
             header="NOMBRE"
             sortable
-            className="text-sm py-3 px-4"
+            className="text-sm"
           />
           
           <Column
             field="apellido_estilista"
             header="APELLIDOS"
             sortable
-            className="text-sm py-3 px-4"
+            className="text-sm"
           />
           
           <Column
             field="identidad_estilista"
             header="IDENTIDAD"
             sortable
-            className="text-sm py-3 px-4"
+            className="text-sm"
           />
           
           <Column
@@ -200,13 +200,13 @@ const TablaEstilistas = ({ estilistas, loading, globalFilter, onEdit, onDelete, 
             header="FECHA DE INGRESO"
             sortable
             field="fecha_ingreso"
-            className="text-sm text-center py-3 px-4"
+            className="text-sm text-center"
           />
           
           <Column
             header="ACCIONES"
             body={accionesTemplate}
-            className="py-3 px-4 text-center"
+            className="py-2 pr-9 pl-1 border-b text-sm"
           />
           
         </DataTable>

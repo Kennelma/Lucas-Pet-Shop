@@ -10,7 +10,7 @@ import { Toast } from "primereact/toast";
 import { useRef } from "react";
 
 
-import { actualizarCliente } from "../../AXIOS.SERVICES/clients-axios.js";
+import { actualizarCliente, verClientes } from "../../AXIOS.SERVICES/clients-axios.js";
 
 
 export default function FormularioActualizarCliente({ isOpen, onClose, cliente, onClienteActualizado }) {
@@ -31,6 +31,8 @@ export default function FormularioActualizarCliente({ isOpen, onClose, cliente, 
         identidad_cliente: false,
         telefono_cliente: false
     });
+
+    const [errorTelefonoDuplicado, setErrorTelefonoDuplicado] = useState(false);
 
     //DATOS QUE SE MUESTRAN AL ABRIR EL MODAL
     useEffect(() => {
@@ -60,6 +62,10 @@ export default function FormularioActualizarCliente({ isOpen, onClose, cliente, 
 
         if (nuevoValor.trim() !== "") {
             setErrores({ ...errores, [name]: false });
+            // Limpiar error de teléfono duplicado cuando el usuario modifica el campo
+            if (name === "telefono_cliente") {
+                setErrorTelefonoDuplicado(false);
+            }
         }
     };
 
@@ -78,6 +84,22 @@ export default function FormularioActualizarCliente({ isOpen, onClose, cliente, 
         e.preventDefault();
 
         if (!validacionFormulario()) return;
+
+        // Verificar teléfono duplicado (solo si el teléfono cambió)
+        try {
+            const clientesExistentes = await verClientes();
+            const telefonoDuplicado = clientesExistentes.find(cliente => 
+                cliente.telefono_cliente === clienteData.telefono_cliente && 
+                cliente.id_cliente_pk !== clienteData.id_cliente
+            );
+            
+            if (telefonoDuplicado) {
+                setErrorTelefonoDuplicado(true);
+                return;
+            }
+        } catch (error) {
+            console.error("Error al verificar duplicados:", error);
+        }
 
         try {
             const res = await actualizarCliente(clienteData);
@@ -102,6 +124,7 @@ export default function FormularioActualizarCliente({ isOpen, onClose, cliente, 
             identidad_cliente: false,
             telefono_cliente: false
         });
+        setErrorTelefonoDuplicado(false);
         onClose();
     };
 
@@ -204,6 +227,7 @@ export default function FormularioActualizarCliente({ isOpen, onClose, cliente, 
                                 setClienteData({ ...clienteData, telefono_cliente: e.value });
                                 if (e.value && e.value.trim() !== "-") {
                                     setErrores({ ...errores, telefono_cliente: false });
+                                    setErrorTelefonoDuplicado(false);
                                 }
                             }}
                             mask="9999-9999"
@@ -212,6 +236,7 @@ export default function FormularioActualizarCliente({ isOpen, onClose, cliente, 
                             autoComplete="off"
                         />
                         {errores.telefono_cliente && <p className="text-xs text-red-600 mt-1">El teléfono es requerido</p>}
+                        {errorTelefonoDuplicado && <p className="text-xs text-red-600 mt-1">Ya existe un cliente con este número de teléfono</p>}
                     </span>
                 </div>
             </div>

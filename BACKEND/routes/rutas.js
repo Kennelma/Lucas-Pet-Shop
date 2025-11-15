@@ -79,10 +79,10 @@ router.get ('/perfil/ver', verificarToken, perfil.verPerfil);
 router.put ('/perfil/actualizar', verificarToken, perfil.actualizarPerfil);
 
 //========== RUTAS DE REPORTES ==========
-router.get('/reportes/ingresos', reportes.registroIngresos);
-router.get('/reportes/gastos', reportes.registrosGastos);
-router.get('/reportes/resumen-diario', reportes.resumenDiario);
-router.get('/reportes/graficos', reportes.resumenGraficos);
+//router.get('/reportes/ingresos', reportes.registroIngresos);
+//router.get('/reportes/gastos', reportes.registrosGastos);
+//router.get('/reportes/resumen-diario', reportes.resumenDiario);
+//router.get('/reportes/graficos', reportes.resumenGraficos);
 
 //========== RUTAS DE NOTIFICACIONES ==========
 router.get('/notificaciones/ver', notificaciones.verNotificaciones);

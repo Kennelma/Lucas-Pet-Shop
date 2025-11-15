@@ -32,7 +32,7 @@ const getNavigation = () => {
 
   //DEFINICIÓN COMPLETA DE TODOS LOS ITEMS DEL SIDEBAR
   const navCompleto = [
-    
+
     //DASHBOARD - VISIBLE PARA TODOS LOS ROLES
     {
       component: CNavItem,
@@ -160,7 +160,8 @@ const getNavigation = () => {
     icon: <FontAwesomeIcon icon={faCoins} className="nav-icon" />,
   },
 
-
+  
+  //REPORTES
 {
   component: CNavItem,
   name: 'Reportes',
@@ -168,7 +169,6 @@ const getNavigation = () => {
   icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
 },
 
-  
 
 
 
