@@ -94,20 +94,25 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
   };
 
   const actionBotones = (rowData) => (
-    <div className="flex gap-1 justify-center">
+    <div className="flex items-center gap-2 w-full justify-center">
       <button
+        className="bg-blue-500 hover:bg-blue-700 text-white p-1.5 rounded"
         onClick={() => handleEditar(rowData)}
-        className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors"
         title="Editar"
       >
-        <i className="pi pi-pencil text-xs"></i>
+        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+        </svg>
       </button>
+      
       <button
+        className="bg-red-500 hover:bg-red-700 text-white p-1.5 rounded"
         onClick={() => handleEliminar(rowData)}
-        className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors"
         title="Eliminar"
       >
-        <i className="pi pi-trash text-xs"></i>
+        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"/>
+        </svg>
       </button>
     </div>
   );
@@ -139,26 +144,20 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
         }
         visible={visible}
         onHide={onHide}
-        className="w-[70vw] max-w-[900px]"
+        className="w-[55vw] max-w-[750px]"
         breakpoints={{ '960px': '90vw' }}
         modal
         draggable={false}
         style={{ zIndex: 1000 }}
       >
         <div className="flex flex-col">
-          <div className="flex justify-between items-center">
-            <div className="text-sm font-bold text-gray-800">
-              Total: <span className="text-green-600">L {totalGastos.toFixed(2)}</span>
-            </div>
-          </div>
-
           {gastos.length === 0 && !loading ? (
             <div className="text-center py-8">
               <p className="text-gray-500 text-lg">No hay gastos registrados</p>
               <p className="text-gray-400 text-sm mt-2">Haz clic en el botón para agregar tu primer gasto</p>
             </div>
           ) : (
-            <DataTable
+           <DataTable
               value={gastos}
               loading={loading}
               showGridlines
@@ -169,40 +168,40 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
               className="w-full text-xs"
               size="small"
               rowClassName={() => 'hover:bg-yellow-50'}
+              pt={{ headerCell: { className: 'px-3' }, bodyCell: { className: 'px-3' } }}
             >
-              <Column
-                field="id"
-                header="ID"
-                body={(rowData) => gastos.length - gastos.indexOf(rowData)}
-                sortable
-                className="w-[50px] text-justify"
-              />
-              <Column
-                field="description"
-                header="DESCRIPCIÓN"
-                sortable
-                className="w-[100px]"
-              />
-              <Column
-                field="amount"
-                header="MONTO"
-                body={formatoMonto}
-                sortable
-                className="w-[30px]"
-              />
-              <Column
-                field="date"
-                header="FECHA"
-                body={formatoFecha}
-                sortable
-                className="w-[30px]"
-
-              />
-              <Column
-                header="ACCIONES"
-                body={actionBotones}
-                className="w-[30px]"
-              />
+            <Column
+              field="id"
+              header="ID"
+              body={(rowData) => gastos.length - gastos.indexOf(rowData)}
+              sortable
+              style={{ width: '80px' }}  
+           />
+            <Column
+              field="description"
+              header="DESCRIPCIÓN"
+              sortable
+              style={{ width: '200px' }}  
+           />
+            <Column
+              field="amount"
+              header="MONTO"
+              body={formatoMonto}
+              sortable
+              style={{ width: '130px' }}
+           />
+            <Column
+              field="date"
+              header="FECHA"
+              body={formatoFecha}
+              sortable
+              style={{ width: '130px' }}
+           />
+            <Column
+              header="ACCIONES"
+              body={actionBotones}
+              style={{ width: '120px' }}
+           />
             </DataTable>
           )}
         </div>
