@@ -325,8 +325,6 @@ export default function Usuarios() {
     setSelectedUsuarioId(e.data.id_usuario_pk);
   };
 
-  // Los estilos ahora están en el archivo custom-styles.scss
-
   return (
     <>
 

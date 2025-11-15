@@ -162,31 +162,11 @@ const getNavigation = () => {
 
   //REPORTES CON SUBMENÚ
   {
-    component: CNavGroup,
+    component: CNavItem,
     name: 'Reportes',
+    to: '/reportes',
     icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
-    items: [
-      {
-        component: CNavItem,
-        name: 'Grafica',
-        to: '/reportes',
-        style: { paddingLeft: '65px' },
-        icon: <FontAwesomeIcon icon={faChartArea} className="nav-icon" />,
-      },
-      {
-        component: CNavItem,
-        name: 'Tabla',
-        to: '/reportes/Tabla',
-        style: { paddingLeft: '65px' },
-        icon: <FontAwesomeIcon icon={faBorderAll} className="nav-icon" />,
-      }
-    ]
   },
-
-
-
-
-
 
 ];
   //FILTRAR LOS ITEMS DEL NAV SEGÚN EL ROL DEL USUARIO
