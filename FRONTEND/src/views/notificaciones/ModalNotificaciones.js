@@ -1,6 +1,8 @@
 import React from 'react';
 import { Dialog } from 'primereact/dialog';
 import { Button } from 'primereact/button';
+import { TfiAlert } from "react-icons/tfi";
+import { AiFillAlert } from "react-icons/ai";
 
 const ModalNotificaciones = ({ isOpen, onClose, notificaciones, onMarcarLeida }) => {
   
@@ -75,71 +77,17 @@ const ModalNotificaciones = ({ isOpen, onClose, notificaciones, onMarcarLeida })
     return mensaje;
   };
 
-  const getIconoSVG = (tipo) => {
-    // Triángulo de advertencia para STOCK BAJO (más pequeño)
+  const getIconoReact = (tipo) => {
     if (tipo === 'STOCK_BAJOS') {
-      return (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L2 20h20L12 2z" fill="#FCD34D" stroke="#F59E0B" strokeWidth="1.5"/>
-          <path d="M12 9v5M12 17h.01" stroke="#78350F" strokeWidth="2" strokeLinecap="round"/>
-        </svg>
-      );
+      return <TfiAlert style={{ fontSize: '28px', color: '#F59E0B' }} />;
     }
     
-    // Alarma ROJA para LOTE VENCIDO (más pequeña)
     if (tipo === 'LOTE_VENCIDO') {
-      return (
-        <svg width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-          {/* Base gris */}
-          <rect x="20" y="42" width="24" height="8" rx="2" fill="#9CA3AF"/>
-          <rect x="18" y="48" width="28" height="4" rx="1" fill="#6B7280"/>
-          
-          {/* Campana roja */}
-          <path d="M32 12 Q22 12 22 24 L22 38 Q22 42 26 42 L38 42 Q42 42 42 38 L42 24 Q42 12 32 12 Z" fill="#DC2626"/>
-          
-          {/* Signo de exclamación */}
-          <rect x="30" y="20" width="4" height="12" rx="2" fill="white"/>
-          <circle cx="32" cy="36" r="2.5" fill="white"/>
-          
-          {/* Líneas de vibración izquierda */}
-          <line x1="14" y1="18" x2="18" y2="22" stroke="#DC2626" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="12" y1="26" x2="18" y2="26" stroke="#DC2626" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="14" y1="34" x2="18" y2="30" stroke="#DC2626" strokeWidth="3" strokeLinecap="round"/>
-          
-          {/* Líneas de vibración derecha */}
-          <line x1="50" y1="18" x2="46" y2="22" stroke="#DC2626" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="52" y1="26" x2="46" y2="26" stroke="#DC2626" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="50" y1="34" x2="46" y2="30" stroke="#DC2626" strokeWidth="3" strokeLinecap="round"/>
-        </svg>
-      );
+      return <AiFillAlert style={{ fontSize: '32px', color: '#DC2626' }} />;
     }
     
-    // Alarma NARANJA para LOTE PRÓXIMO A VENCER (más pequeña)
     if (tipo === 'LOTE_PROXIMO_VENCER') {
-      return (
-        <svg width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-          {/* Base gris */}
-          <rect x="20" y="42" width="24" height="8" rx="2" fill="#9CA3AF"/>
-          <rect x="18" y="48" width="28" height="4" rx="1" fill="#6B7280"/>
-          
-          {/* Campana naranja */}
-          <path d="M32 12 Q22 12 22 24 L22 38 Q22 42 26 42 L38 42 Q42 42 42 38 L42 24 Q42 12 32 12 Z" fill="#F59E0B"/>
-          
-          {/* Signo de exclamación */}
-          <rect x="30" y="20" width="4" height="12" rx="2" fill="white"/>
-          <circle cx="32" cy="36" r="2.5" fill="white"/>
-          
-          {/* Líneas de vibración izquierda */}
-          <line x1="14" y1="18" x2="18" y2="22" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="12" y1="26" x2="18" y2="26" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="14" y1="34" x2="18" y2="30" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round"/>
-          
-          {/* Líneas de vibración derecha */}
-          <line x1="50" y1="18" x2="46" y2="22" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="52" y1="26" x2="46" y2="26" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="50" y1="34" x2="46" y2="30" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round"/>
-        </svg>
-      );
+      return <AiFillAlert style={{ fontSize: '32px', color: '#F59E0B' }} />;
     }
     
     return null;
@@ -193,6 +141,8 @@ const ModalNotificaciones = ({ isOpen, onClose, notificaciones, onMarcarLeida })
       position="center"
       draggable={false}
       resizable={false}
+      appendTo={document.body}
+      baseZIndex={2000}
       contentStyle={{ 
         maxHeight: '70vh', 
         overflowY: 'auto', 
@@ -239,7 +189,7 @@ const ModalNotificaciones = ({ isOpen, onClose, notificaciones, onMarcarLeida })
                 <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                   {/* Icono */}
                   <div style={{ flexShrink: 0 }}>
-                    {getIconoSVG(notif.nombre_tipo_notificacion)}
+                    {getIconoReact(notif.nombre_tipo_notificacion)}
                   </div>
 
                   {/* Contenido */}
