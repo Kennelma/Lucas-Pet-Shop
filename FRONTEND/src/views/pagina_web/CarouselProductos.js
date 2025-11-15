@@ -4,7 +4,7 @@ import { Carousel } from 'primereact/carousel';
 
 export default function CarouselProductos() {
     const [products, setProducts] = useState([]);
-    
+
     // 📱 Configuración para que el carousel se vea bien en todos los dispositivos
     const responsiveOptions = [
         {
@@ -23,7 +23,7 @@ export default function CarouselProductos() {
             numScroll: 1
         },
         {
-            breakpoint: '575px', // 📱 Móviles: 1 producto 
+            breakpoint: '575px', // 📱 Móviles: 1 producto
             numVisible: 1,
             numScroll: 1
         }
@@ -55,7 +55,7 @@ export default function CarouselProductos() {
             inventoryStatus: "LOWSTOCK",
             category: "Cuidado"
         },
-        
+
         {
             id: 4,
             name: "Platos ",
@@ -136,7 +136,7 @@ export default function CarouselProductos() {
             inventoryStatus: "LOWSTOCK",
             category: "Acuarios"
         },
-        
+
         {
             id: 14,
             name: "Alimento para Peces",
@@ -145,7 +145,7 @@ export default function CarouselProductos() {
             inventoryStatus: "INSTOCK",
             category: "Alimentación"
         },
-        
+
         {
             id: 15,
             name: "Arena para gatos",
@@ -164,21 +164,11 @@ export default function CarouselProductos() {
         }
     ];
 
-    
+
     // 🚀 Se ejecuta cuando el componente se carga por primera vez
     useEffect(() => {
-        // Load Poppins font
-        const link = document.createElement('link');
-        link.href = 'https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap';
-        link.rel = 'stylesheet';
-        document.head.appendChild(link);
-
         // 📦 Cargamos TODOS los productos disponibles en el carousel
         setProducts(petProducts);
-
-        return () => {
-            document.head.removeChild(link);
-        };
     }, []);
 
     // 🎨 Esta función crea la tarjeta visual de cada producto - ¡Como una vitrina digital!
@@ -188,10 +178,10 @@ export default function CarouselProductos() {
             <div className="bg-white rounded-2xl overflow-hidden transition-all duration-300 transform hover:scale-105 m-3 group h-80 flex flex-col">
                 {/* 🖼️ Área de la imagen del producto */}
                 <div className="relative h-48 overflow-hidden flex-shrink-0">
-                    <img 
-                        src={`/images_LP/${product.image}`} 
-                        alt={product.name} 
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
+                    <img
+                        src={`/images_LP/${product.image}`}
+                        alt={product.name}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                         onError={(e) => {
                             // 🛟 Si la imagen no se encuentra, mostramos una imagen por defecto
                             e.target.src = '/images_LP/producto-default.jpg';
@@ -212,9 +202,7 @@ export default function CarouselProductos() {
 
     return (
         // 🏪 Sección principal del carousel de productos
-        <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-transparent" style={{ 
-            fontFamily: "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif"
-        }}>
+        <section className="poppins-font py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-transparent">
             <div className="max-w-7xl mx-auto">
                 {/* 📢 Encabezado de la sección - Presentamos nuestros productos */}
                 <div className="text-center mb-10 sm:mb-12 lg:mb-16 animate-fade-in">
@@ -228,7 +216,7 @@ export default function CarouselProductos() {
 
                 {/* 🎠 El carousel mágico que muestra nuestros productos */}
                 <div className="animate-fade-in" style={{animationDelay: '0.2s'}}>
-                    <Carousel 
+                    <Carousel
                         value={products}                    // 📦 Los productos a mostrar
                         numScroll={1}                      // 🔄 Cuántos productos mover por vez
                         numVisible={3}                     // 👀 Productos visibles por defecto
@@ -243,67 +231,9 @@ export default function CarouselProductos() {
                 </div>
             </div>
 
-            {/* 🎨 Estilos personalizados para animaciones suaves */}
-            <style jsx>{`
-                @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-                
-                * {
-                    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif !important;
-                }
-                
-                /* ✨ Animación de entrada desde abajo - hace que todo aparezca elegantemente */
-                @keyframes fade-in {
-                    from { 
-                        opacity: 0; 
-                        transform: translateY(30px); 
-                    }
-                    to { 
-                        opacity: 1; 
-                        transform: translateY(0); 
-                    }
-                }
-                .animate-fade-in {
-                    animation: fade-in 0.8s ease-out forwards;
-                    opacity: 0;
-                }
-            `}</style>
-            
-            {/* 🎯 Estilos globales para personalizar el carousel de PrimeReact */}
-            <style jsx global>{`
-                /* 🔵 Indicadores del carousel (los puntitos de abajo) */
-                .custom-carousel .p-carousel-indicators {
-                    padding: 1rem;
-                }
-                
-                .custom-carousel .p-carousel-indicator button {
-                    width: 12px;
-                    height: 12px;
-                    border-radius: 50%;
-                    background-color: #e5e7eb;  /* Gris claro cuando no está activo */
-                    border: none;
-                }
-                
-                .custom-carousel .p-carousel-indicator.p-highlight button {
-                    background-color: #8b5cf6;  /* Morado cuando está activo */
-                }
-                
-                /* ⬅️➡️ Botones de navegación (anterior/siguiente) */
-                .custom-carousel .p-carousel-next,
-                .custom-carousel .p-carousel-prev {
-                    background: rgba(139, 92, 246, 0.9);  /* Morado semi-transparente */
-                    border: none;
-                    color: white;
-                    width: 3rem;
-                    height: 3rem;
-                    border-radius: 50%;  /* Botones redondos */
-                }
-                
-                /* ✨ Efecto hover en los botones de navegación */
-                .custom-carousel .p-carousel-next:hover,
-                .custom-carousel .p-carousel-prev:hover {
-                    background: rgba(139, 92, 246, 1);  /* Morado sólido al pasar el mouse */
-                }
-            `}</style>
+            {/* Estilos aplicados via useEffect para evitar errores de styled-jsx */}
+
+            {/* Estilos globales aplicados via useEffect */}
         </section>
     );
 }

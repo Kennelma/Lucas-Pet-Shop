@@ -53,20 +53,9 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
   const handleEliminar = async (gasto) => {
     const fechaGasto = new Date(gasto.date);
     const fechaHoy = new Date();
-    const gastoNormalizado = new Date(fechaGasto.getFullYear(), fechaGasto.getMonth(), fechaGasto.getDate());
     const hoyNormalizado = new Date(fechaHoy.getFullYear(), fechaHoy.getMonth(), fechaHoy.getDate());
 
-    if (gastoNormalizado.getTime() !== hoyNormalizado.getTime()) {
-      Swal.fire({
-        title: 'Acción no permitida',
-        text: 'Solo se pueden eliminar gastos del día actual.',
-        icon: 'warning',
-        confirmButtonText: 'Entendido',
-        confirmButtonColor: '#3085d6',
-      });
-      return;
-    }
-
+   
     const confirm = await Swal.fire({
       title: '¿Eliminar gasto?',
       text: 'Esta acción no se puede deshacer.',
