@@ -61,8 +61,8 @@ const Dashboard = () => {
     );
   });
 
-  // Mostrar solo los últimos 2 gastos
-  const lastTwoExpenses = filteredExpenses.slice(-2);
+  // Mostrar solo los últimos 5 gastos
+  const lastTwoExpenses = filteredExpenses.slice(-5);
 
   const totalExpenses = filteredExpenses.reduce((total, expense) => {
     return total + (parseFloat(expense.amount) || 0);
@@ -81,7 +81,7 @@ const Dashboard = () => {
               className="rounded-xl p-4 bg-cover bg-center"
               style={{
                 backgroundImage: 'url("/H13.png")',
-                backgroundColor: '#1d4ed8',
+                backgroundColor: '#BAF2BB',
                 backgroundSize: 'contain',
                 backgroundRepeat: 'no-repeat',
                 backgroundPosition: 'right center',
@@ -89,24 +89,14 @@ const Dashboard = () => {
               }}
             >
               <div className="mb-2">
-                <h1 className="text-xl font-light text-white mb-1">
+                <h1 className="text-xl font-light text-black mb-1">
                   ¡Hola, {usuario?.nombre || 'Administrador'}!
                 </h1>
-                <p className="text-sm text-blue-100 poppins">
+                <p className="text-sm text-gray-800 poppins">
                   Bienvenido a tu sistema de gestión veterinaria y tienda de mascotas 
                 </p>
               </div>
-              <div className="flex items-center gap-2 text-blue-100">
-                <lucideReact.Calendar className="w-5 h-5" />
-                <span className="text-sm font-light">
-                  {today.toLocaleDateString('es-ES', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </span>
-              </div>
+              
             </div>
           </div>
 
@@ -190,17 +180,16 @@ const Dashboard = () => {
             <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
               
               {/* Header Sutil */}
-              <div className="relative px-4 pt-2 pb-1">
-                <div className="flex items-center justify-between mb-1">
-                  <div>
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Gastos Hoy</p>
-                  </div>
-                  <div className="w-10 h-10 bg-gradient-to-br from-yellow-100 to-amber-100 rounded-full flex items-center justify-center">
-                    <lucideReact.BarChart3 className="w-5 h-5 text-yellow-600" />
-                  </div>
-                </div>
+              <div className="relative px-4 pt-2 pb-1 bg-[#FFF8E1]">
+                <div className="relative mb-1">
+  <p className="text-base font-semibold tracking-wider text-center">Gastos Hoy</p>
+  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-gradient-to-br from-yellow-100 to-amber-100 rounded-full flex items-center justify-center">
+    <lucideReact.BarChart3 className="w-5 h-5 text-yellow-600" />
+  </div>
+</div>
 
-                {/* Navegación de Fecha*/}
+
+                {/* Navegación de Fecha */}
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <button
                     onClick={() => {
@@ -235,7 +224,7 @@ const Dashboard = () => {
                   <button
                     onClick={() => setShowModalAgregar(true)}
                     style={{ borderRadius: '12px' }}
-                    className="flex-1 px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs flex items-center justify-center gap-1 font-medium"
+                    className="flex-1 px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-black text-xs flex items-center justify-center gap-1 font-medium"
                   >
                     <lucideReact.Plus className="w-3 h-3" />
                     Agregar
@@ -243,7 +232,7 @@ const Dashboard = () => {
                   <button
                     onClick={() => setShowModalTablaGastos(true)}
                     style={{ borderRadius: '12px' }}
-                    className="flex-1 px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-medium flex items-center justify-center gap-1"
+                    className="flex-1 px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-slate-900 text-xs font-medium flex items-center justify-center gap-1"
                   >
                     <lucideReact.List className="w-3 h-3" />
                     Historial
@@ -271,14 +260,14 @@ const Dashboard = () => {
                 ) : (
                   lastTwoExpenses.map((expense, idx) => (
                     <div
-                      key={expense.id}
-                      className="flex items-center justify-between py-1 px-2 rounded-lg bg-yellow-50 hover:bg-yellow-100 transition-colors duration-200 group"
+                       key={expense.id}
+                      className="flex items-center justify-between py-1 px-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 group"
                     >
                       <div className="flex-1">
-                        <p className="text-xs font text-slate-900">{expense.description}</p>
+                        <p className="text-xs text-slate-900 uppercase">{expense.description}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-yellow-600">L {parseFloat(expense.amount).toFixed(2)}</span>
+                        <span className="text-sm font-semibold text-black-600">L {parseFloat(expense.amount).toFixed(2)}</span>
                       </div>
                     </div>
                   ))
