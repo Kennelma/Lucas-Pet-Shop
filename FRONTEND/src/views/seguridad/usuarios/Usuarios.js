@@ -325,30 +325,10 @@ export default function Usuarios() {
     setSelectedUsuarioId(e.data.id_usuario_pk);
   };
 
+  // Los estilos ahora están en el archivo custom-styles.scss
+
   return (
     <>
-      <style jsx>{`
-        :global(.p-datatable .p-datatable-wrapper),
-        :global(.p-datatable .p-datatable-table),
-        :global(.p-datatable tbody),
-        :global(.p-datatable tr),
-        :global(.p-datatable td) {
-          overflow: visible !important;
-        }
-        :global(.p-datatable) {
-          overflow: visible !important;
-        }
-        :global(.p-datatable .p-datatable-tbody > tr > td) {
-          overflow: visible !important;
-          position: relative !important;
-        }
-        :global(.p-datatable .p-datatable-tbody > tr.fila-seleccionada) {
-          background-color: #FEF3C7 !important;
-        }
-        :global(.p-datatable .p-datatable-tbody > tr.fila-seleccionada:hover) {
-          background-color: #FDE68A !important;
-        }
-      `}</style>
 
       <div className="min-h-screen p-6 bg-gray-50">
         <div className="rounded-xl p-6 mb-3"
