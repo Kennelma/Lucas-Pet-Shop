@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import CIcon from '@coreui/icons-react'
 import { cilBell, cilCheckAlt, cilSettings } from '@coreui/icons'
+import { TfiAlert } from "react-icons/tfi"
+import { AiFillAlert } from "react-icons/ai"
 import { obtenerNotificaciones, marcarNotificacionLeida } from '../../AXIOS.SERVICES/notifications-axios'
 import ModalNotificaciones from './ModalNotificaciones'
 import Swal from 'sweetalert2'
@@ -66,10 +68,16 @@ const CamNotificaciones = () => {
     return mensaje
   }
 
-  const getIcono = (tipo) => {
-    if (tipo === 'STOCK_BAJOS') return '⚠️'
-    if (tipo === 'LOTE_VENCIDO') return '🚨'
-    if (tipo === 'LOTE_PROXIMO_VENCER') return '⏰'
+  const getIconoReact = (tipo) => {
+    if (tipo === 'STOCK_BAJOS') {
+      return <TfiAlert style={{ fontSize: '20px', color: '#F59E0B' }} />
+    }
+    if (tipo === 'LOTE_VENCIDO') {
+      return <AiFillAlert style={{ fontSize: '24px', color: '#DC2626' }} />
+    }
+    if (tipo === 'LOTE_PROXIMO_VENCER') {
+      return <AiFillAlert style={{ fontSize: '24px', color: '#F59E0B' }} />
+    }
     return '🔔'
   }
 
@@ -161,7 +169,7 @@ const CamNotificaciones = () => {
       // Adaptamos las notificaciones del backend
       const notificacionesAdaptadas = (response.notificaciones || []).map(notif => ({
         id_notificacion_pk: notif.id_notificacion_pk,
-        nombre_notificacion: notif.mensaje_notificacion, // CORRECCIÓN: usar mensaje_notificacion
+        nombre_notificacion: notif.mensaje_notificacion,
         nombre_tipo_notificacion: notif.nombre_tipo_notificacion,
         fecha_creacion: notif.fecha_creacion || new Date().toISOString(),
         plantilla_id_fk: determinarPlantilla(
@@ -424,8 +432,8 @@ const CamNotificaciones = () => {
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = !notif.leida ? '#eff6ff' : 'white'}
                 >
                   <div className="d-flex gap-3">
-                    <div style={{ flexShrink: 0, fontSize: '1rem', marginTop: '2px' }}>
-                      {getIcono(notif.nombre_tipo_notificacion)}
+                    <div style={{ flexShrink: 0, marginTop: '2px' }}>
+                      {getIconoReact(notif.nombre_tipo_notificacion)}
                     </div>
 
                     <div style={{ flexGrow: 1, minWidth: 0 }}>

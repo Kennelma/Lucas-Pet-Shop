@@ -1,11 +1,10 @@
-// modal_nuevo_gasto.js
 import React, { useState } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import Swal from 'sweetalert2';
-import { insertar } from '../../AXIOS.SERVICES/empresa-axios'; // tu servicio
+import { insertar } from '../../AXIOS.SERVICES/empresa-axios';
 
 const ModalAgregarGasto = ({ visible, onHide, onRefresh }) => {
   const [detalle, setDetalle] = useState('');
@@ -30,7 +29,6 @@ const ModalAgregarGasto = ({ visible, onHide, onRefresh }) => {
         setDetalle('');
         setMonto(null);
         onHide();
-        // Refresca los gastos en Dashboard
         onRefresh({ description: detalle, amount: monto });
       } else {
         Swal.fire('Error', res.error || 'No se pudo guardar el gasto.', 'error');
@@ -50,7 +48,16 @@ const ModalAgregarGasto = ({ visible, onHide, onRefresh }) => {
   );
 
   return (
-    <Dialog header="Agregar nuevo gasto" visible={visible} style={{ width: '30vw' }} modal onHide={onHide} footer={footer}>
+    <Dialog 
+      header="Agregar nuevo gasto" 
+      visible={visible} 
+      style={{ width: '30vw', zIndex: 2000 }} 
+      modal 
+      onHide={onHide} 
+      footer={footer}
+      appendTo={document.body}
+      baseZIndex={2000}
+    >
       <div className="flex flex-col gap-3 mt-3">
         <div>
           <label className="font-semibold">Detalle del gasto</label>
