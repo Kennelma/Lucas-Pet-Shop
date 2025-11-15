@@ -286,9 +286,7 @@ exports.ver = async (req, res) => {
                     ORDER BY s.id_sucursal_pk DESC`);
                 break;
 
-            case 'GASTOS':
-
-              const fecha_hoy = new Date();
+           case 'GASTOS':
 
                 [registros] = await conn.query(
 
@@ -298,9 +296,8 @@ exports.ver = async (req, res) => {
                     monto_gasto,
                     fecha_registro_gasto
                 FROM tbl_gastos
-                WHERE fecha_registro_gasto = ?
                 ORDER BY fecha_registro_gasto DESC, id_gasto_pk DESC;
-                `, [fecha_hoy]
+                `
                 );
     break;
 

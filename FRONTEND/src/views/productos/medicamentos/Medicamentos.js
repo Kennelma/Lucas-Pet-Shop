@@ -301,9 +301,8 @@ const Medicamentos = () => {
             GESTIÓN DE MEDICAMENTOS
           </h2>
         </div>
-      {/* TEXTO DESCRIPTIVO CON FUENTE POPPINS */}
-        {/* TEXTO DESCRIPTIVO CON FUENTE POPPINS, LIGERAMENTE A LA IZQUIERDA */}
-        <p className="text-black font-poppins mt-2 ml-85 w-full">
+      
+        <p className="text-black italic mt-2 ml-85 w-full">
           Administra medicamentos veterinarios, lotes y control de inventario
         </p>
       </div>
