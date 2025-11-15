@@ -5,28 +5,22 @@ import { actualizarRegistro } from '../../AXIOS.SERVICES/empresa-axios';
 
 const ModalActualizarGasto = ({ visible, onHide, gastoSeleccionado, onRefresh }) => {
   const [detalle, setDetalle] = useState('');
-  const [monto, setMonto] = useState(''); // mantén string para el input, convertiremos antes de enviar
+  const [monto, setMonto] = useState('');
   const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
-    if (gastoSeleccionado) {
+    if (visible && gastoSeleccionado) {
       setDetalle(gastoSeleccionado.description ?? '');
-      // Si amount proviene como number, conviértelo a string para el input
       setMonto(gastoSeleccionado.amount !== undefined ? String(gastoSeleccionado.amount) : '');
-    } else {
-      setDetalle('');
-      setMonto('');
     }
-  }, [gastoSeleccionado]);
+  }, [visible, gastoSeleccionado]);
 
   const actualizarGasto = async () => {
-    // validaciones básicas
     if (!detalle || monto === '') {
       Swal.fire('Atención', 'Por favor completa todos los campos.', 'warning');
       return;
     }
 
-    // convertir monto a número (entero o float según tu DB)
     const montoNum = Number(monto);
     if (Number.isNaN(montoNum)) {
       Swal.fire('Atención', 'El monto debe ser un número válido.', 'warning');
@@ -40,7 +34,6 @@ const ModalActualizarGasto = ({ visible, onHide, gastoSeleccionado, onRefresh })
 
     setGuardando(true);
     try {
-      // LLAMADA CORRECTA: id, entidad, data
       const res = await actualizarRegistro(gastoSeleccionado.id, 'GASTOS', {
         detalle_gasto: detalle,
         monto_gasto: montoNum,
@@ -62,36 +55,53 @@ const ModalActualizarGasto = ({ visible, onHide, gastoSeleccionado, onRefresh })
   };
 
   return (
-    <CModal visible={visible} onClose={onHide} alignment="center">
-      <CModalHeader>
-        <CModalTitle>Actualizar Gasto</CModalTitle>
-      </CModalHeader>
-      <CModalBody>
-        <div className="space-y-3">
-          <CFormInput
-            type="text"
-            label="Detalle del gasto"
-            value={detalle}
-            onChange={(e) => setDetalle(e.target.value)}
-          />
-          <CFormInput
-            type="number"
-            label="Monto (Lempiras)"
-            value={monto}
-            onChange={(e) => setMonto(e.target.value)}
-          />
-          {/* Si tienes fecha u otros campos puedes agregarlos aquí */}
-        </div>
-      </CModalBody>
-      <CModalFooter>
-        <CButton color="secondary" onClick={onHide} disabled={guardando}>
-          Cancelar
-        </CButton>
-        <CButton color="primary" onClick={actualizarGasto} disabled={guardando}>
-          {guardando ? 'Guardando...' : 'Guardar cambios'}
-        </CButton>
-      </CModalFooter>
-    </CModal>
+    <>
+      <style>
+        {`
+          .modal-actualizar-gasto .modal {
+            z-index: 2000 !important;
+          }
+          .modal-actualizar-gasto .modal-backdrop {
+            z-index: 1999 !important;
+          }
+        `}
+      </style>
+      <CModal
+        visible={visible}
+        onClose={onHide}
+        alignment="center"
+        backdrop="static"
+        className="modal-actualizar-gasto"
+      >
+        <CModalHeader>
+          <CModalTitle>Actualizar Gasto</CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          <div className="space-y-3">
+            <CFormInput
+              type="text"
+              label="Detalle del gasto"
+              value={detalle}
+              onChange={(e) => setDetalle(e.target.value)}
+            />
+            <CFormInput
+              type="number"
+              label="Monto (Lempiras)"
+              value={monto}
+              onChange={(e) => setMonto(e.target.value)}
+            />
+          </div>
+        </CModalBody>
+        <CModalFooter>
+          <CButton color="secondary" onClick={onHide} disabled={guardando}>
+            Cancelar
+          </CButton>
+          <CButton color="primary" onClick={actualizarGasto} disabled={guardando}>
+            {guardando ? 'Guardando...' : 'Guardar cambios'}
+          </CButton>
+        </CModalFooter>
+      </CModal>
+    </>
   );
 };
 

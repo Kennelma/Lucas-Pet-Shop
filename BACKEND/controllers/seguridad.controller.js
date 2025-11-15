@@ -51,9 +51,13 @@ exports.verRolesUsuarios = async (req, res) => {
 
 
 exports.crearUsuario = async (req, res) => {
+
     const conn = await mysqlConnection.getConnection();
+
     try {
+        
         await conn.beginTransaction();
+
         const { usuario, email_usuario, contrasena_usuario, id_sucursal_fk, id_rol_fk } = req.body;
 
         // Validar que vengan todos los datos requeridos
