@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Building2, Plus, Edit2, Trash2, Search, MoreHorizontal } from 'lucide-react';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
 import { ver, insertar, actualizarRegistro } from '../../AXIOS.SERVICES/empresa-axios';
 
 // Importar modales reales
@@ -10,7 +12,7 @@ import ModalAgregarSucursal from './sucursales/modal-agregar-sucursal';
 import { eliminarEmpresa } from './informacion-empresa/modal-eliminar-empresa';
 import { eliminarSucursal } from './sucursales/modal-eliminar-sucursal';
 
-// Componente ActionMenu para los tres puntos
+// Componente para el menú de acciones con posicionamiento dinámico
 const ActionMenu = ({ actions, rowIndex, totalRows }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [shouldShowAbove, setShouldShowAbove] = useState(false);
@@ -21,13 +23,13 @@ const ActionMenu = ({ actions, rowIndex, totalRows }) => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
-      const menuHeight = actions.length * 40; // Altura aproximada por acción
+      const menuHeight = actions.length * 40; 
       
       const showAbove = rect.bottom + menuHeight > viewportHeight - 50;
       setShouldShowAbove(showAbove);
     }
   };
-
+// Verificar posición al abrir el menú
   React.useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -56,8 +58,9 @@ const ActionMenu = ({ actions, rowIndex, totalRows }) => {
     }
     setIsOpen(!isOpen);
   };
-
+// Renderizar el botón y el menú  
   return (
+    
     <div className="relative flex justify-center" ref={menuRef}>
       <button
         ref={buttonRef}
@@ -105,10 +108,10 @@ export default function GestionEmpresa() {
   const [loading, setLoading] = useState(false);
   
   // Estados para modales unificados
-  // modalEmpresa: { show: boolean, mode: 'create'|'edit', data: empresa_object|null }
+
   const [modalEmpresa, setModalEmpresa] = useState({ show: false, mode: 'create', data: null });
   
-  // modalSucursal: { show: boolean, mode: 'create'|'edit', data: { sucursal_object, empresaData, empresasDisponibles } }
+
   const [modalSucursal, setModalSucursal] = useState({ show: false, mode: 'create', data: null });
   
   // Estados para formularios
@@ -128,7 +131,7 @@ export default function GestionEmpresa() {
     
     const busqueda = searchTerm.trim().toLowerCase();
     if (busqueda === '') return true;
-    
+    // Verificar campos de empresa y sucursales
     return (
       empresa.nombre_empresa?.toLowerCase().includes(busqueda) ||
       empresa.direccion_empresa?.toLowerCase().includes(busqueda) ||
@@ -149,8 +152,7 @@ export default function GestionEmpresa() {
         ver('empresa'),
         ver('sucursales')
       ]);
-      
-      // Combinar empresas con sus sucursales
+      // Asociar sucursales a sus respectivas empresas
       const empresasConSucursales = (empresasData || []).map(empresa => ({
         ...empresa,
         sucursales: (sucursalesData || []).filter(sucursal => 
@@ -234,10 +236,9 @@ export default function GestionEmpresa() {
     });
   };
 
-  // Validación individual de campos al perder el foco
   const validarCampoEmpresa = (name, value) => {
     let error = '';
-    
+    // Validaciones específicas por campo
     switch (name) {
       case 'nombre_empresa':
         if (!value?.trim()) error = 'El nombre de la empresa es obligatorio';
@@ -270,7 +271,7 @@ export default function GestionEmpresa() {
 
   const validarCampoSucursal = (name, value) => {
     let error = '';
-    
+    // Validaciones específicas por campo
     switch (name) {
       case 'id_empresa_fk':
         if (!value) error = 'Debe seleccionar el tipo de empresa';
@@ -384,7 +385,7 @@ export default function GestionEmpresa() {
     }
   };
 
-  // Validación de campos de sucursal con mensajes específicos
+  // Validación de campos de sucursal 
   const validarSucursal = () => {
     const erroresTemp = {};
     
@@ -449,6 +450,154 @@ export default function GestionEmpresa() {
       
     </div>
   );
+
+  // Preparar datos para DataTable
+  const prepararDatosParaTabla = () => {
+    const datos = [];
+    
+    empresasFiltradas.forEach(empresa => {
+      if (!empresa.sucursales || empresa.sucursales.length === 0) {
+        // Empresa sin sucursales
+        datos.push({
+          id: `empresa-${empresa.id_empresa_pk}`,
+          tipo: 'empresa_sin_sucursales',
+          empresa: empresa,
+          sucursal: null,
+          nombre_empresa: empresa.nombre_empresa,
+          correo_empresa: empresa.correo_empresa,
+          telefono_empresa: empresa.telefono_empresa,
+          rtn_empresa: empresa.rtn_empresa,
+          nombre_sucursal: null,
+          direccion_sucursal: null,
+          telefono_sucursal: null,
+          empresa_info: `${empresa.nombre_empresa} - ${empresa.correo_empresa}`
+        });
+      } else {
+        // Empresa con sucursales
+        empresa.sucursales.forEach((sucursal, idx) => {
+          datos.push({
+            id: `sucursal-${sucursal.id_sucursal_pk}`,
+            tipo: 'empresa_con_sucursales',
+            empresa: empresa,
+            sucursal: sucursal,
+            esNuevoGrupo: idx === 0,
+            nombre_empresa: empresa.nombre_empresa,
+            correo_empresa: empresa.correo_empresa,
+            telefono_empresa: empresa.telefono_empresa,
+            rtn_empresa: empresa.rtn_empresa,
+            nombre_sucursal: sucursal.nombre_sucursal,
+            direccion_sucursal: sucursal.direccion_sucursal,
+            telefono_sucursal: sucursal.telefono_sucursal,
+            empresa_info: `${empresa.nombre_empresa} - ${empresa.correo_empresa}`
+          });
+        });
+      }
+    });
+    
+    return datos;
+  };
+
+  // Templates para las columnas
+  const empresaBodyTemplate = (rowData) => {
+    const { empresa, tipo, esNuevoGrupo } = rowData;
+    
+    // Solo mostrar info de empresa en primera fila del grupo o empresa sin sucursales
+    if (tipo === 'empresa_sin_sucursales' || esNuevoGrupo) {
+      return (
+        <div className="flex items-center gap-2 bg-gray-50 p-2 rounded border-l-4 border-blue-500">
+          <Building2 size={20} className="text-blue-600" />
+          <div>
+            <div className="font-semibold text-gray-800">{empresa.nombre_empresa}</div>
+            <div className="text-xs text-gray-500">
+              Email: {empresa.correo_empresa}
+            </div>
+            <div className="text-xs text-gray-500">
+              Teléfono: {empresa.telefono_empresa}
+            </div>
+            <div className="text-xs text-gray-500">
+              RTN: {empresa.rtn_empresa}
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    return <div className="text-gray-400 text-sm">↳ Sucursal de {empresa.nombre_empresa}</div>;
+  };
+// Template para columna de sucursal
+  const sucursalBodyTemplate = (rowData) => {
+    return rowData.nombre_sucursal ? (
+      <span className="font-medium text-gray-800">{rowData.nombre_sucursal}</span>
+    ) : (
+      <span className="text-gray-400">-</span>
+    );
+  };
+
+  const direccionBodyTemplate = (rowData) => {
+    return rowData.direccion_sucursal ? (
+      <span className="text-gray-600 text-sm">{rowData.direccion_sucursal}</span>
+    ) : (
+      <span className="text-gray-400">-</span>
+    );
+  };
+
+  const telefonoBodyTemplate = (rowData) => {
+    return rowData.telefono_sucursal ? (
+      <span className="text-gray-600 text-sm">{rowData.telefono_sucursal}</span>
+    ) : (
+      <span className="text-gray-400">-</span>
+    );
+  };
+
+  const accionesBodyTemplate = (rowData) => {
+    const { empresa, sucursal, tipo, esNuevoGrupo } = rowData;
+    
+    const acciones = [];
+    
+    // 1. Editar Sucursal (si existe)
+    if (sucursal) {
+      acciones.push({
+        label: 'EDITAR SUCURSAL',
+        icon: <Edit2 size={14} className="text-blue-600" />,
+        onClick: () => abrirModalSucursal('edit', sucursal, empresa)
+      });
+    }
+    
+    // 2. Editar Empresa (solo en primera fila del grupo o empresa sin sucursales)
+    if (tipo === 'empresa_sin_sucursales' || esNuevoGrupo) {
+      acciones.push({
+        label: 'EDITAR EMPRESA',
+        icon: <Edit2 size={14} className="text-blue-600" />,
+        onClick: () => abrirModalEmpresa('edit', empresa)
+      });
+    }
+    
+    // 3. Eliminar Sucursal (si existe)
+    if (sucursal) {
+      acciones.push({
+        label: 'ELIMINAR SUCURSAL',
+        icon: <Trash2 size={14} className="text-red-600" />,
+        onClick: () => manejarEliminarSucursal(sucursal)
+      });
+    }
+    
+    // 4. Eliminar Empresa (solo en primera fila del grupo o empresa sin sucursales)
+    if (tipo === 'empresa_sin_sucursales' || esNuevoGrupo) {
+      acciones.push({
+        label: 'ELIMINAR EMPRESA',
+        icon: <Trash2 size={14} className="text-red-700" />,
+        onClick: () => manejarEliminarEmpresa(empresa)
+      });
+    }
+    
+    return (
+      <ActionMenu
+        rowIndex={0}
+        totalRows={1}
+        actions={acciones}
+      />
+    );
+  };
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
@@ -530,167 +679,80 @@ export default function GestionEmpresa() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
             <span className="ml-3 text-gray-600">Cargando datos...</span>
           </div>
-        ) : empresasFiltradas.length === 0 ? (
-            searchTerm ? (
-              <div className="p-6 text-center">
-                <Search size={48} className="text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-600 mb-2">
-                  No se encontraron resultados
-                </h3>
-                <p className="text-gray-500">
-                  No hay empresas o sucursales que coincidan con "{searchTerm}"
-                </p>
+        ) : (
+          <DataTable
+            value={prepararDatosParaTabla()}
+            loading={loading}
+            loadingIcon={() => (
+              <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
+                <span>Cargando datos...</span>
               </div>
-            ) : (
-              <div className="p-6">
-                <EmptyState />
-              </div>
-            )
-          ) : (
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
-              <table className="w-full">
-                <thead className="bg-blue-600 text-white">
-                  <tr>
-                    <th className="px-6 py-4 text-left font-semibold first:rounded-tl-lg">Empresa</th>
-                    <th className="px-6 py-4 text-left font-semibold">Sucursal</th>
-                    <th className="px-6 py-4 text-left font-semibold">Dirección</th>
-                    <th className="px-6 py-4 text-left font-semibold">Teléfono</th>
-                    <th className="px-6 py-4 text-center font-semibold last:rounded-tr-lg">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {empresasFiltradas.flatMap(empresa => {
-                    const filas = [];
-                    
-                    // Si la empresa no tiene sucursales, mostrar solo la empresa
-                    if (!empresa.sucursales || empresa.sucursales.length === 0) {
-                      filas.push(
-                        <tr
-                          key={`empresa-${empresa.id_empresa_pk}`}
-                          className="border-b border-gray-200 hover:bg-blue-50 transition-colors"
-                        >
-                          <td className="px-6 py-4 font-bold text-gray-800 bg-gray-50 border-r-2 border-blue-200">
-                            <div className="flex items-center gap-2">
-                              <Building2 size={20} className="text-blue-600" />
-                              <div>
-                                <div className="font-semibold">{empresa.nombre_empresa}</div>
-                                <div className="text-xs text-gray-500 font-normal">
-                                  Email: {empresa.correo_empresa}
-                                </div>
-                                <div className="text-xs text-gray-500 font-normal">
-                                  Teléfono: {empresa.telefono_empresa}
-                                </div>
-                                <div className="text-xs text-gray-500 font-normal">
-                                  RTN: {empresa.rtn_empresa}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-gray-500">-</td>
-                          <td className="px-6 py-4 text-gray-500">-</td>
-                          <td className="px-6 py-4 text-gray-500">-</td>
-                          <td className="px-6 py-4 text-center">
-                            <ActionMenu
-                              rowIndex={0}
-                              totalRows={1}
-                              actions={[
-                                {
-                                  label: 'Editar empresa',
-                                  icon: <Edit2 size={14} className="text-blue-600" />,
-                                  onClick: () => abrirModalEmpresa('edit', empresa)
-                                },
-                                {
-                                  label: 'Eliminar empresa',
-                                  icon: <Trash2 size={14} className="text-red-600" />,
-                                  onClick: () => manejarEliminarEmpresa(empresa)
-                                }
-                              ]}
-                            />
-                          </td>
-                        </tr>
-                      );
-                    } else {
-                      // Si tiene sucursales, agregar filas como en el diseño original
-                      empresa.sucursales.forEach((sucursal, idx) => {
-                        filas.push(
-                          <tr
-                            key={`sucursal-${sucursal.id_sucursal_pk}`}
-                            className="border-b border-gray-200 hover:bg-blue-50 transition-colors"
-                          >
-                            {idx === 0 && (
-                              <td
-                                rowSpan={empresa.sucursales.length}
-                                className="px-6 py-4 font-bold text-gray-800 bg-gray-50 border-r-2 border-blue-200"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <Building2 size={20} className="text-blue-600" />
-                                  <div>
-                                    <div className="font-semibold">{empresa.nombre_empresa}</div>
-                                    <div className="text-xs text-gray-500 font-normal">
-                                      Email: {empresa.correo_empresa}
-                                    </div>
-                                    <div className="text-xs text-gray-500 font-normal">
-                                      Teléfono: {empresa.telefono_empresa}
-                                    </div>
-                                    <div className="text-xs text-gray-500 font-normal">
-                                      RTN: {empresa.rtn_empresa}
-                                    </div>
-                                  </div>
-                                </div>
-                              </td>
-                            )}
-                            <td className="px-6 py-4 font-medium text-gray-800">
-                              {sucursal.nombre_sucursal}
-                            </td>
-                            <td className="px-6 py-4 text-gray-600 text-sm">
-                              {sucursal.direccion_sucursal}
-                            </td>
-                            <td className="px-6 py-4 text-gray-600 text-sm">
-                              {sucursal.telefono_sucursal}
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              <ActionMenu
-                                rowIndex={idx}
-                                totalRows={empresa.sucursales?.length || 1}
-                                actions={[
-                                  // Acciones de Sucursal
-                                  {
-                                    label: 'Editar sucursal',
-                                    icon: <Edit2 size={14} className="text-blue-600" />,
-                                    onClick: () => abrirModalSucursal('edit', sucursal, empresa)
-                                  },
-                                  {
-                                    label: 'Eliminar sucursal',
-                                    icon: <Trash2 size={14} className="text-red-600" />,
-                                    onClick: () => manejarEliminarSucursal(sucursal)
-                                  },
-                                  // Acciones de Empresa (solo en la primera fila)
-                                  ...(idx === 0 ? [
-                                    {
-                                      label: 'Editar empresa',
-                                      icon: <Edit2 size={14} className="text-green-600" />,
-                                      onClick: () => abrirModalEmpresa('edit', empresa)
-                                    },
-                                    {
-                                      label: 'Eliminar empresa',
-                                      icon: <Trash2 size={14} className="text-red-700" />,
-                                      onClick: () => manejarEliminarEmpresa(empresa)
-                                    }
-                                  ] : [])
-                                ]}
-                              />
-                            </td>
-                          </tr>
-                        );
-                      });
-                    }
-
-                    return filas;
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+            )}
+            globalFilter={searchTerm}
+            globalFilterFields={['nombre_empresa', 'correo_empresa', 'telefono_empresa', 'rtn_empresa', 'nombre_sucursal', 'direccion_sucursal', 'telefono_sucursal']}
+            showGridlines
+            paginator
+            rows={10}
+            rowsPerPageOptions={[5, 10, 20, 25]}
+            paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+            tableStyle={{ minWidth: '50rem' }}
+            className="mt-4"
+            size="small"
+            emptyMessage={
+              searchTerm ? (
+                <div className="p-6 text-center">
+                  <Search size={48} className="text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-600 mb-2">
+                    No se encontraron resultados
+                  </h3>
+                  <p className="text-gray-500">
+                    No hay empresas o sucursales que coincidan con "{searchTerm}"
+                  </p>
+                </div>
+              ) : (
+                <div className="p-6">
+                  <EmptyState />
+                </div>
+              )
+            }
+          >
+            <Column
+              field="empresa_info"
+              header="EMPRESA"
+              body={empresaBodyTemplate}
+              sortable
+              className="w-[300px]"
+            />
+            <Column
+              field="nombre_sucursal"
+              header="SUCURSAL"
+              body={sucursalBodyTemplate}
+              sortable
+              className="w-[200px]"
+            />
+            <Column
+              field="direccion_sucursal"
+              header="DIRECCIÓN"
+              body={direccionBodyTemplate}
+              sortable
+              className="w-[250px]"
+            />
+            <Column
+              field="telefono_sucursal"
+              header="TELÉFONO"
+              body={telefonoBodyTemplate}
+              sortable
+              className="w-[150px]"
+            />
+            <Column
+              header="ACCIONES"
+              body={accionesBodyTemplate}
+              className="w-[120px] text-center"
+              style={{ position: 'relative', overflow: 'visible' }}
+            />
+          </DataTable>
+        )}
       </div>
 
       {/* Modal Agregar/Editar Empresa */}

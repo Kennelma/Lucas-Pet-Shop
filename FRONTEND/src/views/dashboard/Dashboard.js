@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as lucideReact from 'lucide-react';
-import Swal from 'sweetalert2';
 import ModalAgregarGasto from './modal_nuevo_gasto';
 import ModalTablaGastos from './modal_tabla_gastos';
 import { ver } from '../../AXIOS.SERVICES/empresa-axios';
@@ -62,15 +61,15 @@ const Dashboard = () => {
     );
   });
 
-  // Mostrar solo los últimos 2 gastos
-  const lastTwoExpenses = filteredExpenses.slice(-2);
+  // Mostrar solo los últimos 5 gastos
+  const lastTwoExpenses = filteredExpenses.slice(-5);
 
   const totalExpenses = filteredExpenses.reduce((total, expense) => {
     return total + (parseFloat(expense.amount) || 0);
   }, 0);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white font-['Poppins']">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 p-8">
 
         {/* Contenido Principal */}
@@ -78,26 +77,26 @@ const Dashboard = () => {
 
           {/* Header */}
           <div className="mb-8">
-            <div className="bg-blue-700 p-4 rounded-xl shadow-lg">
+            <div
+              className="rounded-xl p-4 bg-cover bg-center"
+              style={{
+                backgroundImage: 'url("/H13.png")',
+                backgroundColor: '#BAF2BB',
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right center',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+              }}
+            >
               <div className="mb-2">
-                <h1 className="text-xl font-light text-white mb-1">
+                <h1 className="text-xl font-light text-black mb-1">
                   ¡Hola, {usuario?.nombre || 'Administrador'}!
                 </h1>
-                <p className="text-sm text-blue-100">
-                  Bienvenido a Lucas Pet Shop - Tu sistema de gestión veterinaria y tienda de mascotas
+                <p className="text-sm text-gray-800 poppins">
+                  Bienvenido a tu sistema de gestión veterinaria y tienda de mascotas
                 </p>
               </div>
-              <div className="flex items-center gap-2 text-blue-100">
-                <lucideReact.Calendar className="w-5 h-5" />
-                <span className="text-sm font-light">
-                  {today.toLocaleDateString('es-ES', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </span>
-              </div>
+
             </div>
           </div>
 
@@ -175,101 +174,117 @@ const Dashboard = () => {
 
         {/* Gestión de Gastos */}
         <div className="lg:col-span-1">
-          <div className="bg-yellow-50 rounded-xl shadow-lg border border-yellow-200">
+          <div className="w-full">
 
-            {/* Header */}
-            <div className="bg-yellow-500 p-4 rounded-t-xl border-b border-yellow-600">
-              <div className="text-center mb-3">
-                <h2 className="text-sm font-bold text-gray-800 uppercase mb-3">
-                  Gastos del día
-                </h2>
-                <div className="flex gap-2 justify-center">
+            {/* Card Principal */}
+            <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
+
+              {/* Header Sutil */}
+              <div className="relative px-4 pt-2 pb-1 bg-[#FFF8E1]">
+                <div className="relative mb-1">
+  <p className="text-base font-semibold tracking-wider text-center">Gastos Hoy</p>
+  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-gradient-to-br from-yellow-100 to-amber-100 rounded-full flex items-center justify-center">
+    <lucideReact.BarChart3 className="w-5 h-5 text-yellow-600" />
+  </div>
+</div>
+
+
+                {/* Navegación de Fecha */}
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <button
+                    onClick={() => {
+                      const newDate = new Date(filterDate);
+                      newDate.setDate(newDate.getDate() - 1);
+                      setFilterDate(newDate);
+                    }}
+                    className="p-2 hover:bg-slate-100 rounded-xl transition-colors duration-200"
+                  >
+                    <lucideReact.ChevronLeft className="w-5 h-5 text-slate-600" />
+                  </button>
+
+                  <div className="flex items-center gap-2 text-slate-700 font-medium text-sm">
+                    <lucideReact.Calendar className="w-4 h-4 text-yellow-600" />
+                    <span className="text-slate-900">{filterDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</span>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      const newDate = new Date(filterDate);
+                      newDate.setDate(newDate.getDate() + 1);
+                      setFilterDate(newDate);
+                    }}
+                    className="p-2 hover:bg-slate-100 rounded-xl transition-colors duration-200"
+                  >
+                    <lucideReact.ChevronRight className="w-5 h-5 text-slate-600" />
+                  </button>
+                </div>
+
+                {/* Botones de Acción */}
+                <div className="flex gap-3">
                   <button
                     onClick={() => setShowModalAgregar(true)}
-                    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-md uppercase font-semibold"
+                    style={{ borderRadius: '12px' }}
+                    className="flex-1 px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-black text-xs flex items-center justify-center gap-1 font-medium"
                   >
-                    <lucideReact.Plus className="w-4 h-4" />
+                    <lucideReact.Plus className="w-3 h-3" />
                     Agregar
                   </button>
                   <button
                     onClick={() => setShowModalTablaGastos(true)}
-                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-md uppercase font-semibold"
+                    style={{ borderRadius: '12px' }}
+                    className="flex-1 px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-slate-900 text-xs font-medium flex items-center justify-center gap-1"
                   >
-                    <lucideReact.List className="w-4 h-4" />
-                    Ver Gastos
+                    <lucideReact.List className="w-3 h-3" />
+                    Historial
                   </button>
                 </div>
               </div>
 
-              {/* Navegación de Fecha */}
-              <div className="flex items-center justify-between mt-2 p-1 bg-yellow-400/50 rounded-lg">
-                <button
-                  onClick={() => {
-                    const newDate = new Date(filterDate);
-                    newDate.setDate(newDate.getDate() - 1);
-                    setFilterDate(newDate);
-                  }}
-                  className="p-1 hover:bg-yellow-400 rounded transition-colors"
-                >
-                  <lucideReact.ChevronLeft className="w-5 h-5 text-gray-700" />
-                </button>
-
-                <div className="flex items-center gap-2 text-gray-800 font-medium cursor-pointer">
-                  <lucideReact.Calendar className="w-4 h-4" />
-                  <span className="text-sm">
-                    {filterDate.toLocaleDateString('es-ES', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric'
-                    })}
-                  </span>
-                </div>
-
-                <button
-                  onClick={() => {
-                    const newDate = new Date(filterDate);
-                    newDate.setDate(newDate.getDate() + 1);
-                    setFilterDate(newDate);
-                  }}
-                  className="p-1 hover:bg-yellow-400 rounded transition-colors"
-                >
-                  <lucideReact.ChevronRight className="w-5 h-5 text-gray-700" />
-                </button>
-              </div>
-            </div>
-
-            {/* Lista de Gastos - Últimos 2 */}
-            <div className="p-4 space-y-2">
-              {isLoading ? (
-                <div className="text-center py-4 text-gray-500">Cargando gastos...</div>
-              ) : filteredExpenses.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <lucideReact.FileText className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No hay gastos registrados para esta fecha</p>
-                </div>
-              ) : (
-                lastTwoExpenses.map((expense) => (
-                  <div
-                    key={expense.id}
-                    className="bg-white p-3 rounded-lg shadow-sm border border-yellow-200"
-                  >
-                    <p className="text-sm font-medium text-gray-800 mb-1">{expense.description}</p>
-                    <p className="text-lg font-bold text-green-600">
-                      L {parseFloat(expense.amount).toFixed(2)}
-                    </p>
+              {/* Lista de Gastos  */}
+              <div className="px-4 py-3 space-y-2 h-[300px] overflow-y-auto border-t border-slate-100">
+                {isLoading ? (
+                  <div className="text-center py-8">
+                    <div className="inline-block animate-spin mb-3">
+                      <div className="w-8 h-8 border-2 border-slate-200 border-t-emerald-600 rounded-full"></div>
+                    </div>
+                    <p className="text-slate-500 text-sm">Cargando...</p>
                   </div>
-                ))
-              )}
-            </div>
-
-            {/* Total */}
-            <div className="border-t border-yellow-300 p-4 bg-yellow-200 rounded-b-xl">
-              <div className="flex justify-between items-center">
-                <span className="text-base font-semibold text-gray-700">Total del día:</span>
-                <span className="text-xl font-extrabold text-green-700">
-                  L {totalExpenses.toFixed(2)}
-                </span>
+                ) : filteredExpenses.length === 0 ? (
+                  <div className="text-center py-6">
+                    <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <lucideReact.ArrowUpRight className="w-7 h-7 text-slate-300" />
+                    </div>
+                    <p className="text-slate-500 text-sm font-medium">Sin gastos</p>
+                    <p className="text-slate-400 text-xs mt-1">Agrega tu primer gasto del día</p>
+                  </div>
+                ) : (
+                  lastTwoExpenses.map((expense, idx) => (
+                    <div
+                       key={expense.id}
+                      className="flex items-center justify-between py-1 px-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 group"
+                    >
+                      <div className="flex-1">
+                        <p className="text-xs text-slate-900 uppercase">{expense.description}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-black-600">L {parseFloat(expense.amount).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
+
+              {/* Total - Abajo */}
+              <div className="px-4 py-1 border-t border-slate-100 bg-gradient-to-br from-slate-50/50 to-transparent">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-sm font-light text-slate-900">L</span>
+                    <span className="text-sm font-semibold text-slate-900">{totalExpenses.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
