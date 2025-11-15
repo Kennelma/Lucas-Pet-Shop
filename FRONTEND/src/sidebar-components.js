@@ -181,13 +181,18 @@ const getNavigation = () => {
     icon: <FontAwesomeIcon icon={faCoins} className="nav-icon" />,
   },
 
-  //REPORTES CON SUBMENÚ
-  {
-    component: CNavItem,
-    name: 'Reportes',
-    to: '/reportes',
-    icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
-  },
+
+  //REPORTES
+{
+  component: CNavItem,
+  name: 'Reportes',
+  to: '/reportes',
+  icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
+},
+
+
+
+
 
 ];
   //FILTRAR LOS ITEMS DEL NAV SEGÚN EL ROL DEL USUARIO
