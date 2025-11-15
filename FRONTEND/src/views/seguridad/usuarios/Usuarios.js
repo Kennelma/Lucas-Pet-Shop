@@ -319,32 +319,6 @@ export default function Usuarios() {
 
   return (
     <>
-      <style jsx>{`
-        :global(.p-datatable .p-datatable-wrapper),
-        :global(.p-datatable .p-datatable-table),
-        :global(.p-datatable tbody),
-        :global(.p-datatable tr),
-        :global(.p-datatable td) {
-          overflow: visible !important;
-        }
-        :global(.p-datatable) {
-          overflow: visible !important;
-        }
-        :global(.p-datatable .p-datatable-tbody > tr > td) {
-          overflow: visible !important;
-          position: relative !important;
-        }
-        :global(.p-datatable .p-datatable-tbody > tr.fila-seleccionada) {
-          background-color: #FEF3C7 !important;
-        }
-        :global(.p-datatable .p-datatable-tbody > tr.fila-seleccionada:hover) {
-          background-color: #FDE68A !important;
-        }
-        :global(.p-datatable .p-datatable-thead > tr > th),
-        :global(.p-datatable .p-datatable-tbody > tr > td) {
-          padding: 0.75rem 1rem !important;
-        }
-      `}</style>
 
       <div className="min-h-screen p-6 bg-gray-50">
         <div className="rounded-xl p-6 mb-3"
@@ -440,13 +414,13 @@ export default function Usuarios() {
               header="ID"
               body={(rowData) => filtroUsuarios.length - filtroUsuarios.indexOf(rowData)}
               sortable
-              style={{ width: '90px' }}  
+              style={{ width: '90px' }}
             />
             <Column
               field="usuario"
               header="USUARIO"
               sortable
-              style={{ width: '90' }}  
+              style={{ width: '90' }}
             />
             <Column
               field="roles"

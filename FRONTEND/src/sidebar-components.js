@@ -173,14 +173,22 @@ const getNavigation = () => {
       ]
     },
 
-    //EMPRESA (se mantiene al final)
-    {
-      component: CNavItem,
-      name: 'Empresa',
-      icon: <FontAwesomeIcon icon={faStore} className="nav-icon" />,
-      to: '/empresa',
-    },
+  //ESTILISTAS Y BONIFICACIONES
+  {
+    component: CNavItem,
+    name: 'Estilistas',
+    to: '/estilistas',
+    icon: <FontAwesomeIcon icon={faCoins} className="nav-icon" />,
+  },
 
+
+  //REPORTES
+{
+  component: CNavItem,
+  name: 'Reportes',
+  to: '/reportes',
+  icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
+},
 
 
 

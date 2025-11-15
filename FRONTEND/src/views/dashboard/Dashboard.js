@@ -93,10 +93,10 @@ const Dashboard = () => {
                   ¡Hola, {usuario?.nombre || 'Administrador'}!
                 </h1>
                 <p className="text-sm text-gray-800 poppins">
-                  Bienvenido a tu sistema de gestión veterinaria y tienda de mascotas 
+                  Bienvenido a tu sistema de gestión veterinaria y tienda de mascotas
                 </p>
               </div>
-              
+
             </div>
           </div>
 
@@ -175,10 +175,10 @@ const Dashboard = () => {
         {/* Gestión de Gastos */}
         <div className="lg:col-span-1">
           <div className="w-full">
-            
+
             {/* Card Principal */}
             <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
-              
+
               {/* Header Sutil */}
               <div className="relative px-4 pt-2 pb-1 bg-[#FFF8E1]">
                 <div className="relative mb-1">
