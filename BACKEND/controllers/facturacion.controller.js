@@ -975,7 +975,6 @@ exports.ImpresionFactura = async (req, res) => {
         const [empresa] = await conn.query(
             `SELECT
                 nombre_empresa,
-                direccion_empresa,
                 telefono_empresa,
                 correo_empresa,
                 rtn_empresa

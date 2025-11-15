@@ -48,10 +48,17 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
     } else {
       // SOLO PERMITIMOS AGREGAR SI HAY MENOS DE 2 MÉTODOS SELECCIONADOS
       if (metodosSeleccionados.length < 2) {
+        const nombreMetodo = metodo.metodo_pago.trim().toUpperCase();
+        const esTransferenciaOTarjeta = nombreMetodo === 'TRANSFERENCIA' || nombreMetodo === 'TARJETA';
+        const esPrimerMetodo = metodosSeleccionados.length === 0;
+        
+        // Si es transferencia o tarjeta y es el primer método, asignar el total automáticamente
+        const montoInicial = (esTransferenciaOTarjeta && esPrimerMetodo) ? total.toFixed(2) : '';
+        
         setMetodosSeleccionados([...metodosSeleccionados, {
           id: metodo.id_metodo_pago_pk,
           nombre: metodo.metodo_pago.trim(),
-          monto: ''
+          monto: montoInicial
         }]);
       }
     }
@@ -60,19 +67,10 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
   //====================FUNCIÓN: ACTUALIZAR MONTO CON CÁLCULO AUTOMÁTICO====================
   const actualizarMonto = (id, monto) => {
     if (metodosSeleccionados.length === 2) {
-      // CÁLCULO AUTOMÁTICO PARA DOS MÉTODOS
-      const valorNumerico = parseFloat(monto) || 0;
-      const otroMetodo = metodosSeleccionados.find(m => m.id !== id);
-      const montoRestante = Math.max(0, total - valorNumerico);
-      
-      setMetodosSeleccionados(metodosSeleccionados.map(m => {
-        if (m.id === id) {
-          return { ...m, monto };
-        } else if (m.id === otroMetodo.id) {
-          return { ...m, monto: montoRestante.toFixed(2) };
-        }
-        return m;
-      }));
+      // SOLO ACTUALIZAR EL MONTO DEL MÉTODO ACTUAL, SIN CALCULAR AUTOMÁTICAMENTE EL OTRO
+      setMetodosSeleccionados(metodosSeleccionados.map(m =>
+        m.id === id ? { ...m, monto } : m
+      ));
     } else {
       // UN SOLO MÉTODO: actualización normal (permite cambio en efectivo)
       setMetodosSeleccionados(metodosSeleccionados.map(m =>
@@ -81,15 +79,23 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
     }
   };
 
-  //====================CÁLCULO DEL CAMBIO PARA EFECTIVO (SOLO MÉTODO ÚNICO)====================
+  //====================CÁLCULO DEL CAMBIO PARA EFECTIVO====================
   const calcularCambio = (metodo) => {
-    if (metodo.nombre.trim().toUpperCase() === 'EFECTIVO' && 
-        metodo.monto && 
-        metodosSeleccionados.length === 1) {
-      const efectivoRecibido = parseFloat(metodo.monto) || 0;
+    const isEfectivo = metodo.nombre.trim().toUpperCase() === 'EFECTIVO';
+    if (!isEfectivo || !metodo.monto) return 0;
+    
+    const efectivoRecibido = parseFloat(metodo.monto) || 0;
+    
+    if (metodosSeleccionados.length === 1) {
+      // MÉTODO ÚNICO: cambio sobre el total
       return Math.max(0, efectivoRecibido - total);
+    } else {
+      // MÉTODO MIXTO: cambio sobre lo que debe pagar en efectivo
+      const otroMetodo = metodosSeleccionados.find(m => m.id !== metodo.id);
+      const montoOtroMetodo = parseFloat(otroMetodo.monto) || 0;
+      const debeEfectivo = total - montoOtroMetodo;
+      return Math.max(0, efectivoRecibido - debeEfectivo);
     }
-    return 0;
   };
 
   //====================CÁLCULOS DINÁMICOS====================
@@ -98,10 +104,17 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
     const montoIngresado = parseFloat(m.monto) || 0;
     const esMetodoUnico = metodosSeleccionados.length === 1;
     
-    // Para efectivo único: usar el total si el efectivo es >= total
-    // Para métodos mixtos o otros casos: usar el monto ingresado exacto
-    if (isEfectivo && esMetodoUnico) {
-      return sum + Math.min(montoIngresado, total);
+    // Para efectivo: usar el mínimo entre lo ingresado y lo que debe pagar
+    if (isEfectivo) {
+      if (esMetodoUnico) {
+        return sum + Math.min(montoIngresado, total);
+      } else {
+        // Mixto: calcular cuánto debe pagar en efectivo
+        const otroMetodo = metodosSeleccionados.find(m2 => m2.id !== m.id);
+        const montoOtro = parseFloat(otroMetodo.monto) || 0;
+        const debeEfectivo = total - montoOtro;
+        return sum + Math.min(montoIngresado, Math.max(0, debeEfectivo));
+      }
     }
     return sum + montoIngresado;
   }, 0);
@@ -111,9 +124,17 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
     const montoIngresado = parseFloat(m.monto) || 0;
     const esMetodoUnico = metodosSeleccionados.length === 1;
     
-    // Para efectivo único: debe ser >= total (permite cambio)
-    if (isEfectivo && esMetodoUnico) {
-      return m.monto && montoIngresado >= total;
+    if (isEfectivo) {
+      if (esMetodoUnico) {
+        // Único: debe ser >= total (permite cambio)
+        return m.monto && montoIngresado >= total;
+      } else {
+        // Mixto: debe cubrir al menos lo que falta después del otro método
+        const otroMetodo = metodosSeleccionados.find(m2 => m2.id !== m.id);
+        const montoOtro = parseFloat(otroMetodo.monto) || 0;
+        const debeEfectivo = Math.max(0, total - montoOtro);
+        return m.monto && montoIngresado >= debeEfectivo;
+      }
     }
     // Para métodos mixtos o otros métodos: debe ser > 0
     return m.monto && montoIngresado > 0;
@@ -123,16 +144,17 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
   const handleConfirm = () => {
     const metodos = metodosSeleccionados.map(m => {
       const isEfectivo = m.nombre.trim().toUpperCase() === 'EFECTIVO';
-      const esMetodoUnico = metodosSeleccionados.length === 1;
       const montoRecibido = parseFloat(m.monto) || 0;
+      const cambio = calcularCambio(m);
+      
+      // Calcular el monto real a registrar (sin el cambio)
+      const montoReal = isEfectivo ? montoRecibido - cambio : montoRecibido;
       
       return {
         id_metodo_pago_fk: m.id,
-        monto: isEfectivo && esMetodoUnico 
-          ? total  // Para efectivo único, enviar el monto exacto del total
-          : montoRecibido, // Para otros casos, enviar el monto ingresado
-        efectivo_recibido: isEfectivo && esMetodoUnico ? montoRecibido : undefined,
-        cambio: isEfectivo && esMetodoUnico ? calcularCambio(m) : undefined
+        monto: montoReal,
+        efectivo_recibido: isEfectivo ? montoRecibido : undefined,
+        cambio: isEfectivo && cambio > 0 ? cambio : undefined
       };
     });
 
@@ -251,13 +273,15 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
                     ? (metodosSeleccionados[0].nombre.trim().toUpperCase() === 'EFECTIVO' 
                       ? 'Ingrese el efectivo recibido (permite cambio)' 
                       : 'Monto exacto a cobrar')
-                    : 'Distribuya el monto exacto entre métodos (sin cambio)'}
+                    : 'Ingrese primero el monto de Transferencia/Tarjeta, luego el efectivo recibido'}
                 </p>
                 
                 {metodosSeleccionados.map((metodo, index) => {
                   const Icono = iconosPorMetodo[metodo.nombre.trim().toUpperCase()] || Banknote;
                   const isEfectivo = metodo.nombre.trim().toUpperCase() === 'EFECTIVO';
-                  const isReadOnly = metodosSeleccionados.length === 2 && index === 1;
+                  const nombreMetodo = metodo.nombre.trim().toUpperCase();
+                  const esTransferenciaOTarjeta = nombreMetodo === 'TRANSFERENCIA' || nombreMetodo === 'TARJETA';
+                  const isReadOnly = metodosSeleccionados.length === 1 && esTransferenciaOTarjeta;
                   
                   return (
                     <div key={metodo.id} className="space-y-1">
@@ -283,8 +307,8 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
                         </span>
                       </div>
                       
-                      {/* Mostrar cambio solo para efectivo único */}
-                      {isEfectivo && metodosSeleccionados.length === 1 && (
+                      {/* Mostrar cambio para efectivo (único o mixto) */}
+                      {isEfectivo && metodo.monto && calcularCambio(metodo) > 0 && (
                         <div className="flex items-center gap-2">
                           <Icono className="w-3 h-3 text-green-500" />
                           <input
@@ -298,34 +322,59 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
                       )}
                       
                       {/* Mostrar advertencia si efectivo es insuficiente */}
-                      {isEfectivo && metodosSeleccionados.length === 1 && metodo.monto && parseFloat(metodo.monto) < total && (
-                        <div className="text-xs text-red-600 mt-1">
-                          ⚠ Efectivo insuficiente. Mínimo: L {total.toFixed(2)}
-                        </div>
-                      )}
+                      {isEfectivo && metodo.monto && (() => {
+                        const efectivoRecibido = parseFloat(metodo.monto) || 0;
+                        let minimoRequerido = total;
+                        
+                        if (metodosSeleccionados.length === 2) {
+                          const otroMetodo = metodosSeleccionados.find(m => m.id !== metodo.id);
+                          const montoOtro = parseFloat(otroMetodo.monto) || 0;
+                          minimoRequerido = total - montoOtro;
+                        }
+                        
+                        return efectivoRecibido < minimoRequerido && (
+                          <div className="text-xs text-red-600 mt-1">
+                            ⚠ Efectivo insuficiente. Mínimo: L {minimoRequerido.toFixed(2)}
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                 })}
 
                 {/* VALIDACIÓN DE SUMA - SOLO SI HAY 2 MÉTODOS */}
-                {metodosSeleccionados.length > 1 && (
-                  <div className="grid grid-cols-2 gap-2 mt-2">
-                    <div className="bg-green-50 border border-green-200 px-2 py-1 rounded">
-                      <span className="text-xs text-green-700 font-medium">
-                        SALDO: L {sumaMontos.toFixed(2)}
-                      </span>
+                {metodosSeleccionados.length > 1 && (() => {
+                  const metodoEfectivo = metodosSeleccionados.find(m => m.nombre.trim().toUpperCase() === 'EFECTIVO');
+                  const cambio = metodoEfectivo ? calcularCambio(metodoEfectivo) : 0;
+                  const estaCompleto = Math.abs(sumaMontos - total) < 0.01;
+                  
+                  return (
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <div className="bg-green-50 border border-green-200 px-2 py-1 rounded">
+                        <span className="text-xs text-green-700 font-medium">
+                          PAGADO: L {sumaMontos.toFixed(2)}
+                        </span>
+                      </div>
+                      {cambio > 0 ? (
+                        <div className="bg-yellow-50 border border-yellow-200 px-2 py-1 rounded">
+                          <span className="text-xs text-yellow-700 font-medium">
+                            CAMBIO: L {cambio.toFixed(2)}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className={`px-2 py-1 rounded border ${
+                          estaCompleto ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                        }`}>
+                          <span className={`text-xs font-medium ${
+                            estaCompleto ? 'text-green-700' : 'text-red-700'
+                          }`}>
+                            {estaCompleto ? '✓ COMPLETO' : `FALTA: L ${Math.abs(total - sumaMontos).toFixed(2)}`}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    <div className={`px-2 py-1 rounded border ${
-                      Math.abs(sumaMontos - total) < 0.01 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
-                    }`}>
-                      <span className={`text-xs font-medium ${
-                        Math.abs(sumaMontos - total) < 0.01 ? 'text-green-700' : 'text-red-700'
-                      }`}>
-                        {Math.abs(sumaMontos - total) < 0.01 ? '✓ COMPLETO' : `FALTA: L ${Math.abs(total - sumaMontos).toFixed(2)}`}
-                      </span>
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             )}
           </>
@@ -338,7 +387,7 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
         disabled={
           metodosSeleccionados.length === 0 ||
           !montosValidos ||
-          (metodosSeleccionados.length > 1 && Math.abs(sumaMontos - total) > 0.01)
+          (metodosSeleccionados.length > 1 && Math.abs(sumaMontos - total) >= 0.01)
         }
         className={`w-full mt-3 py-2 text-sm font-medium rounded transition uppercase ${
           metodosSeleccionados.length > 0 && montosValidos &&
