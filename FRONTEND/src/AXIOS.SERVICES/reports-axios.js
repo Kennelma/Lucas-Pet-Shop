@@ -29,6 +29,19 @@ export const obtenerRegistroFinanciero = async (anio) => {
 export const obtenerVentasDiarias = async () => {
   try {
     const response = await axiosInstance.get(`${API_URL}/ventasDiarias`);
+      return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// SERVICIOS DE AXIOS PARA EL HISTORIAL DE REPORTES GENERADOS
+// para poder verlos diarios
+export const obtenerHistorialReportes = async (anio, mes, dia) => {
+  try {
+    const response = await axiosInstance.get(`${API_URL}/historialReportes`, {
+      params: { anio, mes, dia },
+    });
     return response.data;
   } catch (error) {
     throw error;

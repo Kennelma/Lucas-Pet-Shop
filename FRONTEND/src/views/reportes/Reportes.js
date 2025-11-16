@@ -11,7 +11,7 @@ import {
 import Grafica from './Grafica.js';
 import Tabla from './Tabla.js';
 import VentasDiarias from './Mas_vendidos.js';
-import { obtenerRegistroFinanciero, obtenerReporteDiario } from '../../AXIOS.SERVICES/reports-axios.js';
+import { obtenerRegistroFinanciero, obtenerReporteDiario, obtenerHistorialReportes } from '../../AXIOS.SERVICES/reports-axios.js';
 
 const Reportes = () => {
   const [pestanaActiva, setPestanaActiva] = useState('reportes');
@@ -289,7 +289,10 @@ const Reportes = () => {
             )}
           </>
         ) : (
-          <Tabla />
+          <Tabla 
+            obtenerRegistroFinanciero={obtenerRegistroFinanciero}
+            obtenerHistorialReportes={obtenerHistorialReportes}
+          />
         )}
       </div>
     </div>

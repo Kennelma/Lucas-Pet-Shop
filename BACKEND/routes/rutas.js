@@ -77,7 +77,15 @@ router.put ('/perfil/actualizar', verificarToken, perfil.actualizarPerfil);
 //========== RUTAS DE REPORTES ==========
 router.get ('/reportes/reporteDiario', reportes.reporteDiario); //ARRIBA, SOLO CARGAR
 router.get ('/reportes/registroFinanciero', reportes.registroFinanciero); //PARA TABLA Y GRAFICO
+<<<<<<< HEAD
 router.get ('/reportes/ventasDiarias', reportes.ventasDiarias);
+=======
+
+
+
+router.get ('/reportes/historialReportes', reportes.historialReportes);
+
+>>>>>>> 03afae874ce2551107462ab32be9ca6e9d7ae251
 
 
 //========== RUTAS DE NOTIFICACIONES ==========
