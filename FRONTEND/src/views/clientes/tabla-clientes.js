@@ -74,7 +74,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
       {isOpen && (
         <div className={`absolute right-0 ${shouldShowAbove ? 'bottom-16' : 'top-12'} bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[140px]`}>
           <div
-            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={(e) => {
               e.stopPropagation();
               setIsOpen(false);
@@ -211,23 +211,11 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
         <>
             <style>
                 {`
-                    .datatable-compact .p-datatable-tbody > tr > td {
-                        padding: 0.5rem 0.5rem !important;
-                        border: 1px solid #e5e7eb !important;
-                    }
-                    .datatable-compact .p-datatable-thead > tr > th {
-                        padding: 0.5rem 0.5rem !important;
-                        border: 1px solid #e5e7eb !important;
-                    }
-                    .p-datatable .p-datatable-tbody > tr.fila-seleccionada {
-                        background-color: #DBEAFE !important;
-                    }
-                    .p-datatable .p-datatable-tbody > tr.fila-seleccionada:hover {
-                        background-color: #BFDBFE !important;
+                    .p-datatable .p-datatable-tbody > tr.bg-\\[\\#DEFFAD\\]\\/30 {
+                        background-color: rgb(222 255 173 / 0.3) !important;
                     }
                 `}
             </style>
-
             <div className="bg-white rounded-xl p-6 font-poppins" style={{boxShadow: '0 0 8px #DEFFAD40, 0 0 0 1px #DEFFAD33'}}>
                 <div className="flex justify-end items-center mb-4">
                     <button
@@ -257,7 +245,7 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                         tableStyle={{ width: '100%' }}
                         className="font-poppins datatable-gridlines datatable-compact"
                         size="small"
-                        rowClassName={(rowData) => rowData.id_cliente_pk === selectedClienteId ? 'fila-seleccionada cursor-pointer' : 'hover:bg-blue-50 cursor-pointer'}
+                        rowClassName={(rowData) => rowData.id_cliente_pk === selectedClienteId ? 'bg-[#DEFFAD]/30 cursor-pointer' : 'hover:bg-[#DEFFAD]/20 cursor-pointer'}
                         onRowClick={handleRowClick}
                         selectionMode="single"
                     >
@@ -321,7 +309,7 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                     />
                     <Button
                         label="Eliminar"
-                        className="bg-green-800 hover:bg-green-900 text-white"
+                        className="bg-[#DEFFAD] hover:bg-[#c9e89a] text-gray-900 font-semibold"
                         onClick={handleEliminar}
                     />
                 </div>

@@ -141,6 +141,7 @@ const Animales = () => {
 
   useEffect(() => {
     cargarDatos();
+    document.body.style.fontFamily = 'Poppins';
   }, []);
 
   useEffect(() => {

@@ -95,7 +95,7 @@ const ModalAgregar = ({ isOpen, onClose, onSave, accesoriosExistentes = [] }) =>
         } else {
           nuevaBase = precioActual;
         }
-        setPrecioBase(nuevaBase.toFixed(2));
+        setPrecioBase(Number(nuevaBase.toFixed(2)));
       }
       return newData;
     });
@@ -141,14 +141,14 @@ const ModalAgregar = ({ isOpen, onClose, onSave, accesoriosExistentes = [] }) =>
 
     if (aplicaImpuesto) {
       const nuevoPrecio = recalcularPrecio(precioBase, nuevaTasa, true);
-      setData(prev => ({ ...prev, precio: nuevoPrecio.toFixed(2) }));
+      setData(prev => ({ ...prev, precio: Number(nuevoPrecio.toFixed(2)) }));
     }
   };
 
   const handleImpuestoChange = (value) => {
     setAplicaImpuesto(value);
     const nuevoPrecio = recalcularPrecio(precioBase, tasaImpuesto, value);
-    setData(prev => ({ ...prev, precio: nuevoPrecio.toFixed(2) }));
+    setData(prev => ({ ...prev, precio: Number(nuevoPrecio.toFixed(2)) }));
   };
 
   const validarDatos = () => {
@@ -401,7 +401,7 @@ const ModalAgregar = ({ isOpen, onClose, onSave, accesoriosExistentes = [] }) =>
         {!aplicaImpuesto && data.precio > 0 && (
           <div className="bg-yellow-100 border border-yellow-300 rounded-md p-2">
             <p className="text-xs text-yellow-800">
-              El precio base es L {parseFloat(data.precio).toFixed(2)}. Si se aplica ISV ({tasaImpuesto}%), el precio con ISV sería L <strong>{calcularPrecioFinalConISV()}</strong>.
+              El precio base es L {parseFloat(data.precio).toFixed(2)}. Si se aplica ISV ({tasaImpuesto}%), el precio con ISV sería L <strong>{(parseFloat(data.precio) * (1 + parseFloat(tasaImpuesto) / 100)).toFixed(2)}</strong>.
             </p>
           </div>
         )}

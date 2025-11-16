@@ -188,7 +188,7 @@ const Tabla = () => {
         `}
       </style>
 
-      <div className="min-h-screen p-4 bg-gray-50" style={{ fontFamily: 'Poppins, sans-serif' }}>
+      <div className="min-h-screen p-4 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
         <div className="max-w-7xl mx-auto">
           
           {/* Estados de carga y error */}

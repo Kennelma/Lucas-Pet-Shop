@@ -137,6 +137,7 @@ const Alimentos = () => {
 
   useEffect(() => {
     cargarDatos();
+    document.body.style.fontFamily = 'Poppins';
   }, []);
 
   //====================CONTROL_SCROLL_MODAL====================

@@ -143,7 +143,7 @@ const Grafica = ({ obtenerRegistroFinanciero, anio }) => {
           <div className="p-1.5 bg-blue-50 rounded-lg">
             <TrendingUp className="w-4 h-4 text-blue-600" />
           </div>
-          <h3 className="text-sm font-bold text-gray-900" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <h3 className="text-sm font-bold text-gray-900" style={{ fontFamily: 'Poppins' }}>
             Comparativa de 3 Meses
           </h3>
         </div>
@@ -188,11 +188,11 @@ const Grafica = ({ obtenerRegistroFinanciero, anio }) => {
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis 
               dataKey="mes" 
-              tick={{ fill: '#6b7280', fontFamily: 'Poppins, sans-serif', fontSize: 11 }}
+              tick={{ fill: '#6b7280', fontFamily: 'Poppins', fontSize: 11 }}
               axisLine={{ stroke: '#d1d5db' }}
             />
             <YAxis 
-              tick={{ fill: '#6b7280', fontFamily: 'Poppins, sans-serif', fontSize: 10 }}
+              tick={{ fill: '#6b7280', fontFamily: 'Poppins', fontSize: 10 }}
               axisLine={{ stroke: '#d1d5db' }}
               tickFormatter={(value) => `L ${(value / 1000).toFixed(0)}K`}
               domain={[0, 100000]}
@@ -202,7 +202,7 @@ const Grafica = ({ obtenerRegistroFinanciero, anio }) => {
               y={100000} 
               stroke="#dc2626" 
               strokeDasharray="3 3" 
-              label={{ value: 'Límite L 100K', position: 'right', fill: '#dc2626', fontFamily: 'Poppins, sans-serif', fontSize: 10 }} 
+              label={{ value: 'Límite L 100K', position: 'right', fill: '#dc2626', fontFamily: 'Poppins', fontSize: 10 }} 
             />
             <Bar dataKey="ingresos" fill="#3b82f6" radius={[8, 8, 0, 0]} />
             <Bar dataKey="gastos" fill="#dc2626" radius={[8, 8, 0, 0]} />

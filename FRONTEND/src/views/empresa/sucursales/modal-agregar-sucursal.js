@@ -1,5 +1,6 @@
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
+import { InputMask } from 'primereact/inputmask';
 import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -107,14 +108,16 @@ const ModalAgregarSucursal = ({
           {/* Teléfono */}
           <span>
             <label htmlFor="telefono_sucursal" className="text-xs font-semibold text-gray-700 mb-1">TELÉFONO</label>
-            <InputText
+            <InputMask
               id="telefono_sucursal"
               name="telefono_sucursal"
               value={formData.telefono_sucursal}
-              onChange={onChange}
-              onBlur={onBlur}
-              className="w-full rounded-xl h-9 text-sm uppercase"
-              placeholder="Ej: 9999-8888"
+              onChange={(e) => onChange({ target: { name: 'telefono_sucursal', value: e.value } })}
+              onBlur={(e) => onBlur({ target: { name: 'telefono_sucursal', value: e.value } })}
+              mask="9999-9999"
+              placeholder="0000-0000"
+              className="w-full rounded-xl h-9 text-sm"
+              autoComplete="off"
             />
             {errores.telefono_sucursal && <p className="text-xs text-red-600 mt-1">{errores.telefono_sucursal}</p>}
           </span>

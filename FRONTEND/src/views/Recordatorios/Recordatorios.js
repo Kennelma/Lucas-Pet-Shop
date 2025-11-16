@@ -28,7 +28,7 @@ const Recordatorios = () => {
   }, []);
 
   return (
-    <div>
+    <div style={{ fontFamily: 'Poppins' }}>
       <div className="w-full px-6">
         {/* Título */}
         <div

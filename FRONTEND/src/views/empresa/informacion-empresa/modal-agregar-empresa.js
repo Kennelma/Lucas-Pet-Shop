@@ -1,5 +1,6 @@
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
+import { InputMask } from 'primereact/inputmask';
 import { Button } from 'primereact/button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
@@ -72,14 +73,16 @@ const ModalAgregarEmpresa = ({
           {/* Teléfono */}
           <span>
             <label htmlFor="telefono_empresa" className="text-xs font-semibold text-gray-700 mb-1">TELÉFONO</label>
-            <InputText
+            <InputMask
               id="telefono_empresa"
               name="telefono_empresa"
               value={formData.telefono_empresa}
-              onChange={onChange}
-              onBlur={onBlur}
-              className="w-full rounded-xl h-9 text-sm uppercase"
-              placeholder="Ej: 2222-3333"
+              onChange={(e) => onChange({ target: { name: 'telefono_empresa', value: e.value } })}
+              onBlur={(e) => onBlur({ target: { name: 'telefono_empresa', value: e.value } })}
+              mask="9999-9999"
+              placeholder="0000-0000"
+              className="w-full rounded-xl h-9 text-sm"
+              autoComplete="off"
             />
             {errores.telefono_empresa && <p className="text-xs text-red-600 mt-1">{errores.telefono_empresa}</p>}
           </span>

@@ -47,8 +47,10 @@ const Medicamentos = () => {
 
     if (anyModalOpen) {
       document.body.style.overflow = 'hidden';
+      document.body.style.fontFamily = 'Poppins';
     } else {
       document.body.style.overflow = 'unset';
+      document.body.style.fontFamily = 'Poppins';
     }
 
     return () => {

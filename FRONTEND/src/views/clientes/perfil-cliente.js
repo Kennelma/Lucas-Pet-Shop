@@ -5,6 +5,11 @@ import ModalPerfilCliente from "../../views/clientes/ModalPerfilCliente"; // exp
 const PerfilCliente = ({ clienteSeleccionado }) => {
   const [openModalPerfil, setOpenModalPerfil] = useState(false);
   const [clientePerfil, setClientePerfil] = useState(null);
+  
+  // Aplicar Poppins
+  useEffect(() => {
+    document.body.style.fontFamily = 'Poppins';
+  }, []);
 
   const abrirHistorial = () => {
     if (!clienteSeleccionado) return;
@@ -14,7 +19,7 @@ const PerfilCliente = ({ clienteSeleccionado }) => {
 
   return (
     <div className="flex flex-col w-full h-full">
-      <div className="bg-gradient-to-b from-blue-50 to-indigo-50 border-b border-gray-300 flex-shrink-0">
+      <div className="bg-gradient-to-b from-[#DEFFAD]/30 to-[#DEFFAD]/10 border-b border-gray-300 flex-shrink-0">
         <div className="p-4">
           <span className="block w-full text-center font-semibold text-gray-700 font-poppins">
             PERFIL DE CLIENTE
@@ -60,10 +65,10 @@ const PerfilCliente = ({ clienteSeleccionado }) => {
       <div className="flex-1 flex flex-col items-center justify-center p-4">
         {clienteSeleccionado && (
           <button
-            className="text-black font-semibold px-6 py-3 rounded-lg transition-colors shadow-md"
-            style={{ backgroundColor: "rgb(165, 204, 139)" }}
-            onMouseEnter={(e) => (e.target.style.backgroundColor = "rgb(145, 184, 119)")}
-            onMouseLeave={(e) => (e.target.style.backgroundColor = "rgb(165, 204, 139)")}
+            className="text-gray-900 font-semibold px-6 py-3 rounded-lg transition-colors shadow-md"
+            style={{ backgroundColor: "#DEFFAD" }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#c9e89a")}
+            onMouseLeave={(e) => (e.target.style.backgroundColor = "#DEFFAD")}
             onClick={abrirHistorial}
           >
             VER HISTORIAL DE COMPRAS

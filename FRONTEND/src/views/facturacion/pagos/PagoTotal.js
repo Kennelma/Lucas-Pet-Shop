@@ -44,7 +44,31 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
 
     if (existe) {
       // SI YA ESTÁ SELECCIONADO, LO QUITAMOS
-      setMetodosSeleccionados(metodosSeleccionados.filter(m => m.id !== metodo.id_metodo_pago_pk));
+      const metodosRestantes = metodosSeleccionados.filter(m => m.id !== metodo.id_metodo_pago_pk);
+      
+      // Si queda solo 1 método después de deseleccionar
+      if (metodosRestantes.length === 1) {
+        const metodoRestante = metodosRestantes[0];
+        const nombreRestante = metodoRestante.nombre.trim().toUpperCase();
+        const esTransferenciaOTarjeta = nombreRestante === 'TRANSFERENCIA' || nombreRestante === 'TARJETA';
+        
+        // Si el método restante es transferencia o tarjeta, asignar el total automáticamente
+        if (esTransferenciaOTarjeta) {
+          setMetodosSeleccionados([{
+            ...metodoRestante,
+            monto: total.toFixed(2)
+          }]);
+        } else {
+          // Si es efectivo, limpiar el monto
+          setMetodosSeleccionados([{
+            ...metodoRestante,
+            monto: ''
+          }]);
+        }
+      } else {
+        // Si no quedan métodos, simplemente actualizar
+        setMetodosSeleccionados(metodosRestantes);
+      }
     } else {
       // SOLO PERMITIMOS AGREGAR SI HAY MENOS DE 2 MÉTODOS SELECCIONADOS
       if (metodosSeleccionados.length < 2) {
@@ -66,13 +90,41 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
 
   //====================FUNCIÓN: ACTUALIZAR MONTO CON CÁLCULO AUTOMÁTICO====================
   const actualizarMonto = (id, monto) => {
+    // Obtener el método que se está editando
+    const metodoActual = metodosSeleccionados.find(m => m.id === id);
+    const nombreMetodo = metodoActual?.nombre.trim().toUpperCase();
+    const esTransferenciaOTarjeta = nombreMetodo === 'TRANSFERENCIA' || nombreMetodo === 'TARJETA';
+    
     if (metodosSeleccionados.length === 2) {
-      // SOLO ACTUALIZAR EL MONTO DEL MÉTODO ACTUAL, SIN CALCULAR AUTOMÁTICAMENTE EL OTRO
-      setMetodosSeleccionados(metodosSeleccionados.map(m =>
-        m.id === id ? { ...m, monto } : m
-      ));
+      // CUANDO HAY 2 MÉTODOS: CALCULAR AUTOMÁTICAMENTE EL OTRO
+      const montoNum = parseFloat(monto) || 0;
+      
+      // VALIDACIÓN: Si es transferencia o tarjeta, no permitir que supere el total
+      if (esTransferenciaOTarjeta && montoNum > total) {
+        return; // No actualizar si excede el total
+      }
+      
+      const montoRestante = Math.max(0, total - montoNum);
+      
+      setMetodosSeleccionados(metodosSeleccionados.map(m => {
+        if (m.id === id) {
+          // Actualizar el método que está siendo editado
+          return { ...m, monto };
+        } else {
+          // Actualizar el otro método con el monto restante
+          return { ...m, monto: montoRestante.toFixed(2) };
+        }
+      }));
     } else {
-      // UN SOLO MÉTODO: actualización normal (permite cambio en efectivo)
+      // UN SOLO MÉTODO
+      const montoNum = parseFloat(monto) || 0;
+      
+      // VALIDACIÓN: Si es transferencia o tarjeta único, no permitir que supere el total
+      if (esTransferenciaOTarjeta && montoNum > total) {
+        return; // No actualizar si excede el total
+      }
+      
+      // Para efectivo: actualización normal (permite cambio)
       setMetodosSeleccionados(metodosSeleccionados.map(m =>
         m.id === id ? { ...m, monto } : m
       ));
@@ -307,8 +359,8 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
                         </span>
                       </div>
                       
-                      {/* Mostrar cambio para efectivo (único o mixto) */}
-                      {isEfectivo && metodo.monto && calcularCambio(metodo) > 0 && (
+                      {/* Mostrar cambio para efectivo (solo en pago único) */}
+                      {isEfectivo && metodosSeleccionados.length === 1 && metodo.monto && calcularCambio(metodo) > 0 && (
                         <div className="flex items-center gap-2">
                           <Icono className="w-3 h-3 text-green-500" />
                           <input
@@ -342,39 +394,7 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
                   );
                 })}
 
-                {/* VALIDACIÓN DE SUMA - SOLO SI HAY 2 MÉTODOS */}
-                {metodosSeleccionados.length > 1 && (() => {
-                  const metodoEfectivo = metodosSeleccionados.find(m => m.nombre.trim().toUpperCase() === 'EFECTIVO');
-                  const cambio = metodoEfectivo ? calcularCambio(metodoEfectivo) : 0;
-                  const estaCompleto = Math.abs(sumaMontos - total) < 0.01;
-                  
-                  return (
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                      <div className="bg-green-50 border border-green-200 px-2 py-1 rounded">
-                        <span className="text-xs text-green-700 font-medium">
-                          PAGADO: L {sumaMontos.toFixed(2)}
-                        </span>
-                      </div>
-                      {cambio > 0 ? (
-                        <div className="bg-yellow-50 border border-yellow-200 px-2 py-1 rounded">
-                          <span className="text-xs text-yellow-700 font-medium">
-                            CAMBIO: L {cambio.toFixed(2)}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className={`px-2 py-1 rounded border ${
-                          estaCompleto ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
-                        }`}>
-                          <span className={`text-xs font-medium ${
-                            estaCompleto ? 'text-green-700' : 'text-red-700'
-                          }`}>
-                            {estaCompleto ? '✓ COMPLETO' : `FALTA: L ${Math.abs(total - sumaMontos).toFixed(2)}`}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
+
               </div>
             )}
           </>
