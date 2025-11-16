@@ -62,7 +62,7 @@ cron.schedule('*/2 * * * *', async () => { // CADA 5 HORAS
 
 
 //TAREA AUTOMATICA DE NOTIFICACION QUE SE MUESTRA
-cron.schedule('0 */5 * * *', async () => {
+cron.schedule('*/1 * * * *', async () => {
 
   const conn = await mysqlConnection.getConnection();
 
@@ -79,6 +79,9 @@ cron.schedule('0 */5 * * *', async () => {
       INSERT INTO tbl_notificaciones (mensaje_notificacion, fecha_creacion, tipo_notificacion_fk)
       SELECT
         CASE
+          WHEN l.stock_lote = 0 THEN
+            CONCAT(p.nombre_producto, ' (', l.codigo_lote, ')')
+
           WHEN l.fecha_vencimiento < ? THEN
             CONCAT('LOTE VENCIDO: ', p.nombre_producto, ' (', l.codigo_lote, ')')
 
@@ -104,7 +107,8 @@ cron.schedule('0 */5 * * *', async () => {
       INNER JOIN tbl_medicamentos_info m ON l.id_medicamento_fk = m.id_medicamento_pk
       INNER JOIN tbl_productos p ON m.id_producto_fk = p.id_producto_pk
       WHERE (
-        l.fecha_vencimiento < ?
+        l.stock_lote = 0                                    
+        OR l.fecha_vencimiento < ?
         OR DATEDIFF(l.fecha_vencimiento, ?) IN (30, 60, 90)
       )
       AND NOT EXISTS (

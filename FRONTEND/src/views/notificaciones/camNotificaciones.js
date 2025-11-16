@@ -24,18 +24,18 @@ const CamNotificaciones = () => {
   // ============== UTILIDADES ==============
   const getTituloNotificacion = (tipo, mensaje) => {
     if (tipo === 'STOCK_BAJOS') {
-      return 'Stock Bajo'
+      return 'STOCK BAJO'
     }
     
     if (tipo === 'LOTE_VENCIDO') {
-      return 'Lote Vencido'
+      return 'LOTE VENCIDO'
     }
     
     if (tipo === 'LOTE_PROXIMO_VENCER') {
       if (mensaje.includes('30 DÍAS')) return 'Vence en 30 días'
       if (mensaje.includes('60 DÍAS')) return 'Vence en 60 días'
       if (mensaje.includes('90 DÍAS')) return 'Vence en 90 días'
-      return 'Lote por Vencer'
+      return 'LOTE AGOTADO'
     }
     
     return 'Notificación'
@@ -77,7 +77,7 @@ const CamNotificaciones = () => {
       return <AiFillAlert style={{ fontSize: '24px', color: '#DC2626' }} />
     }
     if (tipo === 'LOTE_PROXIMO_VENCER') {
-      return <AiFillAlert style={{ fontSize: '24px', color: '#F59E0B' }} />
+      return <AiFillAlert style={{ fontSize: '24px', color: '#2563e9ff' }} />
     }
     return '🔔'
   }
@@ -162,6 +162,13 @@ const CamNotificaciones = () => {
   const cargarNotificaciones = async () => {
     try {
       const response = await obtenerNotificaciones()
+
+       // 🔍 DEBUGGING - BORRA ESTO DESPUÉS
+    console.log('===== DEBUG NOTIFICACIONES =====')
+    console.log('Consulta exitosa:', response.Consulta)
+    console.log('Total notificaciones:', response.notificaciones?.length)
+    console.log('Notificaciones completas:', JSON.stringify(response.notificaciones, null, 2))
+    console.log('================================')
       
       if (!response.Consulta) {
         throw new Error(response.mensaje || 'Error al cargar notificaciones')
@@ -290,24 +297,41 @@ const CamNotificaciones = () => {
   return (
     <>
       <style>
-        {`
-          .p-toast .p-toast-message {
-            width: 280px !important;
-            min-width: 280px !important;
-          }
-          .p-toast .p-toast-message-content {
-            padding: 0.75rem !important;
-          }
-          .p-toast .p-toast-summary {
-            font-size: 0.9rem !important;
-            font-weight: 600 !important;
-          }
-          .p-toast.p-toast-bottom-right {
-            bottom: 20px !important;
-            right: 20px !important;
-          }
-        `}
-      </style>
+  {`
+    .p-toast .p-toast-message {
+      width: 280px !important;
+      min-width: 280px !important;
+    }
+    .p-toast .p-toast-message-content {
+      padding: 0.75rem !important;
+    }
+    .p-toast .p-toast-summary {
+      font-size: 0.7rem !important;
+      font-weight: 600 !important;
+    }
+    .p-toast-bottom-right {
+      bottom: 20px !important;
+      right: 5px !important;
+    }
+    /* O prueba con esto si lo anterior no funciona */
+    .p-toast.p-toast-bottom-right {
+      bottom: 20px !important;
+      margin-right: 0 !important;
+    }
+    .p-toast .p-toast-message-warn {
+      background-color: #dc3545 !important;
+      border-color: #dc3545 !important;
+    }
+    .p-toast .p-toast-message-warn .p-toast-message-icon,
+    .p-toast .p-toast-message-warn .p-toast-icon-close {
+      color: #fff !important;
+    }
+    .p-toast .p-toast-message-warn .p-toast-summary,
+    .p-toast .p-toast-message-warn .p-toast-detail {
+      color: #fff !important;
+    }
+  `}
+</style>
       <Toast ref={toast} position="bottom-right" />
       
       <div className="nav-item" ref={dropdownRef} style={{ position: 'relative' }}>
