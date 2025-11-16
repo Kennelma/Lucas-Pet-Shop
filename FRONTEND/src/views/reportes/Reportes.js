@@ -9,7 +9,8 @@ import {
   FileText
 } from 'lucide-react';
 import Grafica from './Grafica.js';
-import Tabla from './Tabla';
+import Tabla from './Tabla.js';
+import VentasDiarias from './Mas_vendidos.js';
 import { obtenerRegistroFinanciero, obtenerReporteDiario } from '../../AXIOS.SERVICES/reports-axios.js';
 
 const Reportes = () => {
@@ -272,14 +273,17 @@ const Reportes = () => {
               </div>
             )}
 
-            {/* Gráfica - Ahora ocupa todo el ancho */}
+            {/* Gráficas lado a lado */}
             {!cargando && (
-              <div className="mb-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <div className="h-96">
                   <Grafica 
                     obtenerRegistroFinanciero={obtenerRegistroFinanciero}
                     anio={anioActual}
                   />
+                </div>
+                <div className="h-96">
+                  <VentasDiarias />
                 </div>
               </div>
             )}

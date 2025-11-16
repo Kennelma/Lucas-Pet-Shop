@@ -150,45 +150,16 @@ const getNavigation = () => {
       icon: <FontAwesomeIcon icon={faCoins} className="nav-icon" />,
     },
 
-    //8. REPORTES CON SUBMENÚ
+    //8. REPORTES
     {
-      component: CNavGroup,
+      component: CNavItem,
       name: 'Reportes',
+      to: '/reportes',
       icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
-      items: [
-        {
-          component: CNavItem,
-          name: 'Grafica',
-          to: '/reportes',
-          style: { paddingLeft: '65px' },
-          icon: <FontAwesomeIcon icon={faChartArea} className="nav-icon" />,
-        },
-        {
-          component: CNavItem,
-          name: 'Tabla',
-          to: '/reportes/Tabla',
-          style: { paddingLeft: '65px' },
-          icon: <FontAwesomeIcon icon={faBorderAll} className="nav-icon" />,
-        }
-      ]
     },
 
-  //ESTILISTAS Y BONIFICACIONES
-  {
-    component: CNavItem,
-    name: 'Estilistas',
-    to: '/estilistas',
-    icon: <FontAwesomeIcon icon={faCoins} className="nav-icon" />,
-  },
 
-
-  //REPORTES
-{
-  component: CNavItem,
-  name: 'Reportes',
-  to: '/reportes',
-  icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
-},
+ 
 
 
 
