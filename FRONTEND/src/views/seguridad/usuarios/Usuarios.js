@@ -405,7 +405,7 @@ export default function Usuarios() {
             className="mt-4"
             size="small"
             selectionMode="single"
-            rowClassName={(rowData) => rowData.id_usuario_pk === selectedUsuarioId ? 'fila-seleccionada cursor-pointer' : 'hover:bg-gray-50 cursor-pointer'}
+            rowClassName={(rowData) => rowData.id_usuario_pk === selectedUsuarioId ? '!bg-amber-100 hover:!bg-amber-100 cursor-pointer' : 'hover:bg-gray-50 cursor-pointer'}
             onRowClick={handleRowClick}
             scrollable={false}
           >

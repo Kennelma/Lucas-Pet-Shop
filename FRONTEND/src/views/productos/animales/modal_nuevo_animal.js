@@ -16,7 +16,7 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave, animalesExistentes = [] }) 
     nombre: '',
     especie: '',
     sexo: '',
-    precio: 0,
+    precio: '',
     cantidad: 0,
     tasaImpuesto: 15
   });
@@ -47,13 +47,7 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave, animalesExistentes = [] }) 
   const recalcularPrecio = (base, tasa, aplicar) => {
     const pBase = parseFloat(base) || 0;
     const pTasa = parseFloat(tasa) || 0;
-    if (aplicar) {
-      // DEVUELVE PRECIO CON IMPUESTO
-      return (pBase * (1 + pTasa / 100)).toFixed(2);
-    } else {
-      // DEVUELVE PRECIO BASE
-      return pBase.toFixed(2);
-    }
+    return aplicar ? (pBase * (1 + pTasa / 100)) : pBase;
   };
 
   // FUNCIÓN PARA MANEJAR CAMBIOS EN LOS INPUTS DEL FORMULARIO
@@ -62,25 +56,26 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave, animalesExistentes = [] }) 
 
     setData(prev => {
       const newData = { ...prev, [field]: val };
-
-      // ACTUALIZA EL PRECIO BASE CUANDO EL USUARIO EDITA EL PRECIO
-      if (field === 'precio') {
-        const precioActual = parseFloat(val) || 0;
-        const tasa = parseFloat(tasaImpuesto) || 0;
-        let nuevaBase;
-
-        if (aplicaImpuesto && tasa > 0) {
-          // SI EL IMPUESTO ESTÁ ACTIVO, EL VALOR ES CON IMPUESTO, SE CALCULA LA BASE
-          nuevaBase = (precioActual / (1 + tasa / 100));
-        } else {
-          // SI NO HAY IMPUESTO, EL VALOR ES EL PRECIO BASE
-          nuevaBase = precioActual;
-        }
-        // ACTUALIZA EL ESTADO DEL PRECIO BASE
-        setPrecioBase(nuevaBase.toFixed(2));
-      }
+      
       return newData;
     });
+
+    // ACTUALIZA EL PRECIO BASE CUANDO EL USUARIO EDITA EL PRECIO
+    if (field === 'precio') {
+      const precioActual = parseFloat(val) || 0;
+      const tasa = parseFloat(tasaImpuesto) || 0;
+      let nuevaBase;
+
+      if (aplicaImpuesto && tasa > 0) {
+        // SI EL IMPUESTO ESTÁ ACTIVO, EL VALOR ES CON IMPUESTO, SE CALCULA LA BASE
+        nuevaBase = (precioActual / (1 + tasa / 100));
+      } else {
+        // SI NO HAY IMPUESTO, EL VALOR ES EL PRECIO BASE
+        nuevaBase = precioActual;
+      }
+      // ACTUALIZA EL ESTADO DEL PRECIO BASE
+      setPrecioBase(Number(nuevaBase.toFixed(2)));
+    }
 
     // LIMPIA EL ERROR DEL CAMPO SI EXISTE
     if (errores[field]) {
@@ -96,7 +91,7 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave, animalesExistentes = [] }) 
     if (aplicaImpuesto) {
       // SI EL IMPUESTO ESTÁ ACTIVO, RECALCULA EL PRECIO MOSTRADO
       const nuevoPrecio = recalcularPrecio(precioBase, nuevaTasa, true);
-      setData(prev => ({ ...prev, precio: nuevoPrecio }));
+      setData(prev => ({ ...prev, precio: Number(nuevoPrecio) }));
     }
   };
 
@@ -106,7 +101,7 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave, animalesExistentes = [] }) 
 
     // RECALCULA EL PRECIO MOSTRADO EN EL INPUT
     const nuevoPrecio = recalcularPrecio(precioBase, tasaImpuesto, value);
-    setData(prev => ({ ...prev, precio: nuevoPrecio }));
+    setData(prev => ({ ...prev, precio: Number(nuevoPrecio) }));
   };
 
   // FUNCIÓN PARA CALCULAR EL PRECIO FINAL CON ISV
@@ -289,18 +284,20 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave, animalesExistentes = [] }) 
           <label htmlFor="precio" className="text-xs font-semibold text-gray-700 mb-1">
             {precioLabel}
           </label>
-          <InputNumber
-            id="precio"
-            name="precio"
-            value={parseFloat(data.precio)}
-            onValueChange={(e) => handleChange('precio', e.value)}
-            mode="currency"
-            currency="HNL"
-            locale="es-HN"
-            className={`w-full rounded-xl text-sm ${errores.precio ? 'border-red-500' : ''}`}
-            inputClassName="h-9 text-sm"
-            placeholder="0.00"
-          />
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-600">L</span>
+            <input
+              type="number"
+              id="precio"
+              name="precio"
+              value={data.precio}
+              onChange={e => handleChange('precio', e.target.value)}
+              className={`w-full rounded-xl h-9 text-sm ${errores.precio ? 'border border-red-500' : 'border border-gray-300'} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+              style={{ paddingLeft: '2rem' }}
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
           {errores.precio && <p className="text-xs text-red-600 mt-1">{errores.precio}</p>}
         </span>
 
@@ -350,10 +347,10 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave, animalesExistentes = [] }) 
         )}
 
         {/* MENSAJE DE ADVERTENCIA SI NO SE APLICA IMPUESTO */}
-        {!aplicaImpuesto && (
+        {!aplicaImpuesto && data.precio > 0 && (
           <div className="bg-yellow-100 border border-yellow-300 rounded-md p-2 mt-3">
             <p className="text-xs text-yellow-800">
-              El precio base es L {parseFloat(data.precio).toFixed(2)}. Si se aplica ISV (L {tasaImpuesto}%), el precio con ISV sería L {calcularPrecioFinalConISV()}.
+              El precio base es L {parseFloat(data.precio).toFixed(2)}. Si se aplica ISV ({tasaImpuesto}%), el precio con ISV sería L <strong>{(parseFloat(data.precio) * (1 + parseFloat(tasaImpuesto) / 100)).toFixed(2)}</strong>.
             </p>
           </div>
         )}

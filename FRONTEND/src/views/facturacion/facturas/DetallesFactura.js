@@ -1093,31 +1093,7 @@ const DetallesFactura = ({
         onPagoConfirmado={handlePaymentSuccess}
         factura={paymentData}
       />
-      {/* 🔍 DEBUG - BORRAR DESPUÉS
-        {items.length > 0 && (
-    <div style={{
-      position: 'fixed',
-      bottom: 10,
-      left: 10,
-      background: 'black',
-      color: 'lime',
-      padding: '10px',
-      fontSize: '12px',
-      zIndex: 9999,
-      borderRadius: '8px'
-    }}>
-      <div>SUBTOTAL EXENTO: {SUBTOTAL_EXENTO.toFixed(2)}</div>
-      <div>SUBTOTAL GRAVADO: {SUBTOTAL_GRAVADO.toFixed(2)}</div>
-      <div>IMPUESTO: {IMPUESTO.toFixed(2)}</div>
-      <div>TOTAL: {TOTAL_FINAL.toFixed(2)}</div>
-      <hr />
-      {items.map((it, i) => (
-        <div key={i}>
-          Item {i+1}: tiene_impuesto = {String(it.tiene_impuesto)}
-        </div>
-      ))}
-    </div>
-  )}*/}
+      
     </div>
   );
 };

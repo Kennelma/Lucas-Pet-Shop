@@ -50,3 +50,16 @@ export const eliminarServicio = async (id, tipo_servicio) => {
     return { Consulta: false, error: err.message };
   }
 };
+//SERVICIOS FAVORITOS
+
+export const verServiciosFavoritos = async () => {
+  try {
+    const res = await axiosInstance.get('/productos/favoritos', {
+      params: { tipo: 'SERVICIOS' }
+    });
+    return res.data.favoritos || [];
+  } catch (err) {
+    console.error(`Error al traer servicios favoritos:`, err);
+    return [];
+  }
+};

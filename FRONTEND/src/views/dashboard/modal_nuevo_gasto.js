@@ -2,34 +2,65 @@ import React, { useState } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
-import { InputNumber } from 'primereact/inputnumber';
 import Swal from 'sweetalert2';
 import { insertar } from '../../AXIOS.SERVICES/empresa-axios';
 
 const ModalAgregarGasto = ({ visible, onHide, onRefresh }) => {
-  const [detalle, setDetalle] = useState('');
-  const [monto, setMonto] = useState(null);
+  const [formData, setFormData] = useState({
+    detalle_gasto: '',
+    monto_gasto: ''
+  });
+  const [errores, setErrores] = useState({});
   const [guardando, setGuardando] = useState(false);
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errores[name]) {
+      setErrores(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validarFormulario = () => {
+    const nuevosErrores = {};
+    
+    if (!formData.detalle_gasto.trim()) {
+      nuevosErrores.detalle_gasto = 'El detalle es obligatorio';
+    }
+    
+    if (!formData.monto_gasto || formData.monto_gasto <= 0) {
+      nuevosErrores.monto_gasto = 'El monto debe ser mayor a 0';
+    }
+    
+    setErrores(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
+  };
+
+  const handleClose = () => {
+    setFormData({
+      detalle_gasto: '',
+      monto_gasto: ''
+    });
+    setErrores({});
+    onHide();
+  };
+
   const guardar = async () => {
-    if (!detalle || monto === null) {
-      Swal.fire('Atención', 'Complete todos los campos.', 'warning');
+    if (!validarFormulario()) {
       return;
     }
 
     setGuardando(true);
     try {
       const res = await insertar('GASTOS', {
-        detalle_gasto: detalle,
-        monto_gasto: monto
+        detalle_gasto: formData.detalle_gasto,
+        monto_gasto: parseFloat(formData.monto_gasto)
       });
 
       if (res.Consulta) {
         Swal.fire('Éxito', 'Gasto agregado correctamente.', 'success');
-        setDetalle('');
-        setMonto(null);
-        onHide();
-        onRefresh({ description: detalle, amount: monto });
+        handleClose();
+        onRefresh({ description: formData.detalle_gasto, amount: formData.monto_gasto });
       } else {
         Swal.fire('Error', res.error || 'No se pudo guardar el gasto.', 'error');
       }
@@ -41,44 +72,67 @@ const ModalAgregarGasto = ({ visible, onHide, onRefresh }) => {
   };
 
   const footer = (
-    <div className="flex justify-end gap-2">
-      <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={onHide} />
-      <Button label="Guardar" icon="pi pi-check" onClick={guardar} loading={guardando} />
+    <div className="flex justify-end gap-3 mt-2">
+      <Button 
+        label="Cancelar" 
+        icon="pi pi-times"
+        onClick={handleClose}
+        className="p-button-text p-button-rounded"
+      />
+      <Button 
+        label="Guardar" 
+        icon="pi pi-check"
+        onClick={guardar}
+        loading={guardando}
+        className="p-button-success p-button-rounded"
+      />
     </div>
   );
 
   return (
-    <Dialog 
-      header="Agregar nuevo gasto" 
-      visible={visible} 
-      style={{ width: '30vw', zIndex: 2000 }} 
-      modal 
-      onHide={onHide} 
+    <Dialog
+      header={<div className="w-full text-center text-lg font-bold">NUEVO GASTO</div>}
+      visible={visible}
+      style={{ width: '28rem', borderRadius: '1.5rem' }}
+      modal
+      closable={false}
+      onHide={handleClose}
       footer={footer}
-      appendTo={document.body}
-      baseZIndex={2000}
+      position="center"
+      dismissableMask={false}
+      draggable={false}
+      resizable={false}
     >
-      <div className="flex flex-col gap-3 mt-3">
-        <div>
-          <label className="font-semibold">Detalle del gasto</label>
+      {/* Formulario */}
+      <div className="flex flex-col gap-3">
+        {/* Detalle del Gasto */}
+        <span>
+          <label htmlFor="detalle_gasto" className="text-xs font-semibold text-gray-700 mb-1">DETALLE DEL GASTO</label>
           <InputText
-            value={detalle}
-            onChange={(e) => setDetalle(e.target.value)}
+            id="detalle_gasto"
+            name="detalle_gasto"
+            value={formData.detalle_gasto}
+            onChange={handleChange}
+            className="w-full rounded-xl h-9 text-sm"
             placeholder="Ej: Compra de materiales"
-            className="w-full mt-1"
           />
-        </div>
-        <div>
-          <label className="font-semibold">Monto del gasto</label>
-          <InputNumber
-            value={monto}
-            onValueChange={(e) => setMonto(e.value)}
-            placeholder="Ingrese el monto"
-            mode="currency"
-            currency="USD"
-            className="w-full mt-1"
+          {errores.detalle_gasto && <p className="text-xs text-red-600 mt-1">{errores.detalle_gasto}</p>}
+        </span>
+
+        {/* Monto del Gasto */}
+        <span>
+          <label htmlFor="monto_gasto" className="text-xs font-semibold text-gray-700 mb-1">MONTO (L)</label>
+          <InputText
+            id="monto_gasto"
+            name="monto_gasto"
+            value={formData.monto_gasto}
+            onChange={handleChange}
+            className="w-full rounded-xl h-9 text-sm"
+            placeholder="0.00"
+            keyfilter="num"
           />
-        </div>
+          {errores.monto_gasto && <p className="text-xs text-red-600 mt-1">{errores.monto_gasto}</p>}
+        </span>
       </div>
     </Dialog>
   );

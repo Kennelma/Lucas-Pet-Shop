@@ -24,6 +24,7 @@ const Estilistas = () => {
 
   useEffect(() => {
     cargarEstilistas();
+    document.body.style.fontFamily = 'Poppins';
   }, []);
 
   const cargarEstilistas = async () => {

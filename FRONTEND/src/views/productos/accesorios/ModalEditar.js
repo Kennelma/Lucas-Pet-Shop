@@ -148,7 +148,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
   const handleImpuestoChange = (value) => {
     setAplicaImpuesto(value);
     const nuevoPrecio = recalcularPrecio(precioBase, tasaImpuesto, value);
-    setData(prev => ({ ...prev, precio: parseFloat(nuevoPrecio).toFixed(2) }));
+    setData(prev => ({ ...prev, precio: Number(nuevoPrecio.toFixed(2)) }));
   };
 
   const handleTasaChange = (e) => {
@@ -157,7 +157,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
 
     if (aplicaImpuesto) {
       const nuevoPrecio = recalcularPrecio(precioBase, nuevaTasa, true);
-      setData(prev => ({ ...prev, precio: parseFloat(nuevoPrecio).toFixed(2) }));
+      setData(prev => ({ ...prev, precio: Number(nuevoPrecio.toFixed(2)) }));
     }
   };
 
@@ -325,19 +325,20 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
           <label htmlFor="precio" className="text-xs font-semibold text-gray-700 mb-1">
             {precioLabel}
           </label>
-          <InputNumber
-            id="precio"
-            name="precio"
-            value={parseFloat(data.precio)}
-            onValueChange={(e) => handleChange('precio', e.value)}
-            mode="currency"
-            currency="HNL"
-            locale="es-HN"
-            className="w-full rounded-xl h-9 text-sm"
-            inputClassName="h-9 text-sm"
-            placeholder="0.00"
-            min={0}
-          />
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-600">L</span>
+            <input
+              type="number"
+              id="precio"
+              name="precio"
+              value={data.precio}
+              onChange={e => handleChange('precio', e.target.value)}
+              className={`w-full rounded-xl h-9 text-sm ${errores.precio ? 'border border-red-500' : 'border border-gray-300'} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+              style={{ paddingLeft: '2rem' }}
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
           {errores.precio && <p className="text-xs text-red-600 mt-1">{errores.precio}</p>}
         </span>
 
@@ -379,10 +380,10 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
           </div>
         )}
 
-        {!aplicaImpuesto && parseFloat(data.precio) > 0 && (
+        {!aplicaImpuesto && data.precio > 0 && (
           <div className="bg-yellow-100 border border-yellow-300 rounded-md p-2 mt-1">
             <p className="text-xs text-yellow-800">
-              El precio base es L {parseFloat(data.precio).toFixed(2)}. Si se aplica ISV ({tasaImpuesto}%), el precio con ISV sería L {calcularPrecioFinalConISV()}.
+              El precio base es L {parseFloat(data.precio).toFixed(2)}. Si se aplica ISV ({tasaImpuesto}%), el precio con ISV sería L <strong>{(parseFloat(data.precio) * (1 + parseFloat(tasaImpuesto) / 100)).toFixed(2)}</strong>.
             </p>
           </div>
         )}

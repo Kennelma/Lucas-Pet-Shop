@@ -395,6 +395,26 @@ export default function GestionEmpresa() {
     
     if (!formDataSucursal.nombre_sucursal?.trim()) {
       erroresTemp.nombre_sucursal = 'El nombre de la sucursal es obligatorio';
+    } else {
+      // Validar duplicado de nombre de sucursal en la misma empresa
+      const nombreNormalizado = formDataSucursal.nombre_sucursal.trim().toUpperCase();
+      const empresaActual = empresas.find(e => e.id_empresa_pk === formDataSucursal.id_empresa_fk);
+      
+      if (empresaActual && empresaActual.sucursales) {
+        const nombreDuplicado = empresaActual.sucursales.some(s => {
+          // Si estamos editando, excluir la sucursal actual
+          const esSucursalActual = modalSucursal.mode === 'edit' && 
+            s.id_sucursal_pk === formDataSucursal.id_sucursal_pk;
+          
+          if (esSucursalActual) return false;
+          
+          return s.nombre_sucursal.trim().toUpperCase() === nombreNormalizado;
+        });
+        
+        if (nombreDuplicado) {
+          erroresTemp.nombre_sucursal = 'Ya existe una sucursal con este nombre en esta empresa';
+        }
+      }
     }
     
     if (!formDataSucursal.direccion_sucursal?.trim()) {
@@ -405,6 +425,24 @@ export default function GestionEmpresa() {
       erroresTemp.telefono_sucursal = 'El teléfono de la sucursal es obligatorio';
     } else if (formDataSucursal.telefono_sucursal.length < 8) {
       erroresTemp.telefono_sucursal = 'El teléfono debe tener al menos 8 dígitos';
+    } else {
+      // Validar duplicado de teléfono en todas las sucursales
+      const telefonoNormalizado = formDataSucursal.telefono_sucursal.trim();
+      const telefonoDuplicado = empresas.some(empresa => 
+        empresa.sucursales && empresa.sucursales.some(s => {
+          // Si estamos editando, excluir la sucursal actual
+          const esSucursalActual = modalSucursal.mode === 'edit' && 
+            s.id_sucursal_pk === formDataSucursal.id_sucursal_pk;
+          
+          if (esSucursalActual) return false;
+          
+          return s.telefono_sucursal.trim() === telefonoNormalizado;
+        })
+      );
+      
+      if (telefonoDuplicado) {
+        erroresTemp.telefono_sucursal = 'Este número de teléfono ya está registrado en otra sucursal';
+      }
     }
     
     setErrores(erroresTemp);
@@ -512,7 +550,7 @@ export default function GestionEmpresa() {
               Email: {empresa.correo_empresa}
             </div>
             <div className="text-xs text-gray-500">
-              Teléfono: {empresa.telefono_empresa}
+              Teléfono: +504 {empresa.telefono_empresa?.replace(/(\d{4})(\d{4})/, '$1-$2') || empresa.telefono_empresa}
             </div>
             <div className="text-xs text-gray-500">
               RTN: {empresa.rtn_empresa}
@@ -542,11 +580,14 @@ export default function GestionEmpresa() {
   };
 
   const telefonoBodyTemplate = (rowData) => {
-    return rowData.telefono_sucursal ? (
-      <span className="text-gray-600 text-sm">{rowData.telefono_sucursal}</span>
-    ) : (
-      <span className="text-gray-400">-</span>
-    );
+    if (!rowData.telefono_sucursal) {
+      return <span className="text-gray-400">-</span>;
+    }
+    
+    // Formatear el teléfono: si viene sin guión, agregarlo (ej: 99998888 -> 9999-8888)
+    const telefono = rowData.telefono_sucursal.replace(/(\d{4})(\d{4})/, '$1-$2');
+    
+    return <span className="text-gray-600 text-sm">+504 {telefono}</span>;
   };
 
   const accionesBodyTemplate = (rowData) => {
@@ -560,6 +601,7 @@ export default function GestionEmpresa() {
         label: 'EDITAR SUCURSAL',
         icon: <Edit2 size={14} className="text-blue-600" />,
         onClick: () => abrirModalSucursal('edit', sucursal, empresa)
+
       });
     }
     
@@ -600,7 +642,7 @@ export default function GestionEmpresa() {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
+    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
       {/* Título */}
       <div
         className="rounded-xl p-6 mb-3 bg-cover bg-center"
@@ -740,7 +782,7 @@ export default function GestionEmpresa() {
             />
             <Column
               field="telefono_sucursal"
-              header="TELÉFONO"
+              header="CELULAR"
               body={telefonoBodyTemplate}
               sortable
               className="w-[150px]"

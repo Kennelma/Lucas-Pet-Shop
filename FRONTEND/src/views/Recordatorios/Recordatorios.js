@@ -28,8 +28,8 @@ const Recordatorios = () => {
   }, []);
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
-      <div className="max-w-7xl mx-auto">
+    <div style={{ fontFamily: 'Poppins' }}>
+      <div className="w-full px-6">
         {/* Título */}
         <div
           className="rounded-xl p-6 mb-3"

@@ -112,15 +112,14 @@ const Accesorios = () => {
   const [filtroGlobal, setFiltroGlobal] = useState("");
   const [loading, setLoading] = useState(true);
   const [modalAbierto, setModalAbierto] = useState(false);
-  const [accesorioEditando, setAccesorioEditando] = useState(null);
-  const [first, setFirst] = useState(0);
-  const [rows, setRows] = useState(10);
+  const [accesorioEditando, setAccesorioEditando] = useState(null);
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(10);
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
-
-  useEffect(() => {
+  useEffect(() => {
+    cargarDatos();
+    document.body.style.fontFamily = 'Poppins';
+  }, []);  useEffect(() => {
     if (modalAbierto) {
       document.body.style.overflow = 'hidden';
     } else {
