@@ -183,14 +183,6 @@ export default function Usuarios() {
            u.roles.toLowerCase().includes(q);
   });
 
-  const sucursalBody = (row) => {
-    return (
-      <div className="text-sm text-center">
-        <span className="text-gray-900">Principal</span>
-      </div>
-    );
-  };
-
   const estadoBody = (row) => {
     const estado = row.estado || 'Desconocido';
     let colorClasses = 'bg-gray-100 text-gray-800';
@@ -409,32 +401,40 @@ export default function Usuarios() {
             rows={5}
             rowsPerPageOptions={[5, 10, 20, 25]}
             paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-            tableStyle={{ minWidth: '50rem' }}
+            tableStyle={{ minWidth: 'auto', tableLayout: 'auto' }}
             className="mt-4"
             size="small"
             selectionMode="single"
             rowClassName={(rowData) => rowData.id_usuario_pk === selectedUsuarioId ? 'fila-seleccionada cursor-pointer' : 'hover:bg-gray-50 cursor-pointer'}
             onRowClick={handleRowClick}
+            scrollable={false}
           >
             <Column
               field="id_usuario_pk"
               header="ID"
               body={(rowData) => filtroUsuarios.length - filtroUsuarios.indexOf(rowData)}
               sortable
-              className="w-[50px]"
+              style={{ width: '90px' }}
             />
             <Column
               field="usuario"
               header="USUARIO"
               sortable
-              className="w-[150px]"
+              style={{ width: '90' }}
             />
             <Column
               field="roles"
               header="ROLES"
               body={rolesBody}
               sortable
-              className="w-[150px]"
+              style={{ width: '90' }}
+            />
+            <Column
+              field="estado"
+              header="ESTADO"
+              body={estadoBody}
+              sortable
+              style={{ width: '90' }}
             />
             <Column
               header="ACCIONES"
@@ -450,8 +450,8 @@ export default function Usuarios() {
                   />
                 );
               }}
-              className="py-2 pr-9 pl-1 border-b text-sm"
-              style={{ position: 'relative', overflow: 'visible' }}
+              className="py-2 border-b text-sm"
+              style={{ position: 'relative', overflow: 'visible', width: '120px' }}
             />
           </DataTable>
             </div>

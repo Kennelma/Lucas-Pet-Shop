@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Swal from "sweetalert2";
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
@@ -228,17 +228,16 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                 `}
             </style>
 
-            <div className="bg-white rounded-xl p-6 font-poppins" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+            <div className="bg-white rounded-xl p-6 font-poppins" style={{boxShadow: '0 0 8px #DEFFAD40, 0 0 0 1px #DEFFAD33'}}>
                 <div className="flex justify-end items-center mb-4">
                     <button
                         className="text-black px-3 py-1 text-sm rounded transition-colors flex items-center gap-2 uppercase"
-                        style={{ backgroundColor: 'rgb(165, 204, 139)' }}
-                        onMouseEnter={(e) => e.target.style.backgroundColor = 'rgb(145, 184, 119)'}
-                        onMouseLeave={(e) => e.target.style.backgroundColor = 'rgb(165, 204, 139)'}
+                        style={{ backgroundColor: 'rgba(222, 255, 173, 1)' }}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(222, 255, 173, 1)'}
                         onClick={handleAgregarCliente}
                     >
-                        <FontAwesomeIcon icon={faUserPlus} />
-                        AGREGAR NUEVO CLIENTE
+                        <FontAwesomeIcon icon={faPlus} />
+                        AGREGAR CLIENTE
                     </button>
                 </div>
 

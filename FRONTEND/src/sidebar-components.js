@@ -50,7 +50,7 @@ const getNavigation = () => {
       name: 'MODULOS',
     },
 
-    //FACTURACIÓN - VISIBLE PARA TODOS LOS ROLES
+    //1. FACTURACIÓN - VISIBLE PARA TODOS LOS ROLES
     {
       component: CNavItem,
       name: 'Facturación',
@@ -58,15 +58,7 @@ const getNavigation = () => {
       icon: <FontAwesomeIcon icon={faDollarSign} className="nav-icon" />,
     },
 
-    //CLIENTES - VISIBLE PARA TODOS LOS ROLES
-    {
-      component: CNavItem,
-      name: 'Clientes',
-      to: '/clientes',
-      icon: <FontAwesomeIcon icon={faUsers} className="nav-icon" />,
-    },
-
-    //GRUPO DE PRODUCTOS CON SUBMENÚ - VISIBLE PARA TODOS LOS ROLES
+    //2. GRUPO DE PRODUCTOS CON SUBMENÚ - VISIBLE PARA TODOS LOS ROLES
     {
       component: CNavGroup,
       name: 'Productos',
@@ -103,7 +95,7 @@ const getNavigation = () => {
       ],
     },
 
-    //GRUPO DE PELUQUERÍA CANINA CON SUBMENÚ - VISIBLE PARA TODOS LOS ROLES
+    //3. GRUPO DE PELUQUERÍA CANINA CON SUBMENÚ - VISIBLE PARA TODOS LOS ROLES
     {
       component: CNavGroup,
       name: 'Peluqueria Canina',
@@ -126,48 +118,48 @@ const getNavigation = () => {
       ],
     },
 
-  //EMPRESA
-  {
-    component: CNavItem,
-    name: 'Empresa y sucursales',
-    icon: <FontAwesomeIcon icon={faStore} className="nav-icon" />,
-    to: '/empresa',
-  },
+    //4. CLIENTES - VISIBLE PARA TODOS LOS ROLES
+    {
+      component: CNavItem,
+      name: 'Clientes',
+      to: '/clientes',
+      icon: <FontAwesomeIcon icon={faUsers} className="nav-icon" />,
+    },
 
-  //RECORDATORIOS
-  {
-    component: CNavItem,
-    name: 'Recordatorios',
-    to: '/recordatorios',
-    icon: <FontAwesomeIcon icon={faBell} className="nav-icon" />,
-  },
+    //5. SEGURIDAD
+    {
+      component: CNavItem,
+      name: 'Seguridad',
+      to: '/seguridad',
+      icon: <FontAwesomeIcon icon={faShield} className="nav-icon" />,
+    },
 
-  //SEGURIDAD
-  {
-    component: CNavItem,
-    name: 'Seguridad',
-    to: '/seguridad',
-    icon: <FontAwesomeIcon icon={faShield} className="nav-icon" />,
-  },
+    //6. RECORDATORIOS
+    {
+      component: CNavItem,
+      name: 'Recordatorios',
+      to: '/recordatorios',
+      icon: <FontAwesomeIcon icon={faBell} className="nav-icon" />,
+    },
+
+    //7. ESTILISTAS Y BONIFICACIONES
+    {
+      component: CNavItem,
+      name: 'Estilistas',
+      to: '/estilistas',
+      icon: <FontAwesomeIcon icon={faCoins} className="nav-icon" />,
+    },
+
+    //8. REPORTES
+    {
+      component: CNavItem,
+      name: 'Reportes',
+      to: '/reportes',
+      icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
+    },
 
 
-
-  //ESTILISTAS Y BONIFICACIONES
-  {
-    component: CNavItem,
-    name: 'Estilistas',
-    to: '/estilistas',
-    icon: <FontAwesomeIcon icon={faCoins} className="nav-icon" />,
-  },
-
-  
-  //REPORTES
-{
-  component: CNavItem,
-  name: 'Reportes',
-  to: '/reportes',
-  icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
-},
+ 
 
 
 
