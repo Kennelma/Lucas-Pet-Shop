@@ -3,11 +3,12 @@ const mysqlConnection = require('../config/conexion');
 
 
 //TAREA AUTOMATICA DE ESTADO DE LOTES
-cron.schedule('0 */5 * * *', async () => { // CADA 5 MINUTOS
+cron.schedule('*/2 * * * *', async () => { // CADA 5 HORAS
 
   const conn = await mysqlConnection.getConnection();
 
-  //VARIABLES GLOBALESlet fecha = new Date();
+  //VARIABLES GLOBALES
+  let fecha = new Date();
   let anio = fecha.getFullYear();
   let mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
   let dia = fecha.getDate().toString().padStart(2, '0');
@@ -41,14 +42,16 @@ cron.schedule('0 */5 * * *', async () => { // CADA 5 MINUTOS
       UPDATE tbl_lotes_medicamentos l
       INNER JOIN tbl_medicamentos_info m ON l.id_medicamento_fk = m.id_medicamento_pk
       INNER JOIN tbl_productos p ON m.id_producto_fk = p.id_producto_pk
-      SET l.id_estado_fk =
+      SET l.estado_lote_fk =
         CASE
           WHEN l.fecha_vencimiento <= ? THEN ?
           WHEN l.stock_lote = 0 THEN ?
-          WHEN l.stock_lote <= p.stock_minimo_producto THEN ?
-          WHEN l.fecha_vencimiento > ? AND l.stock_lote > p.stock_minimo_producto THEN ?
+          WHEN l.stock_lote <= p.stock_minimo THEN ?
+          WHEN l.fecha_vencimiento > ? AND l.stock_lote > p.stock_minimo THEN ?
         END
     `, [fecha_actual, idCaducado, idAgotado, idPorAcabarse, fecha_actual, idDisponible]);
+
+    console.log(`ESTADO DE LOTES ACTUALIZADOS (${fecha_actual})`);
 
   } catch (error) {
       console.error('ERROR AL ACTUALIZAR ESTADO DE LOTES:', error.message);

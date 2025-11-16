@@ -144,7 +144,7 @@ const Grafica = ({ obtenerRegistroFinanciero, anio }) => {
             <TrendingUp className="w-4 h-4 text-blue-600" />
           </div>
           <h3 className="text-sm font-bold text-gray-900" style={{ fontFamily: 'Poppins, sans-serif' }}>
-            Comparativa de 3 Meses
+            Comparativa Mensual
           </h3>
         </div>
 
