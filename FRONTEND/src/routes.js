@@ -14,7 +14,6 @@ const Recordatorios = React.lazy(() => import('./views/Recordatorios/Recordatori
 const Empresa = React.lazy(() => import('./views/empresa/Gestion-Empresa'))
 const Facturacion = React.lazy(() => import('./views/facturacion/facturas/Facturacion'))
 const Seguridad = React.lazy(() => import('./views/seguridad/Seguridad'))
-
 const Estilistas = React.lazy(() => import('./views/estilistas/Estilistas'))
 const Reportes = React.lazy(() => import('./views/reportes/Reportes'))
 
@@ -37,7 +36,7 @@ const routes = [
   {path: '/reportes', name: 'Reportes', element: Reportes },
   {path: '/seguridad', name: 'Seguridad', element: Seguridad },
   { path: '/reportes', name: 'Reportes', element: Reportes },
-   { path: '/reportes/tabla', name: 'Reportes / Tabla', element: Tabla },  
+  { path: '/reportes/tabla', name: 'Reportes / Tabla', element: Tabla },
 ]
 
 export default routes

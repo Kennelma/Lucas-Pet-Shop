@@ -6,7 +6,9 @@ require('dotenv').config({
 });
 
 const mysql = require('mysql2/promise');
-console.log("Host de DB cargado:", process.env.DB_HOST);
+
+//console.log("Host de DB cargado:", process.env.DB_HOST);
+process.env.TZ = 'America/Tegucigalpa';
 
 //CONFIGURACIÓN DE LA CONEXIÓN AL SERVIDOR CON LA BASE DE DATOS
 const mysqlConnection = mysql.createPool({
@@ -16,7 +18,7 @@ const mysqlConnection = mysql.createPool({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     multipleStatements: true,
-    timezone: '-06:00', // Zona horaria de Honduras (CST)
+    timezone: '-06:00', //Zona horaria de Tegucigalpa
     ssl: {
         rejectUnauthorized: false
     }

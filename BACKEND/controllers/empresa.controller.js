@@ -16,6 +16,7 @@ exports.crear = async (req, res) => {
 
     try  {
 
+
         const {entidad} = req.body;
 
         switch (entidad) {
@@ -27,7 +28,8 @@ exports.crear = async (req, res) => {
                     nombre_empresa,
                     telefono_empresa,
                     correo_empresa,
-                    rtn_empresa) VALUES (?,?,?,?)`,
+                    rtn_empresa
+                    ) VALUES (?,?,?,?)`,
                     [
                         req.body.nombre_empresa,
                         req.body.telefono_empresa,
@@ -59,16 +61,20 @@ exports.crear = async (req, res) => {
                 //SE TOMA EL ID DEL USUARIO AUTENTICADO (MIDDLEWARE AUTH)
                 const id_usuario = req.usuario?.id_usuario_pk;
 
+                const fecha_gasto =  new Date();
+
                 await conn.query(
                 `INSERT INTO tbl_gastos (
                     detalle_gasto,
                     monto_gasto,
-                    id_usuario_fk
-                ) VALUES (?,?,?)`,
+                    id_usuario_fk,
+                    fecha_registro_gasto
+                ) VALUES (?,?,?,?)`,
                 [
                     req.body.detalle_gasto,
                     req.body.monto_gasto,
-                    id_usuario
+                    id_usuario,
+                    fecha_gasto
                 ]
                 );
 
@@ -126,11 +132,14 @@ exports.actualizar = async (req, res) => {
                         telefono_empresa  = COALESCE(?, telefono_empresa),
                         correo_empresa    = COALESCE(?, correo_empresa),
                         rtn_empresa       = COALESCE(?, rtn_empresa)
+                        correo_empresa    = COALESCE(?, correo_empresa),
+                        rtn_empresa       = COALESCE(?, rtn_empresa)
                     WHERE id_empresa_pk = ?`,
                     [
                         req.body.nombre_empresa || null,
                         req.body.telefono_empresa || null,
                         req.body.correo_empresa || null,
+                        req.body.rtn_empresa || null,
                         req.body.rtn_empresa || null,
                         id
                     ]
@@ -281,16 +290,16 @@ exports.ver = async (req, res) => {
 
                 [registros] = await conn.query(
 
-        `SELECT
-            id_gasto_pk,
-            detalle_gasto,
-            monto_gasto,
-            fecha_registro_gasto
-        FROM tbl_gastos
-        WHERE fecha_registro_gasto >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-        ORDER BY fecha_registro_gasto DESC, id_gasto_pk DESC`
-    );
-    break;
+                `SELECT
+                    id_gasto_pk,
+                    detalle_gasto,
+                    monto_gasto,
+                    fecha_registro_gasto
+                FROM tbl_gastos
+                ORDER BY fecha_registro_gasto DESC, id_gasto_pk DESC`
+                );
+
+                break;
 
 
             default:

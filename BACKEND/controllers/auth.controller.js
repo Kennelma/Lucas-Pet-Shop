@@ -46,8 +46,8 @@ exports.login = async (req, res) => {
 
         const user = result[0]?.[0];
 
-        console.log('Resultado completo de búsqueda:', result);
-        console.log('Primer usuario encontrado:', user);
+        //console.log('Resultado completo de búsqueda:', result);
+        //console.log('Primer usuario encontrado:', user);
 
         // PRIMERO: SI EL USUARIO NO EXISTE
         if (!user) {
@@ -106,7 +106,7 @@ exports.login = async (req, res) => {
 
                 //SI EL USUARIO ESTÁ DENTRO DEL SISTEMA Y ACTIVO
                 const validarContrasena = await argon2.verify(user.contrasena_usuario, password);
-                console.log('Validación de contraseña:', validarContrasena);
+                //console.log('Validación de contraseña:', validarContrasena);
 
                 //SI LA CONTRASEÑA ES INCORRECTA
                 if (!validarContrasena) {
@@ -169,7 +169,7 @@ exports.login = async (req, res) => {
         let token = null;
 
         if (estado === 200) {
-            console.log('Antes de JWT:', Date.now() - start, 'ms');
+            //console.log('Antes de JWT:', Date.now() - start, 'ms');
 
             token = jwt.sign(
 
@@ -186,11 +186,11 @@ exports.login = async (req, res) => {
                 { expiresIn: '1h' }
                 //{ expiresIn: '10s' }
             );
-            console.log('Después de JWT:', Date.now() - start, 'ms');
+            //console.log('Después de JWT:', Date.now() - start, 'ms');
         }
 
-        const responseTime = Date.now() - start;
-        console.log('Tiempo total login (CORREGIDO):', responseTime, 'ms');
+        //const responseTime = Date.now() - start;
+        //console.log('Tiempo total login (CORREGIDO):', responseTime, 'ms');
 
 
         //RESPUESTA

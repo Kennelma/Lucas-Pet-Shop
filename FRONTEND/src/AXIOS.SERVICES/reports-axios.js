@@ -3,64 +3,38 @@ import axiosInstance from './axiosConfig';
 
 const API_URL = '/reportes';
 
-// Helper: arma params sin undefined/null
-const buildParams = (obj) =>
-  Object.fromEntries(Object.entries(obj || {}).filter(([, v]) => v !== undefined && v !== null && v !== ''));
-
-
-export const verIngresos = async ({ anio, mes } = {}) => {
+//SERVICIOS DE AXIOS PARA EL REPORTES DIARIO AUTOMATICO
+export const obtenerReporteDiario = async () => {
   try {
-    const params = buildParams({ anio, mes });
-    const { data } = await axiosInstance.get(`${API_URL}/ingresos`, { params });
-    return data?.ingresos ?? [];
-  } catch (err) {
-    console.error('Error al traer ingresos:', err);
-    return [];
+    const response = await axiosInstance.get(`${API_URL}/reporteDiario`);
+    return response.data;
+  } catch (error) {
+    throw error;
   }
 };
 
 
-export const verGastos = async ({ anio, mes } = {}) => {
+//SERVICIOS DE AXIOS PARA EL REGISTRO FINANCIERO DE GRAFICOS Y DE TABLAS
+export const obtenerRegistroFinanciero = async (anio) => {
   try {
-    const params = buildParams({ anio, mes });
-    const { data } = await axiosInstance.get(`${API_URL}/gastos`, { params });
-    return data?.gastos ?? [];
-  } catch (err) {
-    console.error('Error al traer gastos:', err);
-    return [];
+    const response = await axiosInstance.get(`${API_URL}/registroFinanciero`, {
+      params: { anio }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
   }
 };
 
-export const verResumenDiario = async () => {
+// SERVICIOS DE AXIOS PARA EL HISTORIAL DE REPORTES GENERADOS
+// para poder verlos diarios
+export const obtenerHistorialReportes = async (anio, mes, dia) => {
   try {
-    const { data } = await axiosInstance.get(`${API_URL}/resumen-diario`);
-    return data ?? { ok: false };
-  } catch (err) {
-    console.error('Error al traer resumen diario:', err);
-    return { ok: false, msg: err.message };
-  }
-};
-
-
-export const verGraficosMensual = async ({ anio } = {}) => {
-  try {
-    const params = buildParams({ modo: 'mensual', anio });
-    const { data } = await axiosInstance.get(`${API_URL}/graficos`, { params });
-    return data ?? { ok: false, data: [] };
-  } catch (err) {
-    console.error('Error al traer gráficos mensuales:', err);
-    return { ok: false, data: [], msg: err.message };
-  }
-};
-
-
-export const verGraficosDiario = async ({ anio, mes }) => {
-  try {
-    const params = buildParams({ modo: 'diario', anio, mes });
-    const { data } = await axiosInstance.get(`${API_URL}/graficos`, { params });
-    return data ?? { ok: false, data: [] };
-  } catch (err) {
-    console.error('Error al traer gráficos diarios:', err);
-    return { ok: false, data: [], msg: err.message };
+    const response = await axiosInstance.get(`${API_URL}/historialReportes`, {
+      params: { anio, mes, dia },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
   }
 };

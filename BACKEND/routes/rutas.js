@@ -52,21 +52,17 @@ router.get ('/empresa/ver', verificarToken, empresa.ver);
 router.delete ('/empresa/eliminar', verificarToken, empresa.eliminar);
 router.put('/empresa/actualizar', verificarToken, empresa.actualizar);
 
-
 //========== RUTAS DE FACTURACIÓN ==========
 router.get ('/facturacion/catalogoItems', verificarToken, facturas.catalogoItems);
 router.get ('/facturacion/buscarCliente', verificarToken,facturas.buscarClientesPorIdentidad);
 router.get ('/facturacion/usuarioFacturacion', verificarToken, facturas.usuarioFactura);
 router.get ('/facturacion/estilistasFacturacion', verificarToken, facturas.buscarEstilistas);
-
-
 router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFactura)
 router.get  ('/facturacion/verFacturas', facturas.historialFacturas);
 router.get  ('/facturacion/verDetalleFactura', facturas.detalleFacturaSeleccionada);
 
 
 //RUTA PARA IMPRIMIR LA FACTURA EN FORMATO PDF
-router.get  ('/facturacion/verDetalleFactura', facturas.detalleFacturaSeleccionada);
 router.get  ('/facturacion/imprimirFactura', facturas.ImpresionFactura);
 
 //========== RUTAS DE PAGOS ==========
@@ -79,10 +75,14 @@ router.get ('/perfil/ver', verificarToken, perfil.verPerfil);
 router.put ('/perfil/actualizar', verificarToken, perfil.actualizarPerfil);
 
 //========== RUTAS DE REPORTES ==========
-router.get('/reportes/ingresos', reportes.registroIngresos);
-router.get('/reportes/gastos', reportes.registrosGastos);
-router.get('/reportes/resumen-diario', reportes.resumenDiario);
-router.get('/reportes/graficos', reportes.resumenGraficos);
+router.get ('/reportes/reporteDiario', reportes.reporteDiario); //ARRIBA, SOLO CARGAR
+router.get ('/reportes/registroFinanciero', reportes.registroFinanciero); //PARA TABLA Y GRAFICO
+
+
+
+router.get ('/reportes/historialReportes', reportes.historialReportes);
+
+
 
 //========== RUTAS DE NOTIFICACIONES ==========
 router.get('/notificaciones/ver', notificaciones.verNotificaciones);
