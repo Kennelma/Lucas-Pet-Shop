@@ -179,6 +179,7 @@ exports.crear = async (req, res) => {
 
                 //OBTENGO EL ID DEL MEDICAMENTO PARA PODER INGRESAR EL PRIMER LOTE
                 const id_medicamento = medicamentos.insertId;
+                const fecha_vencimiento = new Date(req.body.fecha_vencimiento);
 
                 //SE LLENA EL LOTE DEL MEDICAMENTO
                     const [lote] = await conn.query(
@@ -190,7 +191,7 @@ exports.crear = async (req, res) => {
                         VALUES (?, ?, ?, ?)`,
                         [
                             req.body.codigo_lote,
-                            req.body.fecha_vencimiento,
+                            fecha_vencimiento,
                             req.body.stock_lote,
                             id_medicamento
                         ]
@@ -836,8 +837,8 @@ exports.eliminar = async (req, res) => {
     }
 
 };
-//Endpoint para obtener los productos de favoritos del mes
 
+//Endpoint para obtener los productos de favoritos del mes
 exports.favoritos = async (req, res) => {
 
     const conn = await mysqlConnection.getConnection();
