@@ -18,7 +18,7 @@ cron.schedule('0 */5 * * * ', async () => {
                 nombre_producto,
                 stock,
                 stock_minimo
-            FROM tbl_productos
+            FROM tbl_productos 
             WHERE stock < stock_minimo
         `);
 

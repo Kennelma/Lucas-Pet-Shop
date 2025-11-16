@@ -296,3 +296,58 @@ exports.visualizar = async (req, res) => {
 
 
 }
+
+
+
+//ENDPOINT DE SERVICIOS FAVORITOS DE LA PELUQERIA
+exports.favoritos = async (req, res) => {
+
+    const conn = await mysqlConnection.getConnection();
+
+    try {
+
+        const { tipo } = req.query;
+
+
+        const [servicio] = await conn.query(`
+            SELECT
+                id_tipo_item_pk,
+                nombre_tipo_item
+            FROM cat_tipo_item
+            WHERE nombre_tipo_item = ?
+        `, [tipo]);
+
+        const tipo_item = servicio[0].id_tipo_item_pk;
+
+        const [favoritos] = await conn.query(`
+            SELECT
+                f.numero_factura,
+                df.nombre_item,
+                SUM(df.cantidad_item) AS total_vendido,
+                MONTHNAME(f.fecha_emision) AS mes
+            FROM tbl_detalles_facturas df
+            INNER JOIN tbl_facturas f ON df.id_factura_fk = f.id_factura_pk
+            WHERE df.id_tipo_item_fk = ?
+            AND MONTH(f.fecha_emision) = MONTH(CURDATE())
+            AND YEAR(f.fecha_emision)= YEAR(CURDATE())
+            GROUP BY f.numero_factura, df.nombre_item, mes
+            ORDER BY total_vendido DESC
+        `, [tipo_item]);
+
+        res.json({
+            Consulta: true,
+            favoritos: favoritos || []
+        });
+
+    } catch (error) {
+
+        console.error("Error en favoritos:", error);
+        res.status(500).json({
+            Consulta: false,
+            mensaje: "Error al obtener favoritos",
+            error: error.message
+        });
+
+    }
+
+};

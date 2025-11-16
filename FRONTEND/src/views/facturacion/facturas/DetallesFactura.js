@@ -41,6 +41,7 @@ const DetallesFactura = ({
   RTN,
   id_cliente,
   setActiveTab,
+  setFacturaParaImprimir,
 }) => {
 
   //====================ESTADOS====================
@@ -311,6 +312,7 @@ const DetallesFactura = ({
         setShowPaymentModal(false);
         setPaymentData(null);
         const saldoPendiente = response.data?.saldo ?? 0;
+
         if (saldoPendiente > 0) {
           await Swal.fire({
             icon: "success",
@@ -320,17 +322,29 @@ const DetallesFactura = ({
             }\nSaldo pendiente:  ${saldoPendiente.toFixed(2)}`,
             confirmButtonColor: "#3085d6",
           });
+          if (setActiveTab) {
+            setActiveTab("facturas");
+          }
         } else {
+          // PAGO TOTAL - GUARDAR NÚMERO DE FACTURA PARA IMPRIMIR
+          const numeroFactura = response.data?.numero_factura || paymentData?.numero_factura;
+
           await Swal.fire({
             icon: "success",
-            title: "Pago procesado",
-            text: response.mensaje || "Pago procesado exitosamente",
+            title: "Pago completado",
+            text: "El pago se ha procesado exitosamente. Se mostrará el preview de la factura.",
             confirmButtonColor: "#3085d6",
           });
-        }
-        // CAMBIAR A LA PESTAÑA DE HISTORIAL DE FACTURAS
-        if (setActiveTab) {
-          setActiveTab("facturas");
+
+          // GUARDAR NÚMERO DE FACTURA Y REDIRIGIR AL HISTORIAL
+          if (setFacturaParaImprimir && numeroFactura) {
+            setFacturaParaImprimir(numeroFactura);
+          }
+
+          // REDIRIGIR AL HISTORIAL
+          if (setActiveTab) {
+            setActiveTab("facturas");
+          }
         }
       } else {
         await Swal.fire({
