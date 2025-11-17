@@ -102,13 +102,13 @@ const Dashboard = () => {
 
           {/* Accesos Directos */}
           <div className="mb-8">
-            <div className="text-lg font-bold text-gray-800 mb-4">ACCESOS RÁPIDOS</div>
+            <div className="text-lg font-bold text-gray-800 mb-4 text-center">ACCESOS RÁPIDOS</div>
 
             {/* Primera fila */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
               <button
                 onClick={() => navigate('/facturacion')}
-                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-100 shadow-md border"
+                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border"
               >
                 <div className="relative flex flex-col items-center justify-center h-full">
                   <lucideReact.FileText className="w-7 h-7 text-blue-600 mb-2" />
@@ -118,7 +118,7 @@ const Dashboard = () => {
 
               <button
                 onClick={() => navigate('/reportes')}
-                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-100 shadow-md border"
+                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border"
               >
                 <div className="relative flex flex-col items-center justify-center h-full">
                   <lucideReact.TrendingUp className="w-7 h-7 text-purple-600 mb-2" />
@@ -128,7 +128,7 @@ const Dashboard = () => {
 
               <button
                 onClick={() => navigate('/clientes')}
-                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-100 shadow-md border"
+                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border"
               >
                 <div className="relative flex flex-col items-center justify-center h-full">
                   <lucideReact.Users className="w-7 h-7 text-indigo-600 mb-2" />
@@ -141,7 +141,7 @@ const Dashboard = () => {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <button
                 onClick={() => navigate('/recordatorios')}
-                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-100 shadow-md border"
+                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border"
               >
                 <div className="relative flex flex-col items-center justify-center h-full">
                   <lucideReact.Bell className="w-7 h-7 text-orange-600 mb-2" />
@@ -151,7 +151,7 @@ const Dashboard = () => {
 
               <button
                 onClick={() => navigate('/productos/alimentos')}
-                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-100 shadow-md border"
+                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border"
               >
                 <div className="relative flex flex-col items-center justify-center h-full">
                   <lucideReact.Package className="w-7 h-7 text-green-600 mb-2" />
@@ -161,7 +161,7 @@ const Dashboard = () => {
 
               <button
                 onClick={() => navigate('/seguridad')}
-                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-100 shadow-md border"
+                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border"
               >
                 <div className="relative flex flex-col items-center justify-center h-full">
                   <lucideReact.Shield className="w-7 h-7 text-red-600 mb-2" />
@@ -182,10 +182,7 @@ const Dashboard = () => {
               {/* Header Sutil */}
               <div className="relative px-4 pt-2 pb-1 bg-[#FFCC33]">
                 <div className="relative mb-1">
-                <p className="text-base font-semibold tracking-wider text-center">GASTOS DE HOY</p>
-                <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-gradient-to-br from-yellow-100 to-amber-100 rounded-full flex items-center justify-center">
-                  <lucideReact.BarChart3 className="w-5 h-5" color="#FFCC33" />
-                </div>
+                  <p className="text-base font-semibold tracking-wider text-center">GASTOS DE HOY</p>
               </div>
 
                 {/* Navegación de Fecha */}
@@ -275,13 +272,10 @@ const Dashboard = () => {
               </div>
 
               {/* Total - Abajo */}
-              <div className="px-4 py-1 border-t border-slate-100 bg-gradient-to-br from-slate-50/50 to-transparent">
+              <div className="px-4 py-3 border-t border-slate-100 bg-gray-200">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total</p>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-sm font-light text-slate-900">L</span>
-                    <span className="text-sm font-semibold text-slate-900">{totalExpenses.toFixed(2)}</span>
-                  </div>
+                  <span className="text-ls font-bold text-gray-900 uppercase tracking-wider">Total</span>
+                  <span className="text-ls font-bold text-gray-900">L {totalExpenses.toFixed(2)}</span>
                 </div>
               </div>
 
