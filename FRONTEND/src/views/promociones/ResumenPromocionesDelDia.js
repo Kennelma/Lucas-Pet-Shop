@@ -215,7 +215,7 @@ const ResumenPromocionesDelDia = () => {
             {promocionesDelDia.map((promocion, index) => (
               <div key={promocion.id_promocion_pk || index} className="bg-white/80 backdrop-blur-sm rounded-md p-2 border border-white/50 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 flex flex-col h-52">
                 <div className="flex-grow flex items-center justify-center">
-                  <h3 className="font-semibold text-gray-800 text-[18px] leading-tight text-center mb-2">{promocion.nombre_promocion}</h3>
+                  <div className="font-semibold text-gray-800 text-[18px] leading-tight text-center mb-2">{promocion.nombre_promocion}</div>
                 </div>
                 <div className="mt-auto space-y-0.5">
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
