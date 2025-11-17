@@ -11,8 +11,6 @@ export default function ModalPromocion({
   promocion = null,
   promocionesExistentes = [] // 👈 NUEVO: Lista de promociones para validar duplicados
 }) {
-  console.log('ModalPromocion renderizado - isOpen:', isOpen, 'promocion:', promocion);
-  
   const [formData, setFormData] = useState({
     nombre_promocion: '',
     descripcion_promocion: '',
@@ -45,7 +43,6 @@ export default function ModalPromocion({
             diasPromocion = promocion.dias_promocion;
           }
         } catch (error) {
-          console.warn('Error parseando dias_promocion:', error);
           diasPromocion = [];
         }
       }
@@ -116,6 +113,7 @@ export default function ModalPromocion({
     if (!formData.descripcion_promocion.trim()) {
       nuevosErrores.descripcion_promocion = 'La descripción es requerida';
     }
+    
     // ============ VALIDACIÓN DE PRECIO ============
     const precio = parseFloat(formData.precio_promocion);
     if (!formData.precio_promocion || isNaN(precio)) {
@@ -136,7 +134,9 @@ export default function ModalPromocion({
 
   const handleSubmit = (e) => {
     if (e) e.preventDefault();
+    
     const nuevosErrores = validarFormulario();
+    
     if (Object.keys(nuevosErrores).length > 0) {
       setErrores(nuevosErrores);
       return;
@@ -147,9 +147,6 @@ export default function ModalPromocion({
       ...formData,
       dias_promocion: JSON.stringify(formData.dias_promocion)
     };
-    
-    console.log('Datos del formulario:', formData);
-    console.log('Datos para enviar:', dataParaEnviar);
     
     onSubmit(dataParaEnviar);
   };
