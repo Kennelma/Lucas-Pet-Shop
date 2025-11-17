@@ -177,6 +177,15 @@ exports.crear = async (req, res) => {
                         id_producto
                     ]);
 
+
+                const [loteEstado] = await conn.query(
+                    `SELECT id_estado_pk AS id
+                    FROM cat_estados
+                    WHERE dominio = 'LOTE_MEDICAMENTO' AND nombre_estado = 'DISPONIBLE'`
+                );
+
+                let estado_lotaje = loteEstado[0].id;
+
                 //OBTENGO EL ID DEL MEDICAMENTO PARA PODER INGRESAR EL PRIMER LOTE
                 const id_medicamento = medicamentos.insertId;
                 const fecha_vencimiento = new Date(req.body.fecha_vencimiento);
@@ -187,12 +196,14 @@ exports.crear = async (req, res) => {
                         codigo_lote,
                         fecha_vencimiento,
                         stock_lote,
+                        estado_lote_fk,
                         id_medicamento_fk)
-                        VALUES (?, ?, ?, ?)`,
+                        VALUES (?, ?, ?, ?, ?)`,
                         [
                             req.body.codigo_lote,
                             fecha_vencimiento,
                             req.body.stock_lote,
+                            estado_lotaje,
                             id_medicamento
                         ]
                     );
@@ -236,18 +247,32 @@ exports.crear = async (req, res) => {
                 const id_med_fk = medicamento[0].id;
                 const precio_medicamento = medicamento[0].precio_producto;
 
+                const [estadoLotaje] = await conn.query(
+                    `SELECT id_estado_pk AS id
+                    FROM cat_estados
+                    WHERE dominio = 'LOTE_MEDICAMENTO' AND nombre_estado = 'DISPONIBLE'`
+                );
+
+                let lotaje = estadoLotaje[0].id;
+
+                const fecha_ingreso = new Date();
+
                 //INSERTO EL LOTE CORRESPONDIENTE A ESE MEDICAMENTO
                 const [lote_nuevo] = await conn.query(
                     `INSERT INTO tbl_lotes_medicamentos(
                         codigo_lote,
+                        fecha_ingreso,
                         fecha_vencimiento,
                         stock_lote,
+                        estado_lote_fk,
                         id_medicamento_fk
-                    ) VALUES (?, ?, ?, ?)`,
+                    ) VALUES (?, ?, ?, ?, ?, ?)`,
                     [
                         req.body.codigo_lote,
+                        fecha_ingreso,
                         req.body.fecha_vencimiento,
                         req.body.stock_lote,
+                        lotaje,
                         id_med_fk
                     ]
                 );
@@ -605,6 +630,9 @@ exports.ver = async (req, res) => {
 
     const conn = await mysqlConnection.getConnection();
 
+    // Configurar timeout para evitar bloqueos largos
+    await conn.query('SET SESSION innodb_lock_wait_timeout = 5');
+
     try {
 
         let registros; //VARIABLE DE APOYO
@@ -791,7 +819,7 @@ exports.eliminar = async (req, res) => {
 
             const id_produ = lotes[0]?.id_producto_fk;
 
-            // SE RESTA EL STOCK DEL PRODUCTO
+            //SE RESTA EL STOCK DEL PRODUCTO
             if (id_produ) {
                 await conn.query(
                     `UPDATE tbl_productos SET stock = stock - ? WHERE id_producto_pk = ?`,
@@ -799,7 +827,7 @@ exports.eliminar = async (req, res) => {
                 );
             }
 
-            // 3. Borrar el lote
+            //SE BORRA EL LOTE
             await conn.query(
                 `DELETE FROM tbl_lotes_medicamentos WHERE id_lote_medicamentos_pk = ?`, [id_lote]
             );
