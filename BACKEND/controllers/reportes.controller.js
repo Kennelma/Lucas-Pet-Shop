@@ -204,3 +204,106 @@ exports.historialReportes = async (req, res) => {
   }
 
 };
+
+exports.reportesDetallados = async (req, res) => {
+
+  const conn = await mysqlConnection.getConnection();
+
+  try {
+
+    const { fecha_reporte } = req.query;
+
+    const [detalles] = await conn.query(`
+      SELECT
+          'INGRESO' AS tipo_movimiento,
+          f.fecha_emision AS fecha,
+          f.numero_factura AS documento,
+          GROUP_CONCAT(CONCAT(df.nombre_item, ' (', df.cantidad_item, ')') SEPARATOR ', ') AS concepto,
+          f.total AS monto
+      FROM tbl_facturas f
+      INNER JOIN tbl_detalles_facturas df ON f.id_factura_pk = df.id_factura_fk
+      WHERE DATE(f.fecha_emision) = ?
+      GROUP BY f.id_factura_pk, f.fecha_emision, f.numero_factura, f.total
+
+      UNION ALL
+
+      SELECT
+          'GASTO' AS tipo_movimiento,
+          g.fecha_registro_gasto AS fecha,
+          CONCAT('GASTO #', g.id_gasto_pk) AS documento,
+          g.detalle_gasto AS concepto,
+          g.monto_gasto AS monto
+      FROM tbl_gastos g
+      WHERE DATE(g.fecha_registro_gasto) = ?
+
+      UNION ALL
+
+      SELECT
+          '--- RESUMEN ---' AS tipo_movimiento,
+          NULL AS fecha,
+          'TOTAL INGRESOS' AS documento,
+          '' AS concepto,
+          (SELECT COALESCE(SUM(f.total), 0)
+          FROM tbl_facturas f
+          WHERE DATE(f.fecha_emision) = ?) AS monto
+
+      UNION ALL
+
+      SELECT
+          '--- RESUMEN ---' AS tipo_movimiento,
+          NULL AS fecha,
+          'TOTAL GASTOS' AS documento,
+          '' AS concepto,
+          (SELECT COALESCE(SUM(g.monto_gasto), 0)
+          FROM tbl_gastos g
+          WHERE DATE(g.fecha_registro_gasto) = ?) AS monto
+
+      UNION ALL
+
+      SELECT
+          '--- RESUMEN ---' AS tipo_movimiento,
+          NULL AS fecha,
+          'BALANCE' AS documento,
+          '' AS concepto,
+          (
+              (SELECT COALESCE(SUM(f.total), 0)
+              FROM tbl_facturas f
+              WHERE DATE(f.fecha_emision) = ?)
+              -
+              (SELECT COALESCE(SUM(g.monto_gasto), 0)
+              FROM tbl_gastos g
+              WHERE DATE(g.fecha_registro_gasto) = ?)
+          ) AS monto
+
+      ORDER BY
+          CASE
+              WHEN tipo_movimiento = '--- RESUMEN ---' THEN 2
+              ELSE 1
+          END,
+          fecha DESC,
+          tipo_movimiento
+    `, [
+      fecha_reporte,
+      fecha_reporte,
+      fecha_reporte,
+      fecha_reporte,
+      fecha_reporte,
+      fecha_reporte]);
+
+    res.status(200).json({
+      Consulta: true,
+      mensaje: 'REPORTES DETALLADOS CARGADOS',
+      detalles: detalles || []
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      Consulta: false,
+      error: error.message
+    });
+
+  } finally {
+    if (conn) conn.release();
+  }
+
+};

@@ -49,3 +49,14 @@ export const obtenerHistorialReportes = async (anio, mes, dia) => {
 };
 
 
+//SERVICIOS PARA VER LOS DETALLES DE ESE REPORTE A DETALLES
+export const obtenerReportesDetallados = async (fecha_reporte) => {
+  try {
+    const response = await axiosInstance.get(`${API_URL}/reportesDetallados`, {
+      params: { fecha_reporte },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

@@ -236,18 +236,33 @@ exports.crear = async (req, res) => {
                 const id_med_fk = medicamento[0].id;
                 const precio_medicamento = medicamento[0].precio_producto;
 
+
+                const [estadoLote] = await conn.query(
+                    `SELECT id_estado_pk AS id
+                    FROM cat_estados
+                    WHERE dominio = 'LOTE_MEDICAMENTO' AND nombre_estado = 'DISPONIBLE'`
+                );
+
+                let estado = estadoLote[0].id;
+                
+                let fecha_ingreso = new Date();
+
                 //INSERTO EL LOTE CORRESPONDIENTE A ESE MEDICAMENTO
                 const [lote_nuevo] = await conn.query(
                     `INSERT INTO tbl_lotes_medicamentos(
                         codigo_lote,
+                        fecha_ingreso,
                         fecha_vencimiento,
                         stock_lote,
+                        estado_lote_fk,
                         id_medicamento_fk
-                    ) VALUES (?, ?, ?, ?)`,
+                    ) VALUES (?, ?, ?, ?, ?, ?)`,
                     [
                         req.body.codigo_lote,
+                        fecha_ingreso,
                         req.body.fecha_vencimiento,
                         req.body.stock_lote,
+                        estado,
                         id_med_fk
                     ]
                 );
@@ -791,7 +806,7 @@ exports.eliminar = async (req, res) => {
 
             const id_produ = lotes[0]?.id_producto_fk;
 
-            // SE RESTA EL STOCK DEL PRODUCTO
+            //SE RESTA EL STOCK DEL PRODUCTO
             if (id_produ) {
                 await conn.query(
                     `UPDATE tbl_productos SET stock = stock - ? WHERE id_producto_pk = ?`,
@@ -799,7 +814,7 @@ exports.eliminar = async (req, res) => {
                 );
             }
 
-            // 3. Borrar el lote
+            //SE BORRA EL LOTE
             await conn.query(
                 `DELETE FROM tbl_lotes_medicamentos WHERE id_lote_medicamentos_pk = ?`, [id_lote]
             );

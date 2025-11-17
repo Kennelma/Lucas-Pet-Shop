@@ -69,8 +69,8 @@ const Dashboard = () => {
   }, 0);
 
   return (
-    <div className="min-h-screen bg-white font-['Poppins']">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 p-8">
+    <div className="bg-white font-['Poppins']">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-4">
 
         {/* Contenido Principal */}
         <div className="lg:col-span-2">
@@ -180,14 +180,13 @@ const Dashboard = () => {
             <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
 
               {/* Header Sutil */}
-              <div className="relative px-4 pt-2 pb-1 bg-[#FFF8E1]">
+              <div className="relative px-4 pt-2 pb-1 bg-[#FFCC33]">
                 <div className="relative mb-1">
-  <p className="text-base font-semibold tracking-wider text-center">Gastos Hoy</p>
-  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-gradient-to-br from-yellow-100 to-amber-100 rounded-full flex items-center justify-center">
-    <lucideReact.BarChart3 className="w-5 h-5 text-yellow-600" />
-  </div>
-</div>
-
+                <p className="text-base font-semibold tracking-wider text-center">GASTOS DE HOY</p>
+                <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-gradient-to-br from-yellow-100 to-amber-100 rounded-full flex items-center justify-center">
+                  <lucideReact.BarChart3 className="w-5 h-5" color="#FFCC33" />
+                </div>
+              </div>
 
                 {/* Navegación de Fecha */}
                 <div className="flex items-center justify-between gap-2 mb-1">
@@ -202,7 +201,7 @@ const Dashboard = () => {
                     <lucideReact.ChevronLeft className="w-5 h-5 text-slate-600" />
                   </button>
 
-                  <div className="flex items-center gap-2 text-slate-700 font-medium text-sm">
+                  <div className="flex items-center gap-2 text-slate-700 font-medium text-sm bg-white px-3 py-1 rounded-lg border-2 border-yellow-400">
                     <lucideReact.Calendar className="w-4 h-4 text-yellow-600" />
                     <span className="text-slate-900">{filterDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</span>
                   </div>
@@ -224,18 +223,18 @@ const Dashboard = () => {
                   <button
                     onClick={() => setShowModalAgregar(true)}
                     style={{ borderRadius: '12px' }}
-                    className="flex-1 px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-black text-xs flex items-center justify-center gap-1 font-medium"
+                    className="flex-1 px-2 py-1 bg-white hover:bg-gray-50 text-black text-[9px] flex items-center justify-center gap-1 font-medium border-2 border-yellow-400"
                   >
-                    <lucideReact.Plus className="w-3 h-3" />
-                    Agregar
+                    <lucideReact.Plus className="w-2.5 h-2.5" />
+                    AGREGAR
                   </button>
                   <button
                     onClick={() => setShowModalTablaGastos(true)}
                     style={{ borderRadius: '12px' }}
-                    className="flex-1 px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-slate-900 text-xs font-medium flex items-center justify-center gap-1"
+                    className="flex-1 px-2 py-1 bg-white hover:bg-gray-50 text-slate-900 text-[9px] font-medium flex items-center justify-center gap-1 border-2 border-yellow-400"
                   >
-                    <lucideReact.List className="w-3 h-3" />
-                    Historial
+                    <lucideReact.List className="w-1rem h-2.5" />
+                    HISTORIAL
                   </button>
                 </div>
               </div>
@@ -245,7 +244,7 @@ const Dashboard = () => {
                 {isLoading ? (
                   <div className="text-center py-8">
                     <div className="inline-block animate-spin mb-3">
-                      <div className="w-8 h-8 border-2 border-slate-200 border-t-emerald-600 rounded-full"></div>
+                      <div className="w-8 h-8 border-2 border-[#F4F2F7] border-t-emerald-600 rounded-full"></div>
                     </div>
                     <p className="text-slate-500 text-sm">Cargando...</p>
                   </div>
@@ -261,7 +260,8 @@ const Dashboard = () => {
                   lastTwoExpenses.map((expense, idx) => (
                     <div
                        key={expense.id}
-                      className="flex items-center justify-between py-1 px-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200 group"
+                      className="flex items-center justify-between py-1 px-2 rounded-lg hover:bg-gray-200 transition-colors duration-200 group"
+                      style={{ backgroundColor: '#F4F2F7' }}
                     >
                       <div className="flex-1">
                         <p className="text-xs text-slate-900 uppercase">{expense.description}</p>

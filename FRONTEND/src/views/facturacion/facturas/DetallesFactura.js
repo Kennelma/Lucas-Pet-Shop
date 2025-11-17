@@ -383,8 +383,7 @@ const DetallesFactura = ({
   return (
     <div>
       <div
-        className="bg-white rounded-lg shadow-sm"
-        style={{ padding: "24px" }}
+        className="space-y-6 p-4 mx-auto bg-gr shadow-xl rounded-lg"
       >
         {/*ENCABEZADO CON BOTÓN AGREGAR ITEM*/}
         <div
@@ -1093,7 +1092,7 @@ const DetallesFactura = ({
         onPagoConfirmado={handlePaymentSuccess}
         factura={paymentData}
       />
-      
+
     </div>
   );
 };
