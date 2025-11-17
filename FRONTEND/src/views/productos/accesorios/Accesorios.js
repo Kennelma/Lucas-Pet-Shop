@@ -340,7 +340,7 @@ const Accesorios = () => {
   };
 
   return (
-   
+      <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
       <div className="min-h-screen p-6 bg-gray-50">
   {/* Título */}
       <div className="rounded-xl p-6 mb-3"
@@ -493,7 +493,8 @@ const Accesorios = () => {
       accesoriosExistentes={accesorios} // ✅ AGREGAR ESTA PROP
     />
   ))}
-    </div>
+      </div>
+      </div>
   );
 };
 

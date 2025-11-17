@@ -16,7 +16,7 @@ const Estilistas = () => {
   const [estilistas, setEstilistas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [globalFilter, setGlobalFilter] = useState('');
-  
+
   // Estados para modales
   const [modalAgregar, setModalAgregar] = useState(false);
   const [modalActualizar, setModalActualizar] = useState(false);
@@ -62,7 +62,7 @@ const Estilistas = () => {
   const handleEliminar = async (id) => {
     // Buscar información del estilista para mostrar en la confirmación
     const estilista = estilistas.find(e => e.id_estilista_pk === id);
-    
+
     if (!estilista) {
       Swal.fire({
         icon: 'error',
@@ -125,31 +125,31 @@ const Estilistas = () => {
             timer: 2000,
             showConfirmButton: false
           });
-          
+
           // Limpiar selección si el estilista eliminado estaba seleccionado
           if (estilistaSeleccionado?.id_estilista_pk === id) {
             setEstilistaSeleccionado(null);
           }
-          
+
           cargarEstilistas();
         } else {
           throw new Error(response?.error || 'Error desconocido');
         }
       } catch (error) {
         console.error('Error al eliminar:', error);
-        
+
         // Mensaje de error más descriptivo
         let mensajeError = 'No se pudo eliminar el estilista';
-        
-        if (error.message.includes('foreign key') || 
+
+        if (error.message.includes('foreign key') ||
             error.message.includes('constraint') ||
             error.message.includes('referencia')) {
           mensajeError = 'No se puede eliminar este estilista porque tiene registros asociados (servicios, citas, etc.)';
-        } else if (error.message.includes('network') || 
+        } else if (error.message.includes('network') ||
                    error.message.includes('connection')) {
           mensajeError = 'Error de conexión. Verifica tu internet e intenta nuevamente.';
         }
-        
+
         await Swal.fire({
           icon: 'error',
           title: 'Error al Eliminar',
@@ -162,7 +162,9 @@ const Estilistas = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
+
+    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
       {/* Estilos inline para z-index de modales */}
       <style>{`
         .p-dialog-mask {
@@ -212,8 +214,8 @@ const Estilistas = () => {
           </div>
 
           {/* Dashboard Estadístico */}
-          <EstadisticasEstilistas 
-            estilistaSeleccionado={estilistaSeleccionado} 
+          <EstadisticasEstilistas
+            estilistaSeleccionado={estilistaSeleccionado}
             onClearSelection={() => setEstilistaSeleccionado(null)}
             estilistas={estilistas}
           />
@@ -247,7 +249,7 @@ const Estilistas = () => {
                 Nuevo Estilista
               </button>
             </div>
-            
+
             {/* Tabla de Estilistas */}
             <TablaEstilistas
               estilistas={estilistas}
@@ -277,6 +279,7 @@ const Estilistas = () => {
         onSave={cargarEstilistas}
         estilistas={estilistas}
       />
+    </div>
     </div>
   );
 };

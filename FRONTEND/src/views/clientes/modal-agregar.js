@@ -10,9 +10,9 @@ export default function FormularioCliente({
   isOpen,
   onClose,
   onClienteAgregado,
-  identidadInicial = '' 
+  identidadInicial = ''
 }) {
-   
+
 
     const [nuevoCliente, setNuevoCliente] = useState({
         nombre_cliente: "",
@@ -67,10 +67,10 @@ export default function FormularioCliente({
         // Verificar teléfono duplicado
         try {
             const clientesExistentes = await verClientes();
-            const telefonoDuplicado = clientesExistentes.find(cliente => 
+            const telefonoDuplicado = clientesExistentes.find(cliente =>
                 cliente.telefono_cliente === nuevoCliente.telefono_cliente
             );
-            
+
             if (telefonoDuplicado) {
                 setErrorTelefonoDuplicado(true);
                 return;
@@ -137,7 +137,7 @@ export default function FormularioCliente({
                 setNuevoCliente({
                     nombre_cliente: "",
                     apellido_cliente: "",
-                    identidad_cliente: identidadInicial, // ← Pre-llenado
+                    identidad_cliente: identidadInicial,
                     telefono_cliente: "",
                 });
             } else {

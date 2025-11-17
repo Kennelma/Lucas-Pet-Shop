@@ -260,6 +260,7 @@ const Servicios = () => {
   };
 
   return (
+    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
     <div className="min-h-screen p-6 bg-gray-50">
       {loading ? (
         <div className="flex items-center justify-center min-h-64">
@@ -311,6 +312,7 @@ const Servicios = () => {
         servicio={servicioEditando}
         serviciosExistentes={servicios}
       />
+    </div>
     </div>
   );
 };
