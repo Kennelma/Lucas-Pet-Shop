@@ -141,6 +141,7 @@ const Animales = () => {
 
   useEffect(() => {
     cargarDatos();
+    document.body.style.fontFamily = 'Poppins';
   }, []);
 
   useEffect(() => {
@@ -360,6 +361,7 @@ const Animales = () => {
   };
 
   return (
+    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
     <div className="min-h-screen p-6 ">
      {/* Título */}
       <div className="rounded-xl p-6 mb-3"
@@ -374,7 +376,7 @@ const Animales = () => {
       >
         <div className="flex justify-center items-center">
           <h2 className="text-2xl font-black text-center uppercase text-black">
-            INVENTARIO DE ANIMALES
+            GESTIÓN DE ANIMALES
           </h2>
         </div>
         <p className="text-center text-black italic mt-2">
@@ -512,6 +514,7 @@ const Animales = () => {
               animalesExistentes={animales} // ✅ AGREGAR ESTA PROP
           />
         ))}
+    </div>
     </div>
   );
 };

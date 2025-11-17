@@ -39,15 +39,15 @@ const Grafica = ({ obtenerRegistroFinanciero, anio }) => {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Usar el año actual si no se proporciona
         const anioActual = anio || new Date().getFullYear();
-        
+
         const response = await obtenerRegistroFinanciero(anioActual);
-        
+
         if (response.Consulta && response.registros) {
           setRegistros(response.registros);
-          
+
           // Calcular índice inicial para mostrar los últimos 3 meses con datos
           const mesActual = new Date().getMonth();
           const maxIndice = Math.max(0, mesActual - 2);
@@ -89,7 +89,7 @@ const Grafica = ({ obtenerRegistroFinanciero, anio }) => {
     // Generar datos para los 3 meses seleccionados
     return mesesAMostrar.map((idx) => {
       const registro = registrosPorMes[idx] || { ingresos: 0, gastos: 0 };
-      
+
       return {
         mes: meses[idx] || `Mes ${idx + 1}`,
         ingresos: registro.ingresos,
@@ -154,25 +154,25 @@ const Grafica = ({ obtenerRegistroFinanciero, anio }) => {
             onClick={irMesesAnteriores}
             disabled={!puedeRetroceder}
             className={`p-1.5 rounded-lg transition-all ${
-              puedeRetroceder 
-                ? 'bg-blue-50 hover:bg-blue-100 text-blue-600 cursor-pointer' 
+              puedeRetroceder
+                ? 'bg-blue-50 hover:bg-blue-100 text-blue-600 cursor-pointer'
                 : 'bg-gray-100 text-gray-300 cursor-not-allowed'
             }`}
             title="Meses anteriores"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          
+
           <span className="text-xs text-gray-600 font-medium px-2">
             {meses[mesesAMostrar[0]]} - {meses[mesesAMostrar[2]]}
           </span>
-          
+
           <button
             onClick={irMesesSiguientes}
             disabled={!puedeAvanzar}
             className={`p-1.5 rounded-lg transition-all ${
-              puedeAvanzar 
-                ? 'bg-blue-50 hover:bg-blue-100 text-blue-600 cursor-pointer' 
+              puedeAvanzar
+                ? 'bg-blue-50 hover:bg-blue-100 text-blue-600 cursor-pointer'
                 : 'bg-gray-100 text-gray-300 cursor-not-allowed'
             }`}
             title="Meses siguientes"
@@ -186,23 +186,23 @@ const Grafica = ({ obtenerRegistroFinanciero, anio }) => {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={datos} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis 
-              dataKey="mes" 
+            <XAxis
+              dataKey="mes"
               tick={{ fill: '#6b7280', fontFamily: 'Poppins, sans-serif', fontSize: 11 }}
               axisLine={{ stroke: '#d1d5db' }}
             />
-            <YAxis 
+            <YAxis
               tick={{ fill: '#6b7280', fontFamily: 'Poppins, sans-serif', fontSize: 10 }}
               axisLine={{ stroke: '#d1d5db' }}
               tickFormatter={(value) => `L ${(value / 1000).toFixed(0)}K`}
               domain={[0, 100000]}
             />
             <Tooltip content={<CustomTooltip />} />
-            <ReferenceLine 
-              y={100000} 
-              stroke="#dc2626" 
-              strokeDasharray="3 3" 
-              label={{ value: 'Límite L 100K', position: 'right', fill: '#dc2626', fontFamily: 'Poppins, sans-serif', fontSize: 10 }} 
+            <ReferenceLine
+              y={100000}
+              stroke="#dc2626"
+              strokeDasharray="3 3"
+              label={{ value: 'Límite L 100K', position: 'right', fill: '#dc2626', fontFamily: 'Poppins, sans-serif', fontSize: 10 }}
             />
             <Bar dataKey="ingresos" fill="#3b82f6" radius={[8, 8, 0, 0]} />
             <Bar dataKey="gastos" fill="#dc2626" radius={[8, 8, 0, 0]} />

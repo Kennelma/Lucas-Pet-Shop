@@ -53,6 +53,7 @@ exports.reporteDiario = async (req, res) => {
 };
 
 //CRISTOFER - REGISTRO FINANCIERO DIARIO (GRAFICO DE BARRAS)
+//CRISTOFER - REGISTRO FINANCIERO DIARIO (GRAFICO DE BARRAS)
 exports.registroFinanciero = async (req, res) => {
 
   const conn = await mysqlConnection.getConnection();
@@ -203,8 +204,6 @@ exports.historialReportes = async (req, res) => {
   }
 
 };
-
-
 
 exports.reportesDetallados = async (req, res) => {
 

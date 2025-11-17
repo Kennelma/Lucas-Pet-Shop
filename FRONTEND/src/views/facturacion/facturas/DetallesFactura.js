@@ -41,6 +41,7 @@ const DetallesFactura = ({
   RTN,
   id_cliente,
   setActiveTab,
+  setFacturaParaImprimir,
 }) => {
 
   //====================ESTADOS====================
@@ -311,6 +312,7 @@ const DetallesFactura = ({
         setShowPaymentModal(false);
         setPaymentData(null);
         const saldoPendiente = response.data?.saldo ?? 0;
+
         if (saldoPendiente > 0) {
           await Swal.fire({
             icon: "success",
@@ -320,17 +322,29 @@ const DetallesFactura = ({
             }\nSaldo pendiente:  ${saldoPendiente.toFixed(2)}`,
             confirmButtonColor: "#3085d6",
           });
+          if (setActiveTab) {
+            setActiveTab("facturas");
+          }
         } else {
+          // PAGO TOTAL - GUARDAR NÚMERO DE FACTURA PARA IMPRIMIR
+          const numeroFactura = response.data?.numero_factura || paymentData?.numero_factura;
+
           await Swal.fire({
             icon: "success",
-            title: "Pago procesado",
-            text: response.mensaje || "Pago procesado exitosamente",
+            title: "Pago completado",
+            text: "El pago se ha procesado exitosamente. Se mostrará el preview de la factura.",
             confirmButtonColor: "#3085d6",
           });
-        }
-        // CAMBIAR A LA PESTAÑA DE HISTORIAL DE FACTURAS
-        if (setActiveTab) {
-          setActiveTab("facturas");
+
+          // GUARDAR NÚMERO DE FACTURA Y REDIRIGIR AL HISTORIAL
+          if (setFacturaParaImprimir && numeroFactura) {
+            setFacturaParaImprimir(numeroFactura);
+          }
+
+          // REDIRIGIR AL HISTORIAL
+          if (setActiveTab) {
+            setActiveTab("facturas");
+          }
         }
       } else {
         await Swal.fire({
@@ -369,8 +383,7 @@ const DetallesFactura = ({
   return (
     <div>
       <div
-        className="bg-white rounded-lg shadow-sm"
-        style={{ padding: "24px" }}
+        className="space-y-6 p-4 mx-auto bg-gr shadow-xl rounded-lg"
       >
         {/*ENCABEZADO CON BOTÓN AGREGAR ITEM*/}
         <div
@@ -1079,31 +1092,7 @@ const DetallesFactura = ({
         onPagoConfirmado={handlePaymentSuccess}
         factura={paymentData}
       />
-      {/* 🔍 DEBUG - BORRAR DESPUÉS
-        {items.length > 0 && (
-    <div style={{
-      position: 'fixed',
-      bottom: 10,
-      left: 10,
-      background: 'black',
-      color: 'lime',
-      padding: '10px',
-      fontSize: '12px',
-      zIndex: 9999,
-      borderRadius: '8px'
-    }}>
-      <div>SUBTOTAL EXENTO: {SUBTOTAL_EXENTO.toFixed(2)}</div>
-      <div>SUBTOTAL GRAVADO: {SUBTOTAL_GRAVADO.toFixed(2)}</div>
-      <div>IMPUESTO: {IMPUESTO.toFixed(2)}</div>
-      <div>TOTAL: {TOTAL_FINAL.toFixed(2)}</div>
-      <hr />
-      {items.map((it, i) => (
-        <div key={i}>
-          Item {i+1}: tiene_impuesto = {String(it.tiene_impuesto)}
-        </div>
-      ))}
-    </div>
-  )}*/}
+
     </div>
   );
 };

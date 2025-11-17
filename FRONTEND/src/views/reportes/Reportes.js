@@ -99,8 +99,8 @@ const Reportes = () => {
   });
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins, sans-serif' }}>
-      <div className="max-w-7xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>
+    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+      <div className="max-w-7xl mx-auto" style={{ fontFamily: 'Poppins' }}>
 
         {/* Titulo */}
         <div
@@ -121,7 +121,7 @@ const Reportes = () => {
           </div>
           <p
             className="text-center text-gray-700 italic mt-2"
-            style={{ fontFamily: 'Poppins, sans-serif', fontSize: '15px' }}
+            style={{ fontFamily: 'Poppins', fontSize: '15px' }}
           >
             Gráficas y resumen del año actual
           </p>

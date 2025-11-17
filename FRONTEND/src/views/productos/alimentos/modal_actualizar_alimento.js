@@ -52,6 +52,13 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
     return aplicar ? (pBase * (1 + pTasa / 100)) : pBase;
   };
 
+  //CALCULAR PRECIO FINAL CON ISV
+  const calcularPrecioFinalConISV = () => {
+    const pBase = parseFloat(precioBase) || 0;
+    const pTasa = parseFloat(tasaImpuesto) || 0;
+    return (pBase * (1 + pTasa / 100)).toFixed(2);
+  };
+
   //EFECTO CARGAR DATOS EDITAR
   useEffect(() => {
     if (isOpen && editData) {
@@ -291,17 +298,20 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
         {/* PRECIO */}
         <span>
           <label htmlFor="precio" className="text-xs font-semibold text-gray-700 mb-1">{precioLabel}</label>
-          <InputNumber 
-            id="precio" 
-            value={data.precio} 
-            onValueChange={e => handleChange('precio', e.value)} 
-            mode="decimal" 
-            minFractionDigits={2} 
-            maxFractionDigits={2} 
-            className={`w-full rounded-xl text-sm ${errores.precio ? 'border-red-500' : ''}`}
-            inputClassName="h-9 text-sm" 
-            placeholder="0.00" 
-          />
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-600">L</span>
+            <input
+              type="number"
+              id="precio"
+              name="precio"
+              value={data.precio}
+              onChange={e => handleChange('precio', e.target.value)}
+              className={`w-full rounded-xl h-9 text-sm ${errores.precio ? 'border border-red-500' : 'border border-gray-300'} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+              style={{ paddingLeft: '2rem' }}
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
           {errores.precio && <p className="text-xs text-red-600 mt-1">{errores.precio}</p>}
         </span>
 
@@ -322,6 +332,15 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
               <input type="number" value={tasaImpuesto} onChange={handleTasaChange} className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" step="0.01" min="0" max="100" />
               <span className="text-sm text-gray-600">PRECIO BASE: L {precioBase.toFixed(2)} (SIN IMPUESTO)</span>
             </div>
+          </div>
+        )}
+
+        {/* MENSAJE DE ADVERTENCIA SI NO SE APLICA IMPUESTO */}
+        {!aplicaImpuesto && data.precio > 0 && (
+          <div className="bg-yellow-100 border border-yellow-300 rounded-md p-2">
+            <p className="text-xs text-yellow-800">
+              El precio base es L {parseFloat(data.precio).toFixed(2)}. Si se aplica ISV ({tasaImpuesto}%), el precio con ISV sería L <strong>{(parseFloat(data.precio) * (1 + parseFloat(tasaImpuesto) / 100)).toFixed(2)}</strong>.
+            </p>
           </div>
         )}
 
@@ -359,5 +378,5 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
   );
 };
 
-//EXPORTAR COMPONENTE
+
 export default ModalActualizarAlimento;
