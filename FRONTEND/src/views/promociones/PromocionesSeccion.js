@@ -302,13 +302,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
             header="PRECIO"
             body={(rowData) => `L. ${parseFloat(rowData.precio_promocion || 0).toFixed(2)}`}
             sortable
-            sortField="precio_promocion"
             dataType="numeric"
-            sortFunction={(e) => {
-              const value1 = parseFloat(e.data1.precio_promocion || 0);
-              const value2 = parseFloat(e.data2.precio_promocion || 0);
-              return e.order * (value1 - value2);
-            }}
             className="text-sm"
             style={{ width: '110px', padding: '8px 8px' }}
             headerStyle={{ width: '110px', padding: '8px 8px' }}

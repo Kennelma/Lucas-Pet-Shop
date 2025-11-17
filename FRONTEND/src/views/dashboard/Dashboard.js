@@ -69,9 +69,20 @@ const Dashboard = () => {
   }, 0);
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
-    <div className="font-['Poppins']">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-4">
+    <>
+      <style>
+        {`
+          .modal {
+            z-index: 10500 !important;
+          }
+          .modal-backdrop {
+            z-index: 10499 !important;
+          }
+        `}
+      </style>
+      <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+      <div className="font-['Poppins']">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-4">
 
         {/* Contenido Principal */}
         <div className="lg:col-span-2">
@@ -300,6 +311,7 @@ const Dashboard = () => {
       />
     </div>
     </div>
+    </>
   );
 };
 

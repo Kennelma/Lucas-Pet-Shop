@@ -98,12 +98,9 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
             const interval = setInterval(verificarConexion, 5000);
             return () => {
                 clearInterval(interval);
-                if (qrTimer) {
-                    clearTimeout(qrTimer);
-                }
             };
         }
-    }, [isOpen, qrTimer]);
+    }, [isOpen]);
 
     // Countdown para el QR
     useEffect(() => {
