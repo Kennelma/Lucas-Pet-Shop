@@ -86,6 +86,7 @@ const ModalAgregarSucursal = ({
               onBlur={onBlur}
               className="w-full rounded-xl h-9 text-sm uppercase"
               placeholder="Ej: Sucursal Norte"
+              autoComplete="off"
             />
             {errores.nombre_sucursal && <p className="text-xs text-red-600 mt-1">{errores.nombre_sucursal}</p>}
           </span>
@@ -101,6 +102,7 @@ const ModalAgregarSucursal = ({
               onBlur={onBlur}
               className="w-full rounded-xl h-9 text-sm uppercase"
               placeholder="Ej: Barrio El Carmen"
+              autoComplete="off"
             />
             {errores.direccion_sucursal && <p className="text-xs text-red-600 mt-1">{errores.direccion_sucursal}</p>}
           </span>

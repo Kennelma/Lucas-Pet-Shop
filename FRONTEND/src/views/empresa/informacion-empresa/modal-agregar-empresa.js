@@ -66,6 +66,7 @@ const ModalAgregarEmpresa = ({
               onBlur={onBlur}
               className="w-full rounded-xl h-9 text-sm uppercase"
               placeholder="Ej: Tech Solutions SA"
+              autoComplete="off"
             />
             {errores.nombre_empresa && <p className="text-xs text-red-600 mt-1">{errores.nombre_empresa}</p>}
           </span>
@@ -99,6 +100,7 @@ const ModalAgregarEmpresa = ({
               className="w-full rounded-xl h-9 text-sm lowercase"
               placeholder="Ej: contacto@empresa.com"
               type="email"
+              autoComplete="off"
             />
             {errores.correo_empresa && <p className="text-xs text-red-600 mt-1">{errores.correo_empresa}</p>}
           </span>
@@ -114,6 +116,7 @@ const ModalAgregarEmpresa = ({
               onBlur={onBlur}
               className="w-full rounded-xl h-9 text-sm uppercase"
               placeholder="Ej: 08019012345678"
+              autoComplete="off"
             />
             {errores.rtn_empresa && <p className="text-xs text-red-600 mt-1">{errores.rtn_empresa}</p>}
           </span>

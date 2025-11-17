@@ -283,7 +283,7 @@ const Servicios = () => {
           >
             <div className="flex justify-center items-center">
               <h2 className="text-2xl text-center uppercase text-black ">
-                SERVICIOS DE PELUQUERÍA
+                GESTIÓN DE SERVICIOS DE PELUQUERÍA
               </h2>
             </div>
             <p className="text-center text-black italic mt-2">

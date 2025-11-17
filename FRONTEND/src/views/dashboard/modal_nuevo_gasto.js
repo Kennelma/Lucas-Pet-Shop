@@ -15,7 +15,19 @@ const ModalAgregarGasto = ({ visible, onHide, onRefresh }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    if (name === 'detalle_gasto') {
+      setFormData(prev => ({ ...prev, [name]: value.toUpperCase() }));
+    } else if (name === 'monto_gasto') {
+      // Solo permitir números y punto decimal
+      const regex = /^\d*\.?\d*$/;
+      if (regex.test(value) || value === '') {
+        setFormData(prev => ({ ...prev, [name]: value }));
+      }
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+
     if (errores[name]) {
       setErrores(prev => ({ ...prev, [name]: '' }));
     }
@@ -23,15 +35,15 @@ const ModalAgregarGasto = ({ visible, onHide, onRefresh }) => {
 
   const validarFormulario = () => {
     const nuevosErrores = {};
-    
+
     if (!formData.detalle_gasto.trim()) {
       nuevosErrores.detalle_gasto = 'El detalle es obligatorio';
     }
-    
+
     if (!formData.monto_gasto || formData.monto_gasto <= 0) {
       nuevosErrores.monto_gasto = 'El monto debe ser mayor a 0';
     }
-    
+
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;
   };
@@ -73,14 +85,14 @@ const ModalAgregarGasto = ({ visible, onHide, onRefresh }) => {
 
   const footer = (
     <div className="flex justify-end gap-3 mt-2">
-      <Button 
-        label="Cancelar" 
+      <Button
+        label="Cancelar"
         icon="pi pi-times"
         onClick={handleClose}
         className="p-button-text p-button-rounded"
       />
-      <Button 
-        label="Guardar" 
+      <Button
+        label="Guardar"
         icon="pi pi-check"
         onClick={guardar}
         loading={guardando}
@@ -114,23 +126,26 @@ const ModalAgregarGasto = ({ visible, onHide, onRefresh }) => {
             value={formData.detalle_gasto}
             onChange={handleChange}
             className="w-full rounded-xl h-9 text-sm"
-            placeholder="Ej: Compra de materiales"
+            placeholder="EJ: COMPRA DE MATERIALES"
           />
           {errores.detalle_gasto && <p className="text-xs text-red-600 mt-1">{errores.detalle_gasto}</p>}
         </span>
 
         {/* Monto del Gasto */}
         <span>
-          <label htmlFor="monto_gasto" className="text-xs font-semibold text-gray-700 mb-1">MONTO (L)</label>
-          <InputText
-            id="monto_gasto"
-            name="monto_gasto"
-            value={formData.monto_gasto}
-            onChange={handleChange}
-            className="w-full rounded-xl h-9 text-sm"
-            placeholder="0.00"
-            keyfilter="num"
-          />
+          <label htmlFor="monto_gasto" className="text-xs font-semibold text-gray-700 mb-1">MONTO</label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-600">L.</span>
+            <InputText
+              id="monto_gasto"
+              name="monto_gasto"
+              value={formData.monto_gasto}
+              onChange={handleChange}
+              className="w-full rounded-xl h-9 text-sm"
+              style={{ paddingLeft: '2rem' }}
+              placeholder="0.00"
+            />
+          </div>
           {errores.monto_gasto && <p className="text-xs text-red-600 mt-1">{errores.monto_gasto}</p>}
         </span>
       </div>
