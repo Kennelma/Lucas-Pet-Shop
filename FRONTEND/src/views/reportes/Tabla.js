@@ -5,9 +5,7 @@ import {
   Calendar,
   FileText,
   TrendingUp,
-  CalendarDays,
-  Eye,
-  X
+  CalendarDays
 } from 'lucide-react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -17,7 +15,7 @@ import { descargarPDFTabla } from './pdf.js';
 const Tabla = ({ 
   obtenerRegistroFinanciero, 
   obtenerHistorialReportes, 
-  obtenerReportesDetallados,  // ← RECIBE LA FUNCIÓN CORRECTA
+  obtenerReportesDetallados,
   registrosFinancieros 
 }) => {
   const [datosTabla, setDatosTabla] = useState([]);
@@ -30,15 +28,10 @@ const Tabla = ({
   const [mesesConDatos, setMesesConDatos] = useState([]);
   const [diasConDatos, setDiasConDatos] = useState([]);
 
-  // Estados para el modal
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [detalleSeleccionado, setDetalleSeleccionado] = useState(null);
-
   const anioActual = new Date().getFullYear();
   const mesActual = new Date().getMonth();
   const diaActual = new Date().getDate();
   const aniosDisponibles = Array.from({ length: 5 }, (_, i) => anioActual - i);
-  const [detallesFactura, setDetallesFactura] = useState([]);
 
   const meses = [
     'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
@@ -141,39 +134,10 @@ const Tabla = ({
     }
   };
 
-  // CORREGIDO - usa obtenerReportesDetallados correctamente
- const handleVerDetalle = async (rowData) => {
-  setDetalleSeleccionado(rowData);
-  setModalAbierto(true);
-
-  try {
-    const fecha = vistaActiva === 'anual'
-      ? `${anioSeleccionado}-${String(rowData.mesNumero).padStart(2, '0')}-01`
-      : `${anioSeleccionado}-${String(rowData.mesIndex + 1).padStart(2, '0')}-${String(rowData.dia).padStart(2, '0')}`;
-
-    const response = await obtenerReportesDetallados(fecha);
-
-    if (response?.Consulta && response?.detalles) {
-      setDetallesFactura(response.detalles);
-    } else {
-      setDetallesFactura([]);
-    }
-  } catch (error) {
-    console.error('Error obteniendo detalles:', error);
-    setDetallesFactura([]);
-  }
-};
-  const cerrarModal = () => {
-    setModalAbierto(false);
-    setDetalleSeleccionado(null);
-    setDetallesFactura([]);
-  };
-
   const totalIngresos = datosTabla.reduce((sum, d) => sum + (d?.ingreso || 0), 0);
   const totalGastos = datosTabla.reduce((sum, d) => sum + (d?.gasto || 0), 0);
   const totalGeneral = totalIngresos - totalGastos;
 
-  // Variables para facturas
   const facturasAnuales = datosTabla.reduce((acc, m) => acc + (m.cantidadFacturas || 0), 0);
   const facturasMensuales = (mesSeleccionado !== 'todos')
     ? datosTabla
@@ -181,7 +145,7 @@ const Tabla = ({
         .reduce((acc, m) => acc + (m.cantidadFacturas || 0), 0)
     : 0;
 
-  const handleDescargarPDF = () => {
+  const handleDescargarPDF = async () => {
     if (vistaActiva === 'anual') {
       if (mesSeleccionado === 'todos') {
         descargarPDFTabla(datosTabla, totalIngresos, totalGastos, totalGeneral, anioSeleccionado, null);
@@ -192,11 +156,36 @@ const Tabla = ({
         }
       }
     } else {
-      descargarPDFTabla(datosTabla, totalIngresos, totalGastos, totalGeneral, anioSeleccionado, `${meses[mesDiarioSeleccionado - 1]} - Diario`);
+      // Vista diaria - obtener detalles del mes completo
+      try {
+        const promesasDetalles = datosTabla.map(async (row) => {
+          const fecha = `${anioSeleccionado}-${String(row.mesIndex + 1).padStart(2, '0')}-${String(row.dia).padStart(2, '0')}`;
+          const response = await obtenerReportesDetallados(fecha);
+          return {
+            ...row,
+            detalles: response?.Consulta && response?.detalles ? response.detalles : []
+          };
+        });
+
+        const datosConDetalles = await Promise.all(promesasDetalles);
+        
+        descargarPDFTabla(
+          datosConDetalles, 
+          totalIngresos, 
+          totalGastos, 
+          totalGeneral, 
+          anioSeleccionado, 
+          `${meses[mesDiarioSeleccionado - 1]} - Diario`,
+          datosConDetalles.flatMap(d => d.detalles || [])
+        );
+      } catch (error) {
+        console.error('Error al obtener detalles para PDF:', error);
+        descargarPDFTabla(datosTabla, totalIngresos, totalGastos, totalGeneral, anioSeleccionado, `${meses[mesDiarioSeleccionado - 1]} - Diario`);
+      }
     }
   };
 
-  // Columnas (resto del código igual...)
+  // Columnas
   const bodyId = (rowData) => (
     <div className="flex items-center justify-start pl-2">
       <span className="text-gray-800 font-semibold text-sm">{rowData.id}</span>
@@ -244,23 +233,6 @@ const Tabla = ({
       </span>
     </div>
   );
-
-  const bodyAcciones = (rowData) => (
-  <div className="flex items-center justify-center">
-    <button 
-      onClick={() => handleVerDetalle(rowData)} 
-      disabled={vistaActiva === 'anual'}
-      className={`p-1.5 rounded-lg transition-colors ${
-        vistaActiva === 'anual' 
-          ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-          : 'bg-blue-50 hover:bg-blue-100 text-blue-600'
-      }`} 
-      title={vistaActiva === 'anual' ? "Detalle no disponible en vista anual" : "Ver detalle"}
-    >
-      <Eye className="w-4 h-4" />
-    </button>
-  </div>
-);
 
   const footerPeriodo = () => (
     <strong className="text-gray-700 text-xs font-bold uppercase text-center block">
@@ -438,12 +410,6 @@ const Tabla = ({
                       className="text-sm"
                       style={{ width: 'auto' }}
                     />
-                    <Column
-                      header="ACCIONES"
-                      body={bodyAcciones}
-                      className="text-sm text-center"
-                      style={{ width: '100px' }}
-                    />
                   </DataTable>
                 )}
               </div>
@@ -554,94 +520,7 @@ const Tabla = ({
           </div>
         </div>
       </div>
-
-      {/* MODAL SIMPLE DE DETALLE */}
-      {modalAbierto && detalleSeleccionado && (
-        <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-50">
-       <div className="bg-white rounded-lg shadow-xl max-w-sm w-[85%] scale-90">
-     {/* Header */}
-            <div className="bg-gray-50 px-6 py-4 rounded-t-lg border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-500">
-                Detalle del Reporte
-              </h3>
-              <p className="text-sm text-gray-400 mt-1">
-                {vistaActiva === 'anual'
-                  ? `${detalleSeleccionado.mes} ${anioSeleccionado}`
-                  : detalleSeleccionado.fecha
-                }
-              </p>
-            </div>
-
-      <div className="p-4 space-y-3">
-        {/* DATOS PRINCIPALES QUE SÍ FUNCIONAN */}
-        <div className="grid grid-cols-2 gap-2">
-          <div className="bg-green-50 p-2 rounded-lg border border-green-200">
-            <p className="text-xs text-green-600 uppercase font-bold">INGRESOS</p>
-            <p className="text-sm font-bold text-green-700">L {detalleSeleccionado.ingreso.toLocaleString('es-HN')}</p>
-          </div>
-          <div className="bg-red-50 p-2 rounded-lg border border-red-200">
-            <p className="text-xs text-red-600 uppercase font-bold">GASTOS</p>
-            <p className="text-sm font-bold text-red-700">L {detalleSeleccionado.gasto.toLocaleString('es-HN')}</p>
-          </div>
-        </div>
-
-        {/* BALANCE QUE SÍ FUNCIONA */}
-        <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-          <p className="text-xs font-bold text-blue-700 uppercase text-center">RESUMEN</p>
-          <div className="flex justify-between items-center mt-2">
-            <span className="text-xs text-blue-600 font-semibold">BALANCE:</span>
-            <span className={`text-sm font-bold ${detalleSeleccionado.total >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              L {detalleSeleccionado.total.toLocaleString('es-HN')}
-            </span>
-          </div>
-          <div className="flex justify-between items-center mt-1">
-            <span className="text-xs text-blue-600">Estado:</span>
-            <span className={`text-xs font-bold ${detalleSeleccionado.total >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {detalleSeleccionado.total >= 0 ? '✅ POSITIVO' : '❌ NEGATIVO'}
-            </span>
-          </div>
-        </div>
-
-        {/* FACTURAS QUE SÍ FUNCIONA (solo diaria) */}
-        {vistaActiva === 'diaria' && (
-          <div className="bg-purple-50 p-2 rounded-lg border border-purple-200">
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-purple-600 uppercase font-bold">FACTURAS</span>
-              <span className="text-sm font-bold text-purple-700 bg-purple-100 px-2 py-1 rounded">
-                {detalleSeleccionado.cantidadFacturas || 0}
-              </span>
-            </div>
-            {detalleSeleccionado.cantidadFacturas > 0 && (
-              <p className="text-xs text-purple-500 mt-1 text-center">
-                {detalleSeleccionado.cantidadFacturas} factura(s) procesada(s)
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* INFO ADICIONAL */}
-        <div className="bg-gray-100 p-2 rounded-lg border">
-          <p className="text-xs text-gray-600 text-center">
-            {vistaActiva === 'anual' 
-              ? `Resumen mensual completo`
-              : `Detalle del día seleccionado`
-            }
-          </p>
-        </div>
-      </div>
-
-      <div className="bg-gray-50 px-4 py-3 rounded-b-lg border-t border-gray-200 flex justify-end">
-        <button
-          onClick={cerrarModal}
-          className="px-4 py-1 bg-gray-500 hover:bg-gray-600 text-white rounded text-xs font-medium transition-colors uppercase"
-        >
-          CERRAR
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-</>
+    </>
   );
 };
 
