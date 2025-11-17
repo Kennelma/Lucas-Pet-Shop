@@ -216,11 +216,11 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                     }
                 `}
             </style>
-            <div className="bg-white rounded-xl p-6 font-poppins" style={{boxShadow: '0 0 8px #DEFFAD40, 0 0 0 1px #DEFFAD33'}}>
+            <div className="bg-white rounded-xl p-6 font-poppins border-2" style={{borderColor: '#B5DD7E'}}>
                 <div className="flex justify-end items-center mb-4">
                     <button
                         className="text-black px-3 py-1 text-sm rounded transition-colors flex items-center gap-2 uppercase"
-                        style={{ backgroundColor: 'rgba(222, 255, 173, 1)' }}
+                        style={{ backgroundColor: "#B5DD7E" }}
                         onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(222, 255, 173, 1)'}
                         onClick={handleAgregarCliente}
                     >

@@ -10,7 +10,7 @@ const ModalRecordatorio = ({ isOpen, onClose, onGuardar, tipoServicio = [], frec
   const [mensaje, setMensaje] = useState('');
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  
+
   // Estados para errores individuales por campo
   const [errores, setErrores] = useState({
     tipoItem: false,
@@ -19,11 +19,10 @@ const ModalRecordatorio = ({ isOpen, onClose, onGuardar, tipoServicio = [], frec
     mensaje: false
   });
 
-  // Al abrir el modal, por defecto usar la fecha/hora del sistema + 1 hora
+  // Al abrir el modal, por defecto usar la fecha/hora del sistema
   useEffect(() => {
     if (isOpen) {
       const now = new Date();
-      now.setHours(now.getHours() + 1); // Agregar 1 hora para que sea fecha futura
       const pad = (n) => String(n).padStart(2, '0');
       const localDatetime = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
       setFechaProgramacion(localDatetime);
@@ -119,7 +118,7 @@ const ModalRecordatorio = ({ isOpen, onClose, onGuardar, tipoServicio = [], frec
     }
 
      // CONVERTIR FORMATO DE FECHA
-      const fechaFormateada = fechaProgramacion.replace('T', ' ') + ':00';
+      const fechaFormateada = fechaProgramacion + ':00'; 
 
       const datosRegistro = {
         tipo_item: Number(tipoItem),

@@ -1,6 +1,7 @@
 require('dotenv').config()
 
 const mysqlConnection = require('../config/conexion');
+const { getTimezoneOffset } = require('../config/utils/timezone');
 const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
 
@@ -10,9 +11,8 @@ const { generarCodigoOTP } = require('../config/otp-generator');
 //ENDPOINT PARA EL LOGUEO DE USUARIOS
 exports.login = async (req, res) => {
 
-    const start = Date.now();
-
     const conn = await mysqlConnection.getConnection();
+    await conn.query(`SET time_zone = '${getTimezoneOffset()}'`);
 
     const LIMITE_INTENTOS = parseInt(process.env.LIMITE_INTENTOS_LOGIN); //SE BLOQUEA EL USUARIO SI LO EXCEDE
     const TIEMPO_BLOQUEO = parseInt(process.env.TIEMPO_BLOQUEO_MINUTOS); //EL TIEMPO QUE DEBE ESPERAR PARA VOLVER INTENTAR INICIAR SESION
@@ -76,13 +76,24 @@ exports.login = async (req, res) => {
                     token: null
                 });
             } else {
+
+                const [activo] = await conn.query(`
+                SELECT id_estado_pk
+                FROM cat_estados
+                WHERE dominio = 'USUARIO' AND nombre_estado = 'ACTIVO'
+                LIMIT 1
+                `);
+
                 //PASADO LOS MINUTOS, SE DESBLOQUEA EL USUARIO
-                    await conn.query(
-                    `UPDATE tbl_usuarios
-                    SET intentos_fallidos = 0, bloqueado_hasta = NULL
-                    WHERE id_usuario_pk = ?`,
-                    [user.id_usuario_pk]
+                await conn.query(
+                `UPDATE tbl_usuarios
+                SET intentos_fallidos = 0,
+                bloqueado_hasta = NULL,
+                cat_estado_fk = ?
+                WHERE id_usuario_pk = ?`,
+                [activo[0].id_estado_pk, user.id_usuario_pk]
                 );
+
                 user.intentos_fallidos = 0;
                 user.bloqueado_hasta = null;
 
@@ -97,10 +108,16 @@ exports.login = async (req, res) => {
 
         switch (true) {
             //SI EL USUARIO ESTÁ DENTRO DEL SISTEMA, PERO INACTIVO
-            case user.nombre_estado !== 'ACTIVO':
+            case user.nombre_estado === 'BLOQUEADO':
                 estado = 403;
-                mensaje = '⚠️USUARIO INACTIVO, CONSULTE CON EL ADMINISTRADOR'
+                mensaje = '🔒 CUENTA BLOQUEADA, INTENTE MÁS TARDE';
                 break;
+
+            //SI EL USUARIO ESTÁ INACTIVO
+            case user.nombre_estado === 'INACTIVO':
+                estado = 403;
+                mensaje = '⚠️ USUARIO INACTIVO, CONSULTE CON EL ADMINISTRADOR';
+            reak;
 
             default:
 
@@ -118,16 +135,24 @@ exports.login = async (req, res) => {
                     if (nuevosIntentos >= LIMITE_INTENTOS) {
 
                         //SE BLOQUEA LA CUENTA
+                        const [bloqueo] = await conn.query(`
+                            SELECT id_estado_pk
+                            FROM cat_estados
+                            WHERE dominio = 'USUARIO' AND nombre_estado = 'BLOQUEADO'
+                            LIMIT 1
+                        `);
+
                         await conn.query(
                             `UPDATE tbl_usuarios
                             SET intentos_fallidos = ?,
+                                cat_estado_fk = ?,
                                 bloqueado_hasta = DATE_ADD(NOW(), INTERVAL ? MINUTE)
                             WHERE id_usuario_pk = ?`,
-                            [nuevosIntentos, TIEMPO_BLOQUEO, user.id_usuario_pk]
+                            [nuevosIntentos, bloqueo[0].id_estado_pk, TIEMPO_BLOQUEO, user.id_usuario_pk]
                         );
-
                         estado = 403;
-                        mensaje = `🔒 CUENTA BLOQUEADA POR ${TIEMPO_BLOQUEO} MINUTOS (demasiados intentos fallidos)`;
+                        mensaje = `🔒CUENTA BLOQUEADA POR ${TIEMPO_BLOQUEO} MINUTOS (demasiados intentos fallidos)`;
+
                         break;
 
                     } else {
@@ -141,7 +166,7 @@ exports.login = async (req, res) => {
                         );
 
                         estado = 401;
-                        mensaje = `⚠️CREDENCIALES INCORRECTAS\n(Intento ${nuevosIntentos}/${LIMITE_INTENTOS})`;
+                        mensaje = `CREDENCIALES INCORRECTAS\n(Intento ${nuevosIntentos}/${LIMITE_INTENTOS})`;
                         break;
 
                     }
@@ -150,16 +175,25 @@ exports.login = async (req, res) => {
                 }else {
 
                     //SE RESETEAN LOS INTENTOS Y LO DEJA LOGUEAR
+                    //SE RESETEAN LOS INTENTOS Y LO DEJA LOGUEAR
+                    const [activo] = await conn.query(`
+                        SELECT id_estado_pk
+                        FROM cat_estados
+                        WHERE dominio = 'USUARIO' AND nombre_estado = 'ACTIVO'
+                        LIMIT 1
+                    `);
+
                     await conn.query(
                         `UPDATE tbl_usuarios
-                        SET intentos_fallidos = 0, bloqueado_hasta = NULL
+                        SET intentos_fallidos = 0,
+                            bloqueado_hasta = NULL,
+                            cat_estado_fk = ?
                         WHERE id_usuario_pk = ?`,
-                        [user.id_usuario_pk]
-
+                        [activo[0].id_estado_pk, user.id_usuario_pk]
                     );
 
                     estado = 200;
-                    mensaje = '✅ LOGIN EXITOSO'
+                    mensaje = 'LOGIN EXITOSO'
                     break;
 
                 }
