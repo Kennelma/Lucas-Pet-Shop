@@ -5,17 +5,19 @@ import {
   Calendar,
   FileText,
   TrendingUp,
-  DollarSign,
-  CalendarDays,
-  Eye,
-  X
+  CalendarDays
 } from 'lucide-react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 
 import { descargarPDFTabla } from './pdf.js';
 
-const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
+const Tabla = ({ 
+  obtenerRegistroFinanciero, 
+  obtenerHistorialReportes, 
+  obtenerReportesDetallados,
+  registrosFinancieros 
+}) => {
   const [datosTabla, setDatosTabla] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
@@ -25,10 +27,6 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
   const [mesDiarioSeleccionado, setMesDiarioSeleccionado] = useState(new Date().getMonth() + 1);
   const [mesesConDatos, setMesesConDatos] = useState([]);
   const [diasConDatos, setDiasConDatos] = useState([]);
-
-  // Estados para el modal
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [detalleSeleccionado, setDetalleSeleccionado] = useState(null);
 
   const anioActual = new Date().getFullYear();
   const mesActual = new Date().getMonth();
@@ -47,7 +45,7 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
       setError('No se han proporcionado las funciones para obtener los datos');
       setCargando(false);
     }
-  }, [anioSeleccionado, vistaActiva, mesDiarioSeleccionado, obtenerRegistroFinanciero, obtenerHistorialReportes]);
+  }, [anioSeleccionado, vistaActiva, mesDiarioSeleccionado]);
 
   const cargarDatos = async () => {
     setCargando(true);
@@ -136,81 +134,70 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
     }
   };
 
-  // Función para abrir modal con detalles
-  const handleVerDetalle = (rowData) => {
-    setDetalleSeleccionado(rowData);
-    setModalAbierto(true);
-  };
-
-  const cerrarModal = () => {
-    setModalAbierto(false);
-    setDetalleSeleccionado(null);
-  };
-
-  // Calcular totales
   const totalIngresos = datosTabla.reduce((sum, d) => sum + (d?.ingreso || 0), 0);
   const totalGastos = datosTabla.reduce((sum, d) => sum + (d?.gasto || 0), 0);
   const totalGeneral = totalIngresos - totalGastos;
 
-  // Función para descargar PDF
-  const handleDescargarPDF = () => {
+  const facturasAnuales = datosTabla.reduce((acc, m) => acc + (m.cantidadFacturas || 0), 0);
+  const facturasMensuales = (mesSeleccionado !== 'todos')
+    ? datosTabla
+        .filter(m => m.mesIndex === parseInt(mesSeleccionado))
+        .reduce((acc, m) => acc + (m.cantidadFacturas || 0), 0)
+    : 0;
+
+  const handleDescargarPDF = async () => {
     if (vistaActiva === 'anual') {
       if (mesSeleccionado === 'todos') {
-        descargarPDFTabla(
-          datosTabla,
-          totalIngresos,
-          totalGastos,
-          totalGeneral,
-          anioSeleccionado,
-          null
-        );
+        descargarPDFTabla(datosTabla, totalIngresos, totalGastos, totalGeneral, anioSeleccionado, null);
       } else {
         const mesData = datosTabla.find(m => m.mesIndex === parseInt(mesSeleccionado));
         if (mesData) {
-          descargarPDFTabla(
-            [mesData],
-            mesData.ingreso,
-            mesData.gasto,
-            mesData.total,
-            anioSeleccionado,
-            mesData.mes
-          );
+          descargarPDFTabla([mesData], mesData.ingreso, mesData.gasto, mesData.total, anioSeleccionado, mesData.mes);
         }
       }
     } else {
-      descargarPDFTabla(
-        datosTabla,
-        totalIngresos,
-        totalGastos,
-        totalGeneral,
-        anioSeleccionado,
-        `${meses[mesDiarioSeleccionado - 1]} - Diario`
-      );
+      // Vista diaria - obtener detalles del mes completo
+      try {
+        const promesasDetalles = datosTabla.map(async (row) => {
+          const fecha = `${anioSeleccionado}-${String(row.mesIndex + 1).padStart(2, '0')}-${String(row.dia).padStart(2, '0')}`;
+          const response = await obtenerReportesDetallados(fecha);
+          return {
+            ...row,
+            detalles: response?.Consulta && response?.detalles ? response.detalles : []
+          };
+        });
+
+        const datosConDetalles = await Promise.all(promesasDetalles);
+        
+        descargarPDFTabla(
+          datosConDetalles, 
+          totalIngresos, 
+          totalGastos, 
+          totalGeneral, 
+          anioSeleccionado, 
+          `${meses[mesDiarioSeleccionado - 1]} - Diario`,
+          datosConDetalles.flatMap(d => d.detalles || [])
+        );
+      } catch (error) {
+        console.error('Error al obtener detalles para PDF:', error);
+        descargarPDFTabla(datosTabla, totalIngresos, totalGastos, totalGeneral, anioSeleccionado, `${meses[mesDiarioSeleccionado - 1]} - Diario`);
+      }
     }
   };
 
-  // Columna ID
+  // Columnas
   const bodyId = (rowData) => (
-    <div className="flex items-center justify-center">
+    <div className="flex items-center justify-start pl-2">
       <span className="text-gray-800 font-semibold text-sm">{rowData.id}</span>
     </div>
   );
 
-  // Columna Mes o Día
   const bodyPeriodo = (rowData) => {
     if (vistaActiva === 'anual') {
-      const esActual = rowData.mesIndex === mesActual && anioSeleccionado === anioActual;
       return (
-        <div className="flex items-center gap-2">
-          <Calendar className="w-3.5 h-3.5 text-gray-500" />
-          <span className="text-gray-800 font-semibold text-sm">
-            {rowData.mes}
-          </span>
-          {esActual && (
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
-              Actual
-            </span>
-          )}
+        <div className="flex items-center justify-center gap-2">
+          <Calendar className="w-4 h-4 text-gray-500" />
+          <span className="text-gray-800 font-semibold text-sm uppercase">{rowData.mes}</span>
         </div>
       );
     } else {
@@ -218,77 +205,48 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
                     mesDiarioSeleccionado === (mesActual + 1) &&
                     anioSeleccionado === anioActual;
       return (
-        <div className="flex items-center gap-2">
-          <CalendarDays className="w-3.5 h-3.5 text-gray-500" />
-          <span className="text-gray-800 font-semibold text-sm">
-            {rowData.fecha}
-          </span>
-          {esHoy && (
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
-              Hoy
-            </span>
-          )}
+        <div className="flex items-center justify-center gap-2">
+          <CalendarDays className="w-4 h-4 text-gray-500" />
+          <span className="text-gray-800 font-semibold text-sm uppercase">{rowData.fecha}</span>
         </div>
       );
     }
   };
 
-  // Columna Ingresos
   const bodyIngresos = (rowData) => (
-    <div className="flex items-center gap-1.5">
-      <TrendingUp className="w-3.5 h-3.5 text-green-600" />
-      <span className="text-green-700 font-bold text-sm">
-        L {rowData.ingreso.toLocaleString('es-HN')}
-      </span>
+    <div className="flex items-center justify-center gap-1">
+      <TrendingUp className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
+      <span className="text-green-700 font-bold text-xs whitespace-nowrap">L {rowData.ingreso.toLocaleString('es-HN')}</span>
     </div>
   );
 
-  // Columna Gastos
   const bodyGastos = (rowData) => (
-    <div className="flex items-center gap-1.5">
-      <DollarSign className="w-3.5 h-3.5 text-red-600" />
-      <span className="text-red-700 font-bold text-sm">
-        L {rowData.gasto.toLocaleString('es-HN')}
-      </span>
+    <div className="flex items-center justify-center">
+      <span className="text-red-700 font-bold text-xs whitespace-nowrap">L {rowData.gasto.toLocaleString('es-HN')}</span>
     </div>
   );
 
-  // Columna Total
   const bodyTotal = (rowData) => (
-    <div className="flex items-center">
-      <span className={`font-bold text-sm ${rowData.total >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
+    <div className="flex items-center justify-center">
+      <span className={`font-bold text-xs whitespace-nowrap ${rowData.total >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
         L {rowData.total.toLocaleString('es-HN')}
       </span>
     </div>
   );
 
-  // Columna Acciones
-  const bodyAcciones = (rowData) => (
-    <div className="flex items-center justify-center">
-      <button
-        onClick={() => handleVerDetalle(rowData)}
-        className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
-        title="Ver detalle"
-      >
-        <Eye className="w-4 h-4" />
-      </button>
-    </div>
-  );
-
-  // Footers
   const footerPeriodo = () => (
-    <strong className="text-gray-800 text-sm font-bold">
+    <strong className="text-gray-700 text-xs font-bold uppercase text-center block">
       TOTAL {vistaActiva === 'anual' ? anioSeleccionado : `${meses[mesDiarioSeleccionado - 1]} ${anioSeleccionado}`}
     </strong>
   );
   const footerIngresos = () => (
-    <span className="text-green-800 font-bold text-sm">L {totalIngresos.toLocaleString('es-HN')}</span>
+    <span className="text-green-700 font-bold text-xs text-center block">L {totalIngresos.toLocaleString('es-HN')}</span>
   );
   const footerGastos = () => (
-    <span className="text-red-800 font-bold text-sm">L {totalGastos.toLocaleString('es-HN')}</span>
+    <span className="text-red-700 font-bold text-xs text-center block">L {totalGastos.toLocaleString('es-HN')}</span>
   );
   const footerTotal = () => (
-    <span className={`font-bold text-sm ${totalGeneral >= 0 ? 'text-blue-800' : 'text-orange-800'}`}>
+    <span className={`font-bold text-xs text-center block ${totalGeneral >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
       L {totalGeneral.toLocaleString('es-HN')}
     </span>
   );
@@ -302,9 +260,12 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
           }
           .datatable-compact .p-datatable-thead > tr > th {
             padding: 0.5rem 0.5rem !important;
+            text-align: center !important;
           }
           .datatable-compact .p-datatable-tfoot > tr > td {
-            padding: 0.5rem 0.5rem !important;
+            padding: 0.75rem 0.5rem !important;
+            background-color: #f3f4f6 !important;
+            font-weight: 600 !important;
           }
         `}
       </style>
@@ -336,7 +297,6 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
           )}
 
           <div className="flex gap-4">
-            {/* Tabla principal */}
             <div className="flex-1">
               <div className="bg-white rounded-xl p-6 font-poppins" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
 
@@ -344,31 +304,11 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
                 <div className="flex justify-between items-center mb-4">
 
                   <div className="flex items-center gap-3">
-                    {/* Toggle de vista Anual/Diaria */}
                     <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
-                      <button
-                        onClick={() => setVistaActiva('anual')}
-                        className={`px-3 py-1.5 text-xs font-semibold rounded transition-all ${
-                          vistaActiva === 'anual'
-                            ? 'bg-purple-600 text-white shadow-sm'
-                            : 'text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        Anual
-                      </button>
-                      <button
-                        onClick={() => setVistaActiva('diaria')}
-                        className={`px-3 py-1.5 text-xs font-semibold rounded transition-all ${
-                          vistaActiva === 'diaria'
-                            ? 'bg-purple-600 text-white shadow-sm'
-                            : 'text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        Diaria
-                      </button>
+                      <button onClick={() => setVistaActiva('anual')} className={`px-4 py-2 text-sm font-semibold rounded transition-all uppercase ${vistaActiva === 'anual' ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>ANUAL</button>
+                      <button onClick={() => setVistaActiva('diaria')} className={`px-4 py-2 text-sm font-semibold rounded transition-all uppercase ${vistaActiva === 'diaria' ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>DIARIA</button>
                     </div>
 
-                    {/* Selector de mes para vista diaria */}
                     {vistaActiva === 'diaria' && (
                       <select
                         value={mesDiarioSeleccionado}
@@ -470,25 +410,16 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
                       className="text-sm"
                       style={{ width: 'auto' }}
                     />
-                    <Column
-                      header="ACCIONES"
-                      body={bodyAcciones}
-                      className="text-sm text-center"
-                      style={{ width: '100px' }}
-                    />
                   </DataTable>
                 )}
               </div>
             </div>
 
-            {/* Panel lateral de descarga */}
             <div className="w-80">
               <div className="bg-white rounded-xl p-6 font-poppins sticky top-4" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center justify-center gap-2 mb-4">
                   <FileText className="w-5 h-5 text-purple-600" />
-                  <h3 className="text-base font-bold text-gray-800">
-                    Descargar Reporte
-                  </h3>
+                  <h3 className="text-base font-bold text-gray-800 uppercase">DESCARGAR REPORTE</h3>
                 </div>
 
                 <div className="space-y-4">
@@ -589,71 +520,6 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
           </div>
         </div>
       </div>
-
-      {/* MODAL SIMPLE DE DETALLE */}
-      {modalAbierto && detalleSeleccionado && (
-        <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-50">
-       <div className="bg-white rounded-lg shadow-xl max-w-sm w-[85%] scale-90">
-     {/* Header */}
-            <div className="bg-gray-50 px-6 py-4 rounded-t-lg border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-500">
-                Detalle del Reporte
-              </h3>
-              <p className="text-sm text-gray-400 mt-1">
-                {vistaActiva === 'anual'
-                  ? `${detalleSeleccionado.mes} ${anioSeleccionado}`
-                  : detalleSeleccionado.fecha
-                }
-              </p>
-            </div>
-
-            {/* Contenido */}
-            <div className="p-6 space-y-4">
-              <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                <span className="text-sm text-gray-500">Ingresos:</span>
-                <span className="text-lg font-semibold text-green-600">
-                  L {detalleSeleccionado.ingreso.toLocaleString('es-HN')}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                <span className="text-sm text-gray-500">Gastos:</span>
-                <span className="text-lg font-semibold text-red-600">
-                  L {detalleSeleccionado.gasto.toLocaleString('es-HN')}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                <span className="text-sm font-semibold text-gray-500">Balance:</span>
-                <span className={`text-lg font-bold ${
-                  detalleSeleccionado.total >= 0 ? 'text-blue-600' : 'text-orange-600'
-                }`}>
-                  L {detalleSeleccionado.total.toLocaleString('es-HN')}
-                </span>
-              </div>
-
-              {vistaActiva === 'diaria' && (
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-gray-500">Facturas:</span>
-                  <span className="text-lg font-semibold text-gray-600">
-                    {detalleSeleccionado.cantidadFacturas || 0}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="bg-gray-50 px-6 py-4 rounded-b-lg border-t border-gray-200 flex justify-end">
-              <button
-                onClick={cerrarModal}
-                className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md font-medium transition-colors text-sm"
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };

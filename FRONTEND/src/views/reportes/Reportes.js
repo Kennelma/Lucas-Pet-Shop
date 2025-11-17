@@ -11,7 +11,12 @@ import {
 import Grafica from './Grafica.js';
 import Tabla from './Tabla.js';
 import VentasDiarias from './Mas_vendidos.js';
-import { obtenerRegistroFinanciero, obtenerReporteDiario, obtenerHistorialReportes } from '../../AXIOS.SERVICES/reports-axios.js';
+import { 
+  obtenerRegistroFinanciero, 
+  obtenerReporteDiario, 
+  obtenerHistorialReportes,
+  obtenerReportesDetallados  // ← AÑADE ESTA IMPORTACIÓN
+} from '../../AXIOS.SERVICES/reports-axios.js';
 
 const Reportes = () => {
   const [pestanaActiva, setPestanaActiva] = useState('reportes');
@@ -63,7 +68,6 @@ const Reportes = () => {
         throw new Error('No se pudieron cargar los datos del día');
       }
 
-      // El endpoint devuelve un array con un solo objeto
       setReporteDiario(response.reporte[0]);
 
     } catch (err) {
@@ -83,12 +87,10 @@ const Reportes = () => {
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
 
-  // Obtener datos del reporte diario
   const ingresosDiarios = reporteDiario ? Number(reporteDiario.ingresos) || 0 : 0;
   const gastosDiarios = reporteDiario ? Number(reporteDiario.gastos) || 0 : 0;
   const saldoDiario = ingresosDiarios - gastosDiarios;
 
-  // Formatear fecha para mostrar
   const fechaFormateada = fechaActual.toLocaleDateString('es-HN', { 
     weekday: 'long', 
     year: 'numeric', 
@@ -188,7 +190,6 @@ const Reportes = () => {
                   </p>
                 </div>
 
-                {/* Estado de carga del reporte diario */}
                 {cargandoDiario ? (
                   <div className="flex items-center justify-center py-8">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
@@ -225,7 +226,6 @@ const Reportes = () => {
                       </div>
                     </div>
 
-                    {/* Separador vertical */}
                     <div className="h-16 w-px bg-gray-300"></div>
 
                     {/* Ingresos */}
@@ -243,7 +243,6 @@ const Reportes = () => {
                       </div>
                     </div>
 
-                    {/* Separador vertical */}
                     <div className="h-16 w-px bg-gray-300"></div>
 
                     {/* Saldo Neto */}
@@ -266,7 +265,6 @@ const Reportes = () => {
               </div>
             </div>
 
-            {/* Estado de carga */}
             {cargando && (
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-center gap-4">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
@@ -274,7 +272,6 @@ const Reportes = () => {
               </div>
             )}
 
-            {/* Error */}
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center gap-4">
                 <AlertCircle className="w-5 h-5 text-red-600" />
@@ -290,7 +287,6 @@ const Reportes = () => {
               </div>
             )}
 
-            {/* Gráficas lado a lado */}
             {!cargando && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <div className="h-96">
@@ -309,6 +305,8 @@ const Reportes = () => {
           <Tabla 
             obtenerRegistroFinanciero={obtenerRegistroFinanciero}
             obtenerHistorialReportes={obtenerHistorialReportes}
+            obtenerReportesDetallados={obtenerReportesDetallados}  // ← PASA LA FUNCIÓN CORRECTA
+            registrosFinancieros={registrosFinancieros}
           />
         )}
       </div>
