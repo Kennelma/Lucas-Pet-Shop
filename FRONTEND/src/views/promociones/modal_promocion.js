@@ -115,10 +115,7 @@ export default function ModalPromocion({
     // ============ VALIDACIÓN DE DESCRIPCIÓN ============
     if (!formData.descripcion_promocion.trim()) {
       nuevosErrores.descripcion_promocion = 'La descripción es requerida';
-    } else if (formData.descripcion_promocion.trim().length < 10) {
-      nuevosErrores.descripcion_promocion = 'La descripción debe tener al menos 10 caracteres';
     }
-    
     // ============ VALIDACIÓN DE PRECIO ============
     const precio = parseFloat(formData.precio_promocion);
     if (!formData.precio_promocion || isNaN(precio)) {

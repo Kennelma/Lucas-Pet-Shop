@@ -223,7 +223,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
           <h3 className="text-lg font-semibold text-gray-700 mb-2">No hay promociones</h3>
           <p className="text-gray-500 mb-6">Crea tu primera promoción para atraer clientes.</p>
           <button
-            className="bg-purple-500 text-white px-6 py-3 rounded-full hover:bg-purple-600 transition-colors inline-flex items-center gap-2"
+            className="bg-blue-400 text-white px-6 py-3 rounded-full hover:bg-blue-500 transition-colors inline-flex items-center gap-2"
             style={{ borderRadius: '12px' }}
             onClick={() => abrirModalPromocion(null)}
           >
