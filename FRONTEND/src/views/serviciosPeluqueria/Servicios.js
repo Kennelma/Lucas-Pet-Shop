@@ -21,6 +21,7 @@ const Servicios = () => {
 
   useEffect(() => {
     cargarDatos();
+    document.body.style.fontFamily = 'Poppins';
   }, []);
 
   //====================CONTROL_SCROLL_MODAL====================
@@ -280,11 +281,11 @@ const Servicios = () => {
             }}
           >
             <div className="flex justify-center items-center">
-              <h2 className="text-2xl font-black text-center uppercase text-white">
+              <h2 className="text-2xl text-center uppercase text-black ">
                 SERVICIOS DE PELUQUERÍA
               </h2>
             </div>
-            <p className="text-center text-white italic mt-2">
+            <p className="text-center text-black italic mt-2">
               Administra los servicios de peluquería y estética para mascotas
             </p>
           </div>

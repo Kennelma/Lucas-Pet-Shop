@@ -165,6 +165,7 @@ export default function ModalServicio({
               onChange={handleChange}
               className="w-full rounded-xl h-9 text-sm"
               placeholder="Ej: Baño completo"
+              autoComplete="off"
             />
             {errores.nombre_servicio_peluqueria && <p className="text-xs text-red-600 mt-1">{errores.nombre_servicio_peluqueria}</p>}
           </span>
