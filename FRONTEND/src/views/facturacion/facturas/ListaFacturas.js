@@ -7,7 +7,7 @@ import { generarPDFFactura, descargarPDFFactura } from './generarPDFFactura';
 import ModalPago from "../pagos/ModalPago";
 import VerDetallesFactura from './VerDetallesFactura';
 
-const ListaFacturas = () => {
+const ListaFacturas = ({ facturaParaImprimir, setFacturaParaImprimir }) => {
   //====================ESTADOS====================
   const [searchTerm, setSearchTerm] = useState('');
   const [filterEstado, setFilterEstado] = useState('TODAS');
@@ -27,6 +27,20 @@ const ListaFacturas = () => {
   useEffect(() => {
     cargarFacturas();
   }, []);
+
+  //====================ABRIR_PREVIEW_AUTOMÁTICO_AL_RECIBIR_FACTURA====================
+  useEffect(() => {
+    const abrirPreviewAutomatico = async () => {
+      if (facturaParaImprimir && facturas.length > 0) {
+        const factura = facturas.find(f => f.numero_factura === facturaParaImprimir);
+        if (factura) {
+          await handleImprimirFactura(factura);
+          setFacturaParaImprimir(null); // Limpiar después de abrir
+        }
+      }
+    };
+    abrirPreviewAutomatico();
+  }, [facturaParaImprimir, facturas]);
 
   const cargarFacturas = async () => {
     setLoading(true);
@@ -154,7 +168,6 @@ const ListaFacturas = () => {
     try {
       const response = await obtenerDatosFacturaPDF(factura.numero_factura);
       if (response.success) {
-
         //Generar el PDF
         const doc = generarPDFFactura(response.data);
 
@@ -183,6 +196,18 @@ const ListaFacturas = () => {
     setShowPDFPreview(false);
   };
 
+  //====================IMPRIMIR_PDF====================
+  const handlePrint = () => {
+    if (pdfUrl) {
+      const printWindow = window.open(pdfUrl, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
+    }
+  };
+
   //====================DESCARGAR_PDF====================
   const handleDescargarFactura = async (factura) => {
     try {
@@ -200,7 +225,7 @@ const ListaFacturas = () => {
 
 //ANTES CON ID_FACTURA, ESTA VEZ CON EL NUMERO DE FACTURA DE LA FILA
 const handleVerFactura = (factura) => {
-  setFacturaVista(factura.numero_factura); 
+  setFacturaVista(factura.numero_factura);
   setShowDetallesFactura(true);
 };
 
@@ -465,36 +490,24 @@ const handleVerFactura = (factura) => {
 
       {/*MODAL_PREVIEW_PDF*/}
       {showPDFPreview && pdfUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-2xl w-11/12 h-5/6 flex flex-col">
-            {/* HEADER DEL MODAL */}
-            <div className="flex items-center justify-between p-4 border-b bg-blue-600 text-white rounded-t-lg">
-              <h3 className="text-xl font-bold">Preview de Factura</h3>
-              <button
-                onClick={handleCerrarPreview}
-                className="hover:bg-blue-700 p-2 rounded-full transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-75">
+          <div className="bg-white rounded-lg shadow-2xl w-11/12 max-w-5xl h-[90vh] flex flex-col relative">
+            {/* BOTÓN CERRAR EN LA ESQUINA */}
+            <button
+              onClick={handleCerrarPreview}
+              className="absolute top-4 right-4 z-10 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition-colors shadow-lg"
+              title="Cerrar"
+            >
+              <X size={24} />
+            </button>
 
-            {/* CONTENIDO - IFRAME CON EL PDF */}
-            <div className="flex-1 p-4 overflow-hidden">
+            {/* CONTENIDO - IFRAME */}
+            <div className="flex-1 overflow-hidden bg-gray-100 rounded-lg">
               <iframe
                 src={pdfUrl}
-                className="w-full h-full border-2 border-gray-300 rounded"
-                title="Preview de Factura"
+                className="w-full h-full border-0 rounded-lg"
+                title="Vista previa de factura"
               />
-            </div>
-
-            {/* FOOTER DEL MODAL */}
-            <div className="flex justify-end gap-3 p-4 border-t bg-gray-50 rounded-b-lg">
-              <button
-                onClick={handleCerrarPreview}
-                className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
-              >
-                Cerrar
-              </button>
             </div>
           </div>
         </div>

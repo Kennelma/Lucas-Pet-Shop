@@ -165,6 +165,7 @@ export default function ModalServicio({
               onChange={handleChange}
               className="w-full rounded-xl h-9 text-sm"
               placeholder="Ej: Baño completo"
+              autoComplete="off"
             />
             {errores.nombre_servicio_peluqueria && <p className="text-xs text-red-600 mt-1">{errores.nombre_servicio_peluqueria}</p>}
           </span>
@@ -179,6 +180,7 @@ export default function ModalServicio({
               onChange={handleChange} 
               className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 min-h-20 text-sm resize-none"
               placeholder="Descripción detallada del servicio..." 
+              autoComplete="off"
             />
             {errores.descripcion_servicio && <p className="text-xs text-red-600 mt-1">{errores.descripcion_servicio}</p>}
           </span>
@@ -194,6 +196,7 @@ export default function ModalServicio({
               className="w-full rounded-xl h-9 text-sm"
               placeholder="0.00"
               keyfilter="num"
+              autoComplete="off"
             />
             {errores.precio_servicio && <p className="text-xs text-red-600 mt-1">{errores.precio_servicio}</p>}
           </span>
@@ -209,6 +212,7 @@ export default function ModalServicio({
               className="w-full rounded-xl h-9 text-sm"
               placeholder="Ej: 30"
               keyfilter="int"
+              autoComplete="off"
             />
             {errores.duracion_estimada && <p className="text-xs text-red-600 mt-1">{errores.duracion_estimada}</p>}
           </span>
@@ -223,6 +227,7 @@ export default function ModalServicio({
               onChange={handleChange}
               className="w-full rounded-xl h-9 text-sm"
               placeholder="Ej: Mascota vacunada, sin pulgas..."
+              autoComplete="off"
             />
           </span>
         </div>

@@ -17,6 +17,11 @@ const Promociones = () => {
   const [promocionSeleccionada, setPromocionSeleccionada] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Aplicar Poppins al contenedor principal
+  useEffect(() => {
+    document.body.style.fontFamily = 'Poppins';
+  }, []);
+
   useEffect(() => {
     cargarDatos();
   }, []);
@@ -258,6 +263,7 @@ const Promociones = () => {
   };
 
   return (
+    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
     <div className="min-h-screen p-6 bg-gray-50">
 
       {loading ? (
@@ -282,6 +288,7 @@ const Promociones = () => {
         promocion={promocionSeleccionada}
         promocionesExistentes={promociones}
       />
+    </div>
     </div>
   );
 };

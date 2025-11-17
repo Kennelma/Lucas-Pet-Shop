@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Download, 
-  AlertCircle, 
+import {
+  Download,
+  AlertCircle,
   Calendar,
   FileText,
   TrendingUp,
@@ -25,11 +25,11 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
   const [mesDiarioSeleccionado, setMesDiarioSeleccionado] = useState(new Date().getMonth() + 1);
   const [mesesConDatos, setMesesConDatos] = useState([]);
   const [diasConDatos, setDiasConDatos] = useState([]);
-  
+
   // Estados para el modal
   const [modalAbierto, setModalAbierto] = useState(false);
   const [detalleSeleccionado, setDetalleSeleccionado] = useState(null);
-  
+
   const anioActual = new Date().getFullYear();
   const mesActual = new Date().getMonth();
   const diaActual = new Date().getDate();
@@ -52,11 +52,11 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
   const cargarDatos = async () => {
     setCargando(true);
     setError(null);
-    
+
     try {
       if (vistaActiva === 'anual') {
         const response = await obtenerRegistroFinanciero(anioSeleccionado);
-        
+
         if (!response || !response.Consulta) {
           throw new Error('No se pudieron cargar los datos');
         }
@@ -68,13 +68,13 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
           const ingresos = Number(registro.total_ingresos) || 0;
           const gastos = Number(registro.total_gastos) || 0;
           const total = ingresos - gastos;
-          
-          return { 
+
+          return {
             id: index + 1,
             mes: meses[registro.mes - 1],
             mesNumero: registro.mes,
-            ingreso: ingresos, 
-            gasto: gastos, 
+            ingreso: ingresos,
+            gasto: gastos,
             total,
             mesIndex: registro.mes - 1
           };
@@ -84,29 +84,29 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
 
       } else {
         const diasEnMes = new Date(anioSeleccionado, mesDiarioSeleccionado, 0).getDate();
-        
+
         const promesasDias = [];
         for (let dia = 1; dia <= diasEnMes; dia++) {
           promesasDias.push(
             obtenerHistorialReportes(anioSeleccionado, mesDiarioSeleccionado, dia)
           );
         }
-        
+
         const resultados = await Promise.all(promesasDias);
-        
+
         const diasConOperaciones = [];
         const datosFormateados = [];
         let idContador = 1;
-        
+
         resultados.forEach((response, index) => {
           const dia = index + 1;
-          
+
           if (response && response.Consulta && response.historial && response.historial.length > 0) {
             const registro = response.historial[0];
             const ingresos = Number(registro.total_ingresos) || 0;
             const gastos = Number(registro.total_gastos) || 0;
             const total = ingresos - gastos;
-            
+
             if (ingresos > 0 || gastos > 0) {
               diasConOperaciones.push(dia);
               datosFormateados.push({
@@ -122,7 +122,7 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
             }
           }
         });
-        
+
         setDiasConDatos(diasConOperaciones);
         setDatosTabla(datosFormateados);
       }
@@ -214,8 +214,8 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
         </div>
       );
     } else {
-      const esHoy = rowData.dia === diaActual && 
-                    mesDiarioSeleccionado === (mesActual + 1) && 
+      const esHoy = rowData.dia === diaActual &&
+                    mesDiarioSeleccionado === (mesActual + 1) &&
                     anioSeleccionado === anioActual;
       return (
         <div className="flex items-center gap-2">
@@ -309,9 +309,9 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
         `}
       </style>
 
-      <div className="min-h-screen p-4 bg-gray-50" style={{ fontFamily: 'Poppins, sans-serif' }}>
+      <div className="min-h-screen p-4 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
         <div className="max-w-7xl mx-auto">
-          
+
           {/* Estados de carga y error */}
           {cargando && (
             <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-4 flex items-center gap-3">
@@ -325,7 +325,7 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
               <AlertCircle className="w-5 h-5 text-red-600" />
               <div className="flex-1">
                 <p className="text-sm text-red-700 font-medium">{error}</p>
-                <button 
+                <button
                   onClick={cargarDatos}
                   className="text-sm text-red-600 underline mt-1 hover:text-red-800"
                 >
@@ -339,10 +339,10 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
             {/* Tabla principal */}
             <div className="flex-1">
               <div className="bg-white rounded-xl p-6 font-poppins" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
-                
+
                 {/* Controles superiores */}
                 <div className="flex justify-between items-center mb-4">
-           
+
                   <div className="flex items-center gap-3">
                     {/* Toggle de vista Anual/Diaria */}
                     <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
@@ -370,7 +370,7 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
 
                     {/* Selector de mes para vista diaria */}
                     {vistaActiva === 'diaria' && (
-                      <select 
+                      <select
                         value={mesDiarioSeleccionado}
                         onChange={(e) => setMesDiarioSeleccionado(Number(e.target.value))}
                         className="text-xs px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500 bg-white font-medium shadow-sm"
@@ -390,9 +390,9 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
                         )}
                       </select>
                     )}
-                    
+
                     {/* Selector de año */}
-                    <select 
+                    <select
                       value={anioSeleccionado}
                       onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
                       className="text-xs px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500 bg-white font-medium shadow-sm"
@@ -410,8 +410,8 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
                   <div className="text-center py-8">
                     <p className="text-gray-500 text-lg">No hay datos disponibles</p>
                     <p className="text-gray-400 text-sm mt-2">
-                      {vistaActiva === 'anual' 
-                        ? 'No hay registros para este año' 
+                      {vistaActiva === 'anual'
+                        ? 'No hay registros para este año'
                         : 'No hay registros para este mes'
                       }
                     </p>
@@ -430,48 +430,48 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
                     size="small"
                     rowClassName={() => 'hover:bg-blue-50 cursor-pointer'}
                   >
-                    <Column 
-                      field="id" 
-                      header="ID" 
+                    <Column
+                      field="id"
+                      header="ID"
                       body={bodyId}
-                      sortable 
+                      sortable
                       className="text-sm text-center"
                       style={{ width: '60px' }}
                     />
-                    <Column 
-                      field={vistaActiva === 'anual' ? 'mes' : 'fecha'} 
-                      header={vistaActiva === 'anual' ? 'MES' : 'FECHA'} 
+                    <Column
+                      field={vistaActiva === 'anual' ? 'mes' : 'fecha'}
+                      header={vistaActiva === 'anual' ? 'MES' : 'FECHA'}
                       body={bodyPeriodo}
                       footer={footerPeriodo}
-                      sortable 
+                      sortable
                       className="text-sm"
                     />
-                    <Column 
-                      field="ingreso" 
-                      header="INGRESOS" 
+                    <Column
+                      field="ingreso"
+                      header="INGRESOS"
                       body={bodyIngresos}
                       footer={footerIngresos}
                       className="text-sm"
                       style={{ width: 'auto' }}
                     />
-                    <Column 
-                      field="gasto" 
-                      header="GASTOS" 
+                    <Column
+                      field="gasto"
+                      header="GASTOS"
                       body={bodyGastos}
                       footer={footerGastos}
                       className="text-sm"
                       style={{ width: 'auto' }}
                     />
-                    <Column 
-                      field="total" 
-                      header="BALANCE" 
+                    <Column
+                      field="total"
+                      header="BALANCE"
                       body={bodyTotal}
                       footer={footerTotal}
                       className="text-sm"
                       style={{ width: 'auto' }}
                     />
-                    <Column 
-                      header="ACCIONES" 
+                    <Column
+                      header="ACCIONES"
                       body={bodyAcciones}
                       className="text-sm text-center"
                       style={{ width: '100px' }}
@@ -497,7 +497,7 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Seleccionar Período
                       </label>
-                      <select 
+                      <select
                         value={mesSeleccionado}
                         onChange={(e) => setMesSeleccionado(e.target.value)}
                         className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500 bg-white font-medium shadow-sm"
@@ -518,7 +518,7 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-600">Ingresos:</span>
                       <span className="font-bold text-green-700">
-                        L {vistaActiva === 'anual' && mesSeleccionado === 'todos' 
+                        L {vistaActiva === 'anual' && mesSeleccionado === 'todos'
                           ? totalIngresos.toLocaleString('es-HN')
                           : vistaActiva === 'anual' && mesSeleccionado !== 'todos'
                           ? (datosTabla.find(m => m.mesIndex === parseInt(mesSeleccionado))?.ingreso || 0).toLocaleString('es-HN')
@@ -529,7 +529,7 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-600">Gastos:</span>
                       <span className="font-bold text-red-700">
-                        L {vistaActiva === 'anual' && mesSeleccionado === 'todos' 
+                        L {vistaActiva === 'anual' && mesSeleccionado === 'todos'
                           ? totalGastos.toLocaleString('es-HN')
                           : vistaActiva === 'anual' && mesSeleccionado !== 'todos'
                           ? (datosTabla.find(m => m.mesIndex === parseInt(mesSeleccionado))?.gasto || 0).toLocaleString('es-HN')
@@ -541,8 +541,8 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-gray-700 font-semibold">Balance:</span>
                         <span className={`font-bold ${
-                          (vistaActiva === 'anual' && mesSeleccionado === 'todos' 
-                            ? totalGeneral 
+                          (vistaActiva === 'anual' && mesSeleccionado === 'todos'
+                            ? totalGeneral
                             : vistaActiva === 'anual' && mesSeleccionado !== 'todos'
                             ? datosTabla.find(m => m.mesIndex === parseInt(mesSeleccionado))?.total || 0
                             : totalGeneral
@@ -550,7 +550,7 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
                             ? 'text-blue-700'
                             : 'text-orange-700'
                         }`}>
-                          L {vistaActiva === 'anual' && mesSeleccionado === 'todos' 
+                          L {vistaActiva === 'anual' && mesSeleccionado === 'todos'
                             ? totalGeneral.toLocaleString('es-HN')
                             : vistaActiva === 'anual' && mesSeleccionado !== 'todos'
                             ? (datosTabla.find(m => m.mesIndex === parseInt(mesSeleccionado))?.total || 0).toLocaleString('es-HN')
@@ -568,15 +568,15 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
                   >
                     <Download className="w-4 h-4" />
                     Descargar PDF {
-                      vistaActiva === 'anual' 
+                      vistaActiva === 'anual'
                         ? (mesSeleccionado === 'todos' ? 'Anual' : meses[parseInt(mesSeleccionado)])
                         : `${meses[mesDiarioSeleccionado - 1]}`
                     }
                   </button>
 
                   <p className="text-xs text-gray-500 text-center italic">
-                    {vistaActiva === 'anual' 
-                      ? (mesSeleccionado === 'todos' 
+                    {vistaActiva === 'anual'
+                      ? (mesSeleccionado === 'todos'
                           ? 'Se descargará el reporte completo del año'
                           : 'Se descargará el reporte del mes seleccionado'
                         )
@@ -600,7 +600,7 @@ const Tabla = ({ obtenerRegistroFinanciero, obtenerHistorialReportes }) => {
                 Detalle del Reporte
               </h3>
               <p className="text-sm text-gray-400 mt-1">
-                {vistaActiva === 'anual' 
+                {vistaActiva === 'anual'
                   ? `${detalleSeleccionado.mes} ${anioSeleccionado}`
                   : detalleSeleccionado.fecha
                 }

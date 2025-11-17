@@ -14,7 +14,7 @@ const NuevaFactura = (props) => {
   const [identidad, setIdentidad] = useState("");
   const [nombreCliente, setNombreCliente] = useState("");
   const [RTN, setRTN] = useState("");
-  const [id_cliente, setIdCliente] = useState(null); 
+  const [id_cliente, setIdCliente] = useState(null);
 
   //====================ESTADOS_DEL_USUARIO====================
   const [vendedor, setVendedor] = useState("");
@@ -44,7 +44,7 @@ const NuevaFactura = (props) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { setActiveTab } = props;
+  const { setActiveTab, setFacturaParaImprimir } = props;
 
   //====================CARGA_INICIAL====================
   useEffect(() => {
@@ -209,6 +209,7 @@ const NuevaFactura = (props) => {
           RTN={RTN}
           id_cliente={id_cliente}
           setActiveTab={props.setActiveTab}
+          setFacturaParaImprimir={setFacturaParaImprimir}
         />
 
         {isLoading && (

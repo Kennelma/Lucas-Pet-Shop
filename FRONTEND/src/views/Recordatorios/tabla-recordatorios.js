@@ -5,6 +5,8 @@ import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { InputSwitch } from 'primereact/inputswitch';
 import { Dialog } from 'primereact/dialog';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import Swal from 'sweetalert2';
 import ConexionWhatsApp from './conexionWhatsApp.js';
 import ModalRecordatorio from './modal-agregar-recordatorio';
@@ -66,7 +68,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar }) => {
               }}
             >
               <i className="pi pi-pencil text-xs"></i>
-              <span className="uppercase">Editar</span>
+              <span className="uppercase">EDITAR</span>
             </div>
             <hr className="my-0 border-gray-200" />
             <div
@@ -248,7 +250,8 @@ const TablaRecordatorios = ({ tipoServicio = [], frecuencias = [], loading: load
             className="bg-purple-500 hover:bg-purple-700 text-white px-3 py-1 text-sm rounded transition-colors flex items-center gap-2"
             onClick={() => setOpenModal(true)}
           >
-            AGREGAR NUEVO RECORDATORIO
+            <FontAwesomeIcon icon={faPlus} />
+            NUEVO RECORDATORIO
           </button>
         </div>
 

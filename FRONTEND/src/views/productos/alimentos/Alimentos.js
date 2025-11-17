@@ -137,6 +137,7 @@ const Alimentos = () => {
 
   useEffect(() => {
     cargarDatos();
+    document.body.style.fontFamily = 'Poppins';
   }, []);
 
   //====================CONTROL_SCROLL_MODAL====================
@@ -379,6 +380,7 @@ const Alimentos = () => {
           position: relative !important;
         }
       `}</style>
+      <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
       <div className="min-h-screen p-6 bg-gray-50">
         {/* Título */}
       <div className="rounded-xl p-6 mb-3"
@@ -552,6 +554,7 @@ const Alimentos = () => {
             alimentosExistentes={alimentos} // ✅ AGREGAR ESTA PROP
           />
         ))}
+      </div>
       </div>
     </>
   );
