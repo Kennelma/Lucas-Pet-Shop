@@ -23,8 +23,8 @@ const ActionMenu = ({ actions, rowIndex, totalRows }) => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
-      const menuHeight = actions.length * 40; 
-      
+      const menuHeight = actions.length * 40;
+
       const showAbove = rect.bottom + menuHeight > viewportHeight - 50;
       setShouldShowAbove(showAbove);
     }
@@ -58,9 +58,9 @@ const ActionMenu = ({ actions, rowIndex, totalRows }) => {
     }
     setIsOpen(!isOpen);
   };
-// Renderizar el botón y el menú  
+// Renderizar el botón y el menú
   return (
-    
+
     <div className="relative flex justify-center" ref={menuRef}>
       <button
         ref={buttonRef}
@@ -72,13 +72,13 @@ const ActionMenu = ({ actions, rowIndex, totalRows }) => {
       </button>
 
       {isOpen && (
-        <div 
+        <div
           className="fixed bg-white border border-gray-200 rounded-lg shadow-xl min-w-[140px] z-50"
           style={{
             position: 'fixed',
             left: buttonRef.current ? buttonRef.current.getBoundingClientRect().right - 140 : 'auto',
-            top: shouldShowAbove ? 
-              (buttonRef.current ? buttonRef.current.getBoundingClientRect().top - (actions.length * 40) : 'auto') : 
+            top: shouldShowAbove ?
+              (buttonRef.current ? buttonRef.current.getBoundingClientRect().top - (actions.length * 40) : 'auto') :
               (buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 5 : 'auto')
           }}
         >
@@ -106,14 +106,14 @@ export default function GestionEmpresa() {
   const [empresas, setEmpresas] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   // Estados para modales unificados
 
   const [modalEmpresa, setModalEmpresa] = useState({ show: false, mode: 'create', data: null });
-  
+
 
   const [modalSucursal, setModalSucursal] = useState({ show: false, mode: 'create', data: null });
-  
+
   // Estados para formularios
   const [formDataEmpresa, setFormDataEmpresa] = useState({});
   const [formDataSucursal, setFormDataSucursal] = useState({});
@@ -128,7 +128,7 @@ export default function GestionEmpresa() {
   const empresasFiltradas = empresas.filter(empresa => {
     // Validar que searchTerm existe y no esté vacío
     if (!searchTerm || typeof searchTerm !== 'string') return true;
-    
+
     const busqueda = searchTerm.trim().toLowerCase();
     if (busqueda === '') return true;
     // Verificar campos de empresa y sucursales
@@ -137,7 +137,7 @@ export default function GestionEmpresa() {
       empresa.direccion_empresa?.toLowerCase().includes(busqueda) ||
       empresa.telefono_empresa?.toLowerCase().includes(busqueda) ||
       empresa.correo_empresa?.toLowerCase().includes(busqueda) ||
-      empresa.sucursales?.some(sucursal => 
+      empresa.sucursales?.some(sucursal =>
         sucursal.nombre_sucursal?.toLowerCase().includes(busqueda) ||
         sucursal.direccion_sucursal?.toLowerCase().includes(busqueda) ||
         sucursal.telefono_sucursal?.toLowerCase().includes(busqueda)
@@ -155,11 +155,11 @@ export default function GestionEmpresa() {
       // Asociar sucursales a sus respectivas empresas
       const empresasConSucursales = (empresasData || []).map(empresa => ({
         ...empresa,
-        sucursales: (sucursalesData || []).filter(sucursal => 
+        sucursales: (sucursalesData || []).filter(sucursal =>
           sucursal.id_empresa_fk === empresa.id_empresa_pk
         )
       }));
-      
+
       setEmpresas(empresasConSucursales);
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
@@ -177,7 +177,7 @@ export default function GestionEmpresa() {
   const handleChangeEmpresa = (e) => {
     const { name, value } = e.target;
     setFormDataEmpresa(prev => ({ ...prev, [name]: value }));
-    
+
     // Limpiar error si el usuario está escribiendo
     if (value.trim() !== '' && errores[name]) {
       setErrores(prev => ({ ...prev, [name]: '' }));
@@ -187,7 +187,7 @@ export default function GestionEmpresa() {
   const handleChangeSucursal = (e) => {
     const { name, value } = e.target;
     setFormDataSucursal(prev => ({ ...prev, [name]: value }));
-    
+
     // Limpiar error si el usuario está escribiendo
     if (value.trim() !== '' && errores[name]) {
       setErrores(prev => ({ ...prev, [name]: '' }));
@@ -225,14 +225,14 @@ export default function GestionEmpresa() {
       setFormDataSucursal({ id_empresa_fk: empresaId });
     }
     setErrores({});
-    setModalSucursal({ 
-      show: true, 
-      mode, 
-      data: { 
-        ...data, 
+    setModalSucursal({
+      show: true,
+      mode,
+      data: {
+        ...data,
         empresaData,
         empresasDisponibles: empresas // Pasar todas las empresas disponibles
-      } 
+      }
     });
   };
 
@@ -265,7 +265,7 @@ export default function GestionEmpresa() {
         }
         break;
     }
-    
+
     setErrores(prev => ({ ...prev, [name]: error }));
   };
 
@@ -290,7 +290,7 @@ export default function GestionEmpresa() {
         }
         break;
     }
-    
+
     setErrores(prev => ({ ...prev, [name]: error }));
   };
 
@@ -327,29 +327,29 @@ export default function GestionEmpresa() {
   // Validación de campos de empresa con mensajes específicos
   const validarEmpresa = () => {
     const erroresTemp = {};
-    
+
     if (!formDataEmpresa.nombre_empresa?.trim()) {
       erroresTemp.nombre_empresa = 'El nombre de la empresa es obligatorio';
     }
-    
+
     if (!formDataEmpresa.correo_empresa?.trim()) {
       erroresTemp.correo_empresa = 'El correo de la empresa es obligatorio';
     } else if (!/\S+@\S+\.\S+/.test(formDataEmpresa.correo_empresa)) {
       erroresTemp.correo_empresa = 'El correo no tiene un formato válido';
     }
-    
+
     if (!formDataEmpresa.telefono_empresa?.trim()) {
       erroresTemp.telefono_empresa = 'El teléfono de la empresa es obligatorio';
     } else if (formDataEmpresa.telefono_empresa.length < 8) {
       erroresTemp.telefono_empresa = 'El teléfono debe tener al menos 8 dígitos';
     }
-    
+
     if (!formDataEmpresa.rtn_empresa?.trim()) {
       erroresTemp.rtn_empresa = 'El RTN de la empresa es obligatorio';
     } else if (formDataEmpresa.rtn_empresa.length < 10) {
       erroresTemp.rtn_empresa = 'El RTN debe tener al menos 10 caracteres';
     }
-    
+
     setErrores(erroresTemp);
     return Object.keys(erroresTemp).length === 0;
   };
@@ -359,7 +359,7 @@ export default function GestionEmpresa() {
     if (!validarEmpresa()) {
       return;
     }
-    
+
     setLoadingModal(true);
     try {
       let resultado;
@@ -368,7 +368,7 @@ export default function GestionEmpresa() {
       } else {
         resultado = await insertar('EMPRESA', formDataEmpresa);
       }
-      
+
       if (resultado?.Consulta !== false) {
         cerrarModalEmpresa();
         refrescarDatos();
@@ -385,42 +385,42 @@ export default function GestionEmpresa() {
     }
   };
 
-  // Validación de campos de sucursal 
+  // Validación de campos de sucursal
   const validarSucursal = () => {
     const erroresTemp = {};
-    
+
     if (!formDataSucursal.id_empresa_fk) {
       erroresTemp.id_empresa_fk = 'Debe seleccionar el tipo de empresa';
     }
-    
+
     if (!formDataSucursal.nombre_sucursal?.trim()) {
       erroresTemp.nombre_sucursal = 'El nombre de la sucursal es obligatorio';
     } else {
       // Validar duplicado de nombre de sucursal en la misma empresa
       const nombreNormalizado = formDataSucursal.nombre_sucursal.trim().toUpperCase();
       const empresaActual = empresas.find(e => e.id_empresa_pk === formDataSucursal.id_empresa_fk);
-      
+
       if (empresaActual && empresaActual.sucursales) {
         const nombreDuplicado = empresaActual.sucursales.some(s => {
           // Si estamos editando, excluir la sucursal actual
-          const esSucursalActual = modalSucursal.mode === 'edit' && 
+          const esSucursalActual = modalSucursal.mode === 'edit' &&
             s.id_sucursal_pk === formDataSucursal.id_sucursal_pk;
-          
+
           if (esSucursalActual) return false;
-          
+
           return s.nombre_sucursal.trim().toUpperCase() === nombreNormalizado;
         });
-        
+
         if (nombreDuplicado) {
           erroresTemp.nombre_sucursal = 'Ya existe una sucursal con este nombre en esta empresa';
         }
       }
     }
-    
+
     if (!formDataSucursal.direccion_sucursal?.trim()) {
       erroresTemp.direccion_sucursal = 'La dirección de la sucursal es obligatoria';
     }
-    
+
     if (!formDataSucursal.telefono_sucursal?.trim()) {
       erroresTemp.telefono_sucursal = 'El teléfono de la sucursal es obligatorio';
     } else if (formDataSucursal.telefono_sucursal.length < 8) {
@@ -428,23 +428,23 @@ export default function GestionEmpresa() {
     } else {
       // Validar duplicado de teléfono en todas las sucursales
       const telefonoNormalizado = formDataSucursal.telefono_sucursal.trim();
-      const telefonoDuplicado = empresas.some(empresa => 
+      const telefonoDuplicado = empresas.some(empresa =>
         empresa.sucursales && empresa.sucursales.some(s => {
           // Si estamos editando, excluir la sucursal actual
-          const esSucursalActual = modalSucursal.mode === 'edit' && 
+          const esSucursalActual = modalSucursal.mode === 'edit' &&
             s.id_sucursal_pk === formDataSucursal.id_sucursal_pk;
-          
+
           if (esSucursalActual) return false;
-          
+
           return s.telefono_sucursal.trim() === telefonoNormalizado;
         })
       );
-      
+
       if (telefonoDuplicado) {
         erroresTemp.telefono_sucursal = 'Este número de teléfono ya está registrado en otra sucursal';
       }
     }
-    
+
     setErrores(erroresTemp);
     return Object.keys(erroresTemp).length === 0;
   };
@@ -454,7 +454,7 @@ export default function GestionEmpresa() {
     if (!validarSucursal()) {
       return;
     }
-    
+
     setLoadingModal(true);
     try {
       let resultado;
@@ -463,7 +463,7 @@ export default function GestionEmpresa() {
       } else {
         resultado = await insertar('SUCURSALES', formDataSucursal);
       }
-      
+
       if (resultado?.Consulta !== false) {
         cerrarModalSucursal();
         refrescarDatos();
@@ -485,14 +485,14 @@ export default function GestionEmpresa() {
       <Building2 className="w-16 h-16 mx-auto mb-4 text-gray-400" />
       <h3 className="text-lg font-semibold text-gray-700 mb-2 uppercase">No hay empresas</h3>
       <p className="text-gray-500 mb-6">Crea tu primera empresa para gestionar el negocio.</p>
-      
+
     </div>
   );
 
   // Preparar datos para DataTable
   const prepararDatosParaTabla = () => {
     const datos = [];
-    
+
     empresasFiltradas.forEach(empresa => {
       if (!empresa.sucursales || empresa.sucursales.length === 0) {
         // Empresa sin sucursales
@@ -531,14 +531,14 @@ export default function GestionEmpresa() {
         });
       }
     });
-    
+
     return datos;
   };
 
   // Templates para las columnas
   const empresaBodyTemplate = (rowData) => {
     const { empresa, tipo, esNuevoGrupo } = rowData;
-    
+
     // Solo mostrar info de empresa en primera fila del grupo o empresa sin sucursales
     if (tipo === 'empresa_sin_sucursales' || esNuevoGrupo) {
       return (
@@ -559,7 +559,7 @@ export default function GestionEmpresa() {
         </div>
       );
     }
-    
+
     return <div className="text-gray-400 text-sm">↳ Sucursal de {empresa.nombre_empresa}</div>;
   };
 // Template para columna de sucursal
@@ -583,18 +583,18 @@ export default function GestionEmpresa() {
     if (!rowData.telefono_sucursal) {
       return <span className="text-gray-400">-</span>;
     }
-    
+
     // Formatear el teléfono: si viene sin guión, agregarlo (ej: 99998888 -> 9999-8888)
     const telefono = rowData.telefono_sucursal.replace(/(\d{4})(\d{4})/, '$1-$2');
-    
+
     return <span className="text-gray-600 text-sm">+504 {telefono}</span>;
   };
 
   const accionesBodyTemplate = (rowData) => {
     const { empresa, sucursal, tipo, esNuevoGrupo } = rowData;
-    
+
     const acciones = [];
-    
+
     // 1. Editar Sucursal (si existe)
     if (sucursal) {
       acciones.push({
@@ -604,7 +604,7 @@ export default function GestionEmpresa() {
 
       });
     }
-    
+
     // 2. Editar Empresa (solo en primera fila del grupo o empresa sin sucursales)
     if (tipo === 'empresa_sin_sucursales' || esNuevoGrupo) {
       acciones.push({
@@ -613,7 +613,7 @@ export default function GestionEmpresa() {
         onClick: () => abrirModalEmpresa('edit', empresa)
       });
     }
-    
+
     // 3. Eliminar Sucursal (si existe)
     if (sucursal) {
       acciones.push({
@@ -622,7 +622,7 @@ export default function GestionEmpresa() {
         onClick: () => manejarEliminarSucursal(sucursal)
       });
     }
-    
+
     // 4. Eliminar Empresa (solo en primera fila del grupo o empresa sin sucursales)
     if (tipo === 'empresa_sin_sucursales' || esNuevoGrupo) {
       acciones.push({
@@ -631,7 +631,7 @@ export default function GestionEmpresa() {
         onClick: () => manejarEliminarEmpresa(empresa)
       });
     }
-    
+
     return (
       <ActionMenu
         rowIndex={0}
@@ -642,6 +642,8 @@ export default function GestionEmpresa() {
   };
 
   return (
+
+    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
     <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
       {/* Título */}
       <div
@@ -705,8 +707,8 @@ export default function GestionEmpresa() {
               }}
               disabled={!empresas?.length}
               className={`${
-                !empresas?.length 
-                  ? 'bg-gray-400 cursor-not-allowed' 
+                !empresas?.length
+                  ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-[#C7E4E2] hover:bg-[#A3D2CA]'
               } text-black px-6 py-2 rounded transition-colors flex items-center gap-2`}
             >
@@ -828,5 +830,6 @@ export default function GestionEmpresa() {
         />
       )}
     </div>
+  </div>
   );
 }

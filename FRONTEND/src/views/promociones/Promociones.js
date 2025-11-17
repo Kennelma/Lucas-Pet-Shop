@@ -263,6 +263,7 @@ const Promociones = () => {
   };
 
   return (
+    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
     <div className="min-h-screen p-6 bg-gray-50">
 
       {loading ? (
@@ -287,6 +288,7 @@ const Promociones = () => {
         promocion={promocionSeleccionada}
         promocionesExistentes={promociones}
       />
+    </div>
     </div>
   );
 };

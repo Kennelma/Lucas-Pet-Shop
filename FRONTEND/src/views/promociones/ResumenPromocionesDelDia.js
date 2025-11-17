@@ -30,7 +30,7 @@ const ResumenPromocionesDelDia = () => {
   // Cargar promociones inicialmente y cada 30 segundos para actualizaciones en tiempo real
   useEffect(() => {
     cargarPromociones();
-    
+
     const interval = setInterval(() => {
       cargarPromociones();
     }, 30000); // Actualizar cada 30 segundos
@@ -45,7 +45,7 @@ const ResumenPromocionesDelDia = () => {
 
   const cargarPromociones = async (silencioso = false) => {
     if (!silencioso) setLoading(true);
-    
+
     try {
       const data = await verServicios("PROMOCIONES");
       const promocionesNormalizadas = (data || []).map(promocion => {
@@ -64,7 +64,7 @@ const ResumenPromocionesDelDia = () => {
             diasNormalizados = promocion.dias_promocion;
           }
         }
-        
+
         return {
           ...promocion,
           precio_promocion: parseFloat(promocion.precio_promocion || 0),
@@ -72,7 +72,7 @@ const ResumenPromocionesDelDia = () => {
           dias_promocion: diasNormalizados
         };
       });
-      
+
       setPromociones(promocionesNormalizadas);
     } catch (error) {
       console.error("Error al cargar promociones:", error);
@@ -97,21 +97,21 @@ const ResumenPromocionesDelDia = () => {
         console.log(`Promoción "${promocion.nombre_promocion}" excluida - no activa`);
         return false;
       }
-      
+
       // Si tiene días específicos definidos y no está vacío
       if (promocion.dias_promocion && promocion.dias_promocion.length > 0) {
         const incluyeDiaActual = promocion.dias_promocion.some(dia => {
           // Comparar de manera flexible (puede venir con diferentes formatos)
           const diaNormalizado = dia.toLowerCase().trim();
           const diaActualNormalizado = diaActual.toLowerCase().trim();
-          return diaNormalizado === diaActualNormalizado || 
+          return diaNormalizado === diaActualNormalizado ||
                  diaNormalizado.includes(diaActualNormalizado.slice(0, 3)); // Comparar por las primeras 3 letras
         });
-        
+
         console.log(`Promoción "${promocion.nombre_promocion}" - Días: [${promocion.dias_promocion.join(', ')}] - Incluye ${diaActual}: ${incluyeDiaActual}`);
         return incluyeDiaActual;
       }
-      
+
       // Si no tiene días específicos o el array está vacío, se considera disponible todos los días
       console.log(`Promoción "${promocion.nombre_promocion}" disponible todos los días`);
       return true;
@@ -127,18 +127,18 @@ const ResumenPromocionesDelDia = () => {
   };
 
   const obtenerFechaFormateada = () => {
-    const opciones = { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    const opciones = {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     };
     return fechaActual.toLocaleDateString('es-HN', opciones);
   };
 
   const obtenerHoraActual = () => {
-    return fechaActual.toLocaleTimeString('es-HN', { 
-      hour: '2-digit', 
+    return fechaActual.toLocaleTimeString('es-HN', {
+      hour: '2-digit',
       minute: '2-digit'
     });
   };
@@ -159,7 +159,7 @@ const ResumenPromocionesDelDia = () => {
     };
 
     window.addEventListener('promocionesUpdated', handlePromocionesUpdate);
-    
+
     return () => {
       window.removeEventListener('promocionesUpdated', handlePromocionesUpdate);
     };
@@ -175,7 +175,7 @@ const ResumenPromocionesDelDia = () => {
               No hay promociones para {obtenerNombreDia()}
             </h3>
             <p className="text-gray-500 text-sm">
-              {promociones.length > 0 
+              {promociones.length > 0
                 ? `Hay ${promociones.length} promociones en total, pero ninguna programada para ${obtenerNombreDia()}`
                 : 'No hay promociones registradas en el sistema'
               }
@@ -208,7 +208,7 @@ const ResumenPromocionesDelDia = () => {
           <FontAwesomeIcon icon={mostrarComponente ? faChevronUp : faChevronDown} size="sm" />
         </button>
       </div>
-      
+
       {mostrarComponente && (
         <div className="flex items-start gap-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 flex-1 items-stretch">

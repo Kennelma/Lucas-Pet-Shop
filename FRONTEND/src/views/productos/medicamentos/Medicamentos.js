@@ -286,6 +286,7 @@ const Medicamentos = () => {
   }
 
   return (
+    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
     <div className="min-h-screen p-6 bg-gray-50">
       {/* Título */}
       <div className="rounded-xl p-6 mb-3"
@@ -303,7 +304,7 @@ const Medicamentos = () => {
             GESTIÓN DE MEDICAMENTOS
           </h2>
         </div>
-      
+
         <p className="text-black italic mt-2 ml-85 w-full">
           Administra medicamentos veterinarios, lotes y control de inventario
         </p>
@@ -487,6 +488,7 @@ const Medicamentos = () => {
           {mensaje}
         </div>
       )}
+    </div>
     </div>
   );
 };

@@ -15,7 +15,8 @@ const Clientes = () => {
     }, [clienteSeleccionado]);
 
     return (
-
+        
+        <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
         <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
             {/* Título */}
             <div className="rounded-xl p-6 mb-3"
@@ -52,6 +53,7 @@ const Clientes = () => {
             </div>
 
         </div>
+    </div>
     );
 };
 
