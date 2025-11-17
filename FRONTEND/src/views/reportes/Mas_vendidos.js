@@ -7,6 +7,7 @@ const VentasDiarias = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hoveredItem, setHoveredItem] = useState(null);
+  const [hoveredFromChart, setHoveredFromChart] = useState(false);
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16'];
 
@@ -93,77 +94,118 @@ const VentasDiarias = () => {
   const totalProductos = ventas.length;
   const totalUnidades = calcularTotal();
   
-  const cx = 200;
-  const cy = 150;
+  const cx = 140;
+  const cy = 140;
   const radio = 100;
   let currentAngle = 0;
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 h-full">
-      <div className="flex items-center gap-2 mb-2">
+    <div className="bg-white rounded-lg shadow-md p-4 h-full max-h-[500px]">
+      <div className="flex items-center gap-2 mb-3">
         <div className="bg-blue-100 p-1.5 rounded-lg">
           <TrendingUp className="w-4 h-4 text-blue-600" />
         </div>
-        <h2 className="text-sm font-bold text-gray-800">Lo Más Vendido del Día</h2>
+        <h2 className="text-sm font-bold text-gray-800">LO MÁS VENDIDO DEL DÍA</h2>
       </div>
 
-      <div className="flex items-start gap-4" style={{ marginTop: '-10px' }}>
-        <div className="flex items-center justify-center relative" style={{ flex: '0 0 320px' }}>
-          <svg width="320" height="320" viewBox="0 0 400 400">
-            {ventas.map((item, index) => {
-              const porcentaje = (Number(item.total_vendido) / totalUnidades) * 100;
-              const angle = (porcentaje / 100) * 360;
-              const path = generarPathPastel(200, 200, 110, currentAngle, currentAngle + angle);
-              const angleActual = currentAngle;
-              currentAngle += angle;
-              
-              return (
-                <g key={index}>
-                  <path
-                    d={path}
-                    fill={COLORS[index % COLORS.length]}
-                    stroke="white"
-                    strokeWidth="2"
-                    style={{ 
-                      cursor: 'pointer',
-                      opacity: hoveredItem === index ? 0.8 : 1,
-                      transition: 'opacity 0.2s'
-                    }}
-                    onMouseEnter={() => setHoveredItem(index)}
-                    onMouseLeave={() => setHoveredItem(null)}
-                  >
-                    <title>{item.nombre_item} - {item.total_vendido} unidades ({porcentaje.toFixed(1)}%)</title>
-                  </path>
-                </g>
-              );
-            })}
-          </svg>
+      <div className="flex items-start gap-4">
+        {/* Gráfico de pastel */}
+        <div className="flex-shrink-0">
+          <div className="relative">
+            <svg width="280" height="280" viewBox="0 0 280 280">
+              {ventas.map((item, index) => {
+                const porcentaje = (Number(item.total_vendido) / totalUnidades) * 100;
+                const angle = (porcentaje / 100) * 360;
+                const path = generarPathPastel(cx, cy, radio, currentAngle, currentAngle + angle);
+                const angleActual = currentAngle;
+                currentAngle += angle;
+                
+                return (
+                  <g key={index}>
+                    <path
+                      d={path}
+                      fill={COLORS[index % COLORS.length]}
+                      stroke="white"
+                      strokeWidth="2.5"
+                      style={{ 
+                        cursor: 'pointer',
+                        opacity: hoveredItem === index ? 0.8 : 1,
+                        transition: 'opacity 0.2s'
+                      }}
+                      onMouseEnter={() => {
+                        setHoveredItem(index);
+                        setHoveredFromChart(true);
+                      }}
+                      onMouseLeave={() => {
+                        setHoveredItem(null);
+                        setHoveredFromChart(false);
+                      }}
+                    >
+                      <title>{item.nombre_item} - {item.total_vendido} unidades ({porcentaje.toFixed(1)}%)</title>
+                    </path>
+                  </g>
+                );
+              })}
+            </svg>
 
-          {hoveredItem !== null && (
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-3 py-2 rounded-lg shadow-xl border-2 border-gray-200 pointer-events-none z-10">
-              <p className="font-bold text-gray-800 text-xs whitespace-nowrap">{ventas[hoveredItem].nombre_item}</p>
-              <p className="text-xs text-gray-600">{ventas[hoveredItem].total_vendido} unidades</p>
-              <p className="text-xs text-blue-600 font-semibold">
-                {((Number(ventas[hoveredItem].total_vendido) / totalUnidades) * 100).toFixed(1)}%
-              </p>
-            </div>
-          )}
+            {hoveredItem !== null && hoveredFromChart && (
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-3 py-2 rounded-lg shadow-xl border-2 border-gray-200 pointer-events-none z-10 max-w-[200px]">
+                <p className="font-bold text-gray-800 text-xs truncate">{ventas[hoveredItem].nombre_item}</p>
+                <p className="text-xs text-gray-600 mt-0.5">{ventas[hoveredItem].total_vendido} unidades</p>
+                <p className="text-xs text-blue-600 font-semibold">
+                  {((Number(ventas[hoveredItem].total_vendido) / totalUnidades) * 100).toFixed(1)}%
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex-1 grid grid-cols-1 gap-1.5 overflow-y-auto pr-2" style={{ maxHeight: '320px' }}>
-          {ventas.map((item, index) => (
-            <div key={index} className="flex items-center gap-2">
+        {/* Lista de productos */}
+        <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar" style={{ maxHeight: '280px' }}>
+          <div className="grid grid-cols-1 gap-1.5">
+            {ventas.map((item, index) => (
               <div 
-                className="w-3 h-3 rounded-sm flex-shrink-0" 
-                style={{ backgroundColor: COLORS[index % COLORS.length] }}
-              />
-              <span className="text-xs text-gray-700" style={{ wordBreak: 'break-word', lineHeight: '1.3' }}>
-                {item.nombre_item} ({item.total_vendido})
-              </span>
-            </div>
-          ))}
+                key={index} 
+                className={`flex items-center gap-2 p-1.5 rounded-md transition-all cursor-pointer ${
+                  hoveredItem === index ? 'bg-gray-100' : 'hover:bg-gray-50'
+                }`}
+                onMouseEnter={() => setHoveredItem(index)}
+                onMouseLeave={() => setHoveredItem(null)}
+              >
+                <div 
+                  className="w-3 h-3 rounded-sm flex-shrink-0" 
+                  style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-gray-800 truncate leading-tight">
+                    {item.nombre_item}
+                  </p>
+                  <p className="text-[10px] text-gray-500 leading-tight">
+                    {item.total_vendido} unid. • {((Number(item.total_vendido) / totalUnidades) * 100).toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+      `}</style>
     </div>
   );
 };

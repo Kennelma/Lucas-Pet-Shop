@@ -99,7 +99,7 @@ const Reportes = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
       <div className="max-w-7xl mx-auto" style={{ fontFamily: 'Poppins' }}>
-
+   <div className="min-h-screen p-6 bg-gray-50">
         {/* Titulo */}
         <div
           className="rounded-xl p-6 mb-6"
@@ -125,34 +125,51 @@ const Reportes = () => {
           </p>
         </div>
 
-        {/* Pestañas de navegación */}
-        <div className="mb-6">
-          <div className="flex gap-2 bg-white rounded-xl shadow-sm border border-gray-200 p-1.5">
-            <button
-              onClick={() => setPestanaActiva('reportes')}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
-                pestanaActiva === 'reportes'
-                  ? 'bg-blue-500 text-white shadow-md'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4" />
-              Reportes Financieros
-            </button>
-            <button
-              onClick={() => setPestanaActiva('tabla')}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
-                pestanaActiva === 'tabla'
-                  ? 'bg-blue-500 text-white shadow-md'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <FileText className="w-4 h-4" />
-              Historial de Reportes
-            </button>
+       {/* Pestañas de navegación */}
+        <div className="flex justify-center mb-6">
+          <div className="flex flex-wrap rounded-lg bg-gray-200 p-1 w-80 text-sm shadow-sm">
+            <label className="flex-1 text-center">
+              <input
+                type="radio"
+                name="pestana"
+                checked={pestanaActiva === 'reportes'}
+                onChange={() => setPestanaActiva('reportes')}
+                className="hidden"
+              />
+              <span
+                className={`flex items-center justify-center gap-2 rounded-lg py-2 px-4 cursor-pointer transition-all duration-150 ${
+                  pestanaActiva === 'reportes'
+                    ? 'bg-white font-semibold text-gray-800 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                <BarChart3 className="w-4 h-4" />
+                REPORTES
+              </span>
+            </label>
+
+            <label className="flex-1 text-center">
+              <input
+                type="radio"
+                name="pestana"
+                checked={pestanaActiva === 'tabla'}
+                onChange={() => setPestanaActiva('tabla')}
+                className="hidden"
+              />
+              <span
+                className={`flex items-center justify-center gap-2 rounded-lg py-2 px-4 cursor-pointer transition-all duration-150 ${
+                  pestanaActiva === 'tabla'
+                    ? 'bg-white font-semibold text-gray-800 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                <FileText className="w-4 h-4" />
+                HISTORIAL
+              </span>
+            </label>
           </div>
         </div>
-
+     
         {/* Contenido según pestaña activa */}
         {pestanaActiva === 'reportes' ? (
           <>
@@ -161,9 +178,9 @@ const Reportes = () => {
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-gray-700" />
+                    
                     <h2 className="text-lg font-semibold text-gray-800">
-                      Resumen Financiero del Día
+                      RESUMEN DIARIO
                     </h2>
                   </div>
                   <p className="text-sm text-gray-600 capitalize">
@@ -295,6 +312,7 @@ const Reportes = () => {
           />
         )}
       </div>
+    </div>
     </div>
   );
 };
