@@ -99,7 +99,7 @@ const Reportes = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
       <div className="max-w-7xl mx-auto" style={{ fontFamily: 'Poppins' }}>
-
+   <div className="min-h-screen p-6 bg-gray-50">
         {/* Titulo */}
         <div
           className="rounded-xl p-6 mb-6"
@@ -169,7 +169,7 @@ const Reportes = () => {
             </label>
           </div>
         </div>
-        <div className="min-h-screen p-6 bg-gray-50">
+     
         {/* Contenido según pestaña activa */}
         {pestanaActiva === 'reportes' ? (
           <>
