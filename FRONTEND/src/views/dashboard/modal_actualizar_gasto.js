@@ -33,15 +33,15 @@ const ModalActualizarGasto = ({ visible, onHide, gastoSeleccionado, onRefresh })
 
   const validarFormulario = () => {
     const nuevosErrores = {};
-    
+
     if (!formData.detalle_gasto.trim()) {
       nuevosErrores.detalle_gasto = 'El detalle es obligatorio';
     }
-    
+
     if (!formData.monto_gasto || formData.monto_gasto <= 0) {
       nuevosErrores.monto_gasto = 'El monto debe ser mayor a 0';
     }
-    
+
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;
   };
@@ -89,14 +89,14 @@ const ModalActualizarGasto = ({ visible, onHide, gastoSeleccionado, onRefresh })
 
   const footer = (
     <div className="flex justify-end gap-3 mt-2">
-      <Button 
-        label="Cancelar" 
+      <Button
+        label="Cancelar"
         icon="pi pi-times"
         onClick={handleClose}
         className="p-button-text p-button-rounded"
       />
-      <Button 
-        label="Guardar" 
+      <Button
+        label="Guardar"
         icon="pi pi-check"
         onClick={actualizarGasto}
         loading={guardando}

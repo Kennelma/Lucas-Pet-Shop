@@ -3,7 +3,7 @@ const mysqlConnection = require('../config/conexion');
 
 
 //JOB QUE REVISA PRODUCTOS BAJO STOCK Y CREA NOTIFICACIONES (TIEMPO COMPLETO)
-cron.schedule('0 */5 * * * *', async () => {
+cron.schedule('0 */5 * * * ', async () => {
 
     const conn = await mysqlConnection.getConnection();
 
@@ -18,7 +18,7 @@ cron.schedule('0 */5 * * * *', async () => {
                 nombre_producto,
                 stock,
                 stock_minimo
-            FROM tbl_productos
+            FROM tbl_productos 
             WHERE stock < stock_minimo
         `);
 
@@ -46,7 +46,7 @@ cron.schedule('0 */5 * * * *', async () => {
                 const mensaje = `EL PRODUCTO ${nombre} TIENE UN STOCK = ${producto[i].stock} DE UNIDADES. ES NECESARIO REABASTECER.`;
                 const fecha_creacion = new Date();
 
-                // INSERTA SOLO SI NO EXISTE UNA NOTIFICACIÓN ACTIVA (NO LEÍDA) PARA ESTE PRODUCTO
+                //INSERTA SOLO SI NO EXISTE UNA NOTIFICACIÓN ACTIVA (NO LEÍDA) PARA ESTE PRODUCTO
                 const [resultado] = await conn.query(`
                     INSERT INTO tbl_notificaciones (mensaje_notificacion, fecha_creacion, tipo_notificacion_fk)
                     SELECT ?, ?, ?
@@ -73,4 +73,4 @@ cron.schedule('0 */5 * * * *', async () => {
         conn.release();
     }
 
-}, { timezone: 'America/Tegucigalpa' });
+});

@@ -6,7 +6,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
 
 body {
-  background-color: var(--cui-tertiary-bg);
+  background-color: #f9fafb !important;
   font-family: 'Poppins', sans-serif;
 }
 
@@ -71,7 +71,7 @@ body {
 }
 
 body {
-  background-color: #ffffff;
+  background-color: #f9fafb !important;
 }
 
 /* Header con el mismo color que sidebar */
@@ -95,7 +95,7 @@ ul {
 
 @include color-mode(dark) {
   body {
-    background-color: #111827;
+    background-color: #f9fafb !important;
   }
 
   .footer {

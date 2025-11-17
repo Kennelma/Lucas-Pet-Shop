@@ -13,12 +13,20 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
   doc.setFont(undefined, 'bold');
   
   let titulo = '';
+  let esDiario = false;
+  
   if (mesFiltrado) {
-    // Determinar si es reporte mensual o diario
-    const esDiario = datosTabla.length > 12;
-    titulo = esDiario 
-      ? `Reporte Diario - ${mesFiltrado} ${anio}`
-      : `Reporte Mensual - ${mesFiltrado} ${anio}`;
+    // Determinar si es reporte diario o mensual
+    // Si mesFiltrado contiene "Diario" o si hay más de 12 registros, es diario
+    esDiario = mesFiltrado.includes('Diario') || mesFiltrado.includes('DIARIO') || datosTabla.length > 12;
+    
+    if (esDiario) {
+      // Limpiar el nombre del mes si tiene "- Diario"
+      const nombreMes = mesFiltrado.replace(' - Diario', '').replace(' - DIARIO', '');
+      titulo = `Reporte Diario - ${nombreMes} ${anio}`;
+    } else {
+      titulo = `Reporte Mensual - ${mesFiltrado} ${anio}`;
+    }
   } else {
     titulo = `Reporte Anual ${anio}`;
   }
@@ -95,9 +103,13 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
   doc.setTextColor(33, 37, 41);
   doc.setFont(undefined, 'bold');
   
-  const tituloTabla = mesFiltrado 
-    ? `Detalle de ${mesFiltrado}`
-    : 'Detalle Anual';
+  let tituloTabla = '';
+  if (mesFiltrado) {
+    const nombreMes = mesFiltrado.replace(' - Diario', '').replace(' - DIARIO', '');
+    tituloTabla = esDiario ? `Detalle Diario - ${nombreMes}` : `Detalle de ${nombreMes}`;
+  } else {
+    tituloTabla = 'Detalle Anual';
+  }
   
   doc.text(tituloTabla, 105, 105, { align: 'center' });
 
@@ -108,7 +120,10 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
   doc.roundedRect(15, tableY, 180, 10, 2, 2, 'F');
   doc.setFontSize(10);
   doc.setTextColor(60, 60, 70);
-  doc.text('Período', 30, tableY + 7, { align: 'left' });
+  
+  // Cambiar header según si es diario o no
+  const headerTexto = esDiario ? 'Fecha' : 'Período';
+  doc.text(headerTexto, 30, tableY + 7, { align: 'left' });
   doc.text('Ingresos', 85, tableY + 7, { align: 'center' });
   doc.text('Gastos', 130, tableY + 7, { align: 'center' });
   doc.text('Total', 175, tableY + 7, { align: 'center' });
@@ -125,7 +140,10 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
 
     doc.setFontSize(9);
     doc.setTextColor(70, 70, 85);
-    doc.text(fila.periodo || fila.mes, 30, y, { align: 'left' });
+    
+    // CORRECCIÓN: Usar fecha para diario, mes para mensual, periodo para anual
+    const textoColumna = fila.fecha || fila.mes || fila.periodo || '';
+    doc.text(textoColumna, 30, y, { align: 'left' });
 
     doc.setTextColor(22, 163, 74);
     doc.text(`L ${fila.ingreso.toLocaleString('es-HN')}`, 85, y, { align: 'center' });
@@ -144,7 +162,7 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
       doc.setFillColor(235, 235, 245);
       doc.roundedRect(15, 20, 180, 10, 2, 2, 'F');
       doc.setTextColor(60, 60, 70);
-      doc.text('Período', 30, 27, { align: 'left' });
+      doc.text(headerTexto, 30, 27, { align: 'left' });
       doc.text('Ingresos', 85, 27, { align: 'center' });
       doc.text('Gastos', 130, 27, { align: 'center' });
       doc.text('Total', 175, 27, { align: 'center' });
@@ -165,13 +183,13 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
   }
 
   // ========== GUARDAR ==========
-  const esDiario = datosTabla.length > 12;
   let nombreArchivo = '';
   
   if (mesFiltrado) {
+    const nombreMes = mesFiltrado.replace(' - Diario', '').replace(' - DIARIO', '').replace(/\s+/g, '-');
     nombreArchivo = esDiario 
-      ? `Reporte-Diario-${mesFiltrado}-${anio}.pdf`
-      : `Reporte-Mensual-${mesFiltrado}-${anio}.pdf`;
+      ? `Reporte-Diario-${nombreMes}-${anio}.pdf`
+      : `Reporte-Mensual-${nombreMes}-${anio}.pdf`;
   } else {
     nombreArchivo = `Reporte-Anual-${anio}.pdf`;
   }

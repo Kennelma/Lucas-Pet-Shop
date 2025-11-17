@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import clienteImage from "../../views/clientes/clientes-dog.png";
 import ModalPerfilCliente from "../../views/clientes/ModalPerfilCliente"; // export default
 
 const PerfilCliente = ({ clienteSeleccionado }) => {
   const [openModalPerfil, setOpenModalPerfil] = useState(false);
   const [clientePerfil, setClientePerfil] = useState(null);
-  
+
   // Aplicar Poppins
   useEffect(() => {
     document.body.style.fontFamily = 'Poppins';
