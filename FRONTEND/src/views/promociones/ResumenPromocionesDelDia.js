@@ -168,8 +168,8 @@ const ResumenPromocionesDelDia = () => {
   // Si no hay promociones del día
   if (promocionesDelDia.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-6 border border-gray-200 mb-6">
-        <div className="flex justify-between items-center mb-4">
+      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #365DA040, 0 0 0 1px #365DA033'}}>
+        <div className="flex justify-between items-center">
           <div className="flex flex-col items-center justify-center flex-1 text-center">
             <h3 className="text-lg font-semibold text-gray-600 mb-2">
               No hay promociones para {obtenerNombreDia()}
@@ -189,19 +189,6 @@ const ResumenPromocionesDelDia = () => {
             <FontAwesomeIcon icon={mostrarComponente ? faChevronUp : faChevronDown} size="sm" />
           </button>
         </div>
-        {mostrarComponente && (
-          <div className="text-center py-4">
-            <p className="text-gray-400 italic">
-               Sistema de promociones en tiempo real - {obtenerHoraActual()}
-            </p>
-            <button 
-              onClick={() => cargarPromociones()}
-              className="mt-2 text-sm bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded-md transition-colors"
-            >
-              Actualizar Promociones
-            </button>
-          </div>
-        )}
       </div>
     );
   }

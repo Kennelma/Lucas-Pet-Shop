@@ -326,15 +326,15 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
               return duracion;
             }}
             className="text-sm"
-            style={{ width: '140px', padding: '8px 8px' }}
-            headerStyle={{ width: '140px', padding: '8px 8px' }}
+            style={{ width: '155px', padding: '8px 10px' }}
+            headerStyle={{ width: '155px', padding: '8px 10px' }}
             bodyStyle={{ 
               whiteSpace: 'normal',
               wordWrap: 'break-word',
               overflow: 'hidden',
               textOverflow: 'clip',
               lineHeight: '1.4',
-              padding: '8px 8px'
+              padding: '8px 10px'
             }}
           />
           <Column

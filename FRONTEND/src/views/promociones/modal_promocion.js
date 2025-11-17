@@ -196,6 +196,7 @@ export default function ModalPromocion({
               onChange={handleChange}
               className="w-full rounded-xl h-9 text-sm"
               placeholder="Ej: Promoción Baño + Corte"
+              autoComplete="off"
             />
             {errores.nombre_promocion && <p className="text-xs text-red-600 mt-1">{errores.nombre_promocion}</p>}
           </span>
@@ -210,6 +211,7 @@ export default function ModalPromocion({
               onChange={handleChange} 
               className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 min-h-20 text-sm resize-none"
               placeholder="Descripción detallada de la promoción..." 
+              autoComplete="off"
             />
             {errores.descripcion_promocion && <p className="text-xs text-red-600 mt-1">{errores.descripcion_promocion}</p>}
           </span>
@@ -225,6 +227,7 @@ export default function ModalPromocion({
               className="w-full rounded-xl h-9 text-sm"
               placeholder="0.00"
               keyfilter="num"
+              autoComplete="off"
             />
             {errores.precio_promocion && <p className="text-xs text-red-600 mt-1">{errores.precio_promocion}</p>}
           </span>
