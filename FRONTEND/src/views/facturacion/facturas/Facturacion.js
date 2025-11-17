@@ -10,7 +10,7 @@ export default function Facturacion() {
   const [facturaParaImprimir, setFacturaParaImprimir] = useState(null);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100" style={{ fontFamily: 'Poppins' }}>
       {/* HEADER Y TÍTULO */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="">
@@ -53,7 +53,7 @@ export default function Facturacion() {
       </div>
 
       {/* CONTENIDO DE LAS PESTAÑAS */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="space-y-6 p-4 mx-auto shadow-xl rounded-lg">
         {/* 2. RENDERIZADO CONDICIONAL */}
       {activeTab === "nueva" && <NuevaFactura setActiveTab={setActiveTab} setFacturaParaImprimir={setFacturaParaImprimir} />}
 

@@ -21,6 +21,7 @@ const Servicios = () => {
 
   useEffect(() => {
     cargarDatos();
+    document.body.style.fontFamily = 'Poppins';
   }, []);
 
   //====================CONTROL_SCROLL_MODAL====================
@@ -259,6 +260,7 @@ const Servicios = () => {
   };
 
   return (
+    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
     <div className="min-h-screen p-6 bg-gray-50">
       {loading ? (
         <div className="flex items-center justify-center min-h-64">
@@ -280,11 +282,11 @@ const Servicios = () => {
             }}
           >
             <div className="flex justify-center items-center">
-              <h2 className="text-2xl font-black text-center uppercase text-white">
-                SERVICIOS DE PELUQUERÍA
+              <h2 className="text-2xl text-center uppercase text-black ">
+                GESTIÓN DE SERVICIOS DE PELUQUERÍA
               </h2>
             </div>
-            <p className="text-center text-white italic mt-2">
+            <p className="text-center text-black italic mt-2">
               Administra los servicios de peluquería y estética para mascotas
             </p>
           </div>
@@ -310,6 +312,7 @@ const Servicios = () => {
         servicio={servicioEditando}
         serviciosExistentes={servicios}
       />
+    </div>
     </div>
   );
 };

@@ -30,7 +30,7 @@ const ResumenPromocionesDelDia = () => {
   // Cargar promociones inicialmente y cada 30 segundos para actualizaciones en tiempo real
   useEffect(() => {
     cargarPromociones();
-    
+
     const interval = setInterval(() => {
       cargarPromociones();
     }, 30000); // Actualizar cada 30 segundos
@@ -45,7 +45,7 @@ const ResumenPromocionesDelDia = () => {
 
   const cargarPromociones = async (silencioso = false) => {
     if (!silencioso) setLoading(true);
-    
+
     try {
       const data = await verServicios("PROMOCIONES");
       const promocionesNormalizadas = (data || []).map(promocion => {
@@ -64,7 +64,7 @@ const ResumenPromocionesDelDia = () => {
             diasNormalizados = promocion.dias_promocion;
           }
         }
-        
+
         return {
           ...promocion,
           precio_promocion: parseFloat(promocion.precio_promocion || 0),
@@ -72,7 +72,7 @@ const ResumenPromocionesDelDia = () => {
           dias_promocion: diasNormalizados
         };
       });
-      
+
       setPromociones(promocionesNormalizadas);
     } catch (error) {
       console.error("Error al cargar promociones:", error);
@@ -97,21 +97,21 @@ const ResumenPromocionesDelDia = () => {
         console.log(`Promoción "${promocion.nombre_promocion}" excluida - no activa`);
         return false;
       }
-      
+
       // Si tiene días específicos definidos y no está vacío
       if (promocion.dias_promocion && promocion.dias_promocion.length > 0) {
         const incluyeDiaActual = promocion.dias_promocion.some(dia => {
           // Comparar de manera flexible (puede venir con diferentes formatos)
           const diaNormalizado = dia.toLowerCase().trim();
           const diaActualNormalizado = diaActual.toLowerCase().trim();
-          return diaNormalizado === diaActualNormalizado || 
+          return diaNormalizado === diaActualNormalizado ||
                  diaNormalizado.includes(diaActualNormalizado.slice(0, 3)); // Comparar por las primeras 3 letras
         });
-        
+
         console.log(`Promoción "${promocion.nombre_promocion}" - Días: [${promocion.dias_promocion.join(', ')}] - Incluye ${diaActual}: ${incluyeDiaActual}`);
         return incluyeDiaActual;
       }
-      
+
       // Si no tiene días específicos o el array está vacío, se considera disponible todos los días
       console.log(`Promoción "${promocion.nombre_promocion}" disponible todos los días`);
       return true;
@@ -127,18 +127,18 @@ const ResumenPromocionesDelDia = () => {
   };
 
   const obtenerFechaFormateada = () => {
-    const opciones = { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    const opciones = {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     };
     return fechaActual.toLocaleDateString('es-HN', opciones);
   };
 
   const obtenerHoraActual = () => {
-    return fechaActual.toLocaleTimeString('es-HN', { 
-      hour: '2-digit', 
+    return fechaActual.toLocaleTimeString('es-HN', {
+      hour: '2-digit',
       minute: '2-digit'
     });
   };
@@ -159,7 +159,7 @@ const ResumenPromocionesDelDia = () => {
     };
 
     window.addEventListener('promocionesUpdated', handlePromocionesUpdate);
-    
+
     return () => {
       window.removeEventListener('promocionesUpdated', handlePromocionesUpdate);
     };
@@ -168,14 +168,14 @@ const ResumenPromocionesDelDia = () => {
   // Si no hay promociones del día
   if (promocionesDelDia.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-6 border border-gray-200 mb-6">
-        <div className="flex justify-between items-center mb-4">
+      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #365DA040, 0 0 0 1px #365DA033'}}>
+        <div className="flex justify-between items-center">
           <div className="flex flex-col items-center justify-center flex-1 text-center">
             <h3 className="text-lg font-semibold text-gray-600 mb-2">
               No hay promociones para {obtenerNombreDia()}
             </h3>
             <p className="text-gray-500 text-sm">
-              {promociones.length > 0 
+              {promociones.length > 0
                 ? `Hay ${promociones.length} promociones en total, pero ninguna programada para ${obtenerNombreDia()}`
                 : 'No hay promociones registradas en el sistema'
               }
@@ -189,19 +189,6 @@ const ResumenPromocionesDelDia = () => {
             <FontAwesomeIcon icon={mostrarComponente ? faChevronUp : faChevronDown} size="sm" />
           </button>
         </div>
-        {mostrarComponente && (
-          <div className="text-center py-4">
-            <p className="text-gray-400 italic">
-               Sistema de promociones en tiempo real - {obtenerHoraActual()}
-            </p>
-            <button 
-              onClick={() => cargarPromociones()}
-              className="mt-2 text-sm bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded-md transition-colors"
-            >
-              Actualizar Promociones
-            </button>
-          </div>
-        )}
       </div>
     );
   }
@@ -221,14 +208,14 @@ const ResumenPromocionesDelDia = () => {
           <FontAwesomeIcon icon={mostrarComponente ? faChevronUp : faChevronDown} size="sm" />
         </button>
       </div>
-      
+
       {mostrarComponente && (
         <div className="flex items-start gap-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 flex-1 items-stretch">
             {promocionesDelDia.map((promocion, index) => (
               <div key={promocion.id_promocion_pk || index} className="bg-white/80 backdrop-blur-sm rounded-md p-2 border border-white/50 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 flex flex-col h-52">
                 <div className="flex-grow flex items-center justify-center">
-                  <h3 className="font-semibold text-gray-800 text-[18px] leading-tight text-center mb-2">{promocion.nombre_promocion}</h3>
+                  <div className="font-semibold text-gray-800 text-[18px] leading-tight text-center mb-2">{promocion.nombre_promocion}</div>
                 </div>
                 <div className="mt-auto space-y-0.5">
                   <div className="w-full bg-gray-200 rounded-full h-1.5">

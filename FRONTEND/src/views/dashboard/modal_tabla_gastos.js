@@ -144,10 +144,10 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
       <style>
         {`
           .modal-tabla-gastos-dialog .p-dialog {
-            z-index: 1500 !important;
+            z-index: 9999 !important;
           }
           .modal-tabla-gastos-dialog .p-dialog-mask {
-            z-index: 1499 !important;
+            z-index: 9998 !important;
           }
         `}
       </style>
@@ -164,8 +164,8 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
         breakpoints={{ '960px': '90vw' }}
         modal
         draggable={false}
-        style={{ zIndex: 1000 }}
-        baseZIndex={1000}
+        style={{ zIndex: 9999 }}
+        baseZIndex={9998}
       >
         <div className="flex flex-col">
           {gastos.length === 0 && !loading ? (

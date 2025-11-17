@@ -62,7 +62,7 @@ cron.schedule('*/2 * * * *', async () => { // CADA 5 HORAS
 
 
 //TAREA AUTOMATICA DE NOTIFICACION QUE SE MUESTRA
-cron.schedule('0 */5 * * *', async () => {
+cron.schedule('*/1 * * * *', async () => {
 
   const conn = await mysqlConnection.getConnection();
 
@@ -80,7 +80,7 @@ cron.schedule('0 */5 * * *', async () => {
       SELECT
         CASE
           WHEN l.stock_lote = 0 THEN
-            CONCAT('LOTE AGOTADO: ', p.nombre_producto, ' (', l.codigo_lote, ')')
+            CONCAT(p.nombre_producto, ' (', l.codigo_lote, ')')
 
           WHEN l.fecha_vencimiento < ? THEN
             CONCAT('LOTE CADUCADO: ', p.nombre_producto, ' (', l.codigo_lote, ')')
@@ -107,7 +107,7 @@ cron.schedule('0 */5 * * *', async () => {
       INNER JOIN tbl_medicamentos_info m ON l.id_medicamento_fk = m.id_medicamento_pk
       INNER JOIN tbl_productos p ON m.id_producto_fk = p.id_producto_pk
       WHERE (
-        l.stock_lote = 0                                    
+        l.stock_lote = 0
         OR l.fecha_vencimiento < ?
         OR DATEDIFF(l.fecha_vencimiento, ?) IN (30, 60, 90)
       )

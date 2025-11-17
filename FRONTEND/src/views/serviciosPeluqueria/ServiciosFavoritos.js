@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronUp, faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { verServiciosFavoritos } from "../../AXIOS.SERVICES/services-axios";
 
-const ServiciosFavoritos = ({ servicios = [] }) => {
+const ServiciosFavoritos = () => {
   const [serviciosFavoritos, setServiciosFavoritos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mostrarComponente, setMostrarComponente] = useState(true);
@@ -10,51 +11,69 @@ const ServiciosFavoritos = ({ servicios = [] }) => {
   // Colores para los servicios
   const colores = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-red-500', 'bg-indigo-500'];
 
-  // Función para procesar servicios reales
-  const procesarServicios = (serviciosReales) => {
-    if (!serviciosReales || serviciosReales.length === 0) {
-      return [];
-    }
-
-    const serviciosConPopularidad = serviciosReales
-      .filter(servicio => servicio.activo) // Solo servicios activos
-      .map((servicio, index) => {
-        // Simular cantidad de pedidos basado en precio (más barato = más popular)
-        const basePopularidad = Math.max(10, 50 - (servicio.precio_servicio || 0));
-        const cantidadPedidos = Math.floor(basePopularidad + Math.random() * 20);
-        
-        return {
-          id: servicio.id_servicio_peluqueria_pk || servicio.id,
-          nombre: servicio.nombre_servicio_peluqueria || 'SERVICIO SIN NOMBRE',
-          descripcion: servicio.descripcion_servicio,
-          precio: servicio.precio_servicio,
-          duracion: servicio.duracion_estimada,
-          cantidad_pedidos: cantidadPedidos,
-          color: colores[index % colores.length]
-        };
-      })
-      .sort((a, b) => b.cantidad_pedidos - a.cantidad_pedidos) // Ordenar por popularidad
-      .slice(0, 4); // Tomar solo los 4 más populares
-
-    // Calcular porcentajes
-    const totalPedidos = serviciosConPopularidad.reduce((sum, s) => sum + s.cantidad_pedidos, 0);
-    
-    return serviciosConPopularidad.map(servicio => ({
-      ...servicio,
-      porcentaje: totalPedidos > 0 ? Math.round((servicio.cantidad_pedidos / totalPedidos) * 100) : 0
-    }));
-  };
-
   useEffect(() => {
-    setLoading(true);
-    
-    // Simular delay de carga
-    setTimeout(() => {
-      const serviciosProcesados = procesarServicios(servicios);
-      setServiciosFavoritos(serviciosProcesados);
-      setLoading(false);
-    }, 500);
-  }, [servicios]);
+    const cargarFavoritos = async () => {
+      setLoading(true);
+      try {
+        const favoritosData = await verServiciosFavoritos();
+        
+        if (favoritosData && favoritosData.length > 0) {
+          // Agrupar los datos por nombre del servicio para sumar las ventas del mismo servicio
+          const serviciosAgrupados = {};
+          
+          favoritosData.forEach(favorito => {
+            const nombreServicio = favorito.nombre_item || 'SERVICIO SIN NOMBRE';
+            const ventasActuales = parseInt(favorito.total_vendido) || 0;
+            
+            if (serviciosAgrupados[nombreServicio]) {
+              // Si ya existe, sumar las ventas
+              serviciosAgrupados[nombreServicio].cantidad_pedidos += ventasActuales;
+              serviciosAgrupados[nombreServicio].facturas.push(favorito.numero_factura);
+            } else {
+              // Si no existe, crear nuevo registro
+              serviciosAgrupados[nombreServicio] = {
+                nombre: nombreServicio,
+                cantidad_pedidos: ventasActuales,
+                mes: favorito.mes,
+                facturas: [favorito.numero_factura]
+              };
+            }
+          });
+
+          // Convertir a array y ordenar por pedidos
+          const serviciosProcesados = Object.values(serviciosAgrupados)
+            .sort((a, b) => b.cantidad_pedidos - a.cantidad_pedidos) // Ordenar por pedidos descendente
+            .slice(0, 4) // Tomar solo los 4 más solicitados
+            .map((servicio, index) => ({
+              id: `servicio-${servicio.nombre.replace(/\s+/g, '-').toLowerCase()}`,
+              nombre: servicio.nombre,
+              cantidad_pedidos: servicio.cantidad_pedidos,
+              mes: servicio.mes,
+              color: colores[index % colores.length]
+            }));
+
+          // Calcular porcentajes
+          const totalPedidos = serviciosProcesados.reduce((sum, s) => sum + s.cantidad_pedidos, 0);
+          
+          const serviciosConPorcentajes = serviciosProcesados.map(servicio => ({
+            ...servicio,
+            porcentaje: totalPedidos > 0 ? Math.round((servicio.cantidad_pedidos / totalPedidos) * 100) : 0
+          }));
+
+          setServiciosFavoritos(serviciosConPorcentajes);
+        } else {
+          setServiciosFavoritos([]);
+        }
+      } catch (error) {
+        console.error('Error al cargar favoritos:', error);
+        setServiciosFavoritos([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarFavoritos();
+  }, []);
 
 
   // Si no hay servicios favoritos
@@ -90,7 +109,7 @@ const ServiciosFavoritos = ({ servicios = [] }) => {
   }
 
   return (
-    <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+    <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #ed75cd40, 0 0 0 1px #f074d533'}}>
       <div className="flex justify-between items-center mb-4">
         <div className="flex flex-col items-center justify-center flex-1 text-center">
           <div className="text-xl font-bold text-gray-800 mb-1">FAVORITOS</div>
@@ -111,7 +130,7 @@ const ServiciosFavoritos = ({ servicios = [] }) => {
             {serviciosFavoritos.map((servicio, index) => (
               <div key={servicio.id} className="bg-white/80 backdrop-blur-sm rounded-md p-2 border border-white/50 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 flex flex-col h-52">
                 <div className="flex-grow flex items-center justify-center">
-                  <h3 className="font-semibold text-gray-800 text-[18px] leading-tight text-center mb-2">{servicio.nombre}</h3>
+                  <div className="font-semibold text-gray-800 text-[18px] leading-tight text-center mb-2">{servicio.nombre}</div>
                 </div>
                 <div className="mt-auto space-y-0.5">
                   <div className="w-full bg-gray-200 rounded-full h-1.5">

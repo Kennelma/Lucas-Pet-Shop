@@ -79,7 +79,7 @@ router.get ('/reportes/reporteDiario', reportes.reporteDiario); //ARRIBA, SOLO C
 router.get ('/reportes/registroFinanciero', reportes.registroFinanciero); //PARA GRAFICO
 router.get ('/reportes/ventasDiarias', reportes.ventasDiarias); //PARA VER QUE SE VENDIO AL DIA
 router.get ('/reportes/historialReportes', reportes.historialReportes); //PARA VER EL HISTORIAL DE REPORTES GENERADOS
-
+router.get ('/reportes/reportesDetallados', reportes.reportesDetallados); //PARA VER LOS REPORTES DETALLADOS
 
 //========== RUTAS DE NOTIFICACIONES ==========
 router.get('/notificaciones/ver', notificaciones.verNotificaciones);
