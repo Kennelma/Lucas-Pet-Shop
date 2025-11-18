@@ -3,6 +3,7 @@
 // ║                         IMPORTS Y CONEXIÓN MYSQL                         ║
 // ╚════════════════════════════════════════════════════════════════════════════╝
 const mysqlConnection = require('../config/conexion');
+const { getTimezoneOffset } = require('../config/utils/timezone');
 
 // ╔════════════════════════════════════════════════════════════════════════════╗
 // ║                          VER CATALOGO (GENÉRICO)                         ║
@@ -71,7 +72,12 @@ exports.crear = async (req, res) => {
     await conn.beginTransaction();
 
     try {
+
+        await conn.query(`SET time_zone = '${getTimezoneOffset()}'`);
+
         const { tipo_item, frecuencia, programada_para, mensaje } = req.body;
+
+        const fechaProgramada = programada_para.replace('T', ' ');
 
         //TRAIGO EL ID DEL ESTADO PENDIENTE
         const [estados] = await conn.query(`
@@ -93,11 +99,6 @@ exports.crear = async (req, res) => {
 
         const diasIntervalo = frecuency[0].dias_intervalo;
 
-
-
-
-
-
         const [result] = await conn.query(
             `INSERT INTO tbl_recordatorios (
                 mensaje_recordatorio,
@@ -109,10 +110,10 @@ exports.crear = async (req, res) => {
             ) VALUES (?, ?, DATE_ADD(?, INTERVAL ? DAY), ?, ?, ?)`,
             [
                 mensaje,
-                programada_para,
-                programada_para,
+                fechaProgramada,
+                fechaProgramada,
                 diasIntervalo,
-                estadoId,
+                pendiente_id,
                 tipo_item,
                 frecuencia
             ]
@@ -180,6 +181,8 @@ exports.ver = async (req, res) => {
 exports.actualizar = async (req, res) => {
   const conn = await mysqlConnection.getConnection();
   await conn.beginTransaction();
+
+
   try {
     const {
       id_recordatorio,
@@ -191,6 +194,12 @@ exports.actualizar = async (req, res) => {
     } = req.body;
 
     if (!id_recordatorio) throw new Error('id_recordatorio es requerido');
+
+    await conn.query(`SET time_zone = '${getTimezoneOffset()}'`);
+
+    const fechaProgramada = programada_para
+    ? programada_para.replace('T', ' ')
+    : null;
 
     // Obtener el estado PENDIENTE
     const [estadoPendiente] = await conn.query(`
@@ -225,14 +234,14 @@ exports.actualizar = async (req, res) => {
       [
         id_frecuencia_fk,
         mensaje_recordatorio ?? null,
-        programada_para ?? null,
+        fechaProgramada ?? null,
         id_tipo_item_fk ?? null,
         id_frecuencia_fk ?? null,
         (activo === 0 || activo === 1) ? activo : null,
         idEstadoPendiente,
-        programada_para ?? null,
+        fechaProgramada ?? null,
         id_frecuencia_fk ?? null,
-        programada_para ?? null,
+        fechaProgramada ?? null,
         id_recordatorio
       ]
     );

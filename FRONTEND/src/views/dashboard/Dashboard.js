@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as lucideReact from 'lucide-react';
+import Swal from 'sweetalert2';
 import ModalAgregarGasto from './modal_nuevo_gasto';
 import ModalTablaGastos from './modal_tabla_gastos';
 import { ver } from '../../AXIOS.SERVICES/empresa-axios';
@@ -19,6 +20,19 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!token) navigate('/login');
+
+    // Mostrar mensaje de bienvenida si viene del login
+    const showWelcome = sessionStorage.getItem('showWelcome');
+    if (showWelcome === 'true') {
+      Swal.fire({
+        icon: 'success',
+        title: '¡Bienvenido!',
+        text: 'Inicio de sesión exitoso',
+        timer: 2500,
+        showConfirmButton: false,
+      });
+      sessionStorage.removeItem('showWelcome');
+    }
   }, [token, navigate]);
 
   const today = new Date();
