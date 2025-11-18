@@ -150,7 +150,7 @@ const Login = () => {
 
           {/* FORMULARIO_DE_LOGIN */}
           <form onSubmit={handleLogin} className="space-y-6">
-            
+
             {/* CAMPO_USUARIO_O_CORREO */}
             <div className="space-y-2">
               <input
@@ -193,7 +193,7 @@ const Login = () => {
 
             {/* BOTONES_DE_ACCION */}
             <div className="space-y-4">
-              
+
               {/* BOTON_INICIAR_SESION */}
               <div className="flex justify-center">
                 <button
