@@ -170,7 +170,9 @@ const TablaRecordatorios = ({
 
   // CALCULAR FECHA DEL PRÓXIMO ENVÍO PROGRAMADO
   const calcularProximoEnvio = (programadaPara, diasIntervalo) => {
-    if (!programadaPara || !diasIntervalo) return "";
+    if (!programadaPara) return "";
+    // SI ES RECORDATORIO DE UNA SOLA VEZ (dias_intervalo = 0)
+    if (!diasIntervalo || diasIntervalo === 0) return "Envío único";
     const fecha = new Date(programadaPara);
     fecha.setDate(fecha.getDate() + Number(diasIntervalo));
     return formatFecha(fecha);
