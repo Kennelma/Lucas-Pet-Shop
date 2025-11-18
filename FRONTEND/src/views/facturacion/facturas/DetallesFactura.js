@@ -328,14 +328,15 @@ const DetallesFactura = ({
       return;
     }
 
-    // Preparar datos para pasar al modal (sin crear la factura aún)
+    setLoading(true);
+
     const datosFactura = {
       RTN: RTN || null,
       id_cliente: id_cliente || null,
       descuento: DESCUENTO,
       items: items.map((item) => ({
         tipo: item.tipo,
-        item: item.item,
+        item: item.item, // ID del producto/servicio/promoción
         cantidad: parseFloat(item.cantidad) || 1,
         ajuste: parseFloat(item.ajuste) || 0,
         estilistas: (item.estilistas || []).map((est) => ({
@@ -345,57 +346,47 @@ const DetallesFactura = ({
       })),
     };
 
-    const datos = {
-      datosFactura: datosFactura, // Guardar datos para crear después
-      subtotal: SUBTOTAL,
-      descuento: DESCUENTO,
-      impuesto: IMPUESTO,
-      total: TOTAL_FINAL,
-      saldo: TOTAL_FINAL,
-    };
+    try {
+      const response = await crearFactura(datosFactura);
 
-    setPaymentData(datos);
-    setShowPaymentModal(true);
+      if (response.success) {
+        const datos = {
+          id_factura: response.data.id_factura,
+          numero_factura: response.data.numero_factura,
+          subtotal: parseFloat(response.data.subtotal),
+          descuento: parseFloat(response.data.descuento),
+          impuesto: parseFloat(response.data.impuesto),
+          total: parseFloat(response.data.total),
+          saldo: parseFloat(response.data.saldo),
+        };
+
+        setPaymentData(datos);
+        setShowPaymentModal(true);
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: response.mensaje || 'Error al crear la factura',
+          confirmButtonColor: '#d33'
+        });
+      }
+    } catch (error) {
+      console.error("Error al crear factura:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al crear factura',
+        text: error?.response?.data?.mensaje || 'Error inesperado al crear la factura',
+        confirmButtonColor: '#d33'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   //====================CIERRE_DEL_MODAL====================
-  const handleClosePaymentModal = async () => {
-    const result = await Swal.fire({
-      icon: 'warning',
-      title: '¿Cerrar sin pagar?',
-      html: `La factura <b>${paymentData?.numero_factura || ''}</b> quedará registrada sin pago.<br><br>¿Deseas continuar sin procesar el pago?`,
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, cerrar',
-      cancelButtonText: 'No, volver al pago',
-      heightAuto: false,
-      didOpen: () => {
-        // Asegurar que el SweetAlert esté por encima de todo
-        const swalContainer = document.querySelector('.swal2-container');
-        if (swalContainer) {
-          swalContainer.style.zIndex = '99999';
-        }
-      }
-    });
-
-    if (result.isConfirmed) {
-      setShowPaymentModal(false);
-      setPaymentData(null);
-      
-      // Redirigir al historial donde el usuario puede ver la factura pendiente
-      if (setActiveTab) {
-        setActiveTab("facturas");
-      }
-      
-      Swal.fire({
-        icon: 'info',
-        title: 'Factura sin pago',
-        text: 'La factura quedó registrada. Puedes completar el pago desde el historial de facturas.',
-        confirmButtonColor: '#3085d6',
-        heightAuto: false
-      });
-    }
+  const handleClosePaymentModal = () => {
+    setShowPaymentModal(false);
+    setPaymentData(null);
   };
 
   const handlePaymentSuccess = async (datosPago) => {
