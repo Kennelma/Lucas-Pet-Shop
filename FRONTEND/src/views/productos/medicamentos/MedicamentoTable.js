@@ -166,7 +166,6 @@ const MedicamentoTable = ({
           await onCambiarEstado(rowData);
         }
       } catch (error) {
-        console.error('Error al cambiar estado:', error);
       }
     };
 

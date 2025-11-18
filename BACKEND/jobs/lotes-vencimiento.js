@@ -80,7 +80,7 @@ cron.schedule('*/1 * * * *', async () => {
       SELECT
         CASE
           WHEN l.stock_lote = 0 THEN
-            CONCAT(p.nombre_producto, ' (', l.codigo_lote, ')')
+            CONCAT('LOTE AGOTADO: ', p.nombre_producto, ' (', l.codigo_lote, ')')
 
           WHEN l.fecha_vencimiento < ? THEN
             CONCAT('LOTE CADUCADO: ', p.nombre_producto, ' (', l.codigo_lote, ')')
