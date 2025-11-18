@@ -1,11 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Download,
   AlertCircle,
-  Calendar,
-  FileText,
-  TrendingUp,
-  CalendarDays
+  FileText
 } from 'lucide-react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -15,8 +12,7 @@ import { descargarPDFTabla } from './pdf.js';
 const Tabla = ({ 
   obtenerRegistroFinanciero, 
   obtenerHistorialReportes, 
-  obtenerReportesDetallados,
-  registrosFinancieros 
+  obtenerReportesDetallados
 }) => {
   const [datosTabla, setDatosTabla] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -26,7 +22,9 @@ const Tabla = ({
   const [vistaActiva, setVistaActiva] = useState('anual');
   const [mesDiarioSeleccionado, setMesDiarioSeleccionado] = useState(new Date().getMonth() + 1);
   const [mesesConDatos, setMesesConDatos] = useState([]);
-  const [diasConDatos, setDiasConDatos] = useState([]);
+  
+  // Caché de datos para evitar recargas innecesarias
+  const [cache, setCache] = useState({});
 
   const anioActual = new Date().getFullYear();
   const mesActual = new Date().getMonth();
@@ -48,6 +46,18 @@ const Tabla = ({
   }, [anioSeleccionado, vistaActiva, mesDiarioSeleccionado]);
 
   const cargarDatos = async () => {
+   
+    const cacheKey = vistaActiva === 'anual' 
+      ? `anual_${anioSeleccionado}`
+      : `diario_${anioSeleccionado}_${mesDiarioSeleccionado}`;
+    
+    // Verificar si los datos ya están en caché
+    if (cache[cacheKey]) {
+      setDatosTabla(cache[cacheKey].datos);
+      setMesesConDatos(cache[cacheKey].mesesConDatos || []);
+      return;
+    }
+
     setCargando(true);
     setError(null);
 
@@ -79,50 +89,78 @@ const Tabla = ({
         });
 
         setDatosTabla(datosFormateados);
+        
+        // Guardar en caché
+        setCache(prev => ({
+          ...prev,
+          [cacheKey]: {
+            datos: datosFormateados,
+            mesesConDatos: mesesConOperaciones
+          }
+        }));
 
       } else {
-        const diasEnMes = new Date(anioSeleccionado, mesDiarioSeleccionado, 0).getDate();
-
-        const promesasDias = [];
-        for (let dia = 1; dia <= diasEnMes; dia++) {
-          promesasDias.push(
-            obtenerHistorialReportes(anioSeleccionado, mesDiarioSeleccionado, dia)
-          );
+        let diasEnMes = new Date(anioSeleccionado, mesDiarioSeleccionado, 0).getDate();
+        
+        
+        const hoy = new Date();
+        if (anioSeleccionado === hoy.getFullYear() && mesDiarioSeleccionado === (hoy.getMonth() + 1)) {
+          diasEnMes = hoy.getDate();
         }
 
-        const resultados = await Promise.all(promesasDias);
-
+        const tamanoLote = 15;
         const diasConOperaciones = [];
         const datosFormateados = [];
         let idContador = 1;
 
-        resultados.forEach((response, index) => {
-          const dia = index + 1;
-
-          if (response && response.Consulta && response.historial && response.historial.length > 0) {
-            const registro = response.historial[0];
-            const ingresos = Number(registro.total_ingresos) || 0;
-            const gastos = Number(registro.total_gastos) || 0;
-            const total = ingresos - gastos;
-
-            if (ingresos > 0 || gastos > 0) {
-              diasConOperaciones.push(dia);
-              datosFormateados.push({
-                id: idContador++,
-                dia: dia,
-                fecha: `${dia}/${mesDiarioSeleccionado}/${anioSeleccionado}`,
-                ingreso: ingresos,
-                gasto: gastos,
-                total: total,
-                cantidadFacturas: Number(registro.cantidad_facturas) || 0,
-                mesIndex: mesDiarioSeleccionado - 1
-              });
-            }
+        for (let inicio = 1; inicio <= diasEnMes; inicio += tamanoLote) {
+          const fin = Math.min(inicio + tamanoLote - 1, diasEnMes);
+          const promesasLote = [];
+          
+          for (let dia = inicio; dia <= fin; dia++) {
+            promesasLote.push(
+              obtenerHistorialReportes(anioSeleccionado, mesDiarioSeleccionado, dia)
+            );
           }
-        });
 
-        setDiasConDatos(diasConOperaciones);
+          const resultadosLote = await Promise.all(promesasLote);
+
+          resultadosLote.forEach((response, index) => {
+            const dia = inicio + index;
+
+            if (response && response.Consulta && response.historial && response.historial.length > 0) {
+              const registro = response.historial[0];
+              const ingresos = Number(registro.total_ingresos) || 0;
+              const gastos = Number(registro.total_gastos) || 0;
+              const total = ingresos - gastos;
+
+              if (ingresos > 0 || gastos > 0) {
+                diasConOperaciones.push(dia);
+                datosFormateados.push({
+                  id: idContador++,
+                  dia: dia,
+                  fecha: `${dia}/${mesDiarioSeleccionado}/${anioSeleccionado}`,
+                  ingreso: ingresos,
+                  gasto: gastos,
+                  total: total,
+                  cantidadFacturas: Number(registro.cantidad_facturas) || 0,
+                  mesIndex: mesDiarioSeleccionado - 1
+                });
+              }
+            }
+          });
+        }
+
         setDatosTabla(datosFormateados);
+        
+        // Guardar en caché
+        setCache(prev => ({
+          ...prev,
+          [cacheKey]: {
+            datos: datosFormateados,
+            mesesConDatos: []
+          }
+        }));
       }
 
     } catch (err) {
@@ -134,16 +172,20 @@ const Tabla = ({
     }
   };
 
-  const totalIngresos = datosTabla.reduce((sum, d) => sum + (d?.ingreso || 0), 0);
-  const totalGastos = datosTabla.reduce((sum, d) => sum + (d?.gasto || 0), 0);
-  const totalGeneral = totalIngresos - totalGastos;
-
-  const facturasAnuales = datosTabla.reduce((acc, m) => acc + (m.cantidadFacturas || 0), 0);
-  const facturasMensuales = (mesSeleccionado !== 'todos')
-    ? datosTabla
-        .filter(m => m.mesIndex === parseInt(mesSeleccionado))
-        .reduce((acc, m) => acc + (m.cantidadFacturas || 0), 0)
-    : 0;
+  const totalIngresos = useMemo(() => 
+    datosTabla.reduce((sum, d) => sum + (d?.ingreso || 0), 0),
+    [datosTabla]
+  );
+  
+  const totalGastos = useMemo(() => 
+    datosTabla.reduce((sum, d) => sum + (d?.gasto || 0), 0),
+    [datosTabla]
+  );
+  
+  const totalGeneral = useMemo(() => 
+    totalIngresos - totalGastos,
+    [totalIngresos, totalGastos]
+  );
 
   const handleDescargarPDF = async () => {
     if (vistaActiva === 'anual') {
@@ -180,7 +222,7 @@ const Tabla = ({
         );
       } catch (error) {
         console.error('Error al obtener detalles para PDF:', error);
-        descargarPDFTabla(datosTabla, totalIngresos, totalGastos, totalGeneral, anioSeleccionado, `${meses[mesDiarioSeleccionado - 1]} - Diario`);
+        descargarPDFTabla(datosTabla, totalIngresos, totalGastos, totalGeneral, anioSeleccionado, `${meses[mesDiarioSeleccionado - 1]} - Diario`, []);
       }
     }
   };
@@ -195,8 +237,7 @@ const Tabla = ({
   const bodyPeriodo = (rowData) => {
     if (vistaActiva === 'anual') {
       return (
-        <div className="flex items-center justify-center gap-2">
-          <Calendar className="w-4 h-4 text-gray-500" />
+        <div className="flex items-center justify-start pl-2">
           <span className="text-gray-800 font-semibold text-sm uppercase">{rowData.mes}</span>
         </div>
       );
@@ -205,17 +246,25 @@ const Tabla = ({
                     mesDiarioSeleccionado === (mesActual + 1) &&
                     anioSeleccionado === anioActual;
       return (
-        <div className="flex items-center justify-center gap-2">
-          <CalendarDays className="w-4 h-4 text-gray-500" />
-          <span className="text-gray-800 font-semibold text-sm uppercase">{rowData.fecha}</span>
+        <div className="flex items-center justify-start pl-2">
+          <span className={`font-semibold text-sm uppercase ${
+            esHoy ? 'text-purple-600 font-bold' : 'text-gray-800'
+          }`}>
+            {rowData.fecha} {esHoy }
+          </span>
         </div>
       );
     }
   };
 
+  const bodyFacturas = (rowData) => (
+    <div className="flex items-center justify-center">
+      <span className="text-gray-700 font-semibold text-xs">{rowData.cantidadFacturas || 0}</span>
+    </div>
+  );
+
   const bodyIngresos = (rowData) => (
-    <div className="flex items-center justify-center gap-1">
-      <TrendingUp className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
+    <div className="flex items-center justify-center">
       <span className="text-green-700 font-bold text-xs whitespace-nowrap">L {rowData.ingreso.toLocaleString('es-HN')}</span>
     </div>
   );
@@ -235,7 +284,7 @@ const Tabla = ({
   );
 
   const footerPeriodo = () => (
-    <strong className="text-gray-700 text-xs font-bold uppercase text-center block">
+    <strong className="text-gray-700 text-xs font-bold uppercase  block">
       TOTAL {vistaActiva === 'anual' ? anioSeleccionado : `${meses[mesDiarioSeleccionado - 1]} ${anioSeleccionado}`}
     </strong>
   );
@@ -273,14 +322,6 @@ const Tabla = ({
       <div className="min-h-screen p-4 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
         <div className="max-w-7xl mx-auto">
 
-          {/* Estados de carga y error */}
-          {cargando && (
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-4 flex items-center gap-3">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-              <p className="text-sm text-blue-700 font-medium">Cargando datos...</p>
-            </div>
-          )}
-
           {error && (
             <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 mb-4 flex items-center gap-3">
               <AlertCircle className="w-5 h-5 text-red-600" />
@@ -296,24 +337,24 @@ const Tabla = ({
             </div>
           )}
 
-          <div className="flex gap-4">
+          <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
-              <div className="bg-white rounded-xl p-6 font-poppins" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+              <div className="bg-white rounded-xl p-4 md:p-6 font-poppins" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
 
                 {/* Controles superiores */}
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mb-4">
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
-                      <button onClick={() => setVistaActiva('anual')} className={`px-4 py-2 text-sm font-semibold rounded transition-all uppercase ${vistaActiva === 'anual' ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>ANUAL</button>
-                      <button onClick={() => setVistaActiva('diaria')} className={`px-4 py-2 text-sm font-semibold rounded transition-all uppercase ${vistaActiva === 'diaria' ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>DIARIA</button>
+                      <button onClick={() => setVistaActiva('anual')} className={`flex-1 sm:flex-none px-4 py-2 text-xs sm:text-sm font-semibold rounded transition-all uppercase ${vistaActiva === 'anual' ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>ANUAL</button>
+                      <button onClick={() => setVistaActiva('diaria')} className={`flex-1 sm:flex-none px-4 py-2 text-xs sm:text-sm font-semibold rounded transition-all uppercase ${vistaActiva === 'diaria' ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>DIARIO</button>
                     </div>
 
                     {vistaActiva === 'diaria' && (
                       <select
                         value={mesDiarioSeleccionado}
                         onChange={(e) => setMesDiarioSeleccionado(Number(e.target.value))}
-                        className="text-xs px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500 bg-white font-medium shadow-sm"
+                        className="w-full sm:w-auto text-xs px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500 bg-white font-medium shadow-sm"
                       >
                         {mesesConDatos.length > 0 ? (
                           mesesConDatos.map(mesNum => (
@@ -322,11 +363,16 @@ const Tabla = ({
                             </option>
                           ))
                         ) : (
-                          meses.map((mes, index) => (
-                            <option key={index} value={index + 1}>
-                              {mes}
-                            </option>
-                          ))
+                          meses.map((mes, index) => {
+                            const mesNum = index + 1;
+                            const esFuturo = anioSeleccionado === anioActual && mesNum > (mesActual + 1);
+                            if (esFuturo) return null;
+                            return (
+                              <option key={index} value={mesNum}>
+                                {mes}
+                              </option>
+                            );
+                          }).filter(Boolean)
                         )}
                       </select>
                     )}
@@ -335,11 +381,11 @@ const Tabla = ({
                     <select
                       value={anioSeleccionado}
                       onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
-                      className="text-xs px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500 bg-white font-medium shadow-sm"
+                      className="w-full sm:w-auto text-xs px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500 bg-white font-medium shadow-sm"
                     >
                       {aniosDisponibles.map(anio => (
                         <option key={anio} value={anio}>
-                          {anio === anioActual ? `${anio} (Actual)` : anio}
+                          {anio === anioActual ? `${anio} ` : anio}
                         </option>
                       ))}
                     </select>
@@ -410,16 +456,25 @@ const Tabla = ({
                       className="text-sm"
                       style={{ width: 'auto' }}
                     />
+                    {vistaActiva === 'diaria' && (
+                      <Column
+                        field="cantidadFacturas"
+                        header="FACTURAS"
+                        body={bodyFacturas}
+                        className="text-sm"
+                        style={{ width: '100px' }}
+                      />
+                    )}
                   </DataTable>
                 )}
               </div>
             </div>
 
-            <div className="w-80">
-              <div className="bg-white rounded-xl p-6 font-poppins sticky top-4" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
+            <div className="w-full lg:w-80">
+              <div className="bg-white rounded-xl p-4 md:p-6 font-poppins lg:sticky lg:top-4" style={{boxShadow: '0 0 8px #9333ea40, 0 0 0 1px #9333ea33'}}>
                 <div className="flex items-center justify-center gap-2 mb-4">
                   <FileText className="w-5 h-5 text-purple-600" />
-                  <h3 className="text-base font-bold text-gray-800 uppercase">DESCARGAR REPORTE</h3>
+                  <div className="text-xl font-semibold text-gray-800 uppercase">DESCARGAR REPORTE</div>
                 </div>
 
                 <div className="space-y-4">
@@ -434,13 +489,15 @@ const Tabla = ({
                         className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500 bg-white font-medium shadow-sm"
                       >
                         <option value="todos">Todo el año {anioSeleccionado}</option>
-                        <optgroup label="Meses con datos">
-                          {mesesConDatos.map((mesNum) => (
-                            <option key={mesNum} value={mesNum - 1}>
-                              {meses[mesNum - 1]}
-                            </option>
-                          ))}
-                        </optgroup>
+                        {mesesConDatos.length > 0 && (
+                          <optgroup label="Meses con datos">
+                            {mesesConDatos.map((mesNum) => (
+                              <option key={mesNum} value={mesNum - 1}>
+                                {meses[mesNum - 1]}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
                       </select>
                     </div>
                   )}

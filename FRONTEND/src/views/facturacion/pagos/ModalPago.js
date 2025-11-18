@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, DollarSign } from 'lucide-react';
+import Swal from 'sweetalert2';
 import PagoTotal from './PagoTotal';
 import PagoParcial from './PagoParcial';
 import { obtenerTiposPago } from '../../../AXIOS.SERVICES/payments-axios';
@@ -21,9 +22,22 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
       const response = await obtenerTiposPago();
       if (response.success && response.data) {
         setTiposPago(response.data);
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los tipos de pago',
+          confirmButtonColor: '#d33'
+        });
       }
     } catch (error) {
       console.error('Error al cargar tipos de pago:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de conexión',
+        text: 'No se pudo conectar con el servidor',
+        confirmButtonColor: '#d33'
+      });
     } finally {
       setLoading(false);
     }

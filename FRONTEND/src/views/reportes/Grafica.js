@@ -98,6 +98,14 @@ const Grafica = ({ obtenerRegistroFinanciero, anio }) => {
     });
   }, [registros, mesesAMostrar, meses]);
 
+  // Calcular el máximo valor para ajustar el dominio del gráfico
+  const maxValor = useMemo(() => {
+    const valores = datos.flatMap(d => [d.ingresos, d.gastos]);
+    const max = Math.max(...valores, 0);
+    // Redondear hacia arriba a la siguiente unidad de 10000
+    return Math.ceil(max / 10000) * 10000 || 100000;
+  }, [datos]);
+
   // Funciones para navegar entre meses
   const irMesesAnteriores = () => {
     if (indiceInicio > 0) {
@@ -143,9 +151,9 @@ const Grafica = ({ obtenerRegistroFinanciero, anio }) => {
           <div className="p-1.5 bg-blue-50 rounded-lg">
             <TrendingUp className="w-4 h-4 text-blue-600" />
           </div>
-          <h3 className="text-sm font-bold text-gray-900" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <div className="text-xl font-semibold text-gray-900" style={{ fontFamily: 'Poppins, sans-serif' }}>
             COMPARATIVA MENSUAL
-          </h3>
+          </div>
         </div>
 
         {/* Controles de navegación */}
@@ -195,15 +203,17 @@ const Grafica = ({ obtenerRegistroFinanciero, anio }) => {
               tick={{ fill: '#6b7280', fontFamily: 'Poppins, sans-serif', fontSize: 10 }}
               axisLine={{ stroke: '#d1d5db' }}
               tickFormatter={(value) => `L ${(value / 1000).toFixed(0)}K`}
-              domain={[0, 100000]}
+              domain={[0, maxValor]}
             />
             <Tooltip content={<CustomTooltip />} />
-            <ReferenceLine
-              y={100000}
-              stroke="#dc2626"
-              strokeDasharray="3 3"
-              label={{ value: 'Límite L 100K', position: 'right', fill: '#dc2626', fontFamily: 'Poppins, sans-serif', fontSize: 10 }}
-            />
+            {maxValor >= 100000 && (
+              <ReferenceLine
+                y={100000}
+                stroke="#dc2626"
+                strokeDasharray="3 3"
+                label={{ value: 'Límite L 100K', position: 'right', fill: '#dc2626', fontFamily: 'Poppins, sans-serif', fontSize: 10 }}
+              />
+            )}
             <Bar dataKey="ingresos" fill="#3b82f6" radius={[8, 8, 0, 0]} />
             <Bar dataKey="gastos" fill="#dc2626" radius={[8, 8, 0, 0]} />
           </BarChart>

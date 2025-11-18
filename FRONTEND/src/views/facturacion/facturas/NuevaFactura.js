@@ -1,6 +1,7 @@
 // NuevaFactura.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import EncabezadoFactura from "./EncabezadoFactura";
 import DetallesFactura from "./DetallesFactura";
 import {
@@ -61,9 +62,22 @@ const NuevaFactura = (props) => {
       if (response.success) {
         setVendedor(response.data.usuario);
         setSucursal(response.data.nombre_sucursal);
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los datos del usuario',
+          confirmButtonColor: '#d33'
+        });
       }
     } catch (error) {
       console.error("Error al cargar datos del usuario:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de conexión',
+        text: 'No se pudo conectar con el servidor',
+        confirmButtonColor: '#d33'
+      });
     }
   };
 
@@ -72,9 +86,22 @@ const NuevaFactura = (props) => {
       const response = await obtenerEstilistasFactura();
       if (response.success) {
         setEstilistas(response.data);
+      } else {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Advertencia',
+          text: 'No se pudieron cargar los estilistas. Los servicios podrían no estar disponibles.',
+          confirmButtonColor: '#3085d6'
+        });
       }
     } catch (error) {
       console.error("Error al cargar estilistas:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Error al cargar la lista de estilistas',
+        confirmButtonColor: '#d33'
+      });
     }
   };
 
@@ -84,9 +111,22 @@ const NuevaFactura = (props) => {
       const response = await obtenerDetallesFactura(tipo);
       if (response.success) {
         setDisponiblesItems((prev) => ({ ...prev, [tipo]: response.data }));
+      } else {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Advertencia',
+          text: `No se pudo cargar el catálogo de ${tipo}`,
+          confirmButtonColor: '#3085d6'
+        });
       }
     } catch (error) {
       console.error(`Error al cargar catálogo ${tipo}:`, error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: `Error al cargar ${tipo}. Inténtalo nuevamente.`,
+        confirmButtonColor: '#d33'
+      });
     } finally {
       setIsLoading(false);
     }

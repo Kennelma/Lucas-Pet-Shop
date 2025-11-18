@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Banknote, CreditCard, Building2 } from 'lucide-react';
+import Swal from 'sweetalert2';
 import { obtenerMetodosPagos } from '../../../AXIOS.SERVICES/payments-axios';
 
 //====================COMPONENTE PAGO TOTAL====================
@@ -193,7 +194,30 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
   });
 
   //====================FUNCIÓN: CONFIRMAR PAGO====================
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+    // Validar que haya al menos un método seleccionado
+    if (metodosSeleccionados.length === 0) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Método requerido',
+        text: 'Debes seleccionar al menos un método de pago',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+
+    // Validar que todos los métodos tengan monto
+    const sinMonto = metodosSeleccionados.filter(m => !m.monto || parseFloat(m.monto) <= 0);
+    if (sinMonto.length > 0) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Monto requerido',
+        text: 'Todos los métodos de pago deben tener un monto válido',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+
     const metodos = metodosSeleccionados.map(m => {
       const isEfectivo = m.nombre.trim().toUpperCase() === 'EFECTIVO';
       const montoRecibido = parseFloat(m.monto) || 0;
