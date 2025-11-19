@@ -2,8 +2,9 @@ import axiosInstance from "./axiosConfig";
 
 const API_URL = "/facturacion";
 
-//SERVICIO PARA CREAR FACTURA COMPLETA
-export const crearFactura = async (datosFactura) => {
+
+//CREAR FACTURA CON PAGO
+export const crearFacturaConPago = async (datosFactura) => {
   try {
     const res = await axiosInstance.post(
       `${API_URL}/crearFactura`,
@@ -16,8 +17,7 @@ export const crearFactura = async (datosFactura) => {
       err?.response?.data?.error ||
       err.message ||
       "Error de red";
-    console.error("Error al crear factura:", msg);
-
+    console.error("Error al crear factura con pago:", msg);
     return {
       success: false,
       mensaje: msg,
@@ -25,6 +25,41 @@ export const crearFactura = async (datosFactura) => {
     };
   }
 };
+
+//VALIDAR DISPONIBILIDAD DE ITEMS PARA FACTURAR
+export const validarDisponibilidad = async (itemsFactura) => {
+  try {
+    const res = await axiosInstance.post(
+      `${API_URL}/validarDisponibilidad`,
+      { items: itemsFactura }
+    );
+    return res.data;
+  } catch (err) {
+    const msg =
+      err?.response?.data?.mensaje ||
+      err?.response?.data?.error ||
+      err.message ||
+      "Error de red";
+    console.error("Error al validar disponibilidad:", msg);
+    return {
+      success: false,
+      mensaje: msg,
+      error: err?.response?.data,
+    };
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
 
 export const obtenerDetallesFactura = async (tipo_item) => {
   try {

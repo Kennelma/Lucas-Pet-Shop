@@ -51,7 +51,7 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
     setTipoPago('');
   };
 
-  const handleConfirm = (datosPago) => {
+  const handleConfirm = async (datosPago) => {
     console.log('🎯 ModalPago.handleConfirm - INICIO');
     // Agregar los datos completos de la factura y tipo de pago
     const datosCompletos = {
@@ -65,14 +65,11 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
     console.log('📦 Datos completos a enviar:', datosCompletos);
 
     if (onPagoConfirmado) {
-      console.log('📤 Llamando a onPagoConfirmado (handlePagoExitoso)');
-      onPagoConfirmado(datosCompletos);
+      console.log('📤 Llamando a onPagoConfirmado (handlePaymentSuccess)');
+      await onPagoConfirmado(datosCompletos);
     }
-    console.log('🔄 Limpiando y cerrando modal...');
+    console.log('🔄 Limpiando modal...');
     handleBack();
-    if (onClose) {
-      onClose();
-    }
     console.log('✅ ModalPago.handleConfirm - FIN');
   };
 
