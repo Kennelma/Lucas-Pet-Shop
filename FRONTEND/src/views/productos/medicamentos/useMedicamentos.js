@@ -99,59 +99,84 @@ export const useMedicamentos = () => {
   };
 
   const guardarMedicamento = async (formData, medicamentoEditando) => {
-    if (medicamentoEditando) {
-      // ✅ ACTUALIZAR MEDICAMENTO - AHORA INCLUYE IMPUESTO
-      const datosActualizar = {
-        id_producto: medicamentoEditando.id_producto_pk,
-        tipo_producto: 'MEDICAMENTOS',
-        nombre_producto: formData.nombre_producto.toUpperCase(),
-        precio_producto: parseFloat(formData.precio_producto),
-        stock_minimo: parseInt(formData.stock_minimo),
-        presentacion_medicamento: formData.presentacion.toUpperCase(),
-        tipo_medicamento: formData.tipo.toUpperCase(),
-        cantidad_contenido: parseInt(formData.cantidad_contenido) || 0,
-        unidad_medida: formData.unidad_medida.toUpperCase(),
-        activo: formData.activo ? 1 : 0,
-        tiene_impuesto: formData.tiene_impuesto || 0,  // ✅ NUEVO
-        tasa_impuesto: formData.tasa_impuesto || 0      // ✅ NUEVO
-      };
+  if (medicamentoEditando) {
+    // ✅ ACTUALIZAR MEDICAMENTO - AHORA INCLUYE IMPUESTO
+    const datosActualizar = {
+      id_producto: medicamentoEditando.id_producto_pk,
+      tipo_producto: 'MEDICAMENTOS',
+      nombre_producto: formData.nombre_producto.toUpperCase(),
+      precio_producto: parseFloat(formData.precio_producto),
+      stock_minimo: parseInt(formData.stock_minimo),
+      presentacion_medicamento: formData.presentacion.toUpperCase(),
+      tipo_medicamento: formData.tipo.toUpperCase(),
+      cantidad_contenido: parseInt(formData.cantidad_contenido) || 0,
+      unidad_medida: formData.unidad_medida.toUpperCase(),
+      activo: formData.activo ? 1 : 0,
+      tiene_impuesto: formData.tiene_impuesto || 0,
+      tasa_impuesto: formData.tasa_impuesto || 0
+    };
 
-      const resultado = await actualizarProducto(datosActualizar);
-      if (resultado.Consulta) {
-        await cargarDatos();
-        return true;
-      } else {
-        return false;
-      }
+    const resultado = await actualizarProducto(datosActualizar);
+    if (resultado.Consulta) {
+      await cargarDatos();
+      return true;
     } else {
-      // ✅ CREAR MEDICAMENTO NUEVO - AHORA INCLUYE IMPUESTO
-      const datosCompletos = {
-        tipo_producto: 'MEDICAMENTOS',
-        nombre_producto: formData.nombre_producto.toUpperCase().trim(),
-        precio_producto: parseFloat(formData.precio_producto),
-        costo_unitario: parseFloat(formData.precio_producto),
-        stock: parseInt(formData.stock_lote),
-        stock_minimo: parseInt(formData.stock_minimo),
-        presentacion_medicamento: formData.presentacion.toUpperCase().trim(),
-        tipo_medicamento: formData.tipo.toUpperCase().trim(),
-        cantidad_contenido: parseInt(formData.cantidad_contenido) || 0,
-        unidad_medida: formData.unidad_medida ? formData.unidad_medida.toUpperCase().trim() : '',
-        codigo_lote: formData.codigo_lote.toUpperCase().trim(),
-        fecha_vencimiento: formData.fecha_vencimiento,
-        stock_lote: parseInt(formData.stock_lote),
-        tiene_impuesto: formData.tiene_impuesto || 0,  // ✅ NUEVO
-        tasa_impuesto: formData.tasa_impuesto || 0      // ✅ NUEVO
-      };
-
-      const resultado = await insertarProducto(datosCompletos);
-      if (resultado.Consulta) {
-        await cargarDatos();
-        return true;
-      } else {
-        return false;
-      }
+      return false;
     }
-  };
+  } else {
+    // ✅ GENERAR CÓDIGO DE LOTE CORRECTO AQUÍ (NO CONFIAR EN EL DEL MODAL)
+    const nombreSinEspacios = formData.nombre_producto.replace(/\s+/g, '').toUpperCase();
+    const letras = nombreSinEspacios.substring(0, 4).padEnd(4, 'X');
+    
+    // Buscar lotes con el mismo patrón
+    const lotesDelMedicamento = lotes.filter(lote => 
+      lote.codigo_lote && lote.codigo_lote.endsWith(letras)
+    );
+    
+    // Extraer números existentes
+    const numerosExistentes = lotesDelMedicamento
+      .map(lote => {
+        const match = lote.codigo_lote.match(/LOTE-(\d+)-/);
+        return match ? parseInt(match[1]) : 0;
+      })
+      .filter(n => n > 0);
+    
+    // Calcular siguiente número
+    const siguienteNumero = numerosExistentes.length > 0 
+      ? Math.max(...numerosExistentes) + 1 
+      : 1;
+    
+    const numeroFormateado = siguienteNumero.toString().padStart(2, '0');
+    const codigoLoteCorregido = `LOTE-${numeroFormateado}-${letras}`;
+
+    // ✅ CREAR MEDICAMENTO NUEVO CON CÓDIGO CORREGIDO
+    const datosCompletos = {
+      tipo_producto: 'MEDICAMENTOS',
+      nombre_producto: formData.nombre_producto.toUpperCase().trim(),
+      precio_producto: parseFloat(formData.precio_producto),
+      costo_unitario: parseFloat(formData.precio_producto),
+      stock: parseInt(formData.stock_lote),
+      stock_minimo: parseInt(formData.stock_minimo),
+      presentacion_medicamento: formData.presentacion.toUpperCase().trim(),
+      tipo_medicamento: formData.tipo.toUpperCase().trim(),
+      cantidad_contenido: parseInt(formData.cantidad_contenido) || 0,
+      unidad_medida: formData.unidad_medida ? formData.unidad_medida.toUpperCase().trim() : '',
+      codigo_lote: codigoLoteCorregido, // ✅ USA EL CÓDIGO CORREGIDO
+      fecha_vencimiento: formData.fecha_vencimiento,
+      stock_lote: parseInt(formData.stock_lote),
+      tiene_impuesto: formData.tiene_impuesto || 0,
+      tasa_impuesto: formData.tasa_impuesto || 0
+    };
+
+    const resultado = await insertarProducto(datosCompletos);
+    if (resultado.Consulta) {
+      await cargarDatos();
+      return true;
+    } else {
+      return false;
+    }
+  }
+};
 
   const guardarLote = async (formData) => {
     if (!formData.codigo_lote || !formData.fecha_vencimiento || !formData.stock_lote) {

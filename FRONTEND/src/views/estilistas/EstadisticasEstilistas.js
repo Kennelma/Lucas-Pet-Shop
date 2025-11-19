@@ -22,7 +22,7 @@ const EstadisticasEstilistas = () => {
   const colores = [
     '#E91E63',
     '#4CAF50',
-    '#FF7043',
+    '#a443ffff',
     '#2196F3',
     '#FFC107',
     '#EC407A',
@@ -162,14 +162,14 @@ const EstadisticasEstilistas = () => {
             </div>
           </div>
         ) : data.length === 0 ? (
-          <div className="bg-white rounded-lg p-12 text-center" style={{boxShadow: '0 0 8px #F8E6A440, 0 0 0 1px #F8E6A433'}}>
+          <div className="bg-white rounded-lg p-12 text-center shadow-lg">
             <p className="text-gray-500 text-lg">No hay datos disponibles para el rango seleccionado</p>
           </div>
         ) : (
           <div className="flex flex-col lg:flex-row gap-6">
 
             {/*SECCION_GRAFICOS*/}
-            <div className="flex-1 bg-white rounded-lg p-3 h-fit" style={{boxShadow: '0 0 8px #F8E6A440, 0 0 0 1px #F8E6A433'}}>
+            <div className="flex-1 bg-white rounded-lg p-3 h-fit shadow-lg">
 
               {/*BOTONES_Y_FILTROS*/}
               <div className="flex flex-col sm:flex-row gap-3 items-center justify-between mb-3">
@@ -274,8 +274,8 @@ const EstadisticasEstilistas = () => {
                         dataKey="mascotas"
                       >
                         {data.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
+                          <Cell
+                            key={`cell-${index}`}
                             fill={entry.color}
                           />
                         ))}
@@ -304,10 +304,10 @@ const EstadisticasEstilistas = () => {
             </div>
 
             {/*SECCION_DETALLE_ESTILISTAS*/}
-            <div className="flex-1 bg-white rounded-lg overflow-hidden" style={{boxShadow: '0 0 8px #F8E6A440, 0 0 0 1px #F8E6A433'}}>
+            <div className="flex-1 bg-white rounded-lg overflow-hidden shadow-lg">
               
               {/* Header */}
-              <div className="relative px-4 pt-4 pb-3 bg-[#F8E6A4]">
+              <div className="relative px-4 pt-4 pb-3 bg-[#F3D568]">
                 <div className="relative mb-3">
                   <p className="text-base font-semibold tracking-wider text-center">DETALLE DE ESTILISTAS</p>
                 </div>

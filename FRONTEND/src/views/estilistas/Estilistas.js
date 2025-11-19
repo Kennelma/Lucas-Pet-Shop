@@ -73,7 +73,7 @@ const Estilistas = () => {
     }
 
     const result = await Swal.fire({
-      title: '⚠️ ¿Eliminar Estilista?',
+      title: '¿Eliminar Estilista?',
       html: `
         <div class="text-left">
           <p class="mb-3 text-gray-700">Estás a punto de eliminar a:</p>
@@ -192,8 +192,8 @@ const Estilistas = () => {
           {/* Título */}
           <div className="rounded-xl p-6 mb-3"
             style={{
-              backgroundImage: 'url("/H11.jpg")',
-              backgroundColor: '#F8E6A4',
+              backgroundImage: 'url("/H11.png")',
+              backgroundColor: '#fda55d',
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
               backgroundPosition: 'right center',

@@ -171,9 +171,9 @@ const ResumenPromocionesDelDia = () => {
       <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #365DA040, 0 0 0 1px #365DA033'}}>
         <div className="flex justify-between items-center">
           <div className="flex flex-col items-center justify-center flex-1 text-center">
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">
-              No hay promociones para {obtenerNombreDia()}
-            </h3>
+            <div className="text-lg font-semibold text-gray-600 mb-2 uppercase">
+              NO HAY PROMOCIONES PARA {obtenerNombreDia()}
+            </div>
             <p className="text-gray-500 text-sm">
               {promociones.length > 0
                 ? `Hay ${promociones.length} promociones en total, pero ninguna programada para ${obtenerNombreDia()}`
@@ -222,7 +222,7 @@ const ResumenPromocionesDelDia = () => {
                     <div className={`${colores[index % colores.length]} h-1.5 rounded-full transition-all duration-500`} style={{ width: '100%' }}></div>
                   </div>
                   <div className="text-center">
-                    <span className={`text-xs font-bold ${colores[index % colores.length].replace('bg-', 'text-')}`}>ACTIVA</span>
+                    <span className={`text-xs  font-bold ${colores[index % colores.length].replace('bg-', 'text-')}`}>ACTIVA</span>
                   </div>
                   <div className="text-xs text-gray-600 text-center">
                     <span className="font-bold text-gray-800">L. {promocion.precio_promocion.toFixed(2)}</span>

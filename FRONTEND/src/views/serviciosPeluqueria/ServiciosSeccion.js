@@ -68,7 +68,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
   };
 
   return (
-    
+
     <div className="relative flex justify-center" ref={menuRef}>
       <button
         ref={buttonRef}
@@ -209,8 +209,8 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
           </button>
         </div>
       ) : (
-  
-        <div className="overflow-x-auto"> 
+
+        <div className="overflow-x-auto">
           <DataTable
             value={servicios}
             loading={false}
@@ -305,7 +305,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
             <Column
               field="requisitos"
               header="REQUISITOS"
-              body={(rowData) => rowData.requisitos && rowData.requisitos.trim() !== '' ? rowData.requisitos : 'N/A'}
+              body={(rowData) => rowData.requisitos && rowData.requisitos.trim() !== '' ? rowData.requisitos : 'NO APLICA'}
               className="text-sm"
               style={{ width: '18%' }}
               headerStyle={{ padding: '8px 18px' }}

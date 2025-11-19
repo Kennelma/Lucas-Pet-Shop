@@ -163,7 +163,14 @@ const CamNotificaciones = () => {
   const cargarNotificaciones = async () => {
     try {
       const response = await obtenerNotificaciones()
-      
+
+       // 🔍 DEBUGGING - BORRA ESTO DESPUÉS
+    console.log('===== DEBUG NOTIFICACIONES =====')
+    console.log('Consulta exitosa:', response.Consulta)
+    console.log('Total notificaciones:', response.notificaciones?.length)
+    console.log('Notificaciones completas:', JSON.stringify(response.notificaciones, null, 2))
+    console.log('================================')
+
       if (!response.Consulta) {
         throw new Error(response.mensaje || 'Error al cargar notificaciones')
       }

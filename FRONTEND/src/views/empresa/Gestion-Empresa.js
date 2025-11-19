@@ -668,7 +668,7 @@ export default function GestionEmpresa() {
       </div>
 
       {/* Sección Principal */}
-      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #C7E4E240, 0 0 0 1px #C7E4E233'}}>
+      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #61a6f540, 0 0 0 1px #6594ec33'}}>
         {/* Barra de búsqueda + botones */}
         <div className="flex justify-between items-center mb-6">
           <div className="relative w-80">
@@ -780,7 +780,7 @@ export default function GestionEmpresa() {
               header="DIRECCIÓN"
               body={direccionBodyTemplate}
               sortable
-              className="w-[250px]"
+              className="w-[250px] uppercase"
             />
             <Column
               field="telefono_sucursal"
