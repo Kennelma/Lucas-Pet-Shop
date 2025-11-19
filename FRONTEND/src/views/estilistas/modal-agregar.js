@@ -222,7 +222,8 @@ const ModalAgregarEstilista = ({ isOpen, onClose, onSave, estilistas = [] }) => 
         setIdentidadDuplicada(true);
       } else if (error.response?.status === 500 || 
                  error.message?.includes('500') ||
-                 error.toString().includes('500')) {
+                 error.toString().includes('500'))
+       {
         // Error 500 sin verificación local - asumir duplicado o error del servidor
         await Swal.fire({
           icon: 'error',

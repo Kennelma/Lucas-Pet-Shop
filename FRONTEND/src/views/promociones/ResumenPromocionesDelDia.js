@@ -221,7 +221,7 @@ const ResumenPromocionesDelDia = () => {
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
                     <div className={`${colores[index % colores.length]} h-1.5 rounded-full transition-all duration-500`} style={{ width: '100%' }}></div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-center">
                     <span className={`text-xs font-bold ${colores[index % colores.length].replace('bg-', 'text-')}`}>ACTIVA</span>
                   </div>
                   <div className="text-xs text-gray-600 text-center">
