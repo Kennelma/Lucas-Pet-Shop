@@ -3,7 +3,7 @@ import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { InputSwitch } from "primereact/inputswitch";
 
-const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medicamentosExistentes = [] }) => {
+const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medicamentosExistentes = [], lotesExistentes = [] }) => {
   const [paso, setPaso] = useState(1);
   const [formData, setFormData] = useState({
     nombre_producto: "",
@@ -38,11 +38,42 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
     return partes.join('-');
   };
 
-  const generarCodigoLote = (nombreMedicamento) => {
-    const nombreSinEspacios = nombreMedicamento.replace(/\s+/g, '').toUpperCase();
-    const letras = nombreSinEspacios.substring(0, 4).padEnd(4, 'X');
-    return `LOTE-01-${letras}`;
-  };
+  const generarCodigoLote = (nombreMedicamento, idProducto = null) => {
+  const nombreSinEspacios = nombreMedicamento.replace(/\s+/g, '').toUpperCase();
+  const letras = nombreSinEspacios.substring(0, 4).padEnd(4, 'X');
+  
+  // Filtrar lotes del medicamento específico
+  let lotesDelMedicamento = [];
+  
+  if (idProducto) {
+    // Si es edición y tenemos el ID del producto
+    lotesDelMedicamento = lotesExistentes.filter(lote => 
+      lote.id_producto_fk === idProducto
+    );
+  } else {
+    // Si es creación nueva, buscar por patrón de código (últimas 4 letras)
+    lotesDelMedicamento = lotesExistentes.filter(lote => 
+      lote.codigo_lote && lote.codigo_lote.endsWith(letras)
+    );
+  }
+  
+  // Extraer todos los números de los códigos existentes
+  const numerosExistentes = lotesDelMedicamento
+    .map(lote => {
+      const match = lote.codigo_lote.match(/LOTE-(\d+)-/);
+      return match ? parseInt(match[1]) : 0;
+    })
+    .filter(n => n > 0);
+  
+  // ✅ SIEMPRE INCREMENTAR desde el máximo (nunca reutilizar números)
+  const siguienteNumero = numerosExistentes.length > 0 
+    ? Math.max(...numerosExistentes) + 1 
+    : 1;
+  
+  const numeroFormateado = siguienteNumero.toString().padStart(2, '0');
+  
+  return `LOTE-${numeroFormateado}-${letras}`;
+};
 
   // FUNCIÓN AUXILIAR PARA RECALCULAR EL PRECIO SEGÚN SI SE APLICA IMPUESTO
   const recalcularPrecio = (base, tasa, aplicar) => {
@@ -284,17 +315,13 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
     
     if (medicamentoEditando) {
       if (validarPaso1()) {
-        console.log(' Validación Paso 1 exitosa (edición)');
         onSave(dataConImpuesto);
       } else {
-        console.log('Error en validación Paso 1 (edición)');
       }
     } else {
       if (validarPaso2()) {
-        console.log('Validación Paso 2 exitosa (creación)');
         onSave(dataConImpuesto);
       } else {
-        console.log('Error en validación Paso 2 (creación)');
       }
     }
   };

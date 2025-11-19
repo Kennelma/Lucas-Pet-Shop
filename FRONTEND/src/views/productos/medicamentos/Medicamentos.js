@@ -202,11 +202,7 @@ const Medicamentos = () => {
     try {
       const nuevoEstado = !medicamento.activo;
 
-      const response = await actualizarProducto({
-        id_producto_pk: medicamento.id_producto_pk,
-        tipo_producto: 'MEDICAMENTOS',
-        activo: nuevoEstado
-      });
+      const response = await cambiarEstadoProducto(medicamento.id_producto_pk, nuevoEstado);
 
       if (response.Consulta) {
         setMedicamentos(prev =>
@@ -290,7 +286,8 @@ const Medicamentos = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+    <div className="min-h-screen p-6 bg-gray-50">
       {/* Título */}
       <div className="rounded-xl p-6 mb-3"
         style={{
@@ -491,6 +488,7 @@ const Medicamentos = () => {
           {mensaje}
         </div>
       )}
+    </div>
     </div>
   );
 };

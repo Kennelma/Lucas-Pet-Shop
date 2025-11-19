@@ -91,7 +91,6 @@ const MedicamentosMasVendidos = () => {
       setMedicamentosMasVendidos(medicamentosConPorcentajes);
       
     } catch (err) {
-      console.error('Error al obtener medicamentos favoritos:', err);
       setError('Error al cargar los productos más vendidos');
       setMedicamentosMasVendidos([]);
     } finally {

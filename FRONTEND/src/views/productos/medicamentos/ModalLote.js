@@ -103,7 +103,6 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExis
 
   const handleGuardar = () => {
     if (validarFormulario()) {
-      console.log("✅ Datos del lote a guardar:", formData);
       onSave(formData);
     }
   };
