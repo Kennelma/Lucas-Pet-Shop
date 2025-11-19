@@ -533,7 +533,7 @@ const handleVerFactura = (factura) => {
       {facturasFiltradas.length > 0 && (
         <div className="mt-6 flex justify-between items-center">
           <div className="text-sm text-gray-600">
-            Mostrando <span className="font-semibold">{facturasFiltradas.length}</span> de <span className="font-semibold">{facturas.length}</span> facturas
+            Mostrando <span className="font-semibold">{Math.min(rows, facturasFiltradas.length)}</span> de <span className="font-semibold">{facturasFiltradas.length}</span> facturas
           </div>
           <Paginator
             first={first}

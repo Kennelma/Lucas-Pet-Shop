@@ -52,28 +52,23 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
   };
 
   const handleConfirm = (datosPago) => {
-    console.log('🎯 ModalPago.handleConfirm - INICIO');
-    // Agregar los datos completos de la factura y tipo de pago
     const datosCompletos = {
       numero_factura: factura?.numero_factura,
       id_tipo: tipoPago.id,
       total: factura?.total || total,
       saldo: factura?.saldo || total,
+      detalles: factura?.detalles || [],
       ...datosPago
     };
 
-    console.log('📦 Datos completos a enviar:', datosCompletos);
-
     if (onPagoConfirmado) {
-      console.log('📤 Llamando a onPagoConfirmado (handlePagoExitoso)');
       onPagoConfirmado(datosCompletos);
     }
-    console.log('🔄 Limpiando y cerrando modal...');
+    
     handleBack();
     if (onClose) {
       onClose();
     }
-    console.log('✅ ModalPago.handleConfirm - FIN');
   };
 
   const handleCloseModal = () => {

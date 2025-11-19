@@ -68,6 +68,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
   };
 
   return (
+    
     <div className="relative flex justify-center" ref={menuRef}>
       <button
         ref={buttonRef}
@@ -77,7 +78,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
       >
         <i className="pi pi-ellipsis-h text-white text-xs"></i>
       </button>
-
+      {/* Menú desplegable */}
       {isOpen && (
         <div
           className="fixed bg-white border border-gray-200 rounded-lg shadow-xl min-w-[140px]"
@@ -208,7 +209,8 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
           </button>
         </div>
       ) : (
-        <>
+  
+        <div className="overflow-x-auto"> 
           <DataTable
             value={servicios}
             loading={false}
@@ -226,8 +228,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
             rowsPerPageOptions={[5, 10, 20, 25]}
             paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
             tableStyle={{
-              width: '970px',
-              tableLayout: 'fixed'
+              tableLayout: 'auto'
             }}
             className="mt-4"
             size="small"
@@ -235,20 +236,21 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
             rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
             style={{ width: '100%' }}
           >
+            {/* Definición de columnas */}
             <Column
               field="id_servicio_peluqueria_pk"
               header="ID"
               body={(rowData) => servicios.length - servicios.indexOf(rowData)}
               sortable
               className="text-sm"
-              style={{ width: '50px' }}
+              style={{ width: '4%' }}
             />
             <Column
               field="nombre_servicio_peluqueria"
               header="SERVICIO"
               sortable
               className="text-sm"
-              style={{ width: '150px' }}
+              style={{ width: '15%' }}
               bodyStyle={{
                 whiteSpace: 'normal',
                 wordWrap: 'break-word',
@@ -262,7 +264,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
               field="descripcion_servicio"
               header="DESCRIPCIÓN"
               className="text-sm"
-              style={{ width: '210px' }}
+              style={{ width: '23%' }}
               headerStyle={{ padding: '8px 12px' }}
               bodyStyle={{
                 whiteSpace: 'normal',
@@ -281,7 +283,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
               sortField="precio_servicio"
               dataType="numeric"
               className="text-sm"
-              style={{ width: '90px' }}
+              style={{ width: '10%' }}
               bodyStyle={{
                 padding: '8px 8px'
               }}
@@ -294,7 +296,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
               sortField="duracion_estimada"
               dataType="numeric"
               className="text-sm"
-              style={{ width: '110px' }}
+              style={{ width: '10%' }}
               headerStyle={{ padding: '8px 16px' }}
               bodyStyle={{
                 padding: '8px 16px'
@@ -305,7 +307,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
               header="REQUISITOS"
               body={(rowData) => rowData.requisitos && rowData.requisitos.trim() !== '' ? rowData.requisitos : 'N/A'}
               className="text-sm"
-              style={{ width: '160px' }}
+              style={{ width: '18%' }}
               headerStyle={{ padding: '8px 18px' }}
               bodyStyle={{
                 whiteSpace: 'normal',
@@ -323,7 +325,7 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
               sortable
               sortField="activo"
               className="text-sm"
-              style={{ width: '120px' }}
+              style={{ width: '13%' }}
               bodyStyle={{
                 padding: '8px 8px'
               }}
@@ -336,10 +338,10 @@ const ServiciosSeccion = ({ servicios, abrirModalServicio, eliminarServicio, act
                 padding: '8px'
               }}
               className="text-sm"
-              style={{ width: '80px' }}
+              style={{ width: '7%' }}
             />
           </DataTable>
-        </>
+        </div>
       )}
     </div>
   );

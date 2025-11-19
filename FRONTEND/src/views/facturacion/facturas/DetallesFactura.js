@@ -470,7 +470,8 @@ const DetallesFactura = ({
   return (
     <div>
       <div
-        className="space-y-6 p-4 mx-auto bg-gr shadow-xl rounded-lg"
+        className="space-y-6 p-4 mx-auto bg-white rounded-lg"
+        style={{ boxShadow: "0 0 15px rgba(0, 0, 0, 0.1)" }}
       >
         {/*ENCABEZADO CON BOTÓN AGREGAR ITEM*/}
         <div
@@ -543,7 +544,7 @@ const DetallesFactura = ({
                     paddingLeft: "12px",
                     paddingRight: "12px",
                     fontSize: "14px",
-                    width: "96px",
+                    width: "100px",
                   }}
                 >
                   PRECIO UNITARIO
@@ -556,7 +557,7 @@ const DetallesFactura = ({
                     paddingLeft: "12px",
                     paddingRight: "12px",
                     fontSize: "14px",
-                    width: "96px",
+                    width: "100px",
                   }}
                 >
                   AJUSTE
@@ -785,7 +786,7 @@ const DetallesFactura = ({
                           step="0.01"
                           value={Number(item.precio).toFixed(2)}
                           readOnly
-                          className="w-full border border-gray-300 rounded bg-gray-100 text-gray-700 cursor-default focus:ring-0 text-right"
+                          className="w-full border border-gray-300 rounded bg-white text-gray-700 cursor-default focus:ring-0 text-right"
                           style={{ padding: "4px 8px", fontSize: "14px" }}
                         />
                       </td>
@@ -1197,7 +1198,7 @@ const DetallesFactura = ({
 
                 {/* Saldo Pendiente */}
                 <div
-                  className="flex justify-between font-semibold text-blue-600"
+                  className="flex justify-between font-semibold text-gray-900"
                   style={{ fontSize: "17px", paddingTop: "8px" }}
                 >
                   <span>Saldo Pendiente:</span>

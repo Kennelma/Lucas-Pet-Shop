@@ -20,7 +20,9 @@ export const insertarEstilista = async (datosEstilista) => {
     return res.data;
   } catch (err) {
     console.error("Error al insertar estilista:", err);
-    return { Consulta: false, error: err.message };
+    console.error("Error completo:", err.response?.data);
+    console.error("Status:", err.response?.status);
+    return { Consulta: false, error: err.response?.data?.error || err.message };
   }
 };
 

@@ -191,6 +191,7 @@ const Grafica = ({ obtenerRegistroFinanciero, anio }) => {
       </div>
 
       <div className="flex-1" style={{ minHeight: 0 }}>
+        {!loading && datos.length > 0 ? (
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={datos} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -218,6 +219,11 @@ const Grafica = ({ obtenerRegistroFinanciero, anio }) => {
             <Bar dataKey="gastos" fill="#dc2626" radius={[8, 8, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-400">
+            <p className="text-sm">No hay datos disponibles para mostrar</p>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-center gap-4 text-xs mt-3">

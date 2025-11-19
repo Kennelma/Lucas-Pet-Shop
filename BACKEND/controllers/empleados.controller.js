@@ -19,7 +19,7 @@ exports.crear = async (req, res) => {
             apellido_estilista,
             identidad_estilista,
             fecha_ingreso
-        ) VALUES (?, ?, ?);`,
+        ) VALUES (?, ?, ?, ?);`,
         [
            req.body.nombre_estilista,
            req.body.apellido_estilista,

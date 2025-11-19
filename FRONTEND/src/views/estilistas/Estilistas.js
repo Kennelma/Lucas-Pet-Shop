@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import TablaEstilistas from './tabla-estilistas';
+import ModalTablaEstilistas from './modal-tabla-estilistas';
 import ModalAgregarEstilista from './modal-agregar';
 import ModalActualizarEstilista from './modal-actualizar';
 import EstadisticasEstilistas from './EstadisticasEstilistas';
 
 import Swal from 'sweetalert2';
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
+
 import {
   verEstilistas,
   eliminarEstilista
@@ -20,6 +19,7 @@ const Estilistas = () => {
   // Estados para modales
   const [modalAgregar, setModalAgregar] = useState(false);
   const [modalActualizar, setModalActualizar] = useState(false);
+  const [modalTabla, setModalTabla] = useState(false);
   const [estilistaSeleccionado, setEstilistaSeleccionado] = useState(null);
 
   useEffect(() => {
@@ -33,7 +33,6 @@ const Estilistas = () => {
       const data = await verEstilistas();
       setEstilistas(data || []);
     } catch (error) {
-      console.error('Error al cargar estilistas:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error de Conexión',
@@ -136,8 +135,6 @@ const Estilistas = () => {
           throw new Error(response?.error || 'Error desconocido');
         }
       } catch (error) {
-        console.error('Error al eliminar:', error);
-
         // Mensaje de error más descriptivo
         let mensajeError = 'No se pudo eliminar el estilista';
 
@@ -220,47 +217,7 @@ const Estilistas = () => {
             estilistas={estilistas}
           />
 
-          {/* Header con búsqueda, botón y tabla */}
-          <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #F8E6A440, 0 0 0 1PX #F8E6A433'}}>
-            {/* Barra de búsqueda + botón Nuevo */}
-            <div className="flex justify-between items-center mb-6">
-              <div className="relative w-80">
-                <input
-                  value={globalFilter}
-                  onChange={(e) => setGlobalFilter(e.target.value)}
-                  placeholder="Buscar estilistas..."
-                  className="w-full px-4 py-2 border rounded-full"
-                />
-                {globalFilter && (
-                  <button
-                    onClick={() => setGlobalFilter('')}
-                    className="absolute right-3 top-2 text-gray-500"
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
 
-              <button
-                className="bg-yellow-200 hover:bg-yellow-300 text-black px-6 py-2 rounded transition-colors flex items-center gap-2"
-                onClick={abrirModalAgregar}
-              >
-                <FontAwesomeIcon icon={faPlus} />
-                Nuevo Estilista
-              </button>
-            </div>
-
-            {/* Tabla de Estilistas */}
-            <TablaEstilistas
-              estilistas={estilistas}
-              loading={loading}
-              globalFilter={globalFilter}
-              onEdit={abrirModalActualizar}
-              onDelete={handleEliminar}
-              onSelectionChange={setEstilistaSeleccionado}
-              estilistaSeleccionado={estilistaSeleccionado}
-            />
-          </div>
         </>
       )}
 
@@ -278,6 +235,14 @@ const Estilistas = () => {
         estilista={estilistaSeleccionado}
         onSave={cargarEstilistas}
         estilistas={estilistas}
+      />
+
+      <ModalTablaEstilistas
+        visible={modalTabla}
+        onHide={() => setModalTabla(false)}
+        onRefresh={cargarEstilistas}
+        onEdit={abrirModalActualizar}
+        onDelete={handleEliminar}
       />
     </div>
     </div>

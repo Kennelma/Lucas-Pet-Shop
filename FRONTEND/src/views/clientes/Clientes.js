@@ -37,14 +37,14 @@ const Clientes = () => {
                 </div>
 
                 {/* LAYOUT_DE_DOS_COLUMNAS_TABLA_Y_PERFIL: Ajustado a 8/4 */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-12">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-12 items-start">
                     {/* TABLA_DE_CLIENTES_IZQUIERDA (Ocupa 8/12) */}
                     <div className="lg:col-span-8 bg-white border border-gray-300 rounded-xl overflow-hidden">
                         <TablaClientes setClienteSeleccionado={setClienteSeleccionado}/>
                     </div>
 
                     {/* PERFIL_DE_CLIENTE_DERECHA (Ocupa 4/12) */}
-                    <div className="lg:col-span-4 bg-white border border-gray-300 rounded-xl overflow-hidden">
+                    <div className="lg:col-span-4 flex items-start justify-center sticky top-6">
                         <PerfilCliente clienteSeleccionado={clienteSeleccionado} />
                     </div>
                 </div>

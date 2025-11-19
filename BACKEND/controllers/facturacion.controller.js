@@ -865,38 +865,7 @@ exports.detalleFacturaSeleccionada = async (req, res) => {
 };
 
 
-exports.borrarFactura = async (req, res) => {
 
-    const conn = await mysqlConnection.getConnection();
-
-    try {
-
-        const { numero_factura } = req.query;
-
-        //ELIMINAR DETALLES DE LA FACTURA
-        await conn.query(
-            `DELETE FROM tbl_facturas
-             WHERE numero_factura = ?`,
-            [numero_factura]
-        );
-
-        return res.status(200).json({
-            success: true,
-            mensaje: 'FACTURA BORRADA CON EXITO'
-        });
-
-    } catch (error) {
-        console.error("Error al eliminar detalles de factura:", error);
-        return res.status(500).json({
-            success: false,
-            mensaje: 'Error al eliminar detalles de factura',
-            error: error.message
-        });
-    } finally {
-        conn.release();
-    }
-
-};
 
 
 

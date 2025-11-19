@@ -141,7 +141,7 @@ const VentasDiarias = () => {
         <div className="bg-blue-100 p-1.5 rounded-lg">
           <TrendingUp className="w-4 h-4 text-blue-600" />
         </div>
-        <div className="text-base md:text-xl font-semibold text-gray-800">LO MÁS VENDIDO DEL DÍA</div>
+        <div className="text-base md:text-xl font-bold text-gray-800">LO MÁS VENDIDO DEL DÍA</div>
       </div>
 
       <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
