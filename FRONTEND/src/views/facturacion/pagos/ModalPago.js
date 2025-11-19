@@ -59,10 +59,9 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
       id_tipo: tipoPago.id,
       total: factura?.total || total,
       saldo: factura?.saldo || total,
+      detalles: factura?.detalles || [],
       ...datosPago
     };
-
-    console.log('📦 Datos completos a enviar:', datosCompletos);
 
     if (onPagoConfirmado) {
       console.log('📤 Llamando a onPagoConfirmado (handlePaymentSuccess)');

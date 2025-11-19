@@ -172,15 +172,7 @@ export default function FormularioCliente({
                 resizable={false}
             >
                 <div className="mt-0">
-                    {/* Imagen centrada */}
-                    <div className="flex justify-center mb-4">
-                        <img
-                            src={clienteImage}
-                            alt="Cliente"
-                            className="w-25 h-30 object-cover rounded-xl border border-white"
-                        />
-                    </div>
-
+                    
                     {/* Formulario */}
                     <div className="flex flex-col gap-3">
                         {/* Nombre del Cliente */}

@@ -4,14 +4,14 @@ import { Button } from 'primereact/button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
-const ModalAgregarEmpresa = ({ 
-  visible, 
-  onHide, 
-  formData, 
-  onChange, 
-  onSave, 
-  loading, 
-  editando, 
+const ModalAgregarEmpresa = ({
+  visible,
+  onHide,
+  formData,
+  onChange,
+  onSave,
+  loading,
+  editando,
   errores,
   onBlur
 }) => {
@@ -57,7 +57,7 @@ const ModalAgregarEmpresa = ({
         <input type="text" style={{ display: 'none' }} autoComplete="off" />
         <input type="email" style={{ display: 'none' }} autoComplete="off" />
         <input type="tel" style={{ display: 'none' }} autoComplete="off" />
-        
+
         <div className="flex flex-col gap-3">
           {/* Nombre de la Empresa */}
           <span>
@@ -112,7 +112,7 @@ const ModalAgregarEmpresa = ({
               onChange={(e) => onChange({ target: { name: 'correo_empresa', value: e.target.value } })}
               onBlur={(e) => onBlur({ target: { name: 'correo_empresa', value: e.target.value } })}
               className="w-full rounded-xl h-9 text-sm lowercase"
-              placeholder="Ej: contacto@empresa.com"
+              placeholder="EJEM: contacto@empresa.com"
               type="text"
               autoComplete="off"
               data-lpignore="true"

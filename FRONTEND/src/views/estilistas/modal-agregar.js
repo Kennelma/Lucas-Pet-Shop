@@ -160,7 +160,6 @@ const ModalAgregarEstilista = ({ isOpen, onClose, onSave, estilistas = [] }) => 
         onSave();
         onClose();
       } else {
-        console.error('Response error:', response);
         const errorTipo = response?.errorTipo;
         
         // Usar el tipo de error para mostrar mensaje específico
@@ -203,16 +202,13 @@ const ModalAgregarEstilista = ({ isOpen, onClose, onSave, estilistas = [] }) => 
           await Swal.fire({
             icon: 'error',
             title: 'Error al Guardar',
-            text: `No se pudo agregar el estilista: ${errorMsg}`,
+            text: response?.error || 'No se pudo agregar el estilista',
             confirmButtonColor: '#ef4444',
             confirmButtonText: 'Entendido'
           });
         }
       }
     } catch (error) {
-      console.error('Error en handleSubmit:', error);
-      console.error('Error completo:', JSON.stringify(error, null, 2));
-      
       // Verificar primero si es identidad duplicada localmente
       if (verificarIdentidadDuplicada(formData.identidad_estilista)) {
         await Swal.fire({

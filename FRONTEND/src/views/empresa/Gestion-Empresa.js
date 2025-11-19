@@ -780,7 +780,7 @@ export default function GestionEmpresa() {
               header="DIRECCIÓN"
               body={direccionBodyTemplate}
               sortable
-              className="w-[250px]"
+              className="w-[250px] uppercase"
             />
             <Column
               field="telefono_sucursal"

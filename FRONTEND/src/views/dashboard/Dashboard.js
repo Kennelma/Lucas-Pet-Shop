@@ -205,7 +205,7 @@ const Dashboard = () => {
             {/* Card Principal */}
             <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
 
-              {/* Header Sutil */}
+              {/* Header */}
               <div className="relative px-4 pt-2 pb-1 bg-[#FFCC33]">
                 <div className="relative mb-1">
                   <p className="text-base font-semibold tracking-wider text-center">GASTOS DE HOY</p>

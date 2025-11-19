@@ -159,7 +159,7 @@ const EncabezadoFactura = ({
   //====================RENDER====================
   return (
     <>
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+      <div className="bg-white rounded-lg p-4 mb-4" style={{ boxShadow: "0 0 15px rgba(0, 0, 0, 0.1)" }}>
 
         {/*TÍTULO*/}
         <h1 className="text-lg font-semibold text-gray-800 mb-3 text-center font-poppins">Factura</h1>

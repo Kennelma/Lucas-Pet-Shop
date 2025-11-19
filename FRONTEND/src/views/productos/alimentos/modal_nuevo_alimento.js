@@ -52,7 +52,7 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave, alimentosExistentes = [] 
 
     setData(prev => {
       const newData = { ...prev, [field]: val };
-      
+
       return newData;
     });
 
@@ -97,7 +97,7 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave, alimentosExistentes = [] 
 
     // RECALCULA EL PRECIO MOSTRADO EN EL INPUT
     const nuevoPrecio = recalcularPrecio(precioBase, tasaImpuesto, value);
-    setData(prev => ({ ...prev, precio: Number(nuevoPrecio) }));
+    setData(prev => ({ ...prev, precio: Number(nuevoPrecio.toFixed(2)) }));
   };
 
   // FUNCIÓN PARA CALCULAR EL PRECIO FINAL CON ISV
@@ -110,7 +110,7 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave, alimentosExistentes = [] 
   // FUNCIÓN PARA VALIDAR LOS DATOS DEL FORMULARIO
   const validarDatos = () => {
     let temp = {};
-    
+
     if (!data.nombre?.trim()) {
       temp.nombre = 'El nombre del alimento es obligatorio';
     } else {
@@ -122,7 +122,7 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave, alimentosExistentes = [] 
         temp.nombre = 'Ya existe un alimento con este nombre';
       }
     }
-    
+
     if (!data.destino) temp.destino = 'Debe seleccionar el tipo de mascota';
     if (!data.precio || parseFloat(data.precio) <= 0) temp.precio = 'El precio debe ser mayor a 0';
     if (!data.cantidad || data.cantidad <= 0) temp.cantidad = 'El stock debe ser mayor a 0';
@@ -176,7 +176,7 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave, alimentosExistentes = [] 
 
         onSave(nuevoAlimento);
         onClose();
-        
+
         setTimeout(() => {
           Swal.fire({
             icon: "success",
