@@ -130,8 +130,8 @@ const ModalTablaEstilistas = ({ visible, onHide, onRefresh, onDelete }) => {
       <Dialog
         header={
           <div className="flex items-center gap-2">
-            <Scissors className="w-5 h-5 text-gray-700" />
-            <span className="font-poppins font-bold uppercase text-sm">Gestión de Estilistas</span>
+           
+            <span className="font-poppins font-bold uppercase text-sm text-center w-full">Gestión de Estilistas</span>
           </div>
         }
         visible={visible}
@@ -186,12 +186,14 @@ const ModalTablaEstilistas = ({ visible, onHide, onRefresh, onDelete }) => {
                   sortable
                   style={{ width: '15%' }}
                 />
-                <Column
-                  field="identidad_estilista"
-                  header="IDENTIDAD"
-                  sortable
-                  style={{ width: '15%' }}
-                />
+               <Column
+  field="identidad_estilista"
+  header="IDENTIDAD"
+  sortable
+  style={{ width: '18%', textAlign: 'center' }}
+  headerStyle={{ textAlign: 'center' }}
+/>
+
                 <Column
                   field="fecha_ingreso"
                   header="FECHA DE INGRESO"
@@ -205,7 +207,7 @@ const ModalTablaEstilistas = ({ visible, onHide, onRefresh, onDelete }) => {
                     });
                   }}
                   sortable
-                  style={{ width: '20%' }}
+                  style={{ width: '22%', textAlign: 'center' }}
                 />
                 <Column
                   header="ACCIONES"
