@@ -112,6 +112,15 @@ const Medicamentos = () => {
     if (success) {
       setModalVisible(false);
       setMedicamentoEditando(null);
+
+      // Mostrar alerta de éxito
+      Swal.fire({
+        icon: 'success',
+        title: medicamentoEditando ? '¡Actualizado!' : '¡Agregado!',
+        text: medicamentoEditando ? 'Medicamento actualizado correctamente' : 'Medicamento agregado correctamente',
+        timer: 2000,
+        showConfirmButton: false
+      });
     }
   };
 
@@ -120,6 +129,15 @@ const Medicamentos = () => {
     if (success) {
       setModalLoteVisible(false);
       setMedicamentoSeleccionado(null);
+
+      // Mostrar alerta de éxito
+      Swal.fire({
+        icon: 'success',
+        title: '¡Lote agregado!',
+        text: 'Lote agregado correctamente',
+        timer: 2000,
+        showConfirmButton: false
+      });
     }
   };
 
@@ -137,7 +155,7 @@ const Medicamentos = () => {
     setModalEditarLoteVisible(true);
   };
 
-  // ✅ NUEVA FUNCIÓN: Guardar edición de lote
+  //FUNCION GUARDAR EDICION LOTE
   const handleGuardarEdicionLote = async (loteEditado) => {
     const exito = await editarLote(loteEditado);
     if (exito) {
@@ -146,7 +164,13 @@ const Medicamentos = () => {
         title: '¡Actualizado!',
         text: 'Lote actualizado correctamente',
         timer: 1500,
-        showConfirmButton: false
+        showConfirmButton: false,
+        didOpen: () => {
+          const swalContainer = document.querySelector('.swal2-container');
+          if (swalContainer) {
+            swalContainer.style.setProperty('z-index', '999999', 'important');
+          }
+        }
       });
       setModalEditarLoteVisible(false);
       setLoteEditar(null);
@@ -155,7 +179,13 @@ const Medicamentos = () => {
         icon: 'error',
         title: 'Error',
         text: 'No se pudo actualizar el lote',
-        confirmButtonText: 'Entendido'
+        confirmButtonText: 'Entendido',
+        didOpen: () => {
+          const swalContainer = document.querySelector('.swal2-container');
+          if (swalContainer) {
+            swalContainer.style.setProperty('z-index', '999999', 'important');
+          }
+        }
       });
     }
   };
@@ -188,7 +218,13 @@ const Medicamentos = () => {
     if (result.isConfirmed) {
       const success = await eliminarMedicamento(medicamento.id_producto_pk);
       if (success) {
-        Swal.fire({ icon: "success", title: "¡Eliminado!", text: "El medicamento fue eliminado correctamente", timer: 1800, showConfirmButton: false, });
+        Swal.fire({
+          icon: 'success',
+          title: '¡Medicamento eliminado!',
+          text: 'El medicamento fue eliminado correctamente',
+          timer: 2000,
+          showConfirmButton: false
+        });
       }
     }
   };
@@ -271,7 +307,19 @@ const Medicamentos = () => {
       const success = await eliminarLote(lote.id_lote_medicamentos_pk);
       if (success) {
         await cargarDatos();
-        Swal.fire({ icon: "success", title: "¡Eliminado!", text: "El lote fue eliminado correctamente", timer: 1800, showConfirmButton: false,});
+        Swal.fire({
+          icon: 'success',
+          title: '¡Lote eliminado!',
+          text: 'El lote fue eliminado correctamente',
+          timer: 2000,
+          showConfirmButton: false,
+          didOpen: () => {
+            const swalContainer = document.querySelector('.swal2-container');
+            if (swalContainer) {
+              swalContainer.style.setProperty('z-index', '999999', 'important');
+            }
+          }
+        });
       }
     }
   };
