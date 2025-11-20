@@ -40,6 +40,7 @@ const DetallesFactura = ({
   onCancel,
   RTN,
   id_cliente,
+  nombreCliente,
   setActiveTab,
   setFacturaParaImprimir,
 }) => {
@@ -186,9 +187,40 @@ const DetallesFactura = ({
 
     setLoading(true);
 
+    // ⭐ LÓGICA CORRECTA:
+    // 1. Si hay cliente registrado → id_cliente con valor, nombre_cliente = null
+    // 2. Si hay nombre personalizado sin registro → id_cliente = null, nombre_cliente con valor
+    // 3. Si no hay nada → ambos null (backend muestra CONSUMIDOR FINAL con COALESCE)
+
+    const tieneClienteRegistrado = id_cliente && id_cliente !== null;
+    const tieneNombrePersonalizado = nombreCliente && nombreCliente !== 'CONSUMIDOR FINAL' && nombreCliente.trim() !== '';
+
+    let idClienteFinal = null;
+    let nombreClienteFinal = null;
+
+    if (tieneClienteRegistrado) {
+      // Caso 1: Cliente registrado
+      idClienteFinal = id_cliente;
+      nombreClienteFinal = null; // Se obtiene del JOIN en el backend
+    } else if (tieneNombrePersonalizado) {
+      // Caso 2: Nombre personalizado sin registro
+      idClienteFinal = null;
+      nombreClienteFinal = nombreCliente;
+    }
+    // Caso 3: ambos quedan null (CONSUMIDOR FINAL por defecto)
+
+    console.log('🎯 DEBUG FRONTEND:');
+    console.log('  - id_cliente original:', id_cliente);
+    console.log('  - nombreCliente original:', nombreCliente);
+    console.log('  - tieneClienteRegistrado:', tieneClienteRegistrado);
+    console.log('  - tieneNombrePersonalizado:', tieneNombrePersonalizado);
+    console.log('  - idClienteFinal:', idClienteFinal);
+    console.log('  - nombreClienteFinal:', nombreClienteFinal);
+
     const datosFactura = {
       RTN: RTN || null,
-      id_cliente: id_cliente || null,
+      id_cliente: idClienteFinal,
+      nombre_cliente: nombreClienteFinal,
       descuento: DESCUENTO,
       items: items.map((item) => ({
         tipo: item.tipo,
@@ -255,9 +287,12 @@ const DetallesFactura = ({
 
     setLoading(true);
 
+    console.log('🔍 DEBUG MODAL PAGOS - nombreCliente recibido:', nombreCliente);
+
     const datosFactura = {
       RTN: RTN || null,
       id_cliente: id_cliente || null,
+      nombre_cliente: nombreCliente || 'CONSUMIDOR FINAL',
       descuento: DESCUENTO,
       items: items.map((item) => ({
         tipo: item.tipo,

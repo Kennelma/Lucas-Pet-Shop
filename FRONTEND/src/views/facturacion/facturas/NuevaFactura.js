@@ -208,6 +208,7 @@ const NuevaFactura = (props) => {
           identidad={identidad}
           RTN={RTN}
           id_cliente={id_cliente}
+          nombreCliente={nombreCliente}
           setActiveTab={props.setActiveTab}
           setFacturaParaImprimir={setFacturaParaImprimir}
         />

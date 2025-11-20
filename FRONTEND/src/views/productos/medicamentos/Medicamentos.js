@@ -246,7 +246,7 @@ const Medicamentos = () => {
           <p class="mb-1 text-sm"><span class="font-bold">Estado:</span> ${estilo.texto}</p>
           <p class="mb-1 text-sm"><span class="font-bold">Vencimiento:</span> ${new Date(lote.fecha_vencimiento).toLocaleDateString('es-HN')}</p>
         </div>
-        <p class="text-red-600 text-sm mt-2">⚠️ Esta acción no se puede deshacer</p>
+        <p class="text-red-600 text-sm mt-2">Esta acción no se puede deshacer</p>
       `,
       showCancelButton: true, confirmButtonText: "Eliminar", cancelButtonText: "Cancelar", reverseButtons: true, width: 400, padding: "16px",
       didOpen: () => {
@@ -286,8 +286,13 @@ const Medicamentos = () => {
   }
 
   return (
+<<<<<<< Updated upstream
     <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
     <div className="min-h-screen p-6 bg-gray-50">
+=======
+    <div className="p-6 bg-gray-50 overflow-x-hidden" style={{ fontFamily: 'Poppins' }}>
+
+>>>>>>> Stashed changes
       {/* Título */}
       <div className="rounded-xl p-6 mb-3"
         style={{

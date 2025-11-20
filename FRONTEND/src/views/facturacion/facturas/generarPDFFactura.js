@@ -60,7 +60,7 @@ export const generarPDFFactura = (datosFactura) => {
 
   doc.setFontSize(8);
   doc.setFont(undefined, 'normal');
-  doc.text(empresa.direccion_empresa || '', pageWidth / 2, yPos, { align: 'center', maxWidth: contentWidth });
+  doc.text(factura.direccion_sucursal || factura.nombre_sucursal || '', pageWidth / 2, yPos, { align: 'center', maxWidth: contentWidth });
   yPos += 10;
 
   doc.text(`Tel: ${empresa.telefono_empresa || ''}`, pageWidth / 2, yPos, { align: 'center' });
@@ -79,7 +79,7 @@ export const generarPDFFactura = (datosFactura) => {
 
   //VENDEDOR_Y_SUCURSAL
   doc.setFontSize(6);
-  doc.text(`${factura.nombre_sucursal || ''}`, pageWidth / 2, yPos, { align: 'center' });
+  doc.text(`SUCURSAL: ${factura.nombre_sucursal || ''}`, pageWidth / 2, yPos, { align: 'center' });
   yPos += 3;
   doc.text(`Vendedor: ${factura.vendedor || ''}`, pageWidth / 2, yPos, { align: 'center' });
   yPos += 5;
