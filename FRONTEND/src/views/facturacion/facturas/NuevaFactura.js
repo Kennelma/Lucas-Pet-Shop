@@ -164,6 +164,8 @@ const NuevaFactura = (props) => {
     setItems(
       items.map((item) => {
         if (item.id === id) {
+          // Si es SERVICIOS o PROMOCIONES, agregar automáticamente un estilista vacío
+          const esServicioOPromocion = newType === "SERVICIOS" || newType === "PROMOCIONES";
           return {
             ...item,
             tipo: newType,
@@ -171,7 +173,7 @@ const NuevaFactura = (props) => {
             precio: 0.0,
             cantidad: 1,
             ajuste: 0,
-            estilistas: [],
+            estilistas: esServicioOPromocion ? [{ id: Date.now(), estilistaId: "", cantidadMascotas: "" }] : [],
           };
         }
         return item;

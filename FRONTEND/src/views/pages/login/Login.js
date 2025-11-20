@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import loginPhoto from './login-photo.png';
-import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 
 import { login as loginUsuario } from '../../../AXIOS.SERVICES/auth-axios.js';
 
@@ -14,6 +14,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [alertaMostrada, setAlertaMostrada] = useState(false);
 
   //VERIFICAR_SI_YA_HAY_SESION_ACTIVA
   useEffect(() => {
@@ -26,14 +27,18 @@ const Login = () => {
     }
 
     //MOSTRAR_ALERTA_SI_LA_SESION_EXPIRO
-    if (sessionExpired) {
-      toast.warning('⏰ Tu sesión ha expirado. Por favor, inicia sesión nuevamente.', {
-        position: 'top-center',
-        autoClose: 5000,
+    if (sessionExpired && !alertaMostrada) {
+      setAlertaMostrada(true);
+      Swal.fire({
+        icon: 'warning',
+        title: 'Sesión expirada',
+        text: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',
+        confirmButtonColor: '#3085d6',
+        confirmButtonText: 'OK'
       });
       sessionStorage.removeItem('sessionExpired');
     }
-  }, [navigate]);
+  }, [navigate, alertaMostrada]);
 
   //FUNCION_PARA_MANEJAR_EL_INICIO_DE_SESION
   const handleLogin = async (e) => {
@@ -166,6 +171,7 @@ const Login = () => {
             </div>
 
             {/* CAMPO_CONTRASEÑA_CON_TOGGLE */}
+
             <div className="space-y-2">
               <div className="relative">
                 <input
@@ -176,18 +182,31 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={loading}
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  autoComplete="off"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed [&::-ms-reveal]:hidden [&::-ms-clear]:hidden [&::-webkit-contacts-auto-fill-button]:hidden [&::-webkit-credentials-auto-fill-button]:hidden"
                 />
 
                 {/* BOTON_MOSTRAR_OCULTAR_CONTRASEÑA */}
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  disabled={loading}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-blue-600 transition-colors duration-200 disabled:opacity-50"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
+                {password && (
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    disabled={loading}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-blue-600 transition-colors duration-200 disabled:opacity-50"
+                  >
+                    {showPassword ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
 

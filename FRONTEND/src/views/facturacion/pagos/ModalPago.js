@@ -13,6 +13,9 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
   useEffect(() => {
     if (show) {
       cargarTiposPago();
+    } else {
+      // Resetear estado cuando se cierra el modal
+      setTipoPago('');
     }
   }, [show]);
 
@@ -52,7 +55,6 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
   };
 
   const handleConfirm = async (datosPago) => {
-    console.log('🎯 ModalPago.handleConfirm - INICIO');
     // Agregar los datos completos de la factura y tipo de pago
     const datosCompletos = {
       numero_factura: factura?.numero_factura,
@@ -64,12 +66,9 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
     };
 
     if (onPagoConfirmado) {
-      console.log('📤 Llamando a onPagoConfirmado (handlePaymentSuccess)');
       await onPagoConfirmado(datosCompletos);
     }
-    console.log('🔄 Limpiando modal...');
-    handleBack();
-    console.log('✅ ModalPago.handleConfirm - FIN');
+    // NO ejecutar handleBack() aquí - dejar que el padre cierre el modal
   };
 
   const handleCloseModal = () => {
@@ -106,7 +105,6 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
               <div className="bg-gray-50 rounded-lg p-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Factura:</span>
-                  <span className="font-medium text-gray-900">{factura?.numero_factura || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total:</span>

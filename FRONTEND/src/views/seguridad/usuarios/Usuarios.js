@@ -133,6 +133,42 @@ export default function Usuarios() {
 
   useEffect(() => {
     cargarUsuarios();
+
+    // Verificar y actualizar estados cada minuto
+    const intervalId = setInterval(() => {
+      setUsuarios(prevUsuarios => {
+        const ahora = new Date();
+        let hayActualizaciones = false;
+        
+        const usuariosActualizados = prevUsuarios.map(usuario => {
+          // Si está bloqueado y el bloqueo ha expirado
+          if (usuario.estado.toLowerCase() === 'bloqueado' && usuario.bloqueadoHasta) {
+            const fechaBloqueo = new Date(usuario.bloqueadoHasta);
+            if (fechaBloqueo <= ahora) {
+              hayActualizaciones = true;
+              const usuarioActualizado = {
+                ...usuario,
+                cat_estado_fk: 1,
+                estado: 'Activo',
+                intentosFallidos: 0
+              };
+              
+              // Si este usuario está seleccionado en el perfil, actualizarlo también
+              if (usuarioPerfilSeleccionado?.id_usuario_pk === usuario.id_usuario_pk) {
+                setUsuarioPerfilSeleccionado(usuarioActualizado);
+              }
+              
+              return usuarioActualizado;
+            }
+          }
+          return usuario;
+        });
+
+        return hayActualizaciones ? usuariosActualizados : prevUsuarios;
+      });
+    }, 60000); // Cada 60 segundos
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const cargarUsuarios = async () => {
@@ -187,8 +223,8 @@ export default function Usuarios() {
     const estado = row.estado || 'Desconocido';
     let colorClasses = 'bg-gray-100 text-gray-800';
 
-    if (estado.toLowerCase() === 'activo') colorClasses = 'bg-green-100 text-green-800';
-    else if (estado.toLowerCase() === 'bloqueado') colorClasses = 'bg-red-100 text-red-800';
+    
+    if (estado.toLowerCase() === 'bloqueado') colorClasses = 'bg-red-100 text-red-800';
     else if (estado.toLowerCase() === 'inactivo') colorClasses = 'bg-yellow-100 text-yellow-800';
 
     return (
@@ -319,20 +355,20 @@ export default function Usuarios() {
 
   return (
     <>
-
+      {/*titulo*/}
       <div className="min-h-screen p-6 bg-gray-50">
         <div className="rounded-xl p-6 mb-3"
         style={{
           backgroundImage: 'url("/h7.jpg")',
-          backgroundColor: '#E4B389',
+          backgroundColor: '#9AE19D',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'left center',
-          boxShadow: '0 0 8px #E4B38940, 0 0 0 1px #E4B38933'
+          boxShadow: '0 0 8px #9AE19D, 0 0 0 1px #9AE19D'
         }}
       >
         <div className="flex justify-center items-center">
-          <h2 className="text-2xl font-black text-center uppercase text-black">
+          <h2 className="text-2xl  text-center uppercase text-black">
             GESTION DE SEGURIDAD
           </h2>
         </div>
@@ -362,7 +398,7 @@ export default function Usuarios() {
               )}
             </div>
             <button
-              className="bg-[#E5B489] text-black px-6 py-2 rounded hover:bg-[#C29874] transition-colors flex items-center gap-2"
+              className="bg-[#9AE19D] text-black px-6 py-2 rounded hover:bg-[#8AC98D] transition-colors flex items-center gap-2"
               onClick={() => {
                 const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
                 const rolActual = usuarioActual?.rol?.toLowerCase();
@@ -405,7 +441,7 @@ export default function Usuarios() {
             className="mt-4"
             size="small"
             selectionMode="single"
-            rowClassName={(rowData) => rowData.id_usuario_pk === selectedUsuarioId ? '!bg-amber-100 hover:!bg-amber-100 cursor-pointer' : 'hover:bg-gray-50 cursor-pointer'}
+            rowClassName={(rowData) => rowData.id_usuario_pk === selectedUsuarioId ? '!bg-green-50 hover:!bg-green-50 cursor-pointer' : 'hover:bg-gray-50 cursor-pointer'}
             onRowClick={handleRowClick}
             scrollable={false}
           >
@@ -434,31 +470,40 @@ export default function Usuarios() {
               header="ESTADO"
               body={estadoBody}
               sortable
-              style={{ width: '90' }}
+              style={{ width: '90', textAlign: 'center' }}
             />
             <Column
-              header="ACCIONES"
+              field="intentosFallidos"
+              header="INTENTOS DE SESIÓN"
               body={(rowData) => {
-                const rowIndex = usuarios.indexOf(rowData);
+                const intentos = rowData.intentosFallidos || 0;
+                let colorClasses = 'bg-green-100 text-green-800';
+                
+                if (intentos === 0) colorClasses = 'bg-green-100 text-green-800';
+                else if (intentos <= 2) colorClasses = 'bg-yellow-100 text-yellow-800';
+                else colorClasses = 'bg-red-100 text-red-800';
                 return (
-                  <ActionMenu
-                    rowData={rowData}
-                    rowIndex={rowIndex}
-                    totalRows={usuarios.length}
-                    onEditar={handleEditar}
-                    onEliminar={handleEliminar}
-                  />
+                  <div className="flex justify-center">
+                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClasses}`}>
+                      {intentos}
+                    </span>
+                  </div>
                 );
               }}
-              className="py-2 border-b text-sm"
-              style={{ position: 'relative', overflow: 'visible', width: '120px' }}
+              sortable
+              style={{ width: '90', textAlign: 'center' }}
             />
+            
           </DataTable>
             </div>
           </div>
 
           <div className="lg:col-span-4 bg-white border border-gray-300 rounded-xl overflow-hidden">
-            <PerfilUsuario usuarioSeleccionado={usuarioPerfilSeleccionado} />
+            <PerfilUsuario 
+              usuarioSeleccionado={usuarioPerfilSeleccionado}
+              onEditar={handleEditar}
+              onEliminar={handleEliminar}
+            />
           </div>
         </div>
 

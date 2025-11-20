@@ -66,7 +66,6 @@ export const useMedicamentos = () => {
       setLoading(false);
 
     } catch (error) {
-      console.error('Error al cargar datos:', error);
       setLoading(false);
     }
   };
@@ -127,12 +126,12 @@ export const useMedicamentos = () => {
     // ✅ GENERAR CÓDIGO DE LOTE CORRECTO AQUÍ (NO CONFIAR EN EL DEL MODAL)
     const nombreSinEspacios = formData.nombre_producto.replace(/\s+/g, '').toUpperCase();
     const letras = nombreSinEspacios.substring(0, 4).padEnd(4, 'X');
-    
+
     // Buscar lotes con el mismo patrón
-    const lotesDelMedicamento = lotes.filter(lote => 
+    const lotesDelMedicamento = lotes.filter(lote =>
       lote.codigo_lote && lote.codigo_lote.endsWith(letras)
     );
-    
+
     // Extraer números existentes
     const numerosExistentes = lotesDelMedicamento
       .map(lote => {
@@ -140,12 +139,12 @@ export const useMedicamentos = () => {
         return match ? parseInt(match[1]) : 0;
       })
       .filter(n => n > 0);
-    
+
     // Calcular siguiente número
-    const siguienteNumero = numerosExistentes.length > 0 
-      ? Math.max(...numerosExistentes) + 1 
+    const siguienteNumero = numerosExistentes.length > 0
+      ? Math.max(...numerosExistentes) + 1
       : 1;
-    
+
     const numeroFormateado = siguienteNumero.toString().padStart(2, '0');
     const codigoLoteCorregido = `LOTE-${numeroFormateado}-${letras}`;
 
@@ -195,7 +194,6 @@ export const useMedicamentos = () => {
     // Buscar el medicamento para obtener su precio
     const medicamento = medicamentos.find(m => m.id_producto_pk === formData.id_producto_fk);
     if (!medicamento) {
-      console.error('No se encontró el medicamento');
       return false;
     }
 
@@ -283,15 +281,13 @@ export const useMedicamentos = () => {
         return false;
       }
     } catch (error) {
-      console.error('Error al eliminar lote:', error);
       return false;
     }
   };
 
   const editarLote = async (loteEditado) => {
     try {
-      console.log('📥 Lote a editar:', loteEditado);
-      
+
       const datosActualizar = {
         tipo_producto: 'LOTES',
         id_producto: loteEditado.id_lote_medicamentos_pk,
@@ -299,11 +295,7 @@ export const useMedicamentos = () => {
         stock_lote: parseInt(loteEditado.stock_lote)
       };
 
-      console.log('📤 Enviando:', datosActualizar);
-
       const resultado = await actualizarProducto(datosActualizar);
-
-      console.log('📩 Respuesta:', resultado);
 
       if (resultado.Consulta) {
         await cargarDatos();
@@ -311,7 +303,6 @@ export const useMedicamentos = () => {
       }
       return false;
     } catch (error) {
-      console.error('❌ Error:', error);
       return false;
     }
   };

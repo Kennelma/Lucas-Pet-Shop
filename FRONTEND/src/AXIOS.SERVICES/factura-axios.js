@@ -2,6 +2,28 @@ import axiosInstance from "./axiosConfig";
 
 const API_URL = "/facturacion";
 
+//CREAR FACTURA SIN PAGO (ESTADO PENDIENTE)
+export const crearFacturaSinPago = async (datosFactura) => {
+  try {
+    const res = await axiosInstance.post(
+      `${API_URL}/crearFacturaSinPago`,
+      datosFactura
+    );
+    return res.data;
+  } catch (err) {
+    const msg =
+      err?.response?.data?.mensaje ||
+      err?.response?.data?.error ||
+      err.message ||
+      "Error de red";
+    console.error("Error al crear factura sin pago:", msg);
+    return {
+      success: false,
+      mensaje: msg,
+      error: err?.response?.data,
+    };
+  }
+};
 
 //CREAR FACTURA CON PAGO
 export const crearFacturaConPago = async (datosFactura) => {

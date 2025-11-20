@@ -194,43 +194,47 @@ const Medicamentos = () => {
   };
 
   const handleCambiarEstado = async (medicamento) => {
-    //VALIDAR ROL DEL USUARIO ACTUAL
-    if (!validarPermisoAdministrador('cambiar el estado de medicamentos')) return;
+  if (!validarPermisoAdministrador('cambiar el estado de medicamentos')) return;
 
-    try {
-      const nuevoEstado = !medicamento.activo;
+  try {
+    const nuevoEstado = !medicamento.activo;
 
-      const response = await cambiarEstadoProducto(medicamento.id_producto_pk, nuevoEstado);
+    const datosActualizar = {
+      id_producto: medicamento.id_producto_pk,
+      tipo_producto: 'MEDICAMENTOS',
+      activo: nuevoEstado ? 1 : 0
+    };
 
-      if (response.Consulta) {
-        setMedicamentos(prev =>
-          prev.map(med =>
-            med.id_producto_pk === medicamento.id_producto_pk
-              ? { ...med, activo: nuevoEstado }
-              : med
-          )
-        );
+    const response = await actualizarProducto(datosActualizar);
 
-        Swal.fire({
-          icon: "success",
-          title: nuevoEstado ? "¡Medicamento Activado!" : "¡Medicamento Desactivado!",
-          text: "Estado actualizado correctamente",
-          timer: 1500,
-          showConfirmButton: false,
-        });
-      } else {
-        throw new Error(response.error || "Error al cambiar estado");
-      }
-    } catch (error) {
-      console.error("Error al cambiar estado:", error);
+    if (response.Consulta) {
+      setMedicamentos(prev =>
+        prev.map(med =>
+          med.id_producto_pk === medicamento.id_producto_pk
+            ? { ...med, activo: nuevoEstado }
+            : med
+        )
+      );
+
       Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No se pudo cambiar el estado del medicamento",
-        confirmButtonText: "Entendido"
+        icon: "success",
+        title: nuevoEstado ? "¡Medicamento Activado!" : "¡Medicamento Desactivado!",
+        text: "Estado actualizado correctamente",
+        timer: 1500,
+        showConfirmButton: false,
       });
+    } else {
+      throw new Error(response.error || "Error al cambiar estado");
     }
-  };
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo cambiar el estado del medicamento",
+      confirmButtonText: "Entendido"
+    });
+  }
+};
 
   const handleEliminarLote = async (lote) => {
     const estilo = calcularEstadoLote(lote);
@@ -434,6 +438,7 @@ const Medicamentos = () => {
         onSave={handleGuardarMedicamento}
         medicamentoEditando={medicamentoEditando}
         medicamentosExistentes={medicamentos}
+        lotesExistentes={lotes}
       />
 
       <ModalLote

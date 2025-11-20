@@ -58,7 +58,7 @@ router.get ('/facturacion/buscarCliente', verificarToken,facturas.buscarClientes
 router.get ('/facturacion/usuarioFacturacion', verificarToken, facturas.usuarioFactura);
 router.get ('/facturacion/estilistasFacturacion', verificarToken, facturas.buscarEstilistas);
 
-//router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFactura)
+router.post ('/facturacion/crearFacturaSinPago', verificarToken, facturas.crearFacturaSinPago)
 router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFacturaConPago)
 router.post ('/facturacion/validarDisponibilidad', verificarToken, facturas.validarDisponibilidad)
 

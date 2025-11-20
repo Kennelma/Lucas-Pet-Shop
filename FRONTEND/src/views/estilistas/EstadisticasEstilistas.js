@@ -129,7 +129,7 @@ const EstadisticasEstilistas = () => {
         mascotas: bonificacion ? parseInt(bonificacion.cantidad_mascotas) || 0 : 0,
         color: colores[index % colores.length]
       };
-    }); 
+    });
 
   //CALCULAR_TOTAL_DE_MASCOTAS
   const totalMascotas = data.reduce((sum, item) => sum + item.mascotas, 0);
@@ -172,7 +172,7 @@ const EstadisticasEstilistas = () => {
 
               {/*BOTONES_Y_FILTROS*/}
               <div className="flex flex-col sm:flex-row gap-3 items-center justify-between mb-3">
-                
+
                 {/*BOTONES_DE_SELECCION_DE_GRAFICO*/}
                 <div className="flex gap-2">
                   <button
@@ -304,7 +304,7 @@ const EstadisticasEstilistas = () => {
 
             {/*SECCION_DETALLE_ESTILISTAS*/}
             <div className="flex-1 bg-white rounded-lg overflow-hidden shadow-lg">
-              
+
               {/* Header */}
               <div className="relative px-4 pt-4 pb-3 bg-[#F3D568]">
                 <div className="relative mb-3">
@@ -346,18 +346,18 @@ const EstadisticasEstilistas = () => {
                   data.map((item, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between py-1 px-2 rounded-lg hover:bg-gray-200 transition-colors duration-200 group"
+                      className="flex items-center justify-between px-3 py-1 rounded-lg hover:bg-gray-200 transition-colors duration-200 group"
                       style={{ backgroundColor: '#F4F2F7' }}
                     >
-                      <div className="flex items-center gap-2 flex-1">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div
                           className="w-3 h-3 rounded-full flex-shrink-0"
                           style={{ backgroundColor: item.color }}
                         />
-                        <p className="text-xs text-slate-900 uppercase truncate">{item.nombreCompleto}</p>
+                        <p className="text-xs text-slate-900 uppercase truncate" style={{ marginTop: '1rem' }}>{item.nombreCompleto}</p>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-semibold text-black-600">{item.mascotas} mascotas</span>
+                      <div className="flex items-center">
+                        <span className="text-xs font-semibold text-black-600 whitespace-nowrap">{item.mascotas} mascotas</span>
                       </div>
                     </div>
                   ))
