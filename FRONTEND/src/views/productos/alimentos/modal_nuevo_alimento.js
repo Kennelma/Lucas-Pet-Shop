@@ -218,6 +218,7 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave, alimentosExistentes = [] 
         style={{ padding: '0.375rem 0.75rem' }}
         onClick={onClose}
         disabled={loading}
+        autocomplete="off"
       />
       <Button
         label="Guardar"
