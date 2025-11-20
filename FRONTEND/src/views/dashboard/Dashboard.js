@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as lucideReact from 'lucide-react';
+import Swal from 'sweetalert2';
 import ModalAgregarGasto from './modal_nuevo_gasto';
 import ModalTablaGastos from './modal_tabla_gastos';
 import { ver } from '../../AXIOS.SERVICES/empresa-axios';
@@ -19,6 +20,19 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!token) navigate('/login');
+
+    // Mostrar mensaje de bienvenida si viene del login
+    const showWelcome = sessionStorage.getItem('showWelcome');
+    if (showWelcome === 'true') {
+      Swal.fire({
+        icon: 'success',
+        title: '¡Bienvenido!',
+        text: 'Inicio de sesión exitoso',
+        timer: 2500,
+        showConfirmButton: false,
+      });
+      sessionStorage.removeItem('showWelcome');
+    }
   }, [token, navigate]);
 
   const today = new Date();
@@ -69,9 +83,20 @@ const Dashboard = () => {
   }, 0);
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
-    <div className="font-['Poppins']">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-4">
+    <>
+      <style>
+        {`
+          .modal {
+            z-index: 10500 !important;
+          }
+          .modal-backdrop {
+            z-index: 10499 !important;
+          }
+        `}
+      </style>
+      <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+      <div className="font-['Poppins']">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-4">
 
         {/* Contenido Principal */}
         <div className="lg:col-span-2">
@@ -180,7 +205,7 @@ const Dashboard = () => {
             {/* Card Principal */}
             <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
 
-              {/* Header Sutil */}
+              {/* Header */}
               <div className="relative px-4 pt-2 pb-1 bg-[#FFCC33]">
                 <div className="relative mb-1">
                   <p className="text-base font-semibold tracking-wider text-center">GASTOS DE HOY</p>
@@ -300,6 +325,7 @@ const Dashboard = () => {
       />
     </div>
     </div>
+    </>
   );
 };
 

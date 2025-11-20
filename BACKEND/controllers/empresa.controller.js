@@ -132,14 +132,11 @@ exports.actualizar = async (req, res) => {
                         telefono_empresa  = COALESCE(?, telefono_empresa),
                         correo_empresa    = COALESCE(?, correo_empresa),
                         rtn_empresa       = COALESCE(?, rtn_empresa)
-                        correo_empresa    = COALESCE(?, correo_empresa),
-                        rtn_empresa       = COALESCE(?, rtn_empresa)
                     WHERE id_empresa_pk = ?`,
                     [
                         req.body.nombre_empresa || null,
                         req.body.telefono_empresa || null,
                         req.body.correo_empresa || null,
-                        req.body.rtn_empresa || null,
                         req.body.rtn_empresa || null,
                         id
                     ]

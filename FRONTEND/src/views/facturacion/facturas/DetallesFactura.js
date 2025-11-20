@@ -3,8 +3,7 @@ import { Plus, Trash2, UserPlus } from "lucide-react";
 import Select from "react-select";
 import Swal from "sweetalert2";
 import ModalPago from "../pagos/ModalPago";
-import { crearFactura } from "../../../AXIOS.SERVICES/factura-axios";
-import { procesarPago } from "../../../AXIOS.SERVICES/payments-axios";
+import { crearFacturaConPago, crearFacturaSinPago, validarDisponibilidad } from "../../../AXIOS.SERVICES/factura-axios";
 
 //====================CONFIGURACIÓN_DE_CLAVES====================
 //MAPEO DE CLAVES PARA PRODUCTOS SERVICIOS Y PROMOCIONES
@@ -48,8 +47,10 @@ const DetallesFactura = ({
   //====================ESTADOS====================
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentData, setPaymentData] = useState(null);
-  const [loading, setLoading] = useState(false); // ⭐ NUEVO
-  const [descuentoValor, setDescuentoValor] = useState(0); //ESTADO PARA EL DESCUENTO
+  const [loading, setLoading] = useState(false);
+  const [descuentoValor, setDescuentoValor] = useState(0);
+  const [intentoFacturar, setIntentoFacturar] = useState(false);
+  const [itemsConError, setItemsConError] = useState([]);
 
   //====================FUNCIONES_AUXILIARES====================
 
@@ -70,7 +71,7 @@ const DetallesFactura = ({
     const currentEstilistas = item.estilistas || [];
     updateItem(itemId, "estilistas", [
       ...currentEstilistas,
-      { id: Date.now(), estilistaId: "", cantidadMascotas: 1 },
+      { id: Date.now(), estilistaId: "", cantidadMascotas: "" },
     ]);
   };
 
@@ -89,49 +90,112 @@ const DetallesFactura = ({
     const newEstilistas = currentEstilistas.map((est, index) =>
       index === estilistaIndex ? { ...est, [field]: value } : est
     );
+
     updateItem(itemId, "estilistas", newEstilistas);
   };
 
+  //====================VALIDACIÓN_DE_CANTIDAD_VS_MASCOTAS====================
+  const validarCantidadVsMascotas = () => {
+    const itemsConCantidadIncorrecta = items.filter((item) => {
+      const tipo = safeTipo(item.tipo);
+      const requiereEstilista = tipo === "SERVICIOS" || tipo === "PROMOCIONES";
+      if (!requiereEstilista) return false;
+
+      const estilistas = item.estilistas || [];
+      const totalMascotas = estilistas.reduce((sum, est) => {
+        const num = Number(est.cantidadMascotas) || 0;
+        return sum + num;
+      }, 0);
+
+      return parseFloat(item.cantidad) !== totalMascotas;
+    });
+
+    if (itemsConCantidadIncorrecta.length > 0) {
+      const detallesItems = itemsConCantidadIncorrecta.map((item) => {
+        const lineaNum = items.indexOf(item) + 1;
+        const totalMascotas = (item.estilistas || []).reduce((sum, est) => sum + (Number(est.cantidadMascotas) || 0), 0);
+        return `<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px;">
+          <span style="font-weight: 600;">Línea ${lineaNum}:</span>
+          <span>Cantidad: <span style="color: #dc2626; font-weight: 700;">${item.cantidad}</span></span>
+          <span>vs</span>
+          <span>Mascotas: <span style="color: #16a34a; font-weight: 700;">${totalMascotas}</span></span>
+        </div>`;
+      }).join('');
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Cantidad incorrecta',
+        html: `
+          <p style="margin-bottom: 12px; font-size: 14px;">La cantidad debe coincidir con el total de mascotas:</p>
+          <div style="background-color: #f9fafb; padding: 12px; border-radius: 8px;">
+            ${detallesItems}
+          </div>
+          <p style="font-size: 12px; color: #6b7280; margin-top: 12px;">Ajusta la cantidad o el número de mascotas por estilista</p>
+        `,
+        confirmButtonColor: '#3085d6',
+        width: '420px'
+      });
+      return false;
+    }
+    return true;
+  };
+
   //====================FUNCIÓN_PARA_APLICAR_DESCUENTO====================
+  //NOTA: Esta función no se usa actualmente pero se mantiene para futuras implementaciones
   const aplicarDescuento = () => {
     const inputDescuento = document.getElementById("input-descuento-manual");
     const valorDescuento = parseFloat(inputDescuento.value) || 0;
 
     if (valorDescuento < 0) {
-      alert("El descuento no puede ser negativo");
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'El descuento no puede ser negativo',
+        confirmButtonColor: '#3085d6'
+      });
       inputDescuento.value = "";
       return;
     }
 
-    if (valorDescuento > TOTAL_CON_AJUSTE) {
-      alert("El descuento no puede ser mayor al total de la factura");
+    if (valorDescuento > TOTAL_FINAL) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'El descuento no puede ser mayor al total de la factura',
+        confirmButtonColor: '#3085d6'
+      });
       inputDescuento.value = "";
       return;
     }
 
-    setDescuentoManual(valorDescuento);
+    setDescuentoValor(valorDescuento);
     inputDescuento.value = "";
   };
 
   //====================CÁLCULOS_DE_TOTALES====================
+  //SE CALCULAN SUBTOTALES, IMPUESTOS Y TOTAL FINAL DE LA FACTURA
 
   //====================CÁLCULOS_DE_TOTALES====================
+  //SE CALCULAN SUBTOTALES, IMPUESTOS Y TOTAL FINAL DE LA FACTURA
 
+  //TOTAL DE AJUSTES APLICADOS A LOS ITEMS
   const TOTAL_AJUSTE = items.reduce(
     (sum, it) => sum + (parseFloat(it.ajuste) || 0),
     0
   );
 
+  //DESCUENTO GENERAL DE LA FACTURA
   const DESCUENTO = Math.max(0, parseInt(descuentoValor, 10) || 0);
 
+  //VARIABLES PARA ACUMULAR SUBTOTALES
   let subtotal_exento_total = 0;
-  let subtotal_gravado_con_isv = 0; // Total de items gravados (precio con ISV incluido)
+  let subtotal_gravado_con_isv = 0;
 
+  //RECORRER CADA ITEM PARA CALCULAR SUBTOTALES SEGÚN TIPO DE IMPUESTO
   items.forEach((it) => {
     const cantidad = parseFloat(it.cantidad) || 0;
     const precio = parseFloat(it.precio) || 0;
     const tiene_impuesto = it.tiene_impuesto || false;
-
     const total_linea = cantidad * precio;
 
     if (tiene_impuesto) {
@@ -143,11 +207,11 @@ const DetallesFactura = ({
   });
 
   const SUBTOTAL_EXENTO = subtotal_exento_total;
-  // Para items gravados: extraer la base sin ISV para mostrar en desglose
-  const SUBTOTAL_GRAVADO = subtotal_gravado_con_isv / 1.15; //BASE SIN ISV
-  const IMPUESTO = SUBTOTAL_GRAVADO * 0.15; //15% DE LA BASE
+  //EXTRAER BASE GRAVABLE SIN ISV (para desglose en factura)
+  const SUBTOTAL_GRAVADO = subtotal_gravado_con_isv / 1.15;
+  const IMPUESTO = SUBTOTAL_GRAVADO * 0.15;
 
-  // El TOTAL ya no suma el impuesto porque ya está incluido en subtotal_gravado_con_isv
+  //TOTAL FINAL (el impuesto ya está incluido en subtotal_gravado_con_isv)
   const TOTAL_FINAL = Math.max(
     0,
     SUBTOTAL_EXENTO + subtotal_gravado_con_isv + TOTAL_AJUSTE - DESCUENTO
@@ -155,20 +219,31 @@ const DetallesFactura = ({
 
   const SALDO = TOTAL_FINAL;
 
-  //====================FUNCIÓN PARA GUARDAR FACTURA SIN ABRIR PAGOS====================
+  //====================GUARDAR_FACTURA_SIN_PAGO====================
+  //CREA UNA FACTURA CON ESTADO PENDIENTE (sin aplicar pago)
+  //====================GUARDAR_FACTURA_SIN_PAGO====================
+  //CREA UNA FACTURA CON ESTADO PENDIENTE (sin aplicar pago)
   const handleGuardarFacturaSinPago = async () => {
-    // VALIDACIONES
+    //MARCAR QUE SE INTENTÓ FACTURAR (activa el marcado en rojo)
+    setIntentoFacturar(true);
+
+    //VALIDAR QUE HAYA AL MENOS UN ITEM
     if (items.length === 0) {
-      alert("Debes agregar al menos un item a la factura");
+      Swal.fire({
+        icon: 'warning',
+        title: 'Factura vacía',
+        text: 'Debes agregar al menos un item a la factura',
+        confirmButtonColor: '#3085d6'
+      });
       return;
     }
 
+    //VALIDAR SILENCIOSAMENTE - SIN ALERTAS (YA ESTÁN EN ROJO)
     const itemsInvalidos = items.filter(
       (item) => !item.item || item.item === ""
     );
     if (itemsInvalidos.length > 0) {
-      alert("Todos los items deben tener un producto o servicio seleccionado");
-      return;
+      return; // Simplemente no permitir facturar
     }
 
     const itemsSinEstilista = items.filter((item) => {
@@ -179,44 +254,12 @@ const DetallesFactura = ({
     });
 
     if (itemsSinEstilista.length > 0) {
-      alert(
-        "Los servicios y promociones deben tener al menos un estilista asignado"
-      );
-      return;
+      return; // Simplemente no permitir facturar
     }
 
     setLoading(true);
 
-    // ⭐ LÓGICA CORRECTA:
-    // 1. Si hay cliente registrado → id_cliente con valor, nombre_cliente = null
-    // 2. Si hay nombre personalizado sin registro → id_cliente = null, nombre_cliente con valor
-    // 3. Si no hay nada → ambos null (backend muestra CONSUMIDOR FINAL con COALESCE)
-
-    const tieneClienteRegistrado = id_cliente && id_cliente !== null;
-    const tieneNombrePersonalizado = nombreCliente && nombreCliente !== 'CONSUMIDOR FINAL' && nombreCliente.trim() !== '';
-
-    let idClienteFinal = null;
-    let nombreClienteFinal = null;
-
-    if (tieneClienteRegistrado) {
-      // Caso 1: Cliente registrado
-      idClienteFinal = id_cliente;
-      nombreClienteFinal = null; // Se obtiene del JOIN en el backend
-    } else if (tieneNombrePersonalizado) {
-      // Caso 2: Nombre personalizado sin registro
-      idClienteFinal = null;
-      nombreClienteFinal = nombreCliente;
-    }
-    // Caso 3: ambos quedan null (CONSUMIDOR FINAL por defecto)
-
-    console.log('🎯 DEBUG FRONTEND:');
-    console.log('  - id_cliente original:', id_cliente);
-    console.log('  - nombreCliente original:', nombreCliente);
-    console.log('  - tieneClienteRegistrado:', tieneClienteRegistrado);
-    console.log('  - tieneNombrePersonalizado:', tieneNombrePersonalizado);
-    console.log('  - idClienteFinal:', idClienteFinal);
-    console.log('  - nombreClienteFinal:', nombreClienteFinal);
-
+    //PREPARAR DATOS PARA ENVIAR AL BACKEND
     const datosFactura = {
       RTN: RTN || null,
       id_cliente: idClienteFinal,
@@ -235,40 +278,59 @@ const DetallesFactura = ({
     };
 
     try {
-      const response = await crearFactura(datosFactura); // ← Mismo servicio axios
+      const response = await crearFacturaSinPago(datosFactura);
 
       if (response.success) {
-        Swal.fire({
+        await Swal.fire({
           icon: "success",
           title: "¡Factura registrada!",
-          text: `${response.data.numero_factura} guardada exitosamente!`,
+          text: `${response.data.numero_factura} guardada sin pago.`,
           confirmButtonColor: "#3085d6",
-        }).then(() => {
-          onCancel(); //
         });
+        onCancel();
+      } else {
+        throw new Error(response.mensaje || 'Error al crear la factura');
       }
     } catch (error) {
-      console.error("Error al crear factura:", error);
-      alert("Error inesperado al crear la factura");
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al guardar',
+        text: error?.response?.data?.mensaje || error.message || 'Error inesperado',
+        confirmButtonColor: '#d33'
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  //====================FUNCIÓN PARA CREAR FACTURA Y ABRIR MODAL DE PAGOS====================
+
+  //VALIDA DISPONIBILIDAD Y ABRE EL MODAL PARA SELECCIONAR MÉTODOS DE PAGO
   const handleOpenPaymentModal = async () => {
-    // VALIDACIONES
+    //MARCAR QUE SE INTENTÓ FACTURAR (activa el marcado en rojo)
+    setIntentoFacturar(true);
+
+    //VALIDAR QUE HAYA AL MENOS UN ITEM
     if (items.length === 0) {
-      alert("Debes agregar al menos un item a la factura");
+      Swal.fire({
+        icon: 'warning',
+        title: 'Factura vacía',
+        text: 'Debes agregar al menos un item a la factura',
+        confirmButtonColor: '#3085d6'
+      });
       return;
     }
 
+    //VALIDAR CANTIDAD DE SERVICIOS/PROMOCIONES VS MASCOTAS ASIGNADAS
+    if (!validarCantidadVsMascotas()) {
+      return;
+    }
+
+    //VALIDAR SILENCIOSAMENTE - SIN ALERTAS (YA ESTÁN EN ROJO)
     const itemsInvalidos = items.filter(
       (item) => !item.item || item.item === ""
     );
     if (itemsInvalidos.length > 0) {
-      alert("Todos los items deben tener un producto o servicio seleccionado");
-      return;
+      return; // Simplemente no permitir facturar
     }
 
     const itemsSinEstilista = items.filter((item) => {
@@ -279,132 +341,185 @@ const DetallesFactura = ({
     });
 
     if (itemsSinEstilista.length > 0) {
-      alert(
-        "Los servicios y promociones deben tener al menos un estilista asignado"
-      );
-      return;
+      return; // Simplemente no permitir facturar
     }
 
+    //VALIDAR DISPONIBILIDAD DE ITEMS ANTES DE ABRIR MODAL
+
+    //VALIDAR DISPONIBILIDAD DE ITEMS ANTES DE ABRIR MODAL
     setLoading(true);
-
-    console.log('🔍 DEBUG MODAL PAGOS - nombreCliente recibido:', nombreCliente);
-
-    const datosFactura = {
-      RTN: RTN || null,
-      id_cliente: id_cliente || null,
-      nombre_cliente: nombreCliente || 'CONSUMIDOR FINAL',
-      descuento: DESCUENTO,
-      items: items.map((item) => ({
+    try {
+      const itemsParaValidar = items.map((item) => ({
         tipo: item.tipo,
-        item: item.item, // ID del producto/servicio/promoción
+        item: item.item,
         cantidad: parseFloat(item.cantidad) || 1,
-        ajuste: parseFloat(item.ajuste) || 0,
         estilistas: (item.estilistas || []).map((est) => ({
           estilistaId: est.estilistaId,
           cantidadMascotas: parseInt(est.cantidadMascotas) || 0,
         })),
-      })),
-    };
+      }));
 
-    try {
-      const response = await crearFactura(datosFactura);
+      const responseValidacion = await validarDisponibilidad(itemsParaValidar);
 
-      if (response.success) {
-        const datos = {
-          id_factura: response.data.id_factura,
-          numero_factura: response.data.numero_factura,
-          subtotal: parseFloat(response.data.subtotal),
-          descuento: parseFloat(response.data.descuento),
-          impuesto: parseFloat(response.data.impuesto),
-          total: parseFloat(response.data.total),
-          saldo: parseFloat(response.data.saldo),
-        };
-
-        setPaymentData(datos);
-        setShowPaymentModal(true);
-      } else {
-        alert(`Error: ${response.mensaje}`);
+      if (!responseValidacion.success) {
+        const erroresHTML = responseValidacion.errores.join('<br>');
+        await Swal.fire({
+          icon: 'error',
+          title: 'Items no disponibles',
+          html: erroresHTML,
+          confirmButtonColor: '#d33'
+        });
+        return;
       }
+
+      //PREPARAR DATOS PARA EL MODAL (la factura aún no se crea)
+      const datos = {
+        numero_factura: null,
+        subtotal: (SUBTOTAL_EXENTO + SUBTOTAL_GRAVADO).toFixed(2),
+        descuento: DESCUENTO.toFixed(2),
+        impuesto: IMPUESTO.toFixed(2),
+        total: TOTAL_FINAL.toFixed(2),
+        saldo: SALDO.toFixed(2),
+        datosFactura: {
+          RTN: RTN || null,
+          id_cliente: id_cliente || null,
+          descuento: DESCUENTO,
+          items: items.map((item) => ({
+            tipo: item.tipo,
+            item: item.item,
+            cantidad: parseFloat(item.cantidad) || 1,
+            ajuste: parseFloat(item.ajuste) || 0,
+            estilistas: (item.estilistas || []).map((est) => ({
+              estilistaId: est.estilistaId,
+              cantidadMascotas: parseInt(est.cantidadMascotas) || 0,
+            })),
+          })),
+        }
+      };
+
+      setPaymentData(datos);
+      setShowPaymentModal(true);
+
     } catch (error) {
-      console.error("Error al crear factura:", error);
-      alert("Error inesperado al crear la factura");
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de validación',
+        text: error?.response?.data?.mensaje || error.message || 'Error inesperado',
+        confirmButtonColor: '#d33'
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  //====================CIERRE_DEL_MODAL====================
-  const handleClosePaymentModal = () => {
-    setShowPaymentModal(false);
-    setPaymentData(null);
-  };
-
-  const handlePaymentSuccess = async (datosPago) => {
-    try {
-      const response = await procesarPago(datosPago);
-
-      if (response.success) {
-        setShowPaymentModal(false);
-        setPaymentData(null);
-        const saldoPendiente = response.data?.saldo ?? 0;
-
-        if (saldoPendiente > 0) {
-          await Swal.fire({
-            icon: "success",
-            title: "Pago procesado",
-            text: `${
-              response.mensaje || "Pago procesado exitosamente"
-            }\nSaldo pendiente:  ${saldoPendiente.toFixed(2)}`,
-            confirmButtonColor: "#3085d6",
-          });
-          if (setActiveTab) {
-            setActiveTab("facturas");
-          }
-        } else {
-          // PAGO TOTAL - GUARDAR NÚMERO DE FACTURA PARA IMPRIMIR
-          const numeroFactura = response.data?.numero_factura || paymentData?.numero_factura;
-
-          await Swal.fire({
-            icon: "success",
-            title: "Pago completado",
-            text: "El pago se ha procesado exitosamente. Se mostrará el preview de la factura.",
-            confirmButtonColor: "#3085d6",
-          });
-
-          // GUARDAR NÚMERO DE FACTURA Y REDIRIGIR AL HISTORIAL
-          if (setFacturaParaImprimir && numeroFactura) {
-            setFacturaParaImprimir(numeroFactura);
-          }
-
-          // REDIRIGIR AL HISTORIAL
-          if (setActiveTab) {
-            setActiveTab("facturas");
-          }
+  //====================CERRAR_MODAL_DE_PAGOS====================
+  //====================CERRAR_MODAL_DE_PAGOS====================
+  //CIERRA EL MODAL SIN CREAR LA FACTURA (aún no se había creado nada)
+  const handleClosePaymentModal = async () => {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: '¿Cerrar sin pagar?',
+      text: 'Se perderán los datos de la factura si cierras sin pagar.',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, cancelar',
+      cancelButtonText: 'No, continuar con el pago',
+      heightAuto: false,
+      didOpen: () => {
+        const swalContainer = document.querySelector('.swal2-container');
+        if (swalContainer) {
+          swalContainer.style.zIndex = '99999';
         }
-      } else {
-        await Swal.fire({
-          icon: "error",
-          title: "Error al procesar el pago",
-          text: response.mensaje || "Error al procesar el pago",
-          confirmButtonColor: "#d33",
-        });
       }
-    } catch (error) {
-      console.error("Error al procesar pago:", error);
-      alert(
-        "Error al procesar el pago: " +
-          (error.response?.data?.mensaje || error.message)
-      );
+    });
+
+    if (result.isConfirmed) {
+      setShowPaymentModal(false);
+      setPaymentData(null);
+
+      await Swal.fire({
+        icon: 'info',
+        title: 'Facturación cancelada',
+        text: 'Puedes continuar editando o cancelar completamente.',
+        confirmButtonColor: '#3085d6',
+        heightAuto: false
+      });
     }
   };
+
+  //====================PROCESAR_PAGO_Y_CREAR_FACTURA====================
+  //CREA LA FACTURA CON LOS MÉTODOS DE PAGO SELECCIONADOS (uno o múltiples)
+  const handlePaymentSuccess = async (datosPago) => {
+    try {
+      //COMBINAR DATOS DE FACTURA + MÉTODOS DE PAGO
+      const datosCompletos = {
+        ...paymentData.datosFactura,
+        metodos_pago: datosPago.metodos,
+        id_tipo_pago: datosPago.id_tipo
+      };
+
+      const response = await crearFacturaConPago(datosCompletos);
+
+      if (!response.success) {
+        throw new Error(response.mensaje || 'Error al crear la factura');
+      }
+
+      const numeroFactura = response.data.numero_factura;
+      const saldoPendiente = response.data?.saldo ?? 0;
+
+      //CERRAR MODAL
+      setShowPaymentModal(false);
+      setPaymentData(null);
+
+      if (saldoPendiente > 0) {
+        //PAGO PARCIAL
+        await Swal.fire({
+          icon: "success",
+          title: "Pago procesado",
+          text: `Factura ${numeroFactura} creada con pago parcial.\nSaldo pendiente: L ${saldoPendiente.toFixed(2)}`,
+          confirmButtonColor: "#3085d6",
+          heightAuto: false
+        });
+      } else {
+        //PAGO TOTAL - GUARDAR PARA IMPRIMIR
+        if (setFacturaParaImprimir && numeroFactura) {
+          setFacturaParaImprimir(numeroFactura);
+        }
+
+        await Swal.fire({
+          icon: "success",
+          title: "Pago completado",
+          text: `Factura ${numeroFactura} creada y pagada completamente.`,
+          confirmButtonColor: "#3085d6",
+          heightAuto: false
+        });
+      }
+
+      //REDIRIGIR AL HISTORIAL
+      if (setActiveTab) {
+        setActiveTab("facturas");
+      }
+
+    } catch (error) {
+      setShowPaymentModal(false);
+      setPaymentData(null);
+
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error al procesar',
+        text: error?.response?.data?.mensaje || error.message || 'Error inesperado',
+        confirmButtonColor: '#d33',
+        heightAuto: false
+      });
+    }
+};
 
   //====================MANEJADORES_DE_EVENTOS====================
 
   const handleTipoChange = (id, nuevoTipo) => {
     onItemTypeChange(id, nuevoTipo);
-  };
-
-  const handleItemSelect = (id, selectedId, tipoRaw) => {
+  };  const handleItemSelect = (id, selectedId, tipoRaw) => {
     const tipo = safeTipo(tipoRaw);
     const currentItems = disponiblesItems[tipo] || [];
     const { id: idKey, name: nameKey, price: priceKey } = keyMap[tipo];
@@ -418,7 +533,8 @@ const DetallesFactura = ({
   return (
     <div>
       <div
-        className="space-y-6 p-4 mx-auto bg-gr shadow-xl rounded-lg"
+        className="space-y-6 p-4 mx-auto bg-white rounded-lg"
+        style={{ boxShadow: "0 0 15px rgba(0, 0, 0, 0.1)" }}
       >
         {/*ENCABEZADO CON BOTÓN AGREGAR ITEM*/}
         <div
@@ -491,7 +607,7 @@ const DetallesFactura = ({
                     paddingLeft: "12px",
                     paddingRight: "12px",
                     fontSize: "14px",
-                    width: "96px",
+                    width: "100px",
                   }}
                 >
                   PRECIO UNITARIO
@@ -504,7 +620,7 @@ const DetallesFactura = ({
                     paddingLeft: "12px",
                     paddingRight: "12px",
                     fontSize: "14px",
-                    width: "96px",
+                    width: "100px",
                   }}
                 >
                   AJUSTE
@@ -641,12 +757,17 @@ const DetallesFactura = ({
                           menuPortalTarget={document.body}
                           menuPosition="fixed"
                           styles={{
-                            control: (base) => ({
+                            control: (base, state) => ({
                               ...base,
                               minHeight: "34px",
                               height: "34px",
                               fontSize: "14px",
-                              borderColor: "#d1d5db",
+                              borderColor: (intentoFacturar && (!item.item || item.item === "")) ? "#ef4444" : "#d1d5db",
+                              borderWidth: (intentoFacturar && (!item.item || item.item === "")) ? "2px" : "1px",
+                              backgroundColor: (intentoFacturar && (!item.item || item.item === "")) ? "#fef2f2" : base.backgroundColor,
+                              "&:hover": {
+                                borderColor: (intentoFacturar && (!item.item || item.item === "")) ? "#ef4444" : "#d1d5db",
+                              }
                             }),
                             option: (base) => ({ ...base, fontSize: "14px" }),
                             singleValue: (base) => ({
@@ -659,6 +780,7 @@ const DetallesFactura = ({
                             placeholder: (base) => ({
                               ...base,
                               fontSize: "14px",
+                              color: (intentoFacturar && (!item.item || item.item === "")) ? "#ef4444" : base.color,
                             }),
                           }}
                         />
@@ -675,28 +797,41 @@ const DetallesFactura = ({
                       >
                         <input
                           type="number"
-                          value={item.cantidad !== undefined ? item.cantidad : 0}
+                          value={item.cantidad !== undefined ? item.cantidad : ""}
                           onChange={(e) => {
-                            const valor = parseFloat(e.target.value) || 0;
+                            const inputValue = e.target.value;
+                            // Permitir campo vacío temporalmente
+                            if (inputValue === "") {
+                              updateItem(item.id, "cantidad", "");
+                              return;
+                            }
+
+                            const valor = parseFloat(inputValue);
+                            if (isNaN(valor)) return;
+
                             let maxStock = null;
                             if (item.tipo === "PRODUCTOS") {
                               const selected = currentItems.find((availableItem) => String(availableItem[idKey]) === String(item.item));
                               maxStock = selected?.stock ?? null;
                             }
-                            if (valor >= 1) {
-                              if (maxStock !== null && valor > maxStock) {
-                                Swal.fire({
-                                  icon: "error",
-                                  title: "Stock insuficiente",
-                                  text: `Solo hay ${maxStock} unidades disponibles en stock.`,
-                                  confirmButtonColor: "#3085d6",
-                                });
-                                updateItem(item.id, "cantidad", "");
-                              } else {
-                                updateItem(item.id, "cantidad", e.target.value);
-                              }
+
+                            if (maxStock !== null && valor > maxStock) {
+                              Swal.fire({
+                                icon: "error",
+                                title: "Stock insuficiente",
+                                text: `Solo hay ${maxStock} unidades disponibles en stock.`,
+                                confirmButtonColor: "#3085d6",
+                              });
+                              updateItem(item.id, "cantidad", maxStock);
                             } else {
-                              updateItem(item.id, "cantidad", "1");
+                              updateItem(item.id, "cantidad", valor);
+                            }
+                          }}
+                          onBlur={(e) => {
+                            // Al perder el foco, si está vacío o es menor a 1, establecer 1
+                            const valor = parseFloat(e.target.value);
+                            if (isNaN(valor) || valor < 1) {
+                              updateItem(item.id, "cantidad", 1);
                             }
                           }}
                           min="1"
@@ -704,19 +839,6 @@ const DetallesFactura = ({
                           style={{ padding: "4px 8px", fontSize: "14px" }}
                         />
 
-                        {/* Mensaje visual de stock insuficiente */}
-                        {item.tipo === "PRODUCTOS" && (() => {
-                          const selected = currentItems.find((availableItem) => String(availableItem[idKey]) === String(item.item));
-                          const maxStock = selected?.stock ?? null;
-                          if (maxStock !== null && (parseFloat(item.cantidad) > maxStock)) {
-                            return (
-                              <div style={{ color: "#e53e3e", fontSize: "12px", marginTop: "2px" }}>
-                                Stock insuficiente. Disponible: {maxStock}
-                              </div>
-                            );
-                          }
-                          return null;
-                        })()}
                       </td>
                       {/*COLUMNA PRECIO*/}
                       <td
@@ -733,7 +855,7 @@ const DetallesFactura = ({
                           step="0.01"
                           value={Number(item.precio).toFixed(2)}
                           readOnly
-                          className="w-full border border-gray-300 rounded bg-gray-100 text-gray-700 cursor-default focus:ring-0 text-right"
+                          className="w-full border border-gray-300 rounded bg-white text-gray-700 cursor-default focus:ring-0 text-right"
                           style={{ padding: "4px 8px", fontSize: "14px" }}
                         />
                       </td>
@@ -869,7 +991,9 @@ const DetallesFactura = ({
                                           minHeight: "34px",
                                           height: "34px",
                                           fontSize: "14px",
-                                          borderColor: "#d1d5db",
+                                          borderColor: (intentoFacturar && !est.estilistaId) ? "#ef4444" : "#d1d5db",
+                                          borderWidth: (intentoFacturar && !est.estilistaId) ? "2px" : "1px",
+                                          backgroundColor: (intentoFacturar && !est.estilistaId) ? "#fef2f2" : "white",
                                         }),
                                         option: (base) => ({
                                           ...base,
@@ -885,6 +1009,7 @@ const DetallesFactura = ({
                                         placeholder: (base) => ({
                                           ...base,
                                           fontSize: "14px",
+                                          color: (intentoFacturar && !est.estilistaId) ? "#ef4444" : "#9ca3af",
                                         }),
                                       }}
                                     />
@@ -902,32 +1027,25 @@ const DetallesFactura = ({
                                   </label>
                                   <input
                                     type="number"
-                                    value={est.cantidadMascotas ?? 1}
+                                    value={est.cantidadMascotas ?? ""}
                                     onChange={(e) => {
-                                      const valor =
-                                        parseInt(e.target.value) || 0;
-                                      if (valor >= 1) {
-                                        updateEstilista(
-                                          item.id,
-                                          index,
-                                          "cantidadMascotas",
-                                          e.target.value
-                                        );
-                                      } else {
-                                        updateEstilista(
-                                          item.id,
-                                          index,
-                                          "cantidadMascotas",
-                                          "1"
-                                        );
-                                      }
+                                      const valor = e.target.value;
+                                      updateEstilista(
+                                        item.id,
+                                        index,
+                                        "cantidadMascotas",
+                                        valor === "" ? "" : parseInt(valor, 10)
+                                      );
                                     }}
-                                    min="1"
-                                    className="border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                                    min="0"
+                                    className="border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
                                     style={{
                                       width: "80px",
                                       padding: "4px 8px",
                                       fontSize: "14px",
+                                      borderColor: (intentoFacturar && (!est.cantidadMascotas || est.cantidadMascotas === "")) ? "#ef4444" : "#d1d5db",
+                                      borderWidth: (intentoFacturar && (!est.cantidadMascotas || est.cantidadMascotas === "")) ? "2px" : "1px",
+                                      backgroundColor: (intentoFacturar && (!est.cantidadMascotas || est.cantidadMascotas === "")) ? "#fef2f2" : "white",
                                     }}
                                   />
                                 </div>
@@ -1008,7 +1126,25 @@ const DetallesFactura = ({
                 {loading ? "Guardando..." : "CONTINUAR CON PAGO"}
               </button>
               <button
-                onClick={onCancel}
+                onClick={async () => {
+                  if (items.length > 0 && items.some(item => item.item)) {
+                    const result = await Swal.fire({
+                      icon: 'warning',
+                      title: '¿Cancelar factura?',
+                      text: 'Se perderán todos los datos ingresados',
+                      showCancelButton: true,
+                      confirmButtonColor: '#d33',
+                      cancelButtonColor: '#3085d6',
+                      confirmButtonText: 'Sí, cancelar',
+                      cancelButtonText: 'No, continuar'
+                    });
+                    if (result.isConfirmed) {
+                      onCancel();
+                    }
+                  } else {
+                    onCancel();
+                  }
+                }}
                 disabled={loading}
                 className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl"
                 style={{ borderRadius: "12px" }}
@@ -1032,8 +1168,9 @@ const DetallesFactura = ({
                   <input
                     type="number"
                     min="0"
-                    value={descuentoValor}
-                    onChange={(e) => setDescuentoValor(Number(e.target.value))}
+                    value={descuentoValor || ""}
+                    onChange={(e) => setDescuentoValor(Number(e.target.value) || 0)}
+                    placeholder="0"
                     className="border border-gray-300 rounded px-2 py-1 text-sm text-right"
                     style={{ width: 140 }}
                   />
@@ -1108,7 +1245,7 @@ const DetallesFactura = ({
 
                 {/* Saldo Pendiente */}
                 <div
-                  className="flex justify-between font-semibold text-blue-600"
+                  className="flex justify-between font-semibold text-gray-900"
                   style={{ fontSize: "17px", paddingTop: "8px" }}
                 >
                   <span>Saldo Pendiente:</span>
@@ -1122,7 +1259,7 @@ const DetallesFactura = ({
 
       <ModalPago
         show={showPaymentModal}
-        total={paymentData?.total || 0}
+        total={parseFloat(paymentData?.total) || 0}
         onClose={handleClosePaymentModal}
         onPagoConfirmado={handlePaymentSuccess}
         factura={paymentData}
@@ -1130,6 +1267,9 @@ const DetallesFactura = ({
 
     </div>
   );
+
+
 };
+
 
 export default DetallesFactura;

@@ -98,6 +98,14 @@ const Grafica = ({ obtenerRegistroFinanciero, anio }) => {
     });
   }, [registros, mesesAMostrar, meses]);
 
+  // Calcular el máximo valor para ajustar el dominio del gráfico
+  const maxValor = useMemo(() => {
+    const valores = datos.flatMap(d => [d.ingresos, d.gastos]);
+    const max = Math.max(...valores, 0);
+    // Redondear hacia arriba a la siguiente unidad de 10000
+    return Math.ceil(max / 10000) * 10000 || 100000;
+  }, [datos]);
+
   // Funciones para navegar entre meses
   const irMesesAnteriores = () => {
     if (indiceInicio > 0) {
@@ -143,9 +151,9 @@ const Grafica = ({ obtenerRegistroFinanciero, anio }) => {
           <div className="p-1.5 bg-blue-50 rounded-lg">
             <TrendingUp className="w-4 h-4 text-blue-600" />
           </div>
-          <h3 className="text-sm font-bold text-gray-900" style={{ fontFamily: 'Poppins, sans-serif' }}>
-            Comparativa Mensual
-          </h3>
+          <div className="text-xl font-semibold text-gray-900" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            COMPARATIVA MENSUAL
+          </div>
         </div>
 
         {/* Controles de navegación */}
@@ -183,6 +191,7 @@ const Grafica = ({ obtenerRegistroFinanciero, anio }) => {
       </div>
 
       <div className="flex-1" style={{ minHeight: 0 }}>
+        {!loading && datos.length > 0 ? (
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={datos} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -195,19 +204,26 @@ const Grafica = ({ obtenerRegistroFinanciero, anio }) => {
               tick={{ fill: '#6b7280', fontFamily: 'Poppins, sans-serif', fontSize: 10 }}
               axisLine={{ stroke: '#d1d5db' }}
               tickFormatter={(value) => `L ${(value / 1000).toFixed(0)}K`}
-              domain={[0, 100000]}
+              domain={[0, maxValor]}
             />
             <Tooltip content={<CustomTooltip />} />
-            <ReferenceLine
-              y={100000}
-              stroke="#dc2626"
-              strokeDasharray="3 3"
-              label={{ value: 'Límite L 100K', position: 'right', fill: '#dc2626', fontFamily: 'Poppins, sans-serif', fontSize: 10 }}
-            />
+            {maxValor >= 100000 && (
+              <ReferenceLine
+                y={100000}
+                stroke="#dc2626"
+                strokeDasharray="3 3"
+                label={{ value: 'Límite L 100K', position: 'right', fill: '#dc2626', fontFamily: 'Poppins, sans-serif', fontSize: 10 }}
+              />
+            )}
             <Bar dataKey="ingresos" fill="#3b82f6" radius={[8, 8, 0, 0]} />
             <Bar dataKey="gastos" fill="#dc2626" radius={[8, 8, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-400">
+            <p className="text-sm">No hay datos disponibles para mostrar</p>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-center gap-4 text-xs mt-3">

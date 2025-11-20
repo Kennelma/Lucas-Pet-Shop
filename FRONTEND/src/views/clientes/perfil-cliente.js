@@ -18,35 +18,31 @@ const PerfilCliente = ({ clienteSeleccionado }) => {
   };
 
   return (
-    <div className="flex flex-col w-full h-full">
-      <div className="bg-gradient-to-b from-[#DEFFAD]/30 to-[#DEFFAD]/10 border-b border-gray-300 flex-shrink-0">
-        <div className="p-4">
-          <span className="block w-full text-center font-semibold text-gray-700 font-poppins">
+    <div className="bg-white flex flex-col w-full h-full rounded-xl overflow-hidden shadow-lg border-2" style={{borderColor: '#B5DD7E'}}>
+      <div className=" shrink-0" style={{ backgroundColor: '#fbfffbff' }}>
+        <div className="p-3">
+          <span className="block w-full text-center font-semibold text-gray-700 font-poppins text-xs">
             PERFIL DE CLIENTE
           </span>
 
           {clienteSeleccionado ? (
-            <div className="mt-4">
-              <div className="flex flex-col items-center gap-3">
-                <img
-                  src={clienteImage}
-                  alt="Cliente"
-                  className="w-20 h-20 object-cover rounded-full border-[3px] border-white shadow-lg"
-                />
-                <div className="text-center">
-                  <h3 className="font-bold text-lg text-gray-800">
-                    {clienteSeleccionado.nombre_cliente}
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Identidad: {clienteSeleccionado.identidad_cliente}
-                  </p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Cliente desde:{" "}
-                    {new Date(clienteSeleccionado.fecha_registro).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            </div>
+          <div className="mt-3 px-2 flex flex-col items-center">
+            <img
+              src={clienteImage}
+              alt="Cliente"
+              className="w-12 h-12 rounded-full object-cover shadow-lg mb-2"
+            />
+            <h3 className="font-bold text-lg text-gray-800 text-center">
+              {clienteSeleccionado.nombre_cliente}
+            </h3>
+            <p className="text-xs text-black-600 mt-1 text-center">
+              Cliente desde:{" "}
+              {new Date(clienteSeleccionado.fecha_registro).toLocaleDateString()}
+            </p>
+            <p className="text-xs text-black-600 mt-0.5 text-center">
+              Identidad: {clienteSeleccionado.identidad_cliente}
+            </p>
+          </div>
           ) : (
             <div className="text-center py-8">
               <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
@@ -62,13 +58,13 @@ const PerfilCliente = ({ clienteSeleccionado }) => {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-4">
+      <div className="flex-1 flex flex-col items-center justify-center p-3" style={{ backgroundColor: "#B5DD7E" }}>
         {clienteSeleccionado && (
           <button
-            className="text-gray-900 font-semibold px-6 py-3 rounded-lg transition-colors shadow-md"
-            style={{ backgroundColor: "#DEFFAD" }}
-            onMouseEnter={(e) => (e.target.style.backgroundColor = "#c9e89a")}
-            onMouseLeave={(e) => (e.target.style.backgroundColor = "#DEFFAD")}
+            className="text-gray-900 font-semibold px-3 py-1.5 text-xs rounded-lg transition-colors shadow-md w-[90%]"
+            style={{ backgroundColor: "#F4F5F4" }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#F4F5F4")}
+            onMouseLeave={(e) => (e.target.style.backgroundColor = "#F4F5F4")}
             onClick={abrirHistorial}
           >
             VER HISTORIAL DE COMPRAS

@@ -59,7 +59,7 @@ const AppHeaderDropdown = () => {
         </CAvatar>
       </CDropdownToggle>
       
-      <CDropdownMenu className="pt-0" placement="bottom-end">
+      <CDropdownMenu className="pt-0" placement="bottom-end" style={{ zIndex: 9999 }}>
         <CDropdownHeader className="bg-body-secondary fw-semibold mb-2">
           <div>{usuario?.nombre || 'Usuario'}</div>
           <small className="text-muted">{usuario?.email || ''}</small>

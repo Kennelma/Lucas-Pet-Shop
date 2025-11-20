@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Eye, Printer, Download, Filter, Calendar, CreditCard, X } from 'lucide-react';
 import { Paginator } from 'primereact/paginator';
+import Swal from 'sweetalert2';
 import { obtenerHistorialFacturas, obtenerDatosFacturaPDF } from '../../../AXIOS.SERVICES/factura-axios';
 import { procesarPago } from '../../../AXIOS.SERVICES/payments-axios';
 import { generarPDFFactura, descargarPDFFactura } from './generarPDFFactura';
@@ -50,10 +51,22 @@ const ListaFacturas = ({ facturaParaImprimir, setFacturaParaImprimir }) => {
         setFacturas(response.data);
       } else {
         setFacturas([]);
+        Swal.fire({
+          icon: 'info',
+          title: 'Sin facturas',
+          text: 'No hay facturas registradas en el sistema',
+          confirmButtonColor: '#3085d6'
+        });
       }
     } catch (error) {
       console.error('Error al cargar facturas:', error);
       setFacturas([]);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de conexión',
+        text: 'No se pudo cargar el historial de facturas',
+        confirmButtonColor: '#d33'
+      });
     } finally {
       setLoading(false);
     }
@@ -141,24 +154,61 @@ const ListaFacturas = ({ facturaParaImprimir, setFacturaParaImprimir }) => {
       const response = await procesarPago(datosPago);
 
       if (response.success) {
-        alert(response.mensaje || 'Pago procesado exitosamente');
+        const { saldo_restante, tipo_pago } = response.data || {};
+        const saldoNumerico = parseFloat(saldo_restante) || 0;
+        const esPagoParcial = saldoNumerico > 0;
 
-        if (facturaSeleccionada) {
-          await handleDescargarFactura(facturaSeleccionada);
-        }
-
+        //CERRAR MODAL ANTES DE MOSTRAR ALERTA
         setShowModalPago(false);
         setShowDetallesFactura(false);
         setFacturaSeleccionada(null);
         setFacturaVista(null);
 
+        //MOSTRAR ALERTA DIFERENTE SEGÚN TIPO DE PAGO
+        if (esPagoParcial) {
+          await Swal.fire({
+            icon: 'success',
+            title: 'Pago parcial registrado',
+            html: `
+              <p>${response.mensaje || 'Pago procesado exitosamente'}</p>
+              <div class="mt-3 p-3 bg-orange-50 border border-orange-200 rounded">
+                <p class="text-sm text-gray-600">Saldo restante:</p>
+                <p class="text-xl font-bold text-orange-700">L ${saldoNumerico.toFixed(2)}</p>
+              </div>
+            `,
+            confirmButtonColor: '#3085d6'
+          });
+        } else {
+          await Swal.fire({
+            icon: 'success',
+            title: 'Pago completo',
+            text: response.mensaje || 'Factura pagada totalmente',
+            confirmButtonColor: '#3085d6'
+          });
+
+          //ABRIR PREVIEW DEL PDF SI ES PAGO COMPLETO
+          if (facturaSeleccionada) {
+            await handleImprimirFactura(facturaSeleccionada);
+          }
+        }
+
         await cargarFacturas();
       } else {
-        alert(response.mensaje || 'Error al procesar el pago');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: response.mensaje || 'Error al procesar el pago',
+          confirmButtonColor: '#d33'
+        });
       }
     } catch (error) {
       console.error('Error al procesar pago:', error);
-      alert('Error al procesar el pago: ' + (error.response?.data?.mensaje || error.message));
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al procesar pago',
+        text: error?.response?.data?.mensaje || error.message || 'Error inesperado',
+        confirmButtonColor: '#d33'
+      });
     }
   };
 
@@ -178,12 +228,33 @@ const ListaFacturas = ({ facturaParaImprimir, setFacturaParaImprimir }) => {
         //Mostrar en modal
         setPdfUrl(url);
         setShowPDFPreview(true);
+
+        // Toast de éxito
+        Swal.fire({
+          icon: 'success',
+          title: 'PDF generado',
+          text: 'Vista previa lista',
+          timer: 1500,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        });
       } else {
-        alert('Error al obtener datos de la factura');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Error al obtener datos de la factura',
+          confirmButtonColor: '#d33'
+        });
       }
     } catch (error) {
       console.error('Error al imprimir PDF:', error);
-      alert('Error al generar PDF');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Error al generar el PDF de la factura',
+        confirmButtonColor: '#d33'
+      });
     }
   };
 
@@ -214,12 +285,31 @@ const ListaFacturas = ({ facturaParaImprimir, setFacturaParaImprimir }) => {
       const response = await obtenerDatosFacturaPDF(factura.numero_factura);
       if (response.success) {
         descargarPDFFactura(response.data);
+        Swal.fire({
+          icon: 'success',
+          title: 'Descarga exitosa',
+          text: 'La factura se ha descargado correctamente',
+          timer: 2000,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        });
       } else {
-        alert('Error al obtener datos de la factura');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Error al obtener datos de la factura',
+          confirmButtonColor: '#d33'
+        });
       }
     } catch (error) {
       console.error('Error al descargar PDF:', error);
-      alert('Error al generar PDF');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Error al generar el PDF de la factura',
+        confirmButtonColor: '#d33'
+      });
     }
   };
 
@@ -466,7 +556,7 @@ const handleVerFactura = (factura) => {
       {facturasFiltradas.length > 0 && (
         <div className="mt-6 flex justify-between items-center">
           <div className="text-sm text-gray-600">
-            Mostrando <span className="font-semibold">{facturasFiltradas.length}</span> de <span className="font-semibold">{facturas.length}</span> facturas
+            Mostrando <span className="font-semibold">{Math.min(rows, facturasFiltradas.length)}</span> de <span className="font-semibold">{facturasFiltradas.length}</span> facturas
           </div>
           <Paginator
             first={first}
@@ -495,10 +585,10 @@ const handleVerFactura = (factura) => {
             {/* BOTÓN CERRAR EN LA ESQUINA */}
             <button
               onClick={handleCerrarPreview}
-              className="absolute top-4 right-4 z-10 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition-colors shadow-lg"
+              className="absolute top-2 right-2 z-10 bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-full transition-colors shadow-lg"
               title="Cerrar"
             >
-              <X size={24} />
+              <X size={16} />
             </button>
 
             {/* CONTENIDO - IFRAME */}

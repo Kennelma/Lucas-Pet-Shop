@@ -7,6 +7,7 @@ import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
 import { InputSwitch } from 'primereact/inputswitch';
 import { actualizarProducto } from '../../../AXIOS.SERVICES/products-axios';
+import Swal from 'sweetalert2';
 
 //COMPONENTE MODAL ACTUALIZAR ALIMENTO
 const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosExistentes = [] }) => {
@@ -208,10 +209,33 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
           tiene_impuesto: aplicaImpuesto ? 1 : 0
         });
         onClose();
-      } else alert(`Error al actualizar: ${res.error}`);
+        
+        setTimeout(() => {
+          Swal.fire({
+            icon: "success",
+            title: "¡Actualizado!",
+            text: "El alimento fue actualizado correctamente",
+            timer: 1800,
+            showConfirmButton: false,
+          });
+        }, 100);
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: `No se pudo actualizar: ${res.error}`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      }
     } catch (err) {
-      console.error(err);
-      alert('Ocurrió un error al actualizar el alimento.');
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Ocurrió un error al actualizar el alimento.",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     } finally {
       setLoading(false);
     }

@@ -1,18 +1,17 @@
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
-import { InputMask } from 'primereact/inputmask';
 import { Button } from 'primereact/button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
-const ModalAgregarEmpresa = ({ 
-  visible, 
-  onHide, 
-  formData, 
-  onChange, 
-  onSave, 
-  loading, 
-  editando, 
+const ModalAgregarEmpresa = ({
+  visible,
+  onHide,
+  formData,
+  onChange,
+  onSave,
+  loading,
+  editando,
   errores,
   onBlur
 }) => {
@@ -54,19 +53,29 @@ const ModalAgregarEmpresa = ({
       resizable={false}
     >
       <div className="mt-2">
+        {/* Campos señuelo ocultos para confundir al autocompletado */}
+        <input type="text" style={{ display: 'none' }} autoComplete="off" />
+        <input type="email" style={{ display: 'none' }} autoComplete="off" />
+        <input type="tel" style={{ display: 'none' }} autoComplete="off" />
+
         <div className="flex flex-col gap-3">
           {/* Nombre de la Empresa */}
           <span>
             <label htmlFor="nombre_empresa" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE DE LA EMPRESA</label>
             <InputText
-              id="nombre_empresa"
-              name="nombre_empresa"
+              id="field_name_xyz"
+              name="field_name_xyz"
               value={formData.nombre_empresa}
-              onChange={onChange}
-              onBlur={onBlur}
-              className="w-full rounded-xl h-9 text-sm uppercase"
-              placeholder="Ej: Tech Solutions SA"
+              onChange={(e) => {
+                const event = { target: { name: 'nombre_empresa', value: e.target.value.toUpperCase() } };
+                onChange(event);
+              }}
+              onBlur={(e) => onBlur({ target: { name: 'nombre_empresa', value: e.target.value } })}
+              className="w-full rounded-xl h-9 text-sm"
+              placeholder="Ej: MASCOTAS FELICES SA"
+              type="text"
               autoComplete="off"
+              data-lpignore="true"
             />
             {errores.nombre_empresa && <p className="text-xs text-red-600 mt-1">{errores.nombre_empresa}</p>}
           </span>
@@ -74,16 +83,21 @@ const ModalAgregarEmpresa = ({
           {/* Teléfono */}
           <span>
             <label htmlFor="telefono_empresa" className="text-xs font-semibold text-gray-700 mb-1">TELÉFONO</label>
-            <InputMask
-              id="telefono_empresa"
-              name="telefono_empresa"
-              value={formData.telefono_empresa}
-              onChange={(e) => onChange({ target: { name: 'telefono_empresa', value: e.value } })}
-              onBlur={(e) => onBlur({ target: { name: 'telefono_empresa', value: e.value } })}
-              mask="9999-9999"
-              placeholder="0000-0000"
+            <InputText
+              id="field_phone_xyz"
+              name="field_phone_xyz"
+              value={formData.telefono_empresa || ''}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                onChange({ target: { name: 'telefono_empresa', value } });
+              }}
+              onBlur={(e) => onBlur({ target: { name: 'telefono_empresa', value: e.target.value } })}
+              placeholder="98972569"
               className="w-full rounded-xl h-9 text-sm"
+              type="text"
               autoComplete="off"
+              data-lpignore="true"
+              maxLength={8}
             />
             {errores.telefono_empresa && <p className="text-xs text-red-600 mt-1">{errores.telefono_empresa}</p>}
           </span>
@@ -92,15 +106,17 @@ const ModalAgregarEmpresa = ({
           <span>
             <label htmlFor="correo_empresa" className="text-xs font-semibold text-gray-700 mb-1">CORREO ELECTRÓNICO</label>
             <InputText
-              id="correo_empresa"
-              name="correo_empresa"
+              id="field_mail_xyz"
+              name="field_mail_xyz"
               value={formData.correo_empresa}
-              onChange={onChange}
-              onBlur={onBlur}
+              onChange={(e) => onChange({ target: { name: 'correo_empresa', value: e.target.value } })}
+              onBlur={(e) => onBlur({ target: { name: 'correo_empresa', value: e.target.value } })}
               className="w-full rounded-xl h-9 text-sm lowercase"
-              placeholder="Ej: contacto@empresa.com"
-              type="email"
+              placeholder="EJEM: contacto@empresa.com"
+              type="text"
               autoComplete="off"
+              data-lpignore="true"
+              inputMode="text"
             />
             {errores.correo_empresa && <p className="text-xs text-red-600 mt-1">{errores.correo_empresa}</p>}
           </span>
@@ -109,14 +125,20 @@ const ModalAgregarEmpresa = ({
           <span>
             <label htmlFor="rtn_empresa" className="text-xs font-semibold text-gray-700 mb-1">RTN EMPRESA</label>
             <InputText
-              id="rtn_empresa"
-              name="rtn_empresa"
-              value={formData.rtn_empresa}
-              onChange={onChange}
-              onBlur={onBlur}
-              className="w-full rounded-xl h-9 text-sm uppercase"
-              placeholder="Ej: 08019012345678"
+              id="field_rtn_xyz"
+              name="field_rtn_xyz"
+              value={formData.rtn_empresa || ''}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '').slice(0, 14);
+                onChange({ target: { name: 'rtn_empresa', value } });
+              }}
+              onBlur={(e) => onBlur({ target: { name: 'rtn_empresa', value: e.target.value } })}
+              placeholder="08012345678901"
+              className="w-full rounded-xl h-9 text-sm"
+              type="text"
               autoComplete="off"
+              data-lpignore="true"
+              maxLength={14}
             />
             {errores.rtn_empresa && <p className="text-xs text-red-600 mt-1">{errores.rtn_empresa}</p>}
           </span>

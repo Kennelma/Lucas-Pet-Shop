@@ -4,15 +4,13 @@ import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 
-export default function ModalPromocion({ 
-  isOpen, 
-  onClose, 
-  onSubmit, 
+export default function ModalPromocion({
+  isOpen,
+  onClose,
+  onSubmit,
   promocion = null,
   promocionesExistentes = [] // 👈 NUEVO: Lista de promociones para validar duplicados
 }) {
-  console.log('ModalPromocion renderizado - isOpen:', isOpen, 'promocion:', promocion);
-  
   const [formData, setFormData] = useState({
     nombre_promocion: '',
     descripcion_promocion: '',
@@ -25,10 +23,10 @@ export default function ModalPromocion({
   const diasSemana = [
     { id: 'LUNES', label: ' LUNES' },
     { id: 'MARTES', label: 'MARTES' },
-    { id: 'MIERCOLES', label: 'MIERCOLES' },
+    { id: 'MIÉRCOLES', label: 'MIÉRCOLES' },
     { id: 'JUEVES', label: 'JUEVES' },
     { id: 'VIERNES', label: 'VIERNES' },
-    { id: 'SABADO', label: 'SABADO' },
+    { id: 'SÁBADO', label: 'SÁBADO' },
     { id: 'DOMINGO', label: 'DOMINGO' }
   ];
 
@@ -45,7 +43,6 @@ export default function ModalPromocion({
             diasPromocion = promocion.dias_promocion;
           }
         } catch (error) {
-          console.warn('Error parseando dias_promocion:', error);
           diasPromocion = [];
         }
       }
@@ -64,12 +61,12 @@ export default function ModalPromocion({
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let finalValue = type === 'checkbox' ? checked : value;
-    
+
     // Convertir a mayúsculas los campos de texto (excepto números)
     if (type !== 'checkbox' && name !== 'precio_promocion') {
       finalValue = value.toUpperCase();
     }
-    
+
     setFormData(prev => ({ ...prev, [name]: finalValue }));
     if (errores[name]) setErrores(prev => ({ ...prev, [name]: '' }));
   };
@@ -86,7 +83,7 @@ export default function ModalPromocion({
 
   const validarFormulario = () => {
     const nuevosErrores = {};
-    
+
     // ============ VALIDACIÓN DE NOMBRE ============
     if (!formData.nombre_promocion.trim()) {
       nuevosErrores.nombre_promocion = 'El nombre es requerido';
@@ -97,12 +94,12 @@ export default function ModalPromocion({
       const nombreNormalizado = formData.nombre_promocion.trim().toUpperCase();
       const nombreDuplicado = promocionesExistentes.some(p => {
         // Si estamos editando, excluir la promoción actual de la comparación
-        const esPromocionActual = promocion && 
-          (p.id_promocion_pk === promocion.id_promocion_pk || 
+        const esPromocionActual = promocion &&
+          (p.id_promocion_pk === promocion.id_promocion_pk ||
            p.id === promocion.id);
-        
+
         if (esPromocionActual) return false;
-        
+
         // Comparar nombres normalizados
         return p.nombre_promocion.trim().toUpperCase() === nombreNormalizado;
       });
@@ -111,11 +108,12 @@ export default function ModalPromocion({
         nuevosErrores.nombre_promocion = 'Ya existe una promoción con este nombre';
       }
     }
-    
+
     // ============ VALIDACIÓN DE DESCRIPCIÓN ============
     if (!formData.descripcion_promocion.trim()) {
       nuevosErrores.descripcion_promocion = 'La descripción es requerida';
     }
+
     // ============ VALIDACIÓN DE PRECIO ============
     const precio = parseFloat(formData.precio_promocion);
     if (!formData.precio_promocion || isNaN(precio)) {
@@ -130,27 +128,26 @@ export default function ModalPromocion({
     if (!formData.dias_promocion || formData.dias_promocion.length === 0) {
       nuevosErrores.dias_promocion = 'Debe seleccionar al menos un día de la semana';
     }
-    
+
     return nuevosErrores;
   };
 
   const handleSubmit = (e) => {
     if (e) e.preventDefault();
+
     const nuevosErrores = validarFormulario();
+
     if (Object.keys(nuevosErrores).length > 0) {
       setErrores(nuevosErrores);
       return;
     }
-    
+
     // Convertir array a string para la base de datos
     const dataParaEnviar = {
       ...formData,
       dias_promocion: JSON.stringify(formData.dias_promocion)
     };
-    
-    console.log('Datos del formulario:', formData);
-    console.log('Datos para enviar:', dataParaEnviar);
-    
+
     onSubmit(dataParaEnviar);
   };
 
@@ -168,7 +165,7 @@ export default function ModalPromocion({
   );
 
   if (!isOpen) return null;
-  
+
   return (
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">{promocion ? 'EDITAR PROMOCIÓN' : 'NUEVA PROMOCIÓN'}</div>}
@@ -204,13 +201,13 @@ export default function ModalPromocion({
           {/* Descripción */}
           <span>
             <label htmlFor="descripcion_promocion" className="text-xs font-semibold text-gray-700 mb-1">DESCRIPCIÓN</label>
-            <textarea 
-              name="descripcion_promocion" 
-              id="descripcion_promocion" 
-              value={formData.descripcion_promocion} 
-              onChange={handleChange} 
+            <textarea
+              name="descripcion_promocion"
+              id="descripcion_promocion"
+              value={formData.descripcion_promocion}
+              onChange={handleChange}
               className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 min-h-20 text-sm resize-none"
-              placeholder="Descripción detallada de la promoción..." 
+              placeholder="Descripción detallada de la promoción..."
               autoComplete="off"
             />
             {errores.descripcion_promocion && <p className="text-xs text-red-600 mt-1">{errores.descripcion_promocion}</p>}
@@ -245,11 +242,11 @@ export default function ModalPromocion({
                     onChange={() => handleDiaToggle(dia.id)}
                     className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
                   />
-                  <label 
-                    htmlFor={dia.id} 
+                  <label
+                    htmlFor={dia.id}
                     className={`text-xs cursor-pointer select-none ${
-                      formData.dias_promocion.includes(dia.id) 
-                        ? 'font-semibold text-green-700' 
+                      formData.dias_promocion.includes(dia.id)
+                        ? 'font-semibold text-green-700'
                         : 'font-normal text-gray-600'
                     }`}
                   >

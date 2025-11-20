@@ -112,6 +112,15 @@ const Medicamentos = () => {
     if (success) {
       setModalVisible(false);
       setMedicamentoEditando(null);
+
+      // Mostrar alerta de éxito
+      Swal.fire({
+        icon: 'success',
+        title: medicamentoEditando ? '¡Actualizado!' : '¡Agregado!',
+        text: medicamentoEditando ? 'Medicamento actualizado correctamente' : 'Medicamento agregado correctamente',
+        timer: 2000,
+        showConfirmButton: false
+      });
     }
   };
 
@@ -120,6 +129,15 @@ const Medicamentos = () => {
     if (success) {
       setModalLoteVisible(false);
       setMedicamentoSeleccionado(null);
+
+      // Mostrar alerta de éxito
+      Swal.fire({
+        icon: 'success',
+        title: '¡Lote agregado!',
+        text: 'Lote agregado correctamente',
+        timer: 2000,
+        showConfirmButton: false
+      });
     }
   };
 
@@ -137,7 +155,7 @@ const Medicamentos = () => {
     setModalEditarLoteVisible(true);
   };
 
-  // ✅ NUEVA FUNCIÓN: Guardar edición de lote
+  //FUNCION GUARDAR EDICION LOTE
   const handleGuardarEdicionLote = async (loteEditado) => {
     const exito = await editarLote(loteEditado);
     if (exito) {
@@ -146,7 +164,13 @@ const Medicamentos = () => {
         title: '¡Actualizado!',
         text: 'Lote actualizado correctamente',
         timer: 1500,
-        showConfirmButton: false
+        showConfirmButton: false,
+        didOpen: () => {
+          const swalContainer = document.querySelector('.swal2-container');
+          if (swalContainer) {
+            swalContainer.style.setProperty('z-index', '999999', 'important');
+          }
+        }
       });
       setModalEditarLoteVisible(false);
       setLoteEditar(null);
@@ -155,7 +179,13 @@ const Medicamentos = () => {
         icon: 'error',
         title: 'Error',
         text: 'No se pudo actualizar el lote',
-        confirmButtonText: 'Entendido'
+        confirmButtonText: 'Entendido',
+        didOpen: () => {
+          const swalContainer = document.querySelector('.swal2-container');
+          if (swalContainer) {
+            swalContainer.style.setProperty('z-index', '999999', 'important');
+          }
+        }
       });
     }
   };
@@ -170,69 +200,80 @@ const Medicamentos = () => {
       html: `
         <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
           <p class="mb-1 text-sm"><span class="font-bold">Nombre:</span> ${medicamento.nombre_producto}</p>
-          <p class="mb-1 text-sm"><span class="font-bold">Presentación:</span> ${medicamento.presentacion_medicamento}</p>
-          <p class="mb-1 text-sm"><span class="font-bold">Tipo:</span> ${medicamento.tipo_medicamento}</p>
           <p class="mb-1 text-sm"><span class="font-bold">Precio:</span> L. ${medicamento.precio_producto.toFixed(2)}</p>
-          <p class="mb-1 text-sm"><span class="font-bold">Lotes asociados:</span> ${lotesAsociados}</p>
-        </div>
-        <div class="mt-3 p-2 bg-red-50 rounded-md border border-red-200">
-          <p class="text-xs text-red-600 font-semibold">⚠️ Esta acción eliminará también todos los lotes asociados y no se puede deshacer.</p>
         </div>
       `,
-      showCancelButton: true, confirmButtonText: "Eliminar", cancelButtonText: "Cancelar", reverseButtons: true, width: 450, padding: "16px",
+      showCancelButton: true,
+      confirmButtonText: "Eliminar",
+      cancelButtonText: "Cancelar",
+      reverseButtons: true,
+      width: 380,
+      padding: "16px",
       customClass: {
-        confirmButton: "bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium",
-        cancelButton: "bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium mr-2",
-      },
-      buttonsStyling: false
+        confirmButton: "bg-green-800 hover:bg-green-900 text-white p-button p-component",
+        cancelButton: "p-button-text p-button p-component"
+      }
     });
 
     if (result.isConfirmed) {
       const success = await eliminarMedicamento(medicamento.id_producto_pk);
       if (success) {
-        Swal.fire({ icon: "success", title: "¡Eliminado!", text: "El medicamento fue eliminado correctamente", timer: 1800, showConfirmButton: false, });
+        Swal.fire({
+          icon: 'success',
+          title: '¡Medicamento eliminado!',
+          text: 'El medicamento fue eliminado correctamente',
+          timer: 2000,
+          showConfirmButton: false
+        });
       }
     }
   };
 
   const handleCambiarEstado = async (medicamento) => {
-    //VALIDAR ROL DEL USUARIO ACTUAL
-    if (!validarPermisoAdministrador('cambiar el estado de medicamentos')) return;
+  if (!validarPermisoAdministrador('cambiar el estado de medicamentos')) return;
 
-    try {
-      const nuevoEstado = !medicamento.activo;
+  try {
+    // Convertir explícitamente a número para comparación correcta
+    const estadoActual = Number(medicamento.activo);
+    const nuevoEstadoNumerico = estadoActual === 1 ? 0 : 1;
 
-      const response = await cambiarEstadoProducto(medicamento.id_producto_pk, nuevoEstado);
+    const datosActualizar = {
+      id_producto: medicamento.id_producto_pk,
+      tipo_producto: 'MEDICAMENTOS',
+      activo: nuevoEstadoNumerico
+    };
 
-      if (response.Consulta) {
-        setMedicamentos(prev =>
-          prev.map(med =>
-            med.id_producto_pk === medicamento.id_producto_pk
-              ? { ...med, activo: nuevoEstado }
-              : med
-          )
-        );
+    const response = await actualizarProducto(datosActualizar);
 
-        Swal.fire({
-          icon: "success",
-          title: nuevoEstado ? "¡Medicamento Activado!" : "¡Medicamento Desactivado!",
-          text: "Estado actualizado correctamente",
-          timer: 1500,
-          showConfirmButton: false,
-        });
-      } else {
-        throw new Error(response.error || "Error al cambiar estado");
-      }
-    } catch (error) {
-      console.error("Error al cambiar estado:", error);
+    if (response.Consulta) {
+      setMedicamentos(prev =>
+        prev.map(med =>
+          med.id_producto_pk === medicamento.id_producto_pk
+            ? { ...med, activo: nuevoEstadoNumerico }
+            : med
+        )
+      );
+
       Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No se pudo cambiar el estado del medicamento",
-        confirmButtonText: "Entendido"
+        icon: "success",
+        title: nuevoEstadoNumerico === 1 ? "¡Medicamento Activado!" : "¡Medicamento Desactivado!",
+        text: "Estado actualizado correctamente",
+        timer: 1500,
+        showConfirmButton: false,
       });
+    } else {
+      throw new Error(response.error || "Error al cambiar estado");
     }
-  };
+  } catch (error) {
+    console.error('Error al cambiar estado:', error);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: error.message || "No se pudo cambiar el estado del medicamento",
+      confirmButtonText: "Entendido"
+    });
+  }
+};
 
   const handleEliminarLote = async (lote) => {
     const estilo = calcularEstadoLote(lote);
@@ -246,7 +287,7 @@ const Medicamentos = () => {
           <p class="mb-1 text-sm"><span class="font-bold">Estado:</span> ${estilo.texto}</p>
           <p class="mb-1 text-sm"><span class="font-bold">Vencimiento:</span> ${new Date(lote.fecha_vencimiento).toLocaleDateString('es-HN')}</p>
         </div>
-        <p class="text-red-600 text-sm mt-2">Esta acción no se puede deshacer</p>
+        <p class="text-red-600 text-sm mt-2">⚠️ Esta acción no se puede deshacer</p>
       `,
       showCancelButton: true, confirmButtonText: "Eliminar", cancelButtonText: "Cancelar", reverseButtons: true, width: 400, padding: "16px",
       didOpen: () => {
@@ -269,7 +310,19 @@ const Medicamentos = () => {
       const success = await eliminarLote(lote.id_lote_medicamentos_pk);
       if (success) {
         await cargarDatos();
-        Swal.fire({ icon: "success", title: "¡Eliminado!", text: "El lote fue eliminado correctamente", timer: 1800, showConfirmButton: false,});
+        Swal.fire({
+          icon: 'success',
+          title: '¡Lote eliminado!',
+          text: 'El lote fue eliminado correctamente',
+          timer: 2000,
+          showConfirmButton: false,
+          didOpen: () => {
+            const swalContainer = document.querySelector('.swal2-container');
+            if (swalContainer) {
+              swalContainer.style.setProperty('z-index', '999999', 'important');
+            }
+          }
+        });
       }
     }
   };
@@ -286,13 +339,8 @@ const Medicamentos = () => {
   }
 
   return (
-<<<<<<< Updated upstream
     <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
     <div className="min-h-screen p-6 bg-gray-50">
-=======
-    <div className="p-6 bg-gray-50 overflow-x-hidden" style={{ fontFamily: 'Poppins' }}>
-
->>>>>>> Stashed changes
       {/* Título */}
       <div className="rounded-xl p-6 mb-3"
         style={{
@@ -441,6 +489,7 @@ const Medicamentos = () => {
         onSave={handleGuardarMedicamento}
         medicamentoEditando={medicamentoEditando}
         medicamentosExistentes={medicamentos}
+        lotesExistentes={lotes}
       />
 
       <ModalLote

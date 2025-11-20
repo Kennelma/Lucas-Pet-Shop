@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, DollarSign } from 'lucide-react';
+import Swal from 'sweetalert2';
 import PagoTotal from './PagoTotal';
 import PagoParcial from './PagoParcial';
 import { obtenerTiposPago } from '../../../AXIOS.SERVICES/payments-axios';
@@ -12,6 +13,9 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
   useEffect(() => {
     if (show) {
       cargarTiposPago();
+    } else {
+      // Resetear estado cuando se cierra el modal
+      setTipoPago('');
     }
   }, [show]);
 
@@ -21,9 +25,22 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
       const response = await obtenerTiposPago();
       if (response.success && response.data) {
         setTiposPago(response.data);
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los tipos de pago',
+          confirmButtonColor: '#d33'
+        });
       }
     } catch (error) {
       console.error('Error al cargar tipos de pago:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de conexión',
+        text: 'No se pudo conectar con el servidor',
+        confirmButtonColor: '#d33'
+      });
     } finally {
       setLoading(false);
     }
@@ -37,29 +54,21 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
     setTipoPago('');
   };
 
-  const handleConfirm = (datosPago) => {
-    console.log('🎯 ModalPago.handleConfirm - INICIO');
+  const handleConfirm = async (datosPago) => {
     // Agregar los datos completos de la factura y tipo de pago
     const datosCompletos = {
       numero_factura: factura?.numero_factura,
       id_tipo: tipoPago.id,
       total: factura?.total || total,
       saldo: factura?.saldo || total,
+      detalles: factura?.detalles || [],
       ...datosPago
     };
 
-    console.log('📦 Datos completos a enviar:', datosCompletos);
-
     if (onPagoConfirmado) {
-      console.log('📤 Llamando a onPagoConfirmado (handlePagoExitoso)');
-      onPagoConfirmado(datosCompletos);
+      await onPagoConfirmado(datosCompletos);
     }
-    console.log('🔄 Limpiando y cerrando modal...');
-    handleBack();
-    if (onClose) {
-      onClose();
-    }
-    console.log('✅ ModalPago.handleConfirm - FIN');
+    // NO ejecutar handleBack() aquí - dejar que el padre cierre el modal
   };
 
   const handleCloseModal = () => {
@@ -96,7 +105,6 @@ const ModalPago = ({ show, onClose, total = 0, onPagoConfirmado, factura }) => {
               <div className="bg-gray-50 rounded-lg p-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Factura:</span>
-                  <span className="font-medium text-gray-900">{factura?.numero_factura || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total:</span>

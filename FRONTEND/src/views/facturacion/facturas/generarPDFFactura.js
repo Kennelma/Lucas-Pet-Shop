@@ -74,6 +74,9 @@ export const generarPDFFactura = (datosFactura) => {
   doc.text(`RTN: ${empresa.rtn_empresa || ''}`, pageWidth / 2, yPos, { align: 'center' });
   yPos += 8;
 
+  doc.text(`CAI: 00000000000000000`, pageWidth / 2, yPos, { align: 'center' });
+   yPos += 8;
+
   //TITULO_FACTURA
   addCenteredText('FACTURA DE VENTA', 12, true, 2);
 
