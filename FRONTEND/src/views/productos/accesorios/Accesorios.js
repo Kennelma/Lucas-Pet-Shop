@@ -225,27 +225,24 @@ const Accesorios = () => {
     }
 
     const result = await Swal.fire({
-      title: "¿Eliminar accesorio?",
-      html: `
-        <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
-          <p class="mb-1 text-sm"><span class="font-bold">Nombre:</span> ${accesorio.nombre}</p>
-          <p class="mb-1 text-sm"><span class="font-bold">Categoría:</span> ${accesorio.categoria}</p>
-          <p class="mb-1 text-sm"><span class="font-bold">Precio:</span> L. ${accesorio.precio.toFixed(2)}</p>
-        </div>
-      `,
-      showCancelButton: true,
-      confirmButtonText: "Eliminar",
-      cancelButtonText: "Cancelar",
-      reverseButtons: true,
-      width: 380,
-      padding: "16px",
-      customClass: {
-        confirmButton: "bg-green-800 hover:bg-green-900 text-white p-button p-component",
-        cancelButton: "p-button-text p-button p-component",
-      },
-    });
-
-    if (result.isConfirmed) {
+      title: "¿Eliminar accesorio?",
+      html: `
+        <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
+          <p class="mb-1 text-sm"><span class="font-bold">Nombre:</span> ${accesorio.nombre}</p>
+          <p class="mb-1 text-sm"><span class="font-bold">Precio:</span> L. ${accesorio.precio.toFixed(2)}</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Eliminar",
+      cancelButtonText: "Cancelar",
+      reverseButtons: true,
+      width: 380,
+      padding: "16px",
+      customClass: {
+        confirmButton: "bg-green-800 hover:bg-green-900 text-white p-button p-component",
+        cancelButton: "p-button-text p-button p-component"
+      }
+    });    if (result.isConfirmed) {
       try {
         const resp = await eliminarProducto({ id_producto: accesorio.id_producto });
         if (resp.Consulta) {

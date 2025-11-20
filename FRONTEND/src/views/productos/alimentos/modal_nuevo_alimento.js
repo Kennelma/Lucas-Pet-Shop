@@ -114,7 +114,7 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave, alimentosExistentes = [] 
     if (!data.nombre?.trim()) {
       temp.nombre = 'El nombre del alimento es obligatorio';
     } else {
-      // ✅ VALIDACIÓN DE NOMBRE DUPLICADO
+      //  VALIDACIÓN DE NOMBRE DUPLICADO
       const nombreExiste = alimentosExistentes.some(
         (alimento) => alimento.nombre?.toUpperCase() === data.nombre.toUpperCase()
       );
@@ -360,7 +360,7 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave, alimentosExistentes = [] 
                 max="100"
               />
               <span className="text-sm text-gray-600">
-                Precio base: L {precioBase} (sin impuesto)
+                Precio base: L {precioBase.toFixed(2)} (sin impuesto)
               </span>
             </div>
           </div>

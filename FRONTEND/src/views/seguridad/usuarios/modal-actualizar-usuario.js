@@ -3,7 +3,7 @@ import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
-import { verRolesUsuarios, verSucursales, actualizarUsuario } from "../../../AXIOS.SERVICES/security-axios.js";
+import { verRolesUsuarios, verSucursales, verEstadosUsuarios, actualizarUsuario } from "../../../AXIOS.SERVICES/security-axios.js";
 
 export default function ModalActualizarUsuario({ usuarioData, onClose, onUsuarioActualizado }) {
   const [form, setForm] = useState({
@@ -18,6 +18,7 @@ export default function ModalActualizarUsuario({ usuarioData, onClose, onUsuario
 
   const [roles, setRoles] = useState([]);
   const [sucursales, setSucursales] = useState([]);
+  const [estados, setEstados] = useState([]);
   const [msg, setMsg] = useState("");
   const [errores, setErrores] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -37,6 +38,15 @@ export default function ModalActualizarUsuario({ usuarioData, onClose, onUsuario
         } catch (errSuc) {
           console.warn("No se pudieron cargar sucursales:", errSuc);
           setSucursales([]);
+        }
+
+        try {
+          const responseEstados = await verEstadosUsuarios();
+          const estadosData = responseEstados?.datos || responseEstados?.entidad || responseEstados || [];
+          setEstados(Array.isArray(estadosData) ? estadosData : []);
+        } catch (errEst) {
+          console.warn("No se pudieron cargar estados:", errEst);
+          setEstados([]);
         }
       } catch (err) {
         console.error("Error cargando roles:", err);
@@ -293,6 +303,29 @@ export default function ModalActualizarUsuario({ usuarioData, onClose, onUsuario
           {errores.id_sucursal_fk && (
             <p id="sucursal-error" className="text-xs text-red-600 mt-1" role="alert" aria-live="polite">
               {errores.id_sucursal_fk}
+            </p>
+          )}
+        </div>
+
+        {/* Estado */}
+        <div className="form-field">
+          <label htmlFor="cat_estado_fk" className="text-xs font-semibold text-gray-700 mb-1 block">ESTADO *</label>
+          <Dropdown
+            id="cat_estado_fk"
+            value={form.cat_estado_fk}
+            options={estados}
+            onChange={(e) => handleChange('cat_estado_fk', e.value)}
+            optionLabel="nombre_estado"
+            optionValue="id_estado_pk"
+            placeholder="-- Selecciona un estado --"
+            className="w-full text-sm"
+            aria-required="true"
+            aria-invalid={!!errores.cat_estado_fk}
+            aria-describedby={errores.cat_estado_fk ? "estado-error" : undefined}
+          />
+          {errores.cat_estado_fk && (
+            <p id="estado-error" className="text-xs text-red-600 mt-1" role="alert" aria-live="polite">
+              {errores.cat_estado_fk}
             </p>
           )}
         </div>

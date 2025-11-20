@@ -170,21 +170,19 @@ const Medicamentos = () => {
       html: `
         <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
           <p class="mb-1 text-sm"><span class="font-bold">Nombre:</span> ${medicamento.nombre_producto}</p>
-          <p class="mb-1 text-sm"><span class="font-bold">Presentación:</span> ${medicamento.presentacion_medicamento}</p>
-          <p class="mb-1 text-sm"><span class="font-bold">Tipo:</span> ${medicamento.tipo_medicamento}</p>
           <p class="mb-1 text-sm"><span class="font-bold">Precio:</span> L. ${medicamento.precio_producto.toFixed(2)}</p>
-          <p class="mb-1 text-sm"><span class="font-bold">Lotes asociados:</span> ${lotesAsociados}</p>
-        </div>
-        <div class="mt-3 p-2 bg-red-50 rounded-md border border-red-200">
-          <p class="text-xs text-red-600 font-semibold">⚠️ Esta acción eliminará también todos los lotes asociados y no se puede deshacer.</p>
         </div>
       `,
-      showCancelButton: true, confirmButtonText: "Eliminar", cancelButtonText: "Cancelar", reverseButtons: true, width: 450, padding: "16px",
+      showCancelButton: true,
+      confirmButtonText: "Eliminar",
+      cancelButtonText: "Cancelar",
+      reverseButtons: true,
+      width: 380,
+      padding: "16px",
       customClass: {
-        confirmButton: "bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium",
-        cancelButton: "bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium mr-2",
-      },
-      buttonsStyling: false
+        confirmButton: "bg-green-800 hover:bg-green-900 text-white p-button p-component",
+        cancelButton: "p-button-text p-button p-component"
+      }
     });
 
     if (result.isConfirmed) {
