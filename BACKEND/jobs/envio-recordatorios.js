@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const mysqlConnection = require('../config/conexion');
 const { getWhatsAppSocket, isWhatsAppConnected } = require('../config/whatsapp');
+const { getTimezoneOffset } = require('../config/utils/timezone');
 
 //FUNCION PARA ENVIAR RECORDATORIO POR WHATSAPP
 async function enviarRecordatorio(telefono, mensaje, nombreCliente, idRecordatorio) {
@@ -29,6 +30,9 @@ cron.schedule('*/1 * * * *', async () => {
   const conn = await mysqlConnection.getConnection();
 
   try {
+
+    await conn.query(`SET time_zone = '${getTimezoneOffset()}'`);
+
     //OBTENER RECORDATORIOS PENDIENTES LISTOS PARA ENVIAR
     const [recordatoriosPendientes] = await conn.query(`
       SELECT
@@ -94,12 +98,13 @@ cron.schedule('*/1 * * * *', async () => {
         if (clientes.length === 0) {
           //NO HAY CLIENTES PROGRAMAR PROXIMO ENVIO
           await conn.query(`
-            UPDATE tbl_recordatorios r
-            JOIN cat_frecuencia_recordatorio f ON r.id_frecuencia_fk = f.id_frecuencia_record_pk
-            SET r.processing = 0,
-                r.proximo_envio = DATE_ADD(NOW(), INTERVAL f.dias_intervalo DAY)
-            WHERE r.id_recordatorio_pk = ?
-          `, [recordatorio.id_recordatorio_pk]);
+          UPDATE tbl_recordatorios r
+          JOIN cat_frecuencia_recordatorio f ON r.id_frecuencia_fk = f.id_frecuencia_record_pk
+          SET r.processing = 0,
+              r.activo = IF(f.dias_intervalo = 0, 0, 1),
+              r.proximo_envio = IF(f.dias_intervalo = 0, NULL, DATE_ADD(NOW(), INTERVAL f.dias_intervalo DAY))
+          WHERE r.id_recordatorio_pk = ?
+        `, [recordatorio.id_recordatorio_pk]);
           continue;
         }
 
@@ -137,15 +142,16 @@ cron.schedule('*/1 * * * *', async () => {
           `);
 
           await conn.query(`
-            UPDATE tbl_recordatorios r
-            JOIN cat_frecuencia_recordatorio f ON r.id_frecuencia_fk = f.id_frecuencia_record_pk
-            SET r.ultimo_envio = NOW(),
-                r.intentos = 0,
-                r.id_estado_programacion_fk = ?,
-                r.processing = 0,
-                r.proximo_envio = DATE_ADD(NOW(), INTERVAL f.dias_intervalo DAY)
-            WHERE r.id_recordatorio_pk = ?
-          `, [estadoEnviado?.[0]?.id_estado_pk, recordatorio.id_recordatorio_pk]);
+          UPDATE tbl_recordatorios r
+          JOIN cat_frecuencia_recordatorio f ON r.id_frecuencia_fk = f.id_frecuencia_record_pk
+          SET r.ultimo_envio = NOW(),
+              r.intentos = 0,
+              r.id_estado_programacion_fk = ?,
+              r.processing = 0,
+              r.activo = IF(f.dias_intervalo = 0, 0, 1),
+              r.proximo_envio = IF(f.dias_intervalo = 0, NULL, DATE_ADD(NOW(), INTERVAL f.dias_intervalo DAY))
+          WHERE r.id_recordatorio_pk = ?
+        `, [estadoEnviado?.[0]?.id_estado_pk, recordatorio.id_recordatorio_pk]);
 
           console.log(`Recordatorio ${recordatorio.id_recordatorio_pk} completado. Proximo en ${recordatorio.dias_intervalo} dias`);
         } else {

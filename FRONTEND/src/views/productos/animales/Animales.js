@@ -258,7 +258,6 @@ const Animales = () => {
       html: `
         <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
           <p class="mb-1 text-sm"><span class="font-bold">Nombre:</span> ${animal.nombre}</p>
-          <p class="mb-1 text-sm"><span class="font-bold">Especie:</span> ${animal.especie}</p>
           <p class="mb-1 text-sm"><span class="font-bold">Precio:</span> L. ${animal.precio.toFixed(2)}</p>
         </div>
       `,
@@ -270,8 +269,8 @@ const Animales = () => {
       padding: "16px",
       customClass: {
         confirmButton: "bg-green-800 hover:bg-green-900 text-white p-button p-component",
-        cancelButton: "p-button-text p-button p-component",
-      },
+        cancelButton: "p-button-text p-button p-component"
+      }
     });
 
     if (result.isConfirmed) {

@@ -14,14 +14,14 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
   const calcularEstadoLote = (lote) => {
     const hoy = new Date();
     const vencimiento = new Date(lote.fecha_vencimiento);
-    
+
     if (vencimiento < hoy) {
       return { bgBadge: "bg-gray-600", texto: "CADUCADO" };
     }
-    
+
     if (lote.estado_lote_nombre && lote.estado_lote_nombre !== "SIN ESTADO") {
       const estadoUpper = lote.estado_lote_nombre.toUpperCase().trim();
-      
+
       if (estadoUpper === "DISPONIBLE") {
         return { bgBadge: "bg-green-500", texto: "DISPONIBLE" };
       } else if (estadoUpper === "AGOTADO") {
@@ -30,26 +30,26 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
         return { bgBadge: "bg-gray-600", texto: "CADUCADO" };
       }
     }
-    
+
     const stock = parseInt(lote.stock_lote || 0);
-    
+
     if (stock === 0) {
       return { bgBadge: "bg-red-500", texto: "AGOTADO" };
     }
-    
+
     return { bgBadge: "bg-green-500", texto: "DISPONIBLE" };
   };
 
   const lotesFiltrados = lotesDelMedicamento.filter(lote => {
     if (filtroEstado === "TODOS") return true;
-    
+
     const estado = calcularEstadoLote(lote);
-    
+
     if (filtroEstado === "DISPONIBLES") { return estado.texto === "DISPONIBLE"; }
     if (filtroEstado === "AGOTADOS") { return estado.texto === "AGOTADO"; }
     if (filtroEstado === "CADUCADOS") { return estado.texto === "CADUCADO"; }
     return true;
-  });
+  }).sort((a, b) => b.id_lote_medicamentos_pk - a.id_lote_medicamentos_pk); // Ordenar de forma descendente por ID
 
   const codigoLoteTemplate = (rowData) => {
     return (
@@ -62,10 +62,10 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
   const fechaIngresoTemplate = (rowData) => {
     return (
       <span className="text-xs text-gray-600 whitespace-nowrap uppercase">
-        {new Date(rowData.fecha_ingreso).toLocaleDateString('es-HN', { 
-          day: '2-digit', 
-          month: 'short', 
-          year: '2-digit' 
+        {new Date(rowData.fecha_ingreso).toLocaleDateString('es-HN', {
+          day: '2-digit',
+          month: 'short',
+          year: '2-digit'
         })}
       </span>
     );
@@ -74,10 +74,10 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
   const fechaVencimientoTemplate = (rowData) => {
     return (
       <span className="text-xs text-gray-600 whitespace-nowrap uppercase">
-        {new Date(rowData.fecha_vencimiento).toLocaleDateString('es-HN', { 
-          day: '2-digit', 
-          month: 'short', 
-          year: '2-digit' 
+        {new Date(rowData.fecha_vencimiento).toLocaleDateString('es-HN', {
+          day: '2-digit',
+          month: 'short',
+          year: '2-digit'
         })}
       </span>
     );
@@ -116,7 +116,7 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
             <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
           </svg>
         </button>
-        
+
         {/* BOTÓN ELIMINAR */}
         <button
           className="bg-red-500 hover:bg-red-700 text-white p-1.5 rounded"
@@ -136,11 +136,11 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
 
   const footer = (
     <div className="flex justify-center">
-      <Button 
-        label="Cerrar" 
-        icon="pi pi-times" 
-        className="p-button-text p-button-rounded" 
-        onClick={onClose} 
+      <Button
+        label="Cerrar"
+        icon="pi pi-times"
+        className="p-button-text p-button-rounded"
+        onClick={onClose}
       />
     </div>
   );
@@ -171,8 +171,8 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
           <div className="flex gap-1 justify-center">
             <button
               className={`px-1.5 py-1 font-medium rounded transition-all duration-200 ${
-                filtroEstado === "TODOS" 
-                  ? "bg-gray-500 text-white shadow-sm" 
+                filtroEstado === "TODOS"
+                  ? "bg-gray-500 text-white shadow-sm"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
               style={{ fontSize: '0.65rem', minWidth: '50px' }}
@@ -182,8 +182,8 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
             </button>
             <button
               className={`px-1.5 py-1 font-medium rounded transition-all duration-200 ${
-                filtroEstado === "DISPONIBLES" 
-                  ? "bg-gray-500 text-white shadow-sm" 
+                filtroEstado === "DISPONIBLES"
+                  ? "bg-gray-500 text-white shadow-sm"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
               style={{ fontSize: '0.65rem', minWidth: '70px' }}
@@ -193,8 +193,8 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
             </button>
             <button
               className={`px-1.5 py-1 font-medium rounded transition-all duration-200 ${
-                filtroEstado === "AGOTADOS" 
-                  ? "bg-gray-500 text-white shadow-sm" 
+                filtroEstado === "AGOTADOS"
+                  ? "bg-gray-500 text-white shadow-sm"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
               style={{ fontSize: '0.65rem', minWidth: '65px' }}
@@ -204,8 +204,8 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
             </button>
             <button
               className={`px-1.5 py-1 font-medium rounded transition-all duration-200 ${
-                filtroEstado === "CADUCADOS" 
-                  ? "bg-gray-500 text-white shadow-sm" 
+                filtroEstado === "CADUCADOS"
+                  ? "bg-gray-500 text-white shadow-sm"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
               style={{ fontSize: '0.65rem', minWidth: '70px' }}
@@ -224,13 +224,13 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
               </svg>
             </div>
             <h3 className="text-sm font-semibold text-gray-600 mb-1">
-              {filtroEstado === "TODOS" 
+              {filtroEstado === "TODOS"
                 ? "No hay lotes registrados"
                 : `No hay lotes ${filtroEstado.toLowerCase()}`
               }
             </h3>
             <p className="text-xs text-gray-400">
-              {filtroEstado === "TODOS" 
+              {filtroEstado === "TODOS"
                 ? "No se encontraron lotes para este medicamento"
                 : `No se encontraron lotes en estado ${filtroEstado.toLowerCase()}`
               }
@@ -246,54 +246,47 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
               selectionMode="single"
               rowClassName={(rowData) => `hover:bg-gray-50 cursor-pointer`}
             >
-              <Column 
-                header="#" 
-                body={(rowData, options) => options.rowIndex + 1}
-                style={{ width: '50px' }}
-                className="text-xs text-center"
-              />
-              
-              <Column 
-                field="codigo_lote" 
-                header="CÓDIGO" 
+              <Column
+                field="codigo_lote"
+                header="CÓDIGO"
                 body={codigoLoteTemplate}
                 style={{ width: '100px' }}
                 className="text-xs"
               />
-              
-              <Column 
-                field="fecha_ingreso" 
-                header="INGRESO" 
+
+              <Column
+                field="fecha_ingreso"
+                header="INGRESO"
                 body={fechaIngresoTemplate}
                 style={{ width: '75px', minWidth: '75px' }}
                 className="text-xs text-center"
               />
-              
-              <Column 
-                field="fecha_vencimiento" 
-                header="VENCIM." 
+
+              <Column
+                field="fecha_vencimiento"
+                header="VENCIM."
                 body={fechaVencimientoTemplate}
                 style={{ width: '75px', minWidth: '75px' }}
                 className="text-xs text-center"
               />
-              
-              <Column 
-                field="stock_lote" 
-                header="STOCK" 
+
+              <Column
+                field="stock_lote"
+                header="STOCK"
                 body={stockTemplate}
                 style={{ width: '60px' }}
                 className="text-xs text-center"
               />
-              
-              <Column 
-                header="ESTADO" 
+
+              <Column
+                header="ESTADO"
                 body={estadoTemplate}
                 style={{ width: '80px' }}
                 className="text-xs text-center"
               />
-              
-              <Column 
-                header="ACCIONES" 
+
+              <Column
+                header="ACCIONES"
                 body={accionesTemplate}
                 style={{ width: '110px' }}
                 className="text-center"

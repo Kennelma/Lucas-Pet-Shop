@@ -29,6 +29,7 @@ export default function FormularioCliente({
     });
 
     const [errorTelefonoDuplicado, setErrorTelefonoDuplicado] = useState(false);
+    const [errorIdentidadDuplicada, setErrorIdentidadDuplicada] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -43,6 +44,10 @@ export default function FormularioCliente({
             // Limpiar error de teléfono duplicado cuando el usuario modifica el campo
             if (name === "telefono_cliente") {
                 setErrorTelefonoDuplicado(false);
+            }
+            
+            if (name === "identidad_cliente") {
+                setErrorIdentidadDuplicada(false);
             }
         }
     };
@@ -64,15 +69,23 @@ export default function FormularioCliente({
             return;
         }
 
-        // Verificar teléfono duplicado
+        // Verificar teléfono e identidad duplicados
         try {
             const clientesExistentes = await verClientes();
             const telefonoDuplicado = clientesExistentes.find(cliente =>
                 cliente.telefono_cliente === nuevoCliente.telefono_cliente
             );
+            const identidadDuplicada = clientesExistentes.find(cliente =>
+                cliente.identidad_cliente === nuevoCliente.identidad_cliente
+            );
 
             if (telefonoDuplicado) {
                 setErrorTelefonoDuplicado(true);
+                return;
+            }
+
+            if (identidadDuplicada) {
+                setErrorIdentidadDuplicada(true);
                 return;
             }
         } catch (error) {
@@ -113,6 +126,7 @@ export default function FormularioCliente({
             telefono_cliente: false
         });
         setErrorTelefonoDuplicado(false);
+        setErrorIdentidadDuplicada(false);
         setNuevoCliente({
             nombre_cliente: "",
             apellido_cliente: "",
@@ -151,6 +165,7 @@ export default function FormularioCliente({
             }
             setErrores({});
             setErrorTelefonoDuplicado(false);
+            setErrorIdentidadDuplicada(false);
         }
     }, [isOpen, identidadInicial]);
 
@@ -172,15 +187,7 @@ export default function FormularioCliente({
                 resizable={false}
             >
                 <div className="mt-0">
-                    {/* Imagen centrada */}
-                    <div className="flex justify-center mb-4">
-                        <img
-                            src={clienteImage}
-                            alt="Cliente"
-                            className="w-25 h-30 object-cover rounded-xl border border-white"
-                        />
-                    </div>
-
+                    
                     {/* Formulario */}
                     <div className="flex flex-col gap-3">
                         {/* Nombre del Cliente */}
@@ -224,6 +231,7 @@ export default function FormularioCliente({
                                     setNuevoCliente({ ...nuevoCliente, identidad_cliente: e.value });
                                     if (e.value && e.value.trim() !== "") {
                                         setErrores({ ...errores, identidad_cliente: false });
+                                        setErrorIdentidadDuplicada(false);
                                     }
                                 }}
                                 mask="9999-9999-99999"
@@ -232,6 +240,7 @@ export default function FormularioCliente({
                                 autoComplete="off"
                             />
                             {errores.identidad_cliente && <p className="text-xs text-red-600 mt-1">La identidad es requerida</p>}
+                            {errorIdentidadDuplicada && <p className="text-xs text-red-600 mt-1">Ya existe un cliente con este número de identidad</p>}
                         </span>
 
                         {/* Teléfono */}

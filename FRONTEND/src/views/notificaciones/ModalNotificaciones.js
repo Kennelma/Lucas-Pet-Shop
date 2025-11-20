@@ -48,9 +48,10 @@ const ModalNotificaciones = ({ isOpen, onClose, notificaciones, onMarcarLeida })
         const medicamento = match[1].trim();
         const lote = match[2].trim();
         return (
+          
           <span style={{ lineHeight: '1.5' }}>
-            El medicamento <strong style={{ color: '#dc2626' }}>{medicamento}</strong> tiene el lote{' '}
-            <strong>{lote}</strong> vencido
+            El Lote <strong style={{ color: '#dc2626' }}>{lote}</strong> de {' '}
+            <strong>{medicamento}</strong> esta vencido
           </span>
         );
       }
@@ -87,7 +88,7 @@ const ModalNotificaciones = ({ isOpen, onClose, notificaciones, onMarcarLeida })
     }
     
     if (tipo === 'LOTE_PROXIMO_VENCER') {
-      return <AiFillAlert style={{ fontSize: '32px', color: '#F59E0B' }} />;
+      return <AiFillAlert style={{ fontSize: '32px', color: '#2563e9ff' }} />;
     }
     
     return null;

@@ -45,7 +45,7 @@ const PerfilUsuario = ({ usuarioSeleccionado }) => {
                   />
                   <span className={`absolute bottom-0 right-0 w-5 h-5 rounded-full border-2 border-white shadow-md ${getEstadoColor(usuarioSeleccionado.estado)}`} />
                 </div>
-                
+
                 <div className="text-center w-full">
                   <h3 className="font-bold text-lg text-gray-800 mb-1">
                     {usuarioSeleccionado.usuario}
@@ -55,7 +55,7 @@ const PerfilUsuario = ({ usuarioSeleccionado }) => {
                   </p>
                   <p className="text-sm text-gray-600 mt-1 flex items-center justify-center gap-1">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                         d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                     <span>Sucursal: {usuarioSeleccionado.nombreSucursal || 'Sin sucursal'}</span>
@@ -65,31 +65,34 @@ const PerfilUsuario = ({ usuarioSeleccionado }) => {
 
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Intentos fallidos:</span>
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${getIntentosBadge(usuarioSeleccionado.intentosFallidos || 0).color}`}>
-                      <span>{getIntentosBadge(usuarioSeleccionado.intentosFallidos || 0).icon}</span>
-                      <span>{usuarioSeleccionado.intentosFallidos || 0}</span>
-                    </span>
-                  </div>
+                  <div className="flex flex-col gap-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600 font-medium">Intentos fallidos:</span>
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${getIntentosBadge(usuarioSeleccionado.intentosFallidos || 0).color}`}>
+                        <span>{getIntentosBadge(usuarioSeleccionado.intentosFallidos || 0).icon}</span>
+                        <span>{usuarioSeleccionado.intentosFallidos || 0}</span>
+                      </span>
+                    </div>
 
-                  <div className="flex items-center justify-center text-sm">
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                      usuarioSeleccionado.bloqueadoHasta 
-                        ? 'bg-red-100 text-red-800 border border-red-200' 
-                        : 'bg-gray-100 text-gray-600 border border-gray-200'
-                    }`}>
-                      {usuarioSeleccionado.bloqueadoHasta ? (
-                        <>
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                          </svg>
-                          <span>{formatearFecha(usuarioSeleccionado.bloqueadoHasta)}</span>
-                        </>
-                      ) : (
-                        <span>Sin bloqueo</span>
-                      )}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-gray-600 font-medium text-xs">Bloqueado hasta:</span>
+                      <div className={`px-3 py-2 rounded-lg text-xs font-semibold text-center ${
+                        usuarioSeleccionado.bloqueadoHasta
+                          ? 'bg-red-50 text-red-700 border border-red-200'
+                          : 'bg-gray-50 text-gray-500 border border-gray-200'
+                      }`}>
+                        {usuarioSeleccionado.bloqueadoHasta ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                            </svg>
+                            <span className="break-all">{formatearFecha(usuarioSeleccionado.bloqueadoHasta)}</span>
+                          </div>
+                        ) : (
+                          <span>Sin bloqueo activo</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

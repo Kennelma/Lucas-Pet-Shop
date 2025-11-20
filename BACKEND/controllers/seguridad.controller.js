@@ -22,7 +22,20 @@ exports.verRolesUsuarios = async (req, res) => {
 
       case 'SUCURSALES':
         [resultado] = await conn.query(`
-          SELECT id_sucursal_pk, nombre_sucursal FROM tbl_sucursales
+          SELECT
+            id_sucursal_pk,
+            nombre_sucursal
+        FROM tbl_sucursales
+        `);
+        break;
+
+        case 'ESTADO':
+        [resultado] = await conn.query(`
+          SELECT
+            id_estado_pk,
+            nombre_estado
+        FROM cat_estados
+        WHERE dominio = 'USUARIO' AND  nombre_estado IN ('ACTIVO', 'INACTIVO')
         `);
         break;
 
@@ -55,7 +68,7 @@ exports.crearUsuario = async (req, res) => {
     const conn = await mysqlConnection.getConnection();
 
     try {
-        
+
         await conn.beginTransaction();
 
         const { usuario, email_usuario, contrasena_usuario, id_sucursal_fk, id_rol_fk } = req.body;

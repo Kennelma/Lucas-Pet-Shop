@@ -232,8 +232,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
           </button>
         </div>
       ) : (
-        <>
-          <div style={{ overflow: 'visible' }}>
+        <div className="overflow-x-auto">
             <DataTable
                 value={promociones}
                 loading={false}
@@ -250,11 +249,12 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
                 rows={5}
                 rowsPerPageOptions={[5, 10, 20, 25]}
                 paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-                tableStyle={{ width: '950px', tableLayout: 'fixed' }}
+                tableStyle={{ tableLayout: 'auto' }}
                 className="mt-4"
                 size="small"
                 selectionMode="single"
                 rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
+                style={{ width: '100%' }}
               >
 
           <Column 
@@ -263,16 +263,16 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
             body={(rowData) => promociones.length - promociones.indexOf(rowData)}  
             sortable 
             className="text-sm"
-            style={{ width: '60px', padding: '8px 8px' }}
-            headerStyle={{ width: '60px', padding: '8px 8px' }}
+            style={{ width: '5%', padding: '8px 8px' }}
+            headerStyle={{ padding: '8px 8px' }}
           />
           <Column 
             field="nombre_promocion" 
             header="NOMBRE" 
             sortable 
             className="text-sm"
-            style={{ width: '200px', padding: '8px 12px' }}
-            headerStyle={{ width: '200px', padding: '8px 12px' }}
+            style={{ width: '20%', padding: '8px 12px' }}
+            headerStyle={{ padding: '8px 12px' }}
             bodyStyle={{ 
               whiteSpace: 'normal',
               wordWrap: 'break-word',
@@ -286,8 +286,8 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
             field="descripcion_promocion" 
             header="DESCRIPCIÓN" 
             className="text-sm"
-            style={{ width: '220px', padding: '8px 10px' }}
-            headerStyle={{ width: '220px', padding: '8px 10px' }}
+            style={{ width: '23%', padding: '8px 10px' }}
+            headerStyle={{ padding: '8px 10px' }}
             bodyStyle={{ 
               whiteSpace: 'normal',
               wordWrap: 'break-word',
@@ -302,16 +302,10 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
             header="PRECIO"
             body={(rowData) => `L. ${parseFloat(rowData.precio_promocion || 0).toFixed(2)}`}
             sortable
-            sortField="precio_promocion"
             dataType="numeric"
-            sortFunction={(e) => {
-              const value1 = parseFloat(e.data1.precio_promocion || 0);
-              const value2 = parseFloat(e.data2.precio_promocion || 0);
-              return e.order * (value1 - value2);
-            }}
             className="text-sm"
-            style={{ width: '110px', padding: '8px 8px' }}
-            headerStyle={{ width: '110px', padding: '8px 8px' }}
+            style={{ width: '11%', padding: '8px 8px' }}
+            headerStyle={{ padding: '8px 8px' }}
           />
           <Column
             header="DÍAS DE PROMOCIÓN"
@@ -326,8 +320,8 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
               return duracion;
             }}
             className="text-sm"
-            style={{ width: '155px', padding: '8px 10px' }}
-            headerStyle={{ width: '155px', padding: '8px 10px' }}
+            style={{ width: '16%', padding: '8px 10px' }}
+            headerStyle={{ padding: '8px 10px' }}
             bodyStyle={{ 
               whiteSpace: 'normal',
               wordWrap: 'break-word',
@@ -344,19 +338,18 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
             sortable
             sortField="activo"
             className="text-sm"
-            style={{ width: '120px', padding: '8px 8px' }}
-            headerStyle={{ width: '120px', padding: '8px 8px' }}
+            style={{ width: '15%', padding: '8px 8px' }}
+            headerStyle={{ padding: '8px 8px' }}
           />
           <Column 
             header="ACCIONES" 
             body={actionBotones} 
             className="py-2 pr-9 pl-1 border-b text-sm"
-            style={{ width: '120px', padding: '8px 8px' }}
-            headerStyle={{ width: '120px', padding: '8px 8px' }}
+            style={{ width: '10%', padding: '8px 8px' }}
+            headerStyle={{ padding: '8px 8px' }}
           />
               </DataTable>
-          </div>
-        </>
+        </div>
       )}
       </div>
     </>

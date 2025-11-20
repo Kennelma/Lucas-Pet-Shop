@@ -1,198 +1,224 @@
 import { jsPDF } from 'jspdf';
+import { procesarDatosPDF } from './pdf-components/pdfProcesador';
+import {
+  generarEncabezado,
+  generarTarjetasResumen,
+  generarTablaResumen,
+  generarDetalleIngresos,
+  generarDetalleGastos,
+  generarResumenFinal,
+  generarPiePagina
+} from './pdf-components/pdfComponentes';
+import {
+  verificarEspacio,
+  theme,
+  CONFIG,
+  Logger,
+  PDFCache,
+  ProgressTracker,
+  PDFValidationError,
+  PDFGenerationError,
+  PDFValidator,
+  moneda
+} from './pdf-components/pdfTema';
 
-export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananciaTotal, anio, mesFiltrado = null) => {
-  const doc = new jsPDF();
+export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananciaTotal, anio, mesFiltrado = null, detallesCompletos = null) => {
+  Logger.info('📄 Iniciando generación de PDF');
+  ProgressTracker.start('Validación', 7);
 
-  // ========== ENCABEZADO MODERNO ==========
-  doc.setFillColor(245, 247, 250);
-  doc.rect(0, 0, 210, 45, 'F');
+  // ✅ VALIDACIÓN DE ENTRADA MEJORADA
+  try {
+    if (!Array.isArray(datosTabla) || datosTabla.length === 0) {
+      throw new PDFValidationError('Los datos de la tabla son requeridos y deben ser un array no vacío', 'datosTabla');
+    }
+    ProgressTracker.update(1);
 
-  // Título principal según el tipo de reporte
-  doc.setFontSize(26);
-  doc.setTextColor(33, 37, 41);
-  doc.setFont(undefined, 'bold');
-  
-  let titulo = '';
-  let esDiario = false;
-  
-  if (mesFiltrado) {
-    // Determinar si es reporte diario o mensual
-    // Si mesFiltrado contiene "Diario" o si hay más de 12 registros, es diario
-    esDiario = mesFiltrado.includes('Diario') || mesFiltrado.includes('DIARIO') || datosTabla.length > 12;
-    
-    if (esDiario) {
-      // Limpiar el nombre del mes si tiene "- Diario"
-      const nombreMes = mesFiltrado.replace(' - Diario', '').replace(' - DIARIO', '');
-      titulo = `Reporte Diario - ${nombreMes} ${anio}`;
-    } else {
-      titulo = `Reporte Mensual - ${mesFiltrado} ${anio}`;
+    if (datosTabla.length > CONFIG.validations.maxTableRows) {
+      throw new PDFValidationError(`La tabla excede el máximo de ${CONFIG.validations.maxTableRows} filas`, 'datosTabla');
+    }
+    ProgressTracker.update(2);
+
+    if (typeof totalIngresos !== 'number' || isNaN(totalIngresos)) {
+      throw new PDFValidationError('Total de ingresos debe ser un número válido', 'totalIngresos');
+    }
+    ProgressTracker.update(3);
+
+    if (typeof totalGastos !== 'number' || isNaN(totalGastos)) {
+      throw new PDFValidationError('Total de gastos debe ser un número válido', 'totalGastos');
+    }
+    ProgressTracker.update(4);
+
+    if (typeof gananciaTotal !== 'number' || isNaN(gananciaTotal)) {
+      throw new PDFValidationError('Ganancia total debe ser un número válido', 'gananciaTotal');
+    }
+    ProgressTracker.update(5);
+
+    const anioNum = Number(anio);
+    if (!anio || isNaN(anioNum)) {
+      throw new PDFValidationError('El año es requerido y debe ser válido', 'anio');
+    }
+    ProgressTracker.update(6);
+
+    if (anioNum < CONFIG.validations.minYear || anioNum > CONFIG.validations.maxYear) {
+      throw new PDFValidationError(`El año debe estar entre ${CONFIG.validations.minYear} y ${CONFIG.validations.maxYear}`, 'anio');
+    }
+    ProgressTracker.complete();
+    Logger.info('✅ Validación exitosa');
+  } catch (error) {
+    Logger.error('Validación fallida', { error: error.message, field: error.field });
+    alert(`Error de validación: ${error.message}`);
+    return;
+  }
+
+  // ========== FASE 1: PROCESAMIENTO DE DATOS ==========
+  ProgressTracker.start('Procesamiento', 1);
+
+  // ✅ Verificar caché si está habilitado
+  const cacheKey = CONFIG.performance.enableCache
+    ? `pdf_${anio}_${mesFiltrado}_${datosTabla.length}`
+    : null;
+
+  let datosProcesados = cacheKey ? PDFCache.get(cacheKey) : null;
+
+  if (!datosProcesados) {
+    try {
+      datosProcesados = procesarDatosPDF(
+        datosTabla,
+        totalIngresos,
+        totalGastos,
+        gananciaTotal,
+        anio,
+        mesFiltrado,
+        detallesCompletos
+      );
+
+      if (cacheKey) {
+        PDFCache.set(cacheKey, datosProcesados);
+      }
+
+      ProgressTracker.complete();
+      Logger.info('Datos procesados exitosamente');
+    } catch (error) {
+      Logger.error('Error al procesar datos', error);
+      throw new PDFGenerationError('Error al procesar los datos del reporte', 'procesamiento');
     }
   } else {
-    titulo = `Reporte Anual ${anio}`;
+    ProgressTracker.complete();
+    Logger.info('Datos recuperados de caché');
   }
-  
-  doc.text(titulo, 105, 22, { align: 'center' });
 
-  // Subtítulo con fecha
-  doc.setFontSize(11);
-  doc.setFont(undefined, 'normal');
-  doc.setTextColor(80, 90, 100);
-  const fecha = new Date().toLocaleDateString('es-HN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-  doc.text(`Generado el ${fecha}`, 105, 32, { align: 'center' });
+  // ========== FASE 2: GENERACIÓN DEL PDF (DIBUJO) ==========
+  ProgressTracker.start('Generación', 5);
 
-  // ========== TARJETAS DE RESUMEN ==========
-  const cardY = 60;
-  const cardHeight = 28;
-  const cardWidth = 56;
+  let doc;
+  try {
+    doc = new jsPDF();
+    ProgressTracker.update(1);
 
-  // Ingresos (Verde)
-  doc.setFillColor(235, 251, 238);
-  doc.roundedRect(15, cardY, cardWidth, cardHeight, 3, 3, 'F');
-  doc.setDrawColor(187, 247, 208);
-  doc.roundedRect(15, cardY, cardWidth, cardHeight, 3, 3, 'S');
+    // Generar encabezado y tarjetas
+    generarEncabezado(doc, datosProcesados.datosEncabezado);
+    ProgressTracker.update(2);
 
-  doc.setFontSize(9);
-  doc.setTextColor(30, 100, 40);
-  doc.setFont(undefined, 'bold');
-  doc.text('TOTAL INGRESOS', 43, cardY + 8, { align: 'center' });
+    generarTarjetasResumen(doc, datosProcesados.datosTarjetas);
+    ProgressTracker.update(3);
 
-  doc.setFontSize(15);
-  doc.setTextColor(22, 163, 74);
-  doc.text(`L ${totalIngresos.toLocaleString('es-HN')}`, 43, cardY + 20, { align: 'center' });
-
-  // Gastos (Rojo)
-  doc.setFillColor(255, 240, 240);
-  doc.roundedRect(77, cardY, cardWidth, cardHeight, 3, 3, 'F');
-  doc.setDrawColor(254, 202, 202);
-  doc.roundedRect(77, cardY, cardWidth, cardHeight, 3, 3, 'S');
-
-  doc.setFontSize(9);
-  doc.setTextColor(190, 50, 50);
-  doc.text('TOTAL GASTOS', 105, cardY + 8, { align: 'center' });
-
-  doc.setFontSize(15);
-  doc.setTextColor(220, 38, 38);
-  doc.text(`L ${totalGastos.toLocaleString('es-HN')}`, 105, cardY + 20, { align: 'center' });
-
-  // Ganancia (Azul si positiva, Naranja si negativa)
-  const isPositive = gananciaTotal >= 0;
-  if (isPositive) {
-    doc.setFillColor(230, 240, 255);
-    doc.setDrawColor(180, 210, 255);
-  } else {
-    doc.setFillColor(255, 245, 230);
-    doc.setDrawColor(255, 220, 180);
+    Logger.info('Encabezado y tarjetas generados');
+  } catch (error) {
+    Logger.error('Error al generar encabezado', error);
+    throw new PDFGenerationError('Error al crear el documento PDF', 'encabezado');
   }
-  doc.roundedRect(139, cardY, cardWidth, cardHeight, 3, 3, 'F');
-  doc.roundedRect(139, cardY, cardWidth, cardHeight, 3, 3, 'S');
 
-  doc.setFontSize(9);
-  doc.setTextColor(isPositive ? 37 : 234, isPositive ? 99 : 88, isPositive ? 235 : 0);
-  doc.text('TOTAL GENERAL', 167, cardY + 8, { align: 'center' });
-
-  doc.setFontSize(15);
-  doc.setTextColor(isPositive ? 25 : 220, isPositive ? 80 : 50, isPositive ? 190 : 20);
-  doc.text(`L ${gananciaTotal.toLocaleString('es-HN')}`, 167, cardY + 20, { align: 'center' });
-
-  // ========== TABLA DE DETALLE ==========
-  doc.setFontSize(14);
-  doc.setTextColor(33, 37, 41);
-  doc.setFont(undefined, 'bold');
-  
-  let tituloTabla = '';
-  if (mesFiltrado) {
-    const nombreMes = mesFiltrado.replace(' - Diario', '').replace(' - DIARIO', '');
-    tituloTabla = esDiario ? `Detalle Diario - ${nombreMes}` : `Detalle de ${nombreMes}`;
-  } else {
-    tituloTabla = 'Detalle Anual';
+  // Generar tabla de resumen
+  let y;
+  try {
+    y = generarTablaResumen(doc, datosProcesados.datosTablaResumen);
+    ProgressTracker.update(4);
+    Logger.info('Tabla resumen generada');
+  } catch (error) {
+    Logger.error('Error al generar tabla', error);
+    throw new PDFGenerationError('Error al generar la tabla de resumen', 'tabla');
   }
-  
-  doc.text(tituloTabla, 105, 105, { align: 'center' });
 
-  const tableY = 115;
+  // Generar detalles (ingresos, gastos, resumen)
+  try {
+    if (datosProcesados.datosDetalles) {
+    y += theme.spacing.sectionGap;
+    y = verificarEspacio(doc, y, 50);
 
-  // Encabezado tabla
-  doc.setFillColor(235, 235, 245);
-  doc.roundedRect(15, tableY, 180, 10, 2, 2, 'F');
-  doc.setFontSize(10);
-  doc.setTextColor(60, 60, 70);
-  
-  // Cambiar header según si es diario o no
-  const headerTexto = esDiario ? 'Fecha' : 'Período';
-  doc.text(headerTexto, 30, tableY + 7, { align: 'left' });
-  doc.text('Ingresos', 85, tableY + 7, { align: 'center' });
-  doc.text('Gastos', 130, tableY + 7, { align: 'center' });
-  doc.text('Total', 175, tableY + 7, { align: 'center' });
-
-  let y = tableY + 18;
-  datosTabla.forEach((fila, index) => {
-    if (index % 2 === 0) {
-      doc.setFillColor(250, 250, 252);
-      doc.roundedRect(15, y - 6, 180, 9, 1, 1, 'F');
+    // Detalles de ingresos
+    if (datosProcesados.datosDetalles.ingresos.length > 0) {
+      y = generarDetalleIngresos(doc, datosProcesados.datosDetalles.ingresos, y);
     }
 
-    doc.setDrawColor(230, 230, 235);
-    doc.line(15, y + 3, 195, y + 3);
-
-    doc.setFontSize(9);
-    doc.setTextColor(70, 70, 85);
-    
-    // CORRECCIÓN: Usar fecha para diario, mes para mensual, periodo para anual
-    const textoColumna = fila.fecha || fila.mes || fila.periodo || '';
-    doc.text(textoColumna, 30, y, { align: 'left' });
-
-    doc.setTextColor(22, 163, 74);
-    doc.text(`L ${fila.ingreso.toLocaleString('es-HN')}`, 85, y, { align: 'center' });
-
-    doc.setTextColor(220, 38, 38);
-    doc.text(`L ${fila.gasto.toLocaleString('es-HN')}`, 130, y, { align: 'center' });
-
-    const isProfitable = fila.total >= 0 || fila.ganancia >= 0;
-    const totalValue = fila.total || fila.ganancia || 0;
-    doc.setTextColor(isProfitable ? 37 : 234, isProfitable ? 99 : 88, isProfitable ? 235 : 0);
-    doc.text(`L ${totalValue.toLocaleString('es-HN')}`, 175, y, { align: 'center' });
-
-    y += 9;
-    if (y > 270 && index < datosTabla.length - 1) {
-      doc.addPage();
-      doc.setFillColor(235, 235, 245);
-      doc.roundedRect(15, 20, 180, 10, 2, 2, 'F');
-      doc.setTextColor(60, 60, 70);
-      doc.text(headerTexto, 30, 27, { align: 'left' });
-      doc.text('Ingresos', 85, 27, { align: 'center' });
-      doc.text('Gastos', 130, 27, { align: 'center' });
-      doc.text('Total', 175, 27, { align: 'center' });
-      y = 38;
+    // Detalles de gastos
+    if (datosProcesados.datosDetalles.gastos.length > 0) {
+      y = verificarEspacio(doc, y, 50);
+      y += 8;
+      y = generarDetalleGastos(doc, datosProcesados.datosDetalles.gastos, y);
     }
-  });
 
-  // ========== PIE DE PÁGINA ==========
-  const pageCount = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setDrawColor(220, 220, 230);
-    doc.line(15, 285, 195, 285);
-    doc.setFontSize(8);
-    doc.setTextColor(120, 130, 140);
-    doc.text('Sistema de Reportes Financieros', 105, 290, { align: 'center' });
-    doc.text(`Página ${i} de ${pageCount}`, 195, 290, { align: 'right' });
+    // Resumen final
+    if (datosProcesados.datosDetalles.resumen.length > 0) {
+      const alturaResumen = datosProcesados.datosDetalles.resumen.length * 7 + 10;
+      y = verificarEspacio(doc, y, alturaResumen);
+      y = generarResumenFinal(doc, datosProcesados.datosDetalles.resumen, y);
+    }
+  }
+    Logger.info('Detalles generados');
+  } catch (error) {
+    Logger.error('Error al generar detalles', error);
+    throw new PDFGenerationError('Error al generar los detalles del reporte', 'detalles');
   }
 
-  // ========== GUARDAR ==========
-  let nombreArchivo = '';
-  
-  if (mesFiltrado) {
-    const nombreMes = mesFiltrado.replace(' - Diario', '').replace(' - DIARIO', '').replace(/\s+/g, '-');
-    nombreArchivo = esDiario 
-      ? `Reporte-Diario-${nombreMes}-${anio}.pdf`
-      : `Reporte-Mensual-${nombreMes}-${anio}.pdf`;
-  } else {
-    nombreArchivo = `Reporte-Anual-${anio}.pdf`;
+  // Generar pie de página
+  try {
+    generarPiePagina(doc);
+    ProgressTracker.update(5);
+    Logger.info('Pie de página generado');
+  } catch (error) {
+    Logger.warn('Error al generar pie de página (no crítico)', error);
   }
-  
-  doc.save(nombreArchivo);
+
+  ProgressTracker.complete();
+
+  // ========== VALIDACIÓN DE SALIDA ==========
+  ProgressTracker.start('Validación final', 1);
+  const validation = PDFValidator.validateOutput(doc);
+
+  if (!validation.valid) {
+    const errors = validation.issues.filter(i => i.level === 'error');
+    Logger.error('PDF inválido', errors);
+    alert(`Error en el PDF generado: ${errors.map(e => e.message).join(', ')}`);
+    return;
+  }
+
+  if (validation.issues.length > 0) {
+    validation.issues.forEach(issue => {
+      Logger.warn(`Advertencia en PDF: ${issue.message}`);
+    });
+  }
+
+  ProgressTracker.complete();
+
+  // ========== RETORNAR EL DOCUMENTO ==========
+  ProgressTracker.start('Finalizando', 1);
+  try {
+    ProgressTracker.complete();
+
+    Logger.info('✅ PDF generado exitosamente', {
+      archivo: datosProcesados.nombreArchivo,
+      paginas: doc.internal.getNumberOfPages(),
+      cacheStats: PDFCache.getStats()
+    });
+
+    // Retornar el documento para que pueda ser manejado externamente
+    return doc;
+
+  } catch (error) {
+    Logger.error('Error al finalizar PDF', error);
+    throw new PDFGenerationError('Error al generar el archivo PDF', 'finalizacion');
+  }
 };
+
+// ✅ UTILIDADES EXPORTADAS
+export { Logger, PDFCache, ProgressTracker, CONFIG, moneda };

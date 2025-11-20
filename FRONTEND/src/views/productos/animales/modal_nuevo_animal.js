@@ -7,6 +7,7 @@ import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
 import { InputSwitch } from 'primereact/inputswitch';
 import { insertarProducto } from '../../../AXIOS.SERVICES/products-axios';
+import Swal from 'sweetalert2';
 
 // COMPONENTE PRINCIPAL DEL MODAL PARA CREAR UN NUEVO ANIMAL
 const ModalNuevoAnimal = ({ isOpen, onClose, onSave, animalesExistentes = [] }) => {
@@ -178,12 +179,33 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave, animalesExistentes = [] }) 
 
         onSave(nuevoAnimal);
         onClose();
+        
+        setTimeout(() => {
+          Swal.fire({
+            icon: "success",
+            title: "¡Agregado!",
+            text: "El animal fue agregado correctamente",
+            timer: 1800,
+            showConfirmButton: false,
+          });
+        }, 100);
       } else {
-        alert(`Error al guardar: ${res.error}`);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: `No se pudo guardar: ${res.error}`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
       }
     } catch (err) {
-      console.error(err);
-      alert('Ocurrió un error al guardar el animal.');
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Ocurrió un error al guardar el animal.",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     } finally {
       setLoading(false);
     }

@@ -33,7 +33,7 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
             amount: Number(item.monto_gasto),
             date: normalizedDate,
           };
-        });
+        }).reverse();
         setGastos(gastosFormateados);
       }
     } catch (err) {
@@ -51,22 +51,6 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
   };
 
   const handleEliminar = async (gasto) => {
-    const fechaGasto = new Date(gasto.date);
-    const fechaHoy = new Date();
-    const gastoNormalizado = new Date(fechaGasto.getFullYear(), fechaGasto.getMonth(), fechaGasto.getDate());
-    const hoyNormalizado = new Date(fechaHoy.getFullYear(), fechaHoy.getMonth(), fechaHoy.getDate());
-
-    if (gastoNormalizado.getTime() !== hoyNormalizado.getTime()) {
-      Swal.fire({
-        title: 'Acción no permitida',
-        text: 'Solo se pueden eliminar gastos del día actual.',
-        icon: 'warning',
-        confirmButtonText: 'Entendido',
-        confirmButtonColor: '#3085d6',
-      });
-      return;
-    }
-
     const confirm = await Swal.fire({
       title: '¿Eliminar gasto?',
       text: 'Esta acción no se puede deshacer.',
@@ -144,10 +128,13 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
       <style>
         {`
           .modal-tabla-gastos-dialog .p-dialog {
-            z-index: 9999 !important;
+            z-index: 10000 !important;
           }
           .modal-tabla-gastos-dialog .p-dialog-mask {
-            z-index: 9998 !important;
+            z-index: 9999 !important;
+          }
+          .swal2-container {
+            z-index: 99999 !important;
           }
         `}
       </style>
@@ -186,11 +173,13 @@ const ModalTablaGastos = ({ visible, onHide, onRefresh }) => {
               size="small"
               rowClassName={() => 'hover:bg-yellow-50'}
               pt={{ headerCell: { className: 'px-3' }, bodyCell: { className: 'px-3' } }}
+              sortField="id"
+              sortOrder={-1}
             >
               <Column
                 field="id"
                 header="ID"
-                body={(rowData) => gastos.length - gastos.indexOf(rowData)}
+                body={(rowData, options) => gastos.length - options.rowIndex}
                 sortable
                 style={{ width: '80px' }}
               />

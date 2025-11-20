@@ -5,7 +5,7 @@ import { InputText } from 'primereact/inputtext';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPenToSquare, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
+import {  faPlus } from '@fortawesome/free-solid-svg-icons';
 
 import ModalNuevoAlimento from './modal_nuevo_alimento';
 import ModalActualizarAlimento from './modal_actualizar_alimento';
@@ -260,7 +260,6 @@ const Alimentos = () => {
       html: `
         <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
           <p class="mb-1 text-sm"><span class="font-bold">Nombre:</span> ${alimento.nombre}</p>
-          <p class="mb-1 text-sm"><span class="font-bold">Destino:</span> ${alimento.destino}</p>
           <p class="mb-1 text-sm"><span class="font-bold">Precio:</span> L. ${alimento.precio.toFixed(2)}</p>
         </div>
       `,
@@ -272,8 +271,8 @@ const Alimentos = () => {
       padding: '16px',
       customClass: {
         confirmButton: 'bg-green-800 hover:bg-green-900 text-white p-button p-component',
-        cancelButton: 'p-button-text p-button p-component',
-      },
+        cancelButton: 'p-button-text p-button p-component'
+      }
     });
 
     if (result.isConfirmed) {

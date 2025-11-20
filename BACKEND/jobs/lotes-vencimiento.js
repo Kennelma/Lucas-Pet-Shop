@@ -3,7 +3,7 @@ const mysqlConnection = require('../config/conexion');
 
 
 //TAREA AUTOMATICA DE ESTADO DE LOTES
-cron.schedule('*/2 * * * *', async () => { // CADA 5 HORAS
+cron.schedule('*/30 * * * *', async () => { // CADA 30 MINUTOS
 
   const conn = await mysqlConnection.getConnection();
 
@@ -16,6 +16,10 @@ cron.schedule('*/2 * * * *', async () => { // CADA 5 HORAS
 
 
   try {
+
+    // Configurar timeout y nivel de aislamiento
+    await conn.query('SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED');
+    await conn.query('SET SESSION innodb_lock_wait_timeout = 10');
 
     //OBTENGO LOS ID DE ESTADOS USADOS EN LOTAJE
     const [estados] = await conn.query(`
@@ -54,7 +58,11 @@ cron.schedule('*/2 * * * *', async () => { // CADA 5 HORAS
     console.log(`ESTADO DE LOTES ACTUALIZADOS (${fecha_actual})`);
 
   } catch (error) {
+    if (error.code === 'ER_LOCK_WAIT_TIMEOUT' || error.code === 'ER_LOCK_DEADLOCK') {
+      console.log('Actualización de estado de lotes omitida - tablas en uso');
+    } else {
       console.error('ERROR AL ACTUALIZAR ESTADO DE LOTES:', error.message);
+    }
   } finally {
     conn.release();
   }
@@ -62,11 +70,15 @@ cron.schedule('*/2 * * * *', async () => { // CADA 5 HORAS
 
 
 //TAREA AUTOMATICA DE NOTIFICACION QUE SE MUESTRA
-cron.schedule('*/1 * * * *', async () => {
+cron.schedule('*/10 * * * *', async () => { // CADA 10 MINUTOS
 
   const conn = await mysqlConnection.getConnection();
 
   try {
+
+    // Configurar timeout y nivel de aislamiento
+    await conn.query('SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED');
+    await conn.query('SET SESSION innodb_lock_wait_timeout = 10');
 
     //FECHA DEL SISTEMA
     let fecha = new Date();
@@ -80,7 +92,7 @@ cron.schedule('*/1 * * * *', async () => {
       SELECT
         CASE
           WHEN l.stock_lote = 0 THEN
-            CONCAT(p.nombre_producto, ' (', l.codigo_lote, ')')
+            CONCAT('LOTE AGOTADO: ', p.nombre_producto, ' (', l.codigo_lote, ')')
 
           WHEN l.fecha_vencimiento < ? THEN
             CONCAT('LOTE CADUCADO: ', p.nombre_producto, ' (', l.codigo_lote, ')')
@@ -131,7 +143,11 @@ cron.schedule('*/1 * * * *', async () => {
     console.log(`NOTIFICACIONES PROCESADAS (${fecha_actual})`);
 
   } catch (error) {
-    console.error('ERROR EN NOTIFICACIONES:', error?.message);
+    if (error.code === 'ER_LOCK_WAIT_TIMEOUT' || error.code === 'ER_LOCK_DEADLOCK') {
+      console.log('Procesamiento de notificaciones omitido - tablas en uso');
+    } else {
+      console.error('ERROR EN NOTIFICACIONES:', error?.message);
+    }
   } finally {
     conn.release();
   }
@@ -145,6 +161,9 @@ cron.schedule('0 3 * * *', async () => {
   const conn = await mysqlConnection.getConnection();
 
   try {
+
+    // Configurar timeout
+    await conn.query('SET SESSION innodb_lock_wait_timeout = 10');
 
     //FECHA LÍMITE (7 DÍAS ATRÁS)
     let fecha = new Date();

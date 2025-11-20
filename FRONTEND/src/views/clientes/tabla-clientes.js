@@ -160,9 +160,33 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
     };
 
     //ESTADO DE ELIMINACION, AQUI SE MANEJA LOS TOAST DE CONFIRMACION
-    const handleEliminar = async () => {
+    const handleEliminar = async (cliente) => {
+        const result = await Swal.fire({
+            title: '¿Eliminar cliente?',
+            html: `
+                <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
+                    <p class="mb-1 text-sm"><span class="font-bold">Nombre:</span> ${cliente?.nombre_cliente}</p>
+                    <p class="mb-1 text-sm"><span class="font-bold">Identidad:</span> ${cliente?.identidad_cliente}</p>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Eliminar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true,
+            width: 380,
+            padding: '16px',
+            customClass: {
+                confirmButton: 'bg-green-800 hover:bg-green-900 text-white p-button p-component',
+                cancelButton: 'p-button-text p-button p-component'
+            }
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
         try {
-            const resultado = await eliminarCliente(clienteAEliminar.id_cliente_pk);
+            const resultado = await eliminarCliente(cliente.id_cliente_pk);
 
             if (resultado.Consulta) {
                 const data = await verClientes();
@@ -188,7 +212,6 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                 confirmButtonColor: '#d33',
             });
         }
-        setConfirmDialogVisible(false);
     };
 
     const actionBotones = (rowData, column) => {
@@ -199,10 +222,7 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                 rowIndex={rowIndex}
                 totalRows={clientes.length}
                 onEditar={(cliente) => handleActualizarCliente(cliente, rowIndex)}
-                onEliminar={(cliente) => {
-                    setClienteAEliminar(cliente);
-                    setConfirmDialogVisible(true);
-                }}
+                onEliminar={(cliente) => handleEliminar(cliente)}
             />
         );
     };
@@ -216,11 +236,11 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                     }
                 `}
             </style>
-            <div className="bg-white rounded-xl p-6 font-poppins" style={{boxShadow: '0 0 8px #DEFFAD40, 0 0 0 1px #DEFFAD33'}}>
+            <div className="bg-white rounded-xl p-6 font-poppins border-2" style={{borderColor: '#B5DD7E'}}>
                 <div className="flex justify-end items-center mb-4">
                     <button
                         className="text-black px-3 py-1 text-sm rounded transition-colors flex items-center gap-2 uppercase"
-                        style={{ backgroundColor: 'rgba(222, 255, 173, 1)' }}
+                        style={{ backgroundColor: "#B5DD7E" }}
                         onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(222, 255, 173, 1)'}
                         onClick={handleAgregarCliente}
                     >
@@ -292,28 +312,7 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                 />
             )}
 
-            {/*DIALOG_PARA_ELIMINAR_CLIENTE*/}
-            <Dialog
-                header="Confirmar eliminación"
-                visible={confirmDialogVisible}
-                style={{ width: '30rem' }}
-                onHide={() => setConfirmDialogVisible(false)}
-                modal
-            >
-                <p>¿Estás seguro de eliminar al cliente <strong>{clienteAEliminar?.nombre_cliente}</strong>?</p>
-                <div className="flex justify-end gap-3 mt-4">
-                    <Button
-                        label="Cancelar"
-                        className="p-button-text"
-                        onClick={() => setConfirmDialogVisible(false)}
-                    />
-                    <Button
-                        label="Eliminar"
-                        className="bg-[#DEFFAD] hover:bg-[#c9e89a] text-gray-900 font-semibold"
-                        onClick={handleEliminar}
-                    />
-                </div>
-            </Dialog>
+
         </>
     );
 };

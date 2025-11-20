@@ -4,8 +4,6 @@ import axiosInstance from './axiosConfig';
 const API_URL = "/recordatorios";
 
 
-
-
 /*SERVICIO PARA VER CATALOGOS POR TIPO*/
 export const verCatalogo = async (tipo_catalogo) => {
   try {
@@ -70,7 +68,7 @@ export const actualizarRecordatorio = async (datosRecordatorio) => {
 export const eliminarRecordatorio = async (id) => {
   try {
     const res = await axiosInstance.delete(`${API_URL}/eliminar`, {
-      data: { id },
+      data:{ id_recordatorio: id },
     });
     return res.data;
   } catch (err) {

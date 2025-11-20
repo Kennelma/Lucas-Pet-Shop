@@ -58,14 +58,18 @@ const ModalAgregarSucursal = ({
       <div className="mt-2">
         <div className="flex flex-col gap-3">
           <span>
-            <label htmlFor="id_empresa_fk" className="text-xs font-semibold text-gray-700 mb-1">Empresa</label>
+            <label htmlFor="id_empresa_fk" className="text-xs font-semibold text-gray-700 mb-1">EMPRESA</label>
             <Dropdown
               id="id_empresa_fk"
               name="id_empresa_fk"
-              value={formData.id_empresa_fk}
+              value={formData.id_empresa_fk || ''}
               options={empresas}
-              onChange={(e) => onChange({ target: { name: 'id_empresa_fk', value: e.value } })}
-              onBlur={() => onBlur({ target: { name: 'id_empresa_fk', value: formData.id_empresa_fk } })}
+              onChange={(e) => {
+                onChange({ target: { name: 'id_empresa_fk', value: e.value } });
+                if (e.value) {
+                  onBlur({ target: { name: 'id_empresa_fk', value: e.value } });
+                }
+              }}
               optionLabel="nombre_empresa"
               optionValue="id_empresa_pk"
               placeholder="Seleccionar empresa..."
@@ -77,32 +81,41 @@ const ModalAgregarSucursal = ({
 
           {/* Nombre de la Sucursal */}
           <span>
-            <label htmlFor="nombre_sucursal" className="text-xs font-semibold text-gray-700 mb-1">Nombre de la sucursal</label>
+            <label htmlFor="nombre_sucursal" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE DE LA SUCURSAL</label>
             <InputText
-              id="nombre_sucursal"
-              name="nombre_sucursal"
+              id="field_nombre_suc_xyz"
+              name="field_nombre_suc_xyz"
               value={formData.nombre_sucursal}
-              onChange={onChange}
-              onBlur={onBlur}
-              className="w-full rounded-xl h-9 text-sm uppercase"
-              placeholder="Ej: Sucursal Norte"
+              onChange={(e) => {
+                const event = { target: { name: 'nombre_sucursal', value: e.target.value.toUpperCase() } };
+                onChange(event);
+              }}
+              onBlur={(e) => onBlur({ target: { name: 'nombre_sucursal', value: e.target.value } })}
+              className="w-full rounded-xl h-9 text-sm"
+              placeholder="Ej: SUCURSAL NORTE"
+              type="text"
               autoComplete="off"
+              data-lpignore="true"
+              data-form-type="other"
             />
             {errores.nombre_sucursal && <p className="text-xs text-red-600 mt-1">{errores.nombre_sucursal}</p>}
           </span>
 
           {/* Dirección */}
           <span>
-            <label htmlFor="direccion_sucursal" className="text-xs font-semibold text-gray-700 mb-1">Dirección</label>
+            <label htmlFor="direccion_sucursal" className="text-xs font-semibold text-gray-700 mb-1">DIRECCIÓN</label>
             <InputText
-              id="direccion_sucursal"
-              name="direccion_sucursal"
+              id="field_ubicacion_xyz"
+              name="field_ubicacion_xyz"
               value={formData.direccion_sucursal}
-              onChange={onChange}
-              onBlur={onBlur}
+              onChange={(e) => onChange({ target: { name: 'direccion_sucursal', value: e.target.value } })}
+              onBlur={(e) => onBlur({ target: { name: 'direccion_sucursal', value: e.target.value } })}
               className="w-full rounded-xl h-9 text-sm uppercase"
-              placeholder="Ej: Barrio El Carmen"
+              placeholder="Ej: BARRIO EL CARMEN"
+              type="text"
               autoComplete="off"
+              data-lpignore="true"
+              data-form-type="other"
             />
             {errores.direccion_sucursal && <p className="text-xs text-red-600 mt-1">{errores.direccion_sucursal}</p>}
           </span>
@@ -110,16 +123,21 @@ const ModalAgregarSucursal = ({
           {/* Teléfono */}
           <span>
             <label htmlFor="telefono_sucursal" className="text-xs font-semibold text-gray-700 mb-1">TELÉFONO</label>
-            <InputMask
-              id="telefono_sucursal"
-              name="telefono_sucursal"
-              value={formData.telefono_sucursal}
-              onChange={(e) => onChange({ target: { name: 'telefono_sucursal', value: e.value } })}
-              onBlur={(e) => onBlur({ target: { name: 'telefono_sucursal', value: e.value } })}
-              mask="9999-9999"
-              placeholder="0000-0000"
+            <InputText
+              id="field_contacto_xyz"
+              name="field_contacto_xyz"
+              value={formData.telefono_sucursal || ''}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                onChange({ target: { name: 'telefono_sucursal', value } });
+              }}
+              onBlur={(e) => onBlur({ target: { name: 'telefono_sucursal', value: e.target.value } })}
+              placeholder="98972569"
               className="w-full rounded-xl h-9 text-sm"
+              type="text"
               autoComplete="off"
+              data-lpignore="true"
+              maxLength={8}
             />
             {errores.telefono_sucursal && <p className="text-xs text-red-600 mt-1">{errores.telefono_sucursal}</p>}
           </span>

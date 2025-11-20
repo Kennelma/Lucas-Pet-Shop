@@ -112,8 +112,6 @@ const ModalActualizarEstilista = ({ isOpen, onClose, estilista, onSave }) => {
         }
       }
     } catch (error) {
-      console.error('Error en handleSubmit:', error);
-      
       // Si el error es 500, probablemente la actualización fue exitosa
       if (error.response?.status === 500) {
         Swal.fire({

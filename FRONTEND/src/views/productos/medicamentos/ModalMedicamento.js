@@ -3,7 +3,7 @@ import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { InputSwitch } from "primereact/inputswitch";
 
-const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medicamentosExistentes = [] }) => {
+const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medicamentosExistentes = [], lotesExistentes = [] }) => {
   const [paso, setPaso] = useState(1);
   const [formData, setFormData] = useState({
     nombre_producto: "",
@@ -38,11 +38,42 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
     return partes.join('-');
   };
 
-  const generarCodigoLote = (nombreMedicamento) => {
-    const nombreSinEspacios = nombreMedicamento.replace(/\s+/g, '').toUpperCase();
-    const letras = nombreSinEspacios.substring(0, 4).padEnd(4, 'X');
-    return `LOTE-01-${letras}`;
-  };
+  const generarCodigoLote = (nombreMedicamento, idProducto = null) => {
+  const nombreSinEspacios = nombreMedicamento.replace(/\s+/g, '').toUpperCase();
+  const letras = nombreSinEspacios.substring(0, 4).padEnd(4, 'X');
+
+  // Filtrar lotes del medicamento específico
+  let lotesDelMedicamento = [];
+
+  if (idProducto) {
+    // Si es edición y tenemos el ID del producto
+    lotesDelMedicamento = lotesExistentes.filter(lote =>
+      lote.id_producto_fk === idProducto
+    );
+  } else {
+    // Si es creación nueva, buscar por patrón de código (últimas 4 letras)
+    lotesDelMedicamento = lotesExistentes.filter(lote =>
+      lote.codigo_lote && lote.codigo_lote.endsWith(letras)
+    );
+  }
+
+  // Extraer todos los números de los códigos existentes
+  const numerosExistentes = lotesDelMedicamento
+    .map(lote => {
+      const match = lote.codigo_lote.match(/LOTE-(\d+)-/);
+      return match ? parseInt(match[1]) : 0;
+    })
+    .filter(n => n > 0);
+
+  // ✅ SIEMPRE INCREMENTAR desde el máximo (nunca reutilizar números)
+  const siguienteNumero = numerosExistentes.length > 0
+    ? Math.max(...numerosExistentes) + 1
+    : 1;
+
+  const numeroFormateado = siguienteNumero.toString().padStart(2, '0');
+
+  return `LOTE-${numeroFormateado}-${letras}`;
+};
 
   // FUNCIÓN AUXILIAR PARA RECALCULAR EL PRECIO SEGÚN SI SE APLICA IMPUESTO
   const recalcularPrecio = (base, tasa, aplicar) => {
@@ -57,12 +88,12 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
         const tieneImpuesto = Boolean(medicamentoEditando.tiene_impuesto);
         const tasa = parseFloat(medicamentoEditando.tasa_impuesto) || 15;
         const precioInicial = parseFloat(medicamentoEditando.precio_producto) || 0;
-        
+
         let base = precioInicial;
         if (tieneImpuesto && precioInicial > 0 && tasa > 0) {
           base = (precioInicial / (1 + tasa / 100));
         }
-        
+
         setPrecioBase(Number(base.toFixed(2)));
         setFormData({
           nombre_producto: medicamentoEditando.nombre_producto,
@@ -110,14 +141,14 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
   const handleChange = (field, value) => {
     const camposTexto = ['nombre_producto'];
     const valorFinal = camposTexto.includes(field) ? value.toUpperCase() : value;
-    
+
     setFormData(prev => {
       const newData = { ...prev, [field]: valorFinal };
-      
+
       if (field === 'nombre_producto') {
         newData.sku = generarSKU(valorFinal);
       }
-      
+
       // ACTUALIZA EL PRECIO BASE CUANDO EL USUARIO EDITA EL PRECIO
       if (field === 'precio_producto') {
         const precioActual = parseFloat(valorFinal) || 0;
@@ -133,22 +164,22 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
         }
         setPrecioBase(Number(nuevaBase.toFixed(2)));
       }
-      
+
       return newData;
     });
 
     setErrores(prev => {
       const newErrores = { ...prev };
-      
+
       if (field === 'nombre_producto') {
         if (!valorFinal.trim()) {
           newErrores[field] = 'El nombre del producto es obligatorio';
         } else {
-          const nombreExiste = medicamentosExistentes.some(med => 
+          const nombreExiste = medicamentosExistentes.some(med =>
             med.nombre_producto.toLowerCase() === valorFinal.trim().toLowerCase() &&
             (!medicamentoEditando || med.id_medicamento !== medicamentoEditando.id_medicamento)
           );
-          
+
           if (nombreExiste) {
             newErrores[field] = 'Ya existe un medicamento con este nombre';
           } else {
@@ -179,7 +210,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
       } else if (field === 'stock_lote') {
         newErrores[field] = parseInt(value) >= 5 ? '' : 'El stock del lote debe ser mínimo 5 unidades';
       }
-      
+
       return newErrores;
     });
   };
@@ -213,20 +244,20 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
 
   const validarPaso1 = () => {
     let temp = {};
-    
+
     if (!formData.nombre_producto.trim()) {
       temp.nombre_producto = 'El nombre del producto es obligatorio';
     } else {
-      const nombreExiste = medicamentosExistentes.some(med => 
+      const nombreExiste = medicamentosExistentes.some(med =>
         med.nombre_producto.toLowerCase() === formData.nombre_producto.trim().toLowerCase() &&
         (!medicamentoEditando || med.id_medicamento !== medicamentoEditando.id_medicamento)
       );
-      
+
       if (nombreExiste) {
         temp.nombre_producto = 'Ya existe un medicamento con este nombre';
       }
     }
-    
+
     if (!formData.precio_producto || parseFloat(formData.precio_producto) <= 0) {
       temp.precio_producto = 'El precio debe ser mayor a 0';
     }
@@ -246,7 +277,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
 
   const validarPaso2 = () => {
     let temp = {};
-    
+
     if (!formData.fecha_vencimiento) {
       temp.fecha_vencimiento = 'La fecha de vencimiento es obligatoria';
     } else {
@@ -274,27 +305,23 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
   };
 
   const handleGuardar = () => {
-    
+
     // Agregar información de impuesto al formData antes de guardar
     const dataConImpuesto = {
       ...formData,
       tiene_impuesto: aplicaImpuesto ? 1 : 0,
       tasa_impuesto: aplicaImpuesto ? tasaImpuesto : 0
     };
-    
+
     if (medicamentoEditando) {
       if (validarPaso1()) {
-        console.log(' Validación Paso 1 exitosa (edición)');
         onSave(dataConImpuesto);
       } else {
-        console.log('Error en validación Paso 1 (edición)');
       }
     } else {
       if (validarPaso2()) {
-        console.log('Validación Paso 2 exitosa (creación)');
         onSave(dataConImpuesto);
       } else {
-        console.log('Error en validación Paso 2 (creación)');
       }
     }
   };
@@ -323,7 +350,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
         >
           Cancelar
         </button>
-        
+
         {medicamentoEditando ? (
           <button
             className="p-button p-button-success p-button-rounded px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold"
@@ -360,8 +387,8 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
     <Dialog
       header={<div className="w-full text-center text-lg font-bold">{medicamentoEditando ? 'EDITAR MEDICAMENTO' : 'NUEVO MEDICAMENTO'}</div>}
       visible={isOpen}
-      style={medicamentoEditando ? 
-        { width: '30rem', maxHeight: '85vh', borderRadius: '1.5rem' } : 
+      style={medicamentoEditando ?
+        { width: '30rem', maxHeight: '85vh', borderRadius: '1.5rem' } :
         { width: '28rem', borderRadius: '1.5rem' }
       }
       modal
@@ -372,10 +399,10 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
       dismissableMask={false}
       draggable={false}
       resizable={false}
-      contentStyle={medicamentoEditando ? { 
-        overflowY: 'auto', 
-        padding: '1rem', 
-        maxHeight: 'calc(85vh - 120px)' 
+      contentStyle={medicamentoEditando ? {
+        overflowY: 'auto',
+        padding: '1rem',
+        maxHeight: 'calc(85vh - 120px)'
       } : {}}
     >
       {/* Indicador de pasos */}
@@ -566,8 +593,8 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
         {/* PASO 2: Lote Inicial */}
         {paso === 2 && !medicamentoEditando && (
           <>
-            <div className="bg-blue-50 p-3 rounded-lg mb-3">
-              <p className="text-sm font-semibold text-blue-800 mb-1">🏷️ LOTE INICIAL</p>
+            <div className="bg-blue-50 p-3 rounded-lg mb-3 text-center">
+              <p className="text-sm font-semibold text-blue-800 mb-1">LOTE INICIAL</p>
               <p className="text-xs text-blue-600">Configure el primer lote para este medicamento</p>
             </div>
 

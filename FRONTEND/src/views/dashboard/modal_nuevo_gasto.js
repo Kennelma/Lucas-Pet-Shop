@@ -102,19 +102,31 @@ const ModalAgregarGasto = ({ visible, onHide, onRefresh }) => {
   );
 
   return (
-    <Dialog
-      header={<div className="w-full text-center text-lg font-bold">NUEVO GASTO</div>}
-      visible={visible}
-      style={{ width: '28rem', borderRadius: '1.5rem' }}
-      modal
-      closable={false}
-      onHide={handleClose}
-      footer={footer}
-      position="center"
-      dismissableMask={false}
-      draggable={false}
-      resizable={false}
-    >
+    <>
+      <style>
+        {`
+          .modal-agregar-gasto-dialog .p-dialog {
+            z-index: 10500 !important;
+          }
+          .modal-agregar-gasto-dialog .p-dialog-mask {
+            z-index: 10499 !important;
+          }
+        `}
+      </style>
+      <Dialog
+        header={<div className="w-full text-center text-lg font-bold">NUEVO GASTO</div>}
+        visible={visible}
+        style={{ width: '28rem', borderRadius: '1.5rem' }}
+        modal
+        closable={false}
+        onHide={handleClose}
+        footer={footer}
+        position="center"
+        dismissableMask={false}
+        draggable={false}
+        resizable={false}
+        className="modal-agregar-gasto-dialog"
+      >
       {/* Formulario */}
       <div className="flex flex-col gap-3">
         {/* Detalle del Gasto */}
@@ -150,6 +162,7 @@ const ModalAgregarGasto = ({ visible, onHide, onRefresh }) => {
         </span>
       </div>
     </Dialog>
+    </>
   );
 };
 

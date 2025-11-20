@@ -27,6 +27,18 @@ export const verSucursales = async () => {
   }
 };
 
+//SERVICIO PARA OBTENER ESTADOS DE USUARIOS
+export const verEstadosUsuarios = async () => {
+  try {
+    const res = await axiosInstance.get(`${API_URL}/catalogoRoles`, {
+      params: { opciones: 'ESTADO' }
+    });
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 //SERVICIO PARA CREAR USUARIO
 export const crearUsuario = async (datosUsuario) => {
   try {

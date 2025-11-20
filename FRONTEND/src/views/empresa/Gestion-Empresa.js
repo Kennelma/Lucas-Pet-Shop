@@ -260,8 +260,8 @@ export default function GestionEmpresa() {
       case 'rtn_empresa':
         if (!value?.trim()) {
           error = 'El RTN de la empresa es obligatorio';
-        } else if (value.length < 10) {
-          error = 'El RTN debe tener al menos 10 caracteres';
+        } else if (value.length !== 14) {
+          error = 'El RTN debe tener exactamente 14 dígitos';
         }
         break;
     }
@@ -340,14 +340,14 @@ export default function GestionEmpresa() {
 
     if (!formDataEmpresa.telefono_empresa?.trim()) {
       erroresTemp.telefono_empresa = 'El teléfono de la empresa es obligatorio';
-    } else if (formDataEmpresa.telefono_empresa.length < 8) {
-      erroresTemp.telefono_empresa = 'El teléfono debe tener al menos 8 dígitos';
+    } else if (formDataEmpresa.telefono_empresa.length !== 8) {
+      erroresTemp.telefono_empresa = 'El teléfono debe tener 8 dígitos';
     }
 
     if (!formDataEmpresa.rtn_empresa?.trim()) {
       erroresTemp.rtn_empresa = 'El RTN de la empresa es obligatorio';
-    } else if (formDataEmpresa.rtn_empresa.length < 10) {
-      erroresTemp.rtn_empresa = 'El RTN debe tener al menos 10 caracteres';
+    } else if (formDataEmpresa.rtn_empresa.length !== 14) {
+      erroresTemp.rtn_empresa = 'El RTN debe tener 14 dígitos';
     }
 
     setErrores(erroresTemp);
@@ -423,8 +423,8 @@ export default function GestionEmpresa() {
 
     if (!formDataSucursal.telefono_sucursal?.trim()) {
       erroresTemp.telefono_sucursal = 'El teléfono de la sucursal es obligatorio';
-    } else if (formDataSucursal.telefono_sucursal.length < 8) {
-      erroresTemp.telefono_sucursal = 'El teléfono debe tener al menos 8 dígitos';
+    } else if (formDataSucursal.telefono_sucursal.length !== 8) {
+      erroresTemp.telefono_sucursal = 'El teléfono debe tener 8 dígitos';
     } else {
       // Validar duplicado de teléfono en todas las sucursales
       const telefonoNormalizado = formDataSucursal.telefono_sucursal.trim();
@@ -668,7 +668,7 @@ export default function GestionEmpresa() {
       </div>
 
       {/* Sección Principal */}
-      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #C7E4E240, 0 0 0 1px #C7E4E233'}}>
+      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #61a6f540, 0 0 0 1px #6594ec33'}}>
         {/* Barra de búsqueda + botones */}
         <div className="flex justify-between items-center mb-6">
           <div className="relative w-80">
@@ -780,7 +780,7 @@ export default function GestionEmpresa() {
               header="DIRECCIÓN"
               body={direccionBodyTemplate}
               sortable
-              className="w-[250px]"
+              className="w-[250px] uppercase"
             />
             <Column
               field="telefono_sucursal"

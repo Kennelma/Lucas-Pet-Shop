@@ -3,6 +3,7 @@ import axiosInstance from "./axiosConfig";
 
 const API_URL = "/reportes";
 
+
 //SERVICIOS DE AXIOS PARA EL REPORTES DIARIO AUTOMATICO
 export const obtenerReporteDiario = async () => {
   try {

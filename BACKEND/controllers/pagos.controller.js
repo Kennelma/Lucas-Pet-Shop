@@ -57,6 +57,17 @@ exports.procesarPago = async (req, res) => {
 
         const { numero_factura, id_tipo, monto, metodos } = req.body;
 
+        //VALIDAR DATOS REQUERIDOS
+        if (!numero_factura) {
+            throw new Error('Número de factura es requerido');
+        }
+        if (!id_tipo) {
+            throw new Error('Tipo de pago es requerido');
+        }
+        if (!metodos || !Array.isArray(metodos) || metodos.length === 0) {
+            throw new Error('Debe incluir al menos un método de pago');
+        }
+
         //OBTENER FACTURA
         const [facturas] = await conn.query(
             `SELECT id_factura_pk, total, saldo
@@ -65,6 +76,10 @@ exports.procesarPago = async (req, res) => {
             [numero_factura]
         );
 
+        if (!facturas || facturas.length === 0) {
+            throw new Error(`Factura ${numero_factura} no encontrada`);
+        }
+
         //OBTENER EL NOMBRE DEL TIPO DE PAGO
         const [tipoPago] = await conn.query(
             `SELECT tipo_pago
@@ -72,6 +87,10 @@ exports.procesarPago = async (req, res) => {
             WHERE id_tipo_pago_pk = ?`,
             [id_tipo]
         );
+
+        if (!tipoPago || tipoPago.length === 0) {
+            throw new Error('Tipo de pago no válido');
+        }
 
         //OBTENER EL ID DEL ESTADO APROBADO PARA PAGOS
         const [estadoPago] = await conn.query(
@@ -248,18 +267,28 @@ exports.procesarPago = async (req, res) => {
                     ]
                 );
 
-                //ACTUALIZAR ESTADO A PARCIAL
-                const [estadoParcial] = await conn.query(
+                //VERIFICAR SALDO DESPUÉS DEL PAGO PARCIAL
+                const [facturaActualizada] = await conn.query(
+                    `SELECT saldo FROM tbl_facturas WHERE id_factura_pk = ?`,
+                    [facturas[0].id_factura_pk]
+                );
+
+                const saldoRestante = parseFloat(facturaActualizada[0].saldo);
+
+                //SI EL SALDO ES 0, CAMBIAR A PAGADA; SI NO, CAMBIAR A PARCIAL
+                const estadoNombre = saldoRestante === 0 ? 'PAGADA' : 'PARCIAL';
+                const [estadoFactura] = await conn.query(
                     `SELECT id_estado_pk
                      FROM cat_estados
-                     WHERE dominio = 'FACTURA' AND nombre_estado = 'PARCIAL'`
+                     WHERE dominio = 'FACTURA' AND nombre_estado = ?`,
+                    [estadoNombre]
                 );
 
                 await conn.query(
                     `UPDATE tbl_facturas
                     SET id_estado_fk = ?
                     WHERE id_factura_pk = ?`,
-                    [estadoParcial[0]?.id_estado_pk, facturas[0].id_factura_pk]
+                    [estadoFactura[0]?.id_estado_pk, facturas[0].id_factura_pk]
                 );
 
                 break;
@@ -270,17 +299,38 @@ exports.procesarPago = async (req, res) => {
 
         await conn.commit();
 
+        //OBTENER SALDO ACTUALIZADO PARA LA RESPUESTA
+        const [facturaActualizada] = await conn.query(
+            `SELECT saldo, total, id_estado_fk FROM tbl_facturas WHERE id_factura_pk = ?`,
+            [facturas[0].id_factura_pk]
+        );
+
+        const [estadoActual] = await conn.query(
+            `SELECT nombre_estado FROM cat_estados WHERE id_estado_pk = ?`,
+            [facturaActualizada[0].id_estado_fk]
+        );
+
         return res.status(200).json({
             success: true,
-            mensaje: 'Pago procesado exitosamente'
+            mensaje: 'Pago procesado exitosamente',
+            data: {
+                id_tipo_pago: id_tipo,
+                tipo_pago: id_tipo === 1 ? 'TOTAL' : id_tipo === 2 ? 'PARCIAL' : 'MIXTO',
+                saldo_restante: parseFloat(facturaActualizada[0].saldo || 0),
+                total: parseFloat(facturaActualizada[0].total || 0),
+                estado: estadoActual[0]?.nombre_estado || 'DESCONOCIDO'
+            }
         });
 
     } catch (err) {
         await conn.rollback();
+        console.error('❌ ERROR EN PROCESAR PAGO:', err.message);
+        console.error('Stack:', err.stack);
         res.status(500).json({
             success: false,
             mensaje: 'Error al procesar el pago',
-            error: err.message
+            error: err.message,
+            detalles: process.env.NODE_ENV === 'development' ? err.stack : undefined
         });
     } finally {
         conn.release();

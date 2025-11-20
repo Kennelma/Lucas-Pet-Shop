@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode'; 
+import { jwtDecode } from 'jwt-decode';
 
 const ProtectedRoute = ({ children }) => {
     const navigate = useNavigate();
@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children }) => {
     useEffect(() => {
         const verificarExpiracion = () => {
             const token = sessionStorage.getItem('token');
-            
+
             if (!token) {
                 navigate('/login');
                 return;
@@ -24,11 +24,11 @@ const ProtectedRoute = ({ children }) => {
 
                 //DECODIFICA EL TOKEN PARA OBTENER LA FECHA DE EXPIRACION
                 const decoded = jwtDecode(token);
-                const tiempoActual = Date.now() / 1000; 
+                const tiempoActual = Date.now() / 1000;
 
                 //SI EL TOKEN YA EXPIRÓ
                 if (decoded.exp < tiempoActual) {
-                    console.log('🚨 TOKEN EXPIRADO - Cerrando sesión automáticamente');
+                    console.log('TOKEN EXPIRADO - Cerrando sesión automáticamente');
                     sessionStorage.removeItem('token');
                     sessionStorage.removeItem('usuario');
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Banknote, CreditCard, Building2 } from 'lucide-react';
+import Swal from 'sweetalert2';
 import { obtenerMetodosPagos } from '../../../AXIOS.SERVICES/payments-axios';
 
 //====================COMPONENTE PAGO TOTAL====================
@@ -45,13 +46,13 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
     if (existe) {
       // SI YA ESTÁ SELECCIONADO, LO QUITAMOS
       const metodosRestantes = metodosSeleccionados.filter(m => m.id !== metodo.id_metodo_pago_pk);
-      
+
       // Si queda solo 1 método después de deseleccionar
       if (metodosRestantes.length === 1) {
         const metodoRestante = metodosRestantes[0];
         const nombreRestante = metodoRestante.nombre.trim().toUpperCase();
         const esTransferenciaOTarjeta = nombreRestante === 'TRANSFERENCIA' || nombreRestante === 'TARJETA';
-        
+
         // Si el método restante es transferencia o tarjeta, asignar el total automáticamente
         if (esTransferenciaOTarjeta) {
           setMetodosSeleccionados([{
@@ -75,10 +76,10 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
         const nombreMetodo = metodo.metodo_pago.trim().toUpperCase();
         const esTransferenciaOTarjeta = nombreMetodo === 'TRANSFERENCIA' || nombreMetodo === 'TARJETA';
         const esPrimerMetodo = metodosSeleccionados.length === 0;
-        
+
         // Si es transferencia o tarjeta y es el primer método, asignar el total automáticamente
         const montoInicial = (esTransferenciaOTarjeta && esPrimerMetodo) ? total.toFixed(2) : '';
-        
+
         setMetodosSeleccionados([...metodosSeleccionados, {
           id: metodo.id_metodo_pago_pk,
           nombre: metodo.metodo_pago.trim(),
@@ -94,18 +95,18 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
     const metodoActual = metodosSeleccionados.find(m => m.id === id);
     const nombreMetodo = metodoActual?.nombre.trim().toUpperCase();
     const esTransferenciaOTarjeta = nombreMetodo === 'TRANSFERENCIA' || nombreMetodo === 'TARJETA';
-    
+
     if (metodosSeleccionados.length === 2) {
       // CUANDO HAY 2 MÉTODOS: CALCULAR AUTOMÁTICAMENTE EL OTRO
       const montoNum = parseFloat(monto) || 0;
-      
+
       // VALIDACIÓN: Si es transferencia o tarjeta, no permitir que supere el total
       if (esTransferenciaOTarjeta && montoNum > total) {
         return; // No actualizar si excede el total
       }
-      
+
       const montoRestante = Math.max(0, total - montoNum);
-      
+
       setMetodosSeleccionados(metodosSeleccionados.map(m => {
         if (m.id === id) {
           // Actualizar el método que está siendo editado
@@ -118,12 +119,12 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
     } else {
       // UN SOLO MÉTODO
       const montoNum = parseFloat(monto) || 0;
-      
+
       // VALIDACIÓN: Si es transferencia o tarjeta único, no permitir que supere el total
       if (esTransferenciaOTarjeta && montoNum > total) {
         return; // No actualizar si excede el total
       }
-      
+
       // Para efectivo: actualización normal (permite cambio)
       setMetodosSeleccionados(metodosSeleccionados.map(m =>
         m.id === id ? { ...m, monto } : m
@@ -135,9 +136,9 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
   const calcularCambio = (metodo) => {
     const isEfectivo = metodo.nombre.trim().toUpperCase() === 'EFECTIVO';
     if (!isEfectivo || !metodo.monto) return 0;
-    
+
     const efectivoRecibido = parseFloat(metodo.monto) || 0;
-    
+
     if (metodosSeleccionados.length === 1) {
       // MÉTODO ÚNICO: cambio sobre el total
       return Math.max(0, efectivoRecibido - total);
@@ -155,7 +156,7 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
     const isEfectivo = m.nombre.trim().toUpperCase() === 'EFECTIVO';
     const montoIngresado = parseFloat(m.monto) || 0;
     const esMetodoUnico = metodosSeleccionados.length === 1;
-    
+
     // Para efectivo: usar el mínimo entre lo ingresado y lo que debe pagar
     if (isEfectivo) {
       if (esMetodoUnico) {
@@ -170,12 +171,12 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
     }
     return sum + montoIngresado;
   }, 0);
-  
+
   const montosValidos = metodosSeleccionados.every(m => {
     const isEfectivo = m.nombre.trim().toUpperCase() === 'EFECTIVO';
     const montoIngresado = parseFloat(m.monto) || 0;
     const esMetodoUnico = metodosSeleccionados.length === 1;
-    
+
     if (isEfectivo) {
       if (esMetodoUnico) {
         // Único: debe ser >= total (permite cambio)
@@ -193,15 +194,38 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
   });
 
   //====================FUNCIÓN: CONFIRMAR PAGO====================
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+    // Validar que haya al menos un método seleccionado
+    if (metodosSeleccionados.length === 0) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Método requerido',
+        text: 'Debes seleccionar al menos un método de pago',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+
+    // Validar que todos los métodos tengan monto
+    const sinMonto = metodosSeleccionados.filter(m => !m.monto || parseFloat(m.monto) <= 0);
+    if (sinMonto.length > 0) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Monto requerido',
+        text: 'Todos los métodos de pago deben tener un monto válido',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+
     const metodos = metodosSeleccionados.map(m => {
       const isEfectivo = m.nombre.trim().toUpperCase() === 'EFECTIVO';
       const montoRecibido = parseFloat(m.monto) || 0;
       const cambio = calcularCambio(m);
-      
+
       // Calcular el monto real a registrar (sin el cambio)
       const montoReal = isEfectivo ? montoRecibido - cambio : montoRecibido;
-      
+
       return {
         id_metodo_pago_fk: m.id,
         monto: montoReal,
@@ -210,7 +234,7 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
       };
     });
 
-    onConfirm({
+    await onConfirm({
       metodos,
       monto: total
     });
@@ -247,11 +271,11 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
                 L {sumaMontos.toFixed(2)}
               </p>
             </div>
-            
+
             {/* Mostrar CAMBIO si es efectivo único y hay cambio */}
-            {metodosSeleccionados.length === 1 && 
+            {metodosSeleccionados.length === 1 &&
              metodosSeleccionados[0].nombre.trim().toUpperCase() === 'EFECTIVO' &&
-             metodosSeleccionados[0].monto && 
+             metodosSeleccionados[0].monto &&
              parseFloat(metodosSeleccionados[0].monto) > total ? (
               <div className="bg-yellow-50 border border-yellow-200 rounded px-3 py-2 text-center flex-1">
                 <p className="text-xs text-gray-600">CAMBIO</p>
@@ -278,8 +302,8 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
       {/* SECCIÓN DE SELECCIÓN DE MÉTODOS */}
       <div className="space-y-2">
         <p className="text-xs font-medium text-gray-700">
-          {metodosSeleccionados.length === 0 ? 'Seleccione método de pago' : 
-           metodosSeleccionados.length === 1 ? 'ÚNICO (1 método) o seleccione otro para MIXTO' : 
+          {metodosSeleccionados.length === 0 ? 'Seleccione método de pago' :
+           metodosSeleccionados.length === 1 ? 'ÚNICO (1 método) o seleccione otro para MIXTO' :
            'MIXTO (2 métodos)'}
         </p>
 
@@ -321,20 +345,20 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
             {metodosSeleccionados.length > 0 && (
               <div className="space-y-2">
                 <p className="text-xs font-medium text-gray-700">
-                  {metodosSeleccionados.length === 1 
-                    ? (metodosSeleccionados[0].nombre.trim().toUpperCase() === 'EFECTIVO' 
-                      ? 'Ingrese el efectivo recibido (permite cambio)' 
+                  {metodosSeleccionados.length === 1
+                    ? (metodosSeleccionados[0].nombre.trim().toUpperCase() === 'EFECTIVO'
+                      ? 'Ingrese el efectivo recibido (permite cambio)'
                       : 'Monto exacto a cobrar')
                     : 'Ingrese primero el monto de Transferencia/Tarjeta, luego el efectivo recibido'}
                 </p>
-                
+
                 {metodosSeleccionados.map((metodo, index) => {
                   const Icono = iconosPorMetodo[metodo.nombre.trim().toUpperCase()] || Banknote;
                   const isEfectivo = metodo.nombre.trim().toUpperCase() === 'EFECTIVO';
                   const nombreMetodo = metodo.nombre.trim().toUpperCase();
                   const esTransferenciaOTarjeta = nombreMetodo === 'TRANSFERENCIA' || nombreMetodo === 'TARJETA';
                   const isReadOnly = metodosSeleccionados.length === 1 && esTransferenciaOTarjeta;
-                  
+
                   return (
                     <div key={metodo.id} className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -343,8 +367,8 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
                           type="number"
                           value={metodo.monto}
                           onChange={(e) => actualizarMonto(metodo.id, e.target.value)}
-                          placeholder={isEfectivo && metodosSeleccionados.length === 1 
-                            ? `Mín: ${total.toFixed(2)}` 
+                          placeholder={isEfectivo && metodosSeleccionados.length === 1
+                            ? `Mín: ${total.toFixed(2)}`
                             : "0.00"
                           }
                           step="0.01"
@@ -358,7 +382,7 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
                           {metodo.nombre.trim() === 'TRANSFERENCIA' ? 'Transfer.' : metodo.nombre.trim()}
                         </span>
                       </div>
-                      
+
                       {/* Mostrar cambio para efectivo (solo en pago único) */}
                       {isEfectivo && metodosSeleccionados.length === 1 && metodo.monto && calcularCambio(metodo) > 0 && (
                         <div className="flex items-center gap-2">
@@ -372,18 +396,18 @@ const PagoTotal = ({ total, idTipoPago, onBack, onConfirm }) => {
                           <span className="text-xs text-green-600 w-16 text-right font-medium">Cambio</span>
                         </div>
                       )}
-                      
+
                       {/* Mostrar advertencia si efectivo es insuficiente */}
                       {isEfectivo && metodo.monto && (() => {
                         const efectivoRecibido = parseFloat(metodo.monto) || 0;
                         let minimoRequerido = total;
-                        
+
                         if (metodosSeleccionados.length === 2) {
                           const otroMetodo = metodosSeleccionados.find(m => m.id !== metodo.id);
                           const montoOtro = parseFloat(otroMetodo.monto) || 0;
                           minimoRequerido = total - montoOtro;
                         }
-                        
+
                         return efectivoRecibido < minimoRequerido && (
                           <div className="text-xs text-red-600 mt-1">
                             ⚠ Efectivo insuficiente. Mínimo: L {minimoRequerido.toFixed(2)}

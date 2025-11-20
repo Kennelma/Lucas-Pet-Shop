@@ -57,9 +57,14 @@ router.get ('/facturacion/catalogoItems', verificarToken, facturas.catalogoItems
 router.get ('/facturacion/buscarCliente', verificarToken,facturas.buscarClientesPorIdentidad);
 router.get ('/facturacion/usuarioFacturacion', verificarToken, facturas.usuarioFactura);
 router.get ('/facturacion/estilistasFacturacion', verificarToken, facturas.buscarEstilistas);
-router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFactura)
+
+router.post ('/facturacion/crearFacturaSinPago', verificarToken, facturas.crearFacturaSinPago)
+router.post ('/facturacion/crearFactura', verificarToken, facturas.crearFacturaConPago)
+router.post ('/facturacion/validarDisponibilidad', verificarToken, facturas.validarDisponibilidad)
+
 router.get  ('/facturacion/verFacturas', facturas.historialFacturas);
 router.get  ('/facturacion/verDetalleFactura', facturas.detalleFacturaSeleccionada);
+//router.delete('/facturacion/borrarFactura', verificarToken, facturas.borrarFactura);
 
 
 //RUTA PARA IMPRIMIR LA FACTURA EN FORMATO PDF
@@ -102,8 +107,7 @@ router.get('/seguridad/verUsuarios', verificarToken, seguridad.verUsuarios);
 router.put('/seguridad/actualizarUsuario', verificarToken, seguridad.actualizarUsuario);
 router.delete('/seguridad/eliminarUsuario', verificarToken, seguridad.eliminarUsuario);
 
-
-//========== RUTAS DE RECORDATORIOS ==========
+// ========== RUTAS DE RECORDATORIOS ==========
 router.post('/recordatorios/crear', recordatorios.crear);
 router.get('/recordatorios/ver', recordatorios.ver);
 router.put('/recordatorios/actualizar', recordatorios.actualizar);

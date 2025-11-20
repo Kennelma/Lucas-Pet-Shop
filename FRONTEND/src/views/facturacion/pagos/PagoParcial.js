@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Banknote, CreditCard, Building2 } from 'lucide-react';
+import Swal from 'sweetalert2';
 import { obtenerMetodosPagos } from '../../../AXIOS.SERVICES/payments-axios';
 
 //====================COMPONENTE PAGO PARCIAL====================
@@ -30,9 +31,22 @@ const PagoParcial = ({ total, idTipoPago, onBack, onConfirm }) => {
       const response = await obtenerMetodosPagos();
       if (response.success && response.data) {
         setMetodosPago(response.data);
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los métodos de pago',
+          confirmButtonColor: '#d33'
+        });
       }
     } catch (error) {
       console.error('Error al cargar métodos de pago:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de conexión',
+        text: 'No se pudo conectar con el servidor',
+        confirmButtonColor: '#d33'
+      });
     } finally {
       setLoading(false);
     }
@@ -42,13 +56,46 @@ const PagoParcial = ({ total, idTipoPago, onBack, onConfirm }) => {
   const saldoRestante = total - parseFloat(montoParcial || 0);
 
   //====================FUNCIÓN: CONFIRMAR PAGO====================
-  const handleConfirm = () => {
-    onConfirm({
+  const handleConfirm = async () => {
+    // Validar que hay un método seleccionado
+    if (!metodoPago) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Método requerido',
+        text: 'Debes seleccionar un método de pago',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+
+    // Validar monto
+    const monto = parseFloat(montoParcial);
+    if (!montoParcial || monto <= 0) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Monto inválido',
+        text: 'El monto debe ser mayor a 0',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+
+    if (monto >= total) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Monto muy alto',
+        text: 'Para pagar el total usa la opción "Pago Total"',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+
+    await onConfirm({
       metodos: [{
         id_metodo_pago_fk: metodoPago.id,
-        monto: parseFloat(montoParcial)
+        monto: monto
       }],
-      monto: parseFloat(montoParcial)
+      monto: monto
     });
   };
 
@@ -111,7 +158,7 @@ const PagoParcial = ({ total, idTipoPago, onBack, onConfirm }) => {
             className="w-full pl-8 pr-4 py-2 text-lg font-medium border-2 border-orange-300 rounded focus:border-orange-500 focus:outline-none"
           />
         </div>
-        
+
         {/* Sugerencias rápidas */}
         <div className="flex gap-1 mt-1">
           {[total * 0.25, total * 0.5, total * 0.75].map((sugerencia, idx) => (
@@ -125,7 +172,7 @@ const PagoParcial = ({ total, idTipoPago, onBack, onConfirm }) => {
             </button>
           ))}
         </div>
-        
+
         {/* MENSAJE DE ERROR SI EL MONTO ES INVÁLIDO */}
         {montoParcial && (parseFloat(montoParcial) <= 0 || parseFloat(montoParcial) >= total) && (
           <p className="mt-1 text-xs text-red-600">

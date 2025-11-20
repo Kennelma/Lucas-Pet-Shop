@@ -61,23 +61,23 @@ const EncabezadoFactura = ({
     return () => clearInterval(intervalo);
   }, [onFechaChange]);
 
-  //ESTABLECE CONSUMIDOR FINAL COMO VALOR POR DEFECTO AL CARGAR
+  //ESTABLECE CONSUMIDOR FINAL SOLO AL CARGAR INICIALMENTE (UNA VEZ)
   useEffect(() => {
     if (!nombreCliente && !identidad) {
       setNombreCliente('CONSUMIDOR FINAL');
       setClienteEncontrado(true);
     }
-  }, [nombreCliente, identidad, setNombreCliente]);
+  }, []); // Sin dependencias - solo ejecuta una vez al montar
 
   //BUSCA AUTOMÁTICAMENTE EL CLIENTE CUANDO SE COMPLETAN 13 DÍGITOS DE IDENTIDAD
   useEffect(() => {
     const soloDigitos = identidadBusqueda.replace(/\D/g, '');
 
     if (soloDigitos.length === 0 && identidad === '') {
-      setNombreCliente('CONSUMIDOR FINAL');
+      
       setRTN('');
-      setIdCliente(null); // ⭐ NUEVO
-      setClienteEncontrado(true);
+      setIdCliente(null);
+      setClienteEncontrado(false);
       setYaConsultado(false);
       return;
     }
@@ -103,14 +103,42 @@ const EncabezadoFactura = ({
             setClienteEncontrado(true);
             setYaConsultado(true);
           } else {
-            setIdentidad('');
-            setNombreCliente('');
-            setRTN('');
-            setIdCliente(null);
-            setClienteEncontrado(false);
+            // Cliente no encontrado - Preguntar si desea agregarlo
+            const result = await Swal.fire({
+              title: 'Cliente no encontrado',
+              html: `
+                <p class="text-sm text-gray-600 mb-3">
+                  No existe un cliente con la identidad <strong>${identidadBusqueda}</strong>
+                </p>
+                <div class="text-left bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+                  <p class="text-xs text-blue-800">
+                    <strong>💡 Beneficio:</strong> Si registra este cliente, podrá mantener un historial de sus compras para futuras referencias.
+                  </p>
+                </div>
+              `,
+              icon: 'question',
+              showCancelButton: true,
+              confirmButtonText: 'Sí, agregar cliente',
+              cancelButtonText: 'No, continuar sin agregar',
+              confirmButtonColor: '#3085d6',
+              cancelButtonColor: '#6c757d',
+              reverseButtons: true,
+              width: 450
+            });
+
+            if (result.isConfirmed) {
+              // Usuario quiere agregar el cliente
+              setIdentidadTemp(identidadBusqueda);
+              setShowModalCliente(true);
+            } else {
+              // Usuario NO quiere agregar el cliente - mantener identidad escrita
+              setNombreCliente('CONSUMIDOR FINAL');
+              setRTN('');
+              setIdCliente(null);
+              setClienteEncontrado(false);
+            }
+
             setYaConsultado(true);
-            setIdentidadTemp(identidadBusqueda);
-            setShowModalCliente(true);
           }
         } catch (error) {
           console.error('Error al buscar cliente:', error);
@@ -159,7 +187,7 @@ const EncabezadoFactura = ({
   //====================RENDER====================
   return (
     <>
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+      <div className="bg-white rounded-lg p-4 mb-4" style={{ boxShadow: "0 0 15px rgba(0, 0, 0, 0.1)" }}>
 
         {/*TÍTULO*/}
         <h1 className="text-lg font-semibold text-gray-800 mb-3 text-center font-poppins">Factura</h1>
@@ -170,7 +198,7 @@ const EncabezadoFactura = ({
           {/*CAMPO IDENTIDAD CON BÚSQUEDA AUTOMÁTICA*/}
           <div className="relative">
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              Buscar Cliente (Identidad)
+              Número de identidad
             </label>
             <div className="relative">
               <InputMask
@@ -193,25 +221,19 @@ const EncabezadoFactura = ({
               )}
             </div>
 
-            {/*MENSAJE BUSCANDO*/}
-            {buscando && (
-              <p className="absolute -bottom-5 left-0 text-xs text-gray-500 z-20">
-                Buscando cliente...
-              </p>
-            )}
           </div>
 
-          {/*CAMPO NOMBRE CLIENTE SOLO LECTURA*/}
+          {/*CAMPO NOMBRE CLIENTE EDITABLE*/}
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              Nombre Cliente*
+              Nombre Cliente
             </label>
             <input
               type="text"
               value={nombreCliente}
-              readOnly
-              className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
-              placeholder="Nombre completo del cliente"
+              onChange={(e) => setNombreCliente(e.target.value.toUpperCase())}
+              className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+              placeholder="Nombre del cliente o CONSUMIDOR FINAL"
             />
           </div>
 

@@ -11,7 +11,6 @@ export const eliminarEmpresa = async (empresa, onReload) => {
       html: `
         <div class="text-left my-2 p-2.5 bg-gray-50 rounded-md text-xs">
           <p class="mb-1 text-sm"><span class="font-bold">Nombre:</span> ${empresa.nombre_empresa}</p>
-          <p class="mb-1 text-sm"><span class="font-bold">Dirección:</span> ${empresa.direccion_empresa}</p>
           <p class="mb-1 text-sm"><span class="font-bold">Teléfono:</span> ${empresa.telefono_empresa}</p>
           <p class="mb-1 text-sm"><span class="font-bold">Email:</span> ${empresa.correo_empresa}</p>
         </div>

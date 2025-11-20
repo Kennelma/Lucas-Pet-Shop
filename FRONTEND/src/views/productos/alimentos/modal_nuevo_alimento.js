@@ -7,6 +7,7 @@ import { InputNumber } from 'primereact/inputnumber';
 import { Button } from 'primereact/button';
 import { InputSwitch } from 'primereact/inputswitch';
 import { insertarProducto } from '../../../AXIOS.SERVICES/products-axios';
+import Swal from 'sweetalert2';
 
 // LISTA DE DESTINOS PARA EL DROPDOWN
 const destinosBase = [
@@ -51,7 +52,7 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave, alimentosExistentes = [] 
 
     setData(prev => {
       const newData = { ...prev, [field]: val };
-      
+
       return newData;
     });
 
@@ -96,7 +97,7 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave, alimentosExistentes = [] 
 
     // RECALCULA EL PRECIO MOSTRADO EN EL INPUT
     const nuevoPrecio = recalcularPrecio(precioBase, tasaImpuesto, value);
-    setData(prev => ({ ...prev, precio: Number(nuevoPrecio) }));
+    setData(prev => ({ ...prev, precio: Number(nuevoPrecio.toFixed(2)) }));
   };
 
   // FUNCIÓN PARA CALCULAR EL PRECIO FINAL CON ISV
@@ -109,11 +110,11 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave, alimentosExistentes = [] 
   // FUNCIÓN PARA VALIDAR LOS DATOS DEL FORMULARIO
   const validarDatos = () => {
     let temp = {};
-    
+
     if (!data.nombre?.trim()) {
       temp.nombre = 'El nombre del alimento es obligatorio';
     } else {
-      // ✅ VALIDACIÓN DE NOMBRE DUPLICADO
+      //  VALIDACIÓN DE NOMBRE DUPLICADO
       const nombreExiste = alimentosExistentes.some(
         (alimento) => alimento.nombre?.toUpperCase() === data.nombre.toUpperCase()
       );
@@ -121,7 +122,7 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave, alimentosExistentes = [] 
         temp.nombre = 'Ya existe un alimento con este nombre';
       }
     }
-    
+
     if (!data.destino) temp.destino = 'Debe seleccionar el tipo de mascota';
     if (!data.precio || parseFloat(data.precio) <= 0) temp.precio = 'El precio debe ser mayor a 0';
     if (!data.cantidad || data.cantidad <= 0) temp.cantidad = 'El stock debe ser mayor a 0';
@@ -175,12 +176,33 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave, alimentosExistentes = [] 
 
         onSave(nuevoAlimento);
         onClose();
+
+        setTimeout(() => {
+          Swal.fire({
+            icon: "success",
+            title: "¡Agregado!",
+            text: "El alimento fue agregado correctamente",
+            timer: 1800,
+            showConfirmButton: false,
+          });
+        }, 100);
       } else {
-        alert(`Error al guardar: ${res.error}`);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: `No se pudo guardar: ${res.error}`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
       }
     } catch (err) {
-      console.error(err);
-      alert('Ocurrió un error al guardar el alimento.');
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Ocurrió un error al guardar el alimento.",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     } finally {
       setLoading(false);
     }
@@ -338,7 +360,7 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave, alimentosExistentes = [] 
                 max="100"
               />
               <span className="text-sm text-gray-600">
-                Precio base: L {precioBase} (sin impuesto)
+                Precio base: L {precioBase.toFixed(2)} (sin impuesto)
               </span>
             </div>
           </div>
