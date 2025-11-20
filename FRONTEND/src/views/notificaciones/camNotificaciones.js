@@ -425,13 +425,6 @@ const CamNotificaciones = () => {
                     title="Marcar todas como leídas"
                   />
                 )}
-                <CIcon
-                  icon={cilSettings}
-                  size="lg"
-                  style={{ cursor: 'pointer', color: '#000' }}
-                  onClick={abrirConfiguracion}
-                  title="Configuración"
-                />
               </div>
             </div>
 

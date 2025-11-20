@@ -397,8 +397,7 @@ function update_atributos_padre (body) {
 
     return [
         body.nombre_producto || null,
-        body.precio_producto || null ,
-        body.sku || null,
+        body.precio_producto || null,
         body.stock || null,
         body.stock_minimo || null,
         body.activo !== undefined ? body.activo : null,
@@ -424,7 +423,6 @@ exports.actualizar = async (req, res) => {
             SET
                 nombre_producto = COALESCE(?, nombre_producto),
                 precio_producto = COALESCE(?, precio_producto),
-                sku             = COALESCE(?, sku),
                 stock           = COALESCE(?, stock),
                 stock_minimo    = COALESCE(?, stock_minimo),
                 activo          = COALESCE(?, activo),

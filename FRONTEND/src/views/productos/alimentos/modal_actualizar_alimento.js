@@ -30,7 +30,6 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
     peso: '',
     destino: '',
     stock_minimo: 0,
-    sku: '',
     tiene_impuesto: false
   });
   const [errores, setErrores] = useState({});
@@ -39,12 +38,6 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
   const [tasaImpuesto, setTasaImpuesto] = useState(15);
   const [precioBase, setPrecioBase] = useState(0);
 
-  //GENERAR SKU
-  const generarSKU = (nombre) => {
-    if (!nombre) return '';
-    const partes = nombre.trim().split(' ').map(p => p.substring(0, 3).toUpperCase());
-    return partes.join('-');
-  };
 
   //RECALCULAR PRECIO CON/SIN IMPUESTO
   const recalcularPrecio = (base, tasa, aplicar) => {
@@ -78,7 +71,6 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
         peso: editData.peso || '',
         destino: (editData.destino || '').toUpperCase(),
         stock_minimo: Number.parseInt(editData.stock_minimo) || 0,
-        sku: generarSKU(editData.nombre),
         tiene_impuesto: tieneImpuesto
       });
       setAplicaImpuesto(tieneImpuesto);
@@ -97,7 +89,6 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
 
     setData(prev => {
       const newData = { ...prev, [field]: val };
-      if (field === 'nombre') newData.sku = generarSKU(val);
       if (field === 'precio') {
         const precioActual = parseFloat(val) || 0;
         const tasa = parseFloat(tasaImpuesto) || 0;
@@ -110,17 +101,17 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
     // ✅ VALIDACIÓN EN TIEMPO REAL CON DETECCIÓN DE DUPLICADOS
     setErrores(prev => {
       const newErrores = { ...prev };
-      
+
       if (field === 'nombre') {
         if (!val.trim()) {
           newErrores[field] = 'El nombre del alimento es obligatorio';
         } else {
           // Verificar duplicados excluyendo el alimento actual
-          const nombreExiste = alimentosExistentes.some(alimento => 
+          const nombreExiste = alimentosExistentes.some(alimento =>
             alimento.nombre?.toLowerCase() === val.trim().toLowerCase() &&
             alimento.id_producto !== editData.id_producto
           );
-          
+
           if (nombreExiste) {
             newErrores[field] = 'Ya existe un alimento con este nombre';
           } else {
@@ -132,7 +123,7 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
       } else if (['precio', 'cantidad', 'stock_minimo'].includes(field)) {
         newErrores[field] = val > 0 ? '' : 'Debe ser mayor a 0';
       }
-      
+
       return newErrores;
     });
   };
@@ -157,27 +148,27 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
   //VALIDAR FORMULARIO
   const validarDatos = () => {
     let temp = {};
-    
+
     // ✅ VALIDACIÓN DEL NOMBRE CON VERIFICACIÓN DE DUPLICADOS
     if (!data.nombre?.trim()) {
       temp.nombre = 'El nombre del alimento es obligatorio';
     } else {
-      const nombreExiste = alimentosExistentes.some(alimento => 
+      const nombreExiste = alimentosExistentes.some(alimento =>
         alimento.nombre?.toLowerCase() === data.nombre.trim().toLowerCase() &&
         alimento.id_producto !== editData.id_producto
       );
-      
+
       if (nombreExiste) {
         temp.nombre = 'Ya existe un alimento con este nombre';
       }
     }
-    
+
     if (!data.destino) temp.destino = 'Campo obligatorio';
     if (!data.precio || data.precio <= 0) temp.precio = 'Debe ser mayor a 0';
     if (!data.cantidad || data.cantidad <= 0) temp.cantidad = 'Debe ser mayor a 0';
     if (!data.peso || data.peso <= 0) temp.peso = 'Debe ser mayor a 0';
     if (!data.stock_minimo || data.stock_minimo <= 0) temp.stock_minimo = 'Debe ser mayor a 0';
-    
+
     setErrores(temp);
     return Object.keys(temp).length === 0;
   };
@@ -196,7 +187,6 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
         tipo_producto: 'ALIMENTOS',
         peso_alimento: data.peso,
         alimento_destinado: data.destino,
-        sku: generarSKU(data.nombre),
         tiene_impuesto: aplicaImpuesto ? 1 : 0,
         tasa_impuesto: aplicaImpuesto ? parseFloat(tasaImpuesto) : 0
       };
@@ -209,7 +199,7 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
           tiene_impuesto: aplicaImpuesto ? 1 : 0
         });
         onClose();
-        
+
         setTimeout(() => {
           Swal.fire({
             icon: "success",
@@ -265,8 +255,8 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
       style={{ width: '30rem', height: '85vh', borderRadius: '1.5rem' }}
       modal closable={false} onHide={onClose} footer={footer}
       position="center" dismissableMask={false} draggable={false} resizable={false}
-      contentStyle={{ 
-        overflowY: 'auto', 
+      contentStyle={{
+        overflowY: 'auto',
         padding: '1rem',
         height: 'calc(85vh - 120px)'
       }}
@@ -275,45 +265,39 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
         {/* NOMBRE */}
         <span>
           <label htmlFor="nombre" className="text-xs font-semibold text-gray-700 mb-1">NOMBRE</label>
-          <InputText 
-            id="nombre" 
-            value={data.nombre} 
-            onChange={e => handleChange('nombre', e.target.value)} 
+          <InputText
+            id="nombre"
+            value={data.nombre}
+            onChange={e => handleChange('nombre', e.target.value)}
             className={`w-full rounded-xl h-9 text-sm ${errores.nombre ? 'border-red-500' : ''}`}
-            placeholder="Ej: Royal Canin Adulto" 
+            placeholder="Ej: Royal Canin Adulto"
           />
           {errores.nombre && <p className="text-xs text-red-600 mt-1">{errores.nombre}</p>}
-        </span>
-
-        {/* SKU */}
-        <span>
-          <label htmlFor="sku" className="text-xs font-semibold text-gray-700 mb-1">SKU</label>
-          <InputText id="sku" value={data.sku} readOnly className="w-full rounded-xl h-9 text-sm bg-gray-100" />
         </span>
 
         {/* DESTINADO A Y PESO */}
         <div className="grid grid-cols-2 gap-2">
           <span>
             <label htmlFor="destino" className="text-xs font-semibold text-gray-700 mb-1">DESTINADO A</label>
-            <Dropdown 
-              id="destino" 
-              value={data.destino} 
-              options={destinos} 
-              onChange={e => handleChange('destino', e.value)} 
+            <Dropdown
+              id="destino"
+              value={data.destino}
+              options={destinos}
+              onChange={e => handleChange('destino', e.value)}
               className={`w-full rounded-xl text-sm ${errores.destino ? 'border-red-500' : ''}`}
-              placeholder="Seleccionar" 
+              placeholder="Seleccionar"
             />
             {errores.destino && <p className="text-xs text-red-600 mt-1">{errores.destino}</p>}
           </span>
           <span>
             <label htmlFor="peso" className="text-xs font-semibold text-gray-700 mb-1">PESO (KG)</label>
-            <InputText 
-              id="peso" 
-              value={data.peso} 
-              onChange={e => handleChange('peso', e.target.value)} 
+            <InputText
+              id="peso"
+              value={data.peso}
+              onChange={e => handleChange('peso', e.target.value)}
               className={`w-full rounded-xl h-9 text-sm ${errores.peso ? 'border-red-500' : ''}`}
-              placeholder="Peso en kg" 
-              keyfilter="num" 
+              placeholder="Peso en kg"
+              keyfilter="num"
             />
             {errores.peso && <p className="text-xs text-red-600 mt-1">{errores.peso}</p>}
           </span>

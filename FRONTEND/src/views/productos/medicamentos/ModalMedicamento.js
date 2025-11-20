@@ -12,7 +12,6 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
     tipo: "",
     cantidad_contenido: "",
     unidad_medida: "",
-    sku: "",
     codigo_lote: "",
     fecha_vencimiento: "",
     stock_lote: "",
@@ -30,12 +29,6 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
   const normalizarTexto = (texto) => {
     if (!texto) return '';
     return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
-  };
-
-  const generarSKU = (nombre) => {
-    if (!nombre) return '';
-    const partes = nombre.trim().split(' ').map(p => p.substring(0, 3).toUpperCase());
-    return partes.join('-');
   };
 
   const generarCodigoLote = (nombreMedicamento, idProducto = null) => {
@@ -102,7 +95,6 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
           tipo: medicamentoEditando.tipo_medicamento,
           cantidad_contenido: medicamentoEditando.cantidad_contenido,
           unidad_medida: medicamentoEditando.unidad_medida,
-          sku: generarSKU(medicamentoEditando.nombre_producto),
           activo: medicamentoEditando.activo,
           stock_minimo: medicamentoEditando.stock_minimo || "5",
           codigo_lote: "",
@@ -121,7 +113,6 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
           tipo: "",
           cantidad_contenido: "",
           unidad_medida: "",
-          sku: "",
           activo: true,
           stock_minimo: "5",
           codigo_lote: "",
@@ -145,9 +136,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
     setFormData(prev => {
       const newData = { ...prev, [field]: valorFinal };
 
-      if (field === 'nombre_producto') {
-        newData.sku = generarSKU(valorFinal);
-      }
+      // SKU se genera automáticamente por el trigger de la BD, no lo generamos aquí
 
       // ACTUALIZA EL PRECIO BASE CUANDO EL USUARIO EDITA EL PRECIO
       if (field === 'precio_producto') {

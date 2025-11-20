@@ -1101,9 +1101,10 @@ exports.crearFacturaConPago = async (req, res) => {
                 `INSERT INTO tbl_pago_aplicacion (
                     id_pago_fk,
                     id_factura_fk,
-                    monto
-                ) VALUES (?, ?, ?)`,
-                [id_pago, id_factura, monto]
+                    monto,
+                    fecha_aplicacion
+                ) VALUES (?, ?, ?, ?)`,
+                [id_pago, id_factura, monto, new Date()]
             );
         }
 
