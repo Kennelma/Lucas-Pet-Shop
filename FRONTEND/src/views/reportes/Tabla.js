@@ -2,16 +2,17 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   Download,
   AlertCircle,
-  FileText
+  FileText,
+  X
 } from 'lucide-react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 
 import { descargarPDFTabla } from './pdf.js';
 
-const Tabla = ({ 
-  obtenerRegistroFinanciero, 
-  obtenerHistorialReportes, 
+const Tabla = ({
+  obtenerRegistroFinanciero,
+  obtenerHistorialReportes,
   obtenerReportesDetallados
 }) => {
   const [datosTabla, setDatosTabla] = useState([]);
@@ -22,9 +23,13 @@ const Tabla = ({
   const [vistaActiva, setVistaActiva] = useState('anual');
   const [mesDiarioSeleccionado, setMesDiarioSeleccionado] = useState(new Date().getMonth() + 1);
   const [mesesConDatos, setMesesConDatos] = useState([]);
-  
+
   // Caché de datos para evitar recargas innecesarias
   const [cache, setCache] = useState({});
+
+  // Estado para preview del PDF
+  const [showPDFPreview, setShowPDFPreview] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState(null);
 
   const anioActual = new Date().getFullYear();
   const mesActual = new Date().getMonth();
@@ -46,11 +51,11 @@ const Tabla = ({
   }, [anioSeleccionado, vistaActiva, mesDiarioSeleccionado]);
 
   const cargarDatos = async () => {
-   
-    const cacheKey = vistaActiva === 'anual' 
+
+    const cacheKey = vistaActiva === 'anual'
       ? `anual_${anioSeleccionado}`
       : `diario_${anioSeleccionado}_${mesDiarioSeleccionado}`;
-    
+
     // Verificar si los datos ya están en caché
     if (cache[cacheKey]) {
       setDatosTabla(cache[cacheKey].datos);
@@ -89,7 +94,7 @@ const Tabla = ({
         });
 
         setDatosTabla(datosFormateados);
-        
+
         // Guardar en caché
         setCache(prev => ({
           ...prev,
@@ -101,8 +106,8 @@ const Tabla = ({
 
       } else {
         let diasEnMes = new Date(anioSeleccionado, mesDiarioSeleccionado, 0).getDate();
-        
-        
+
+
         const hoy = new Date();
         if (anioSeleccionado === hoy.getFullYear() && mesDiarioSeleccionado === (hoy.getMonth() + 1)) {
           diasEnMes = hoy.getDate();
@@ -116,7 +121,7 @@ const Tabla = ({
         for (let inicio = 1; inicio <= diasEnMes; inicio += tamanoLote) {
           const fin = Math.min(inicio + tamanoLote - 1, diasEnMes);
           const promesasLote = [];
-          
+
           for (let dia = inicio; dia <= fin; dia++) {
             promesasLote.push(
               obtenerHistorialReportes(anioSeleccionado, mesDiarioSeleccionado, dia)
@@ -152,7 +157,7 @@ const Tabla = ({
         }
 
         setDatosTabla(datosFormateados);
-        
+
         // Guardar en caché
         setCache(prev => ({
           ...prev,
@@ -172,59 +177,80 @@ const Tabla = ({
     }
   };
 
-  const totalIngresos = useMemo(() => 
+  const totalIngresos = useMemo(() =>
     datosTabla.reduce((sum, d) => sum + (d?.ingreso || 0), 0),
     [datosTabla]
   );
-  
-  const totalGastos = useMemo(() => 
+
+  const totalGastos = useMemo(() =>
     datosTabla.reduce((sum, d) => sum + (d?.gasto || 0), 0),
     [datosTabla]
   );
-  
-  const totalGeneral = useMemo(() => 
+
+  const totalGeneral = useMemo(() =>
     totalIngresos - totalGastos,
     [totalIngresos, totalGastos]
   );
 
   const handleDescargarPDF = async () => {
-    if (vistaActiva === 'anual') {
-      if (mesSeleccionado === 'todos') {
-        descargarPDFTabla(datosTabla, totalIngresos, totalGastos, totalGeneral, anioSeleccionado, null);
+    try {
+      let doc;
+      if (vistaActiva === 'anual') {
+        if (mesSeleccionado === 'todos') {
+          doc = descargarPDFTabla(datosTabla, totalIngresos, totalGastos, totalGeneral, anioSeleccionado, null);
+        } else {
+          const mesData = datosTabla.find(m => m.mesIndex === parseInt(mesSeleccionado));
+          if (mesData) {
+            doc = descargarPDFTabla([mesData], mesData.ingreso, mesData.gasto, mesData.total, anioSeleccionado, mesData.mes);
+          }
+        }
       } else {
-        const mesData = datosTabla.find(m => m.mesIndex === parseInt(mesSeleccionado));
-        if (mesData) {
-          descargarPDFTabla([mesData], mesData.ingreso, mesData.gasto, mesData.total, anioSeleccionado, mesData.mes);
+        // Vista diaria - obtener detalles del mes completo
+        try {
+          const promesasDetalles = datosTabla.map(async (row) => {
+            const fecha = `${anioSeleccionado}-${String(row.mesIndex + 1).padStart(2, '0')}-${String(row.dia).padStart(2, '0')}`;
+            const response = await obtenerReportesDetallados(fecha);
+            return {
+              ...row,
+              detalles: response?.Consulta && response?.detalles ? response.detalles : []
+            };
+          });
+
+          const datosConDetalles = await Promise.all(promesasDetalles);
+
+          doc = descargarPDFTabla(
+            datosConDetalles,
+            totalIngresos,
+            totalGastos,
+            totalGeneral,
+            anioSeleccionado,
+            `${meses[mesDiarioSeleccionado - 1]} - Diario`,
+            datosConDetalles.flatMap(d => d.detalles || [])
+          );
+        } catch (error) {
+          console.error('Error al obtener detalles para PDF:', error);
+          doc = descargarPDFTabla(datosTabla, totalIngresos, totalGastos, totalGeneral, anioSeleccionado, `${meses[mesDiarioSeleccionado - 1]} - Diario`, []);
         }
       }
-    } else {
-      // Vista diaria - obtener detalles del mes completo
-      try {
-        const promesasDetalles = datosTabla.map(async (row) => {
-          const fecha = `${anioSeleccionado}-${String(row.mesIndex + 1).padStart(2, '0')}-${String(row.dia).padStart(2, '0')}`;
-          const response = await obtenerReportesDetallados(fecha);
-          return {
-            ...row,
-            detalles: response?.Consulta && response?.detalles ? response.detalles : []
-          };
-        });
 
-        const datosConDetalles = await Promise.all(promesasDetalles);
-        
-        descargarPDFTabla(
-          datosConDetalles, 
-          totalIngresos, 
-          totalGastos, 
-          totalGeneral, 
-          anioSeleccionado, 
-          `${meses[mesDiarioSeleccionado - 1]} - Diario`,
-          datosConDetalles.flatMap(d => d.detalles || [])
-        );
-      } catch (error) {
-        console.error('Error al obtener detalles para PDF:', error);
-        descargarPDFTabla(datosTabla, totalIngresos, totalGastos, totalGeneral, anioSeleccionado, `${meses[mesDiarioSeleccionado - 1]} - Diario`, []);
+      // Si se generó el documento, mostrar preview
+      if (doc) {
+        const pdfBlob = doc.output('blob');
+        const url = URL.createObjectURL(pdfBlob);
+        setPdfUrl(url);
+        setShowPDFPreview(true);
       }
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
     }
+  };
+
+  const handleCerrarPreview = () => {
+    if (pdfUrl) {
+      URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(null);
+    }
+    setShowPDFPreview(false);
   };
 
   // Columnas
@@ -577,6 +603,31 @@ const Tabla = ({
           </div>
         </div>
       </div>
+
+      {/* MODAL PREVIEW PDF */}
+      {showPDFPreview && pdfUrl && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-75">
+          <div className="bg-white rounded-lg shadow-2xl w-11/12 max-w-5xl h-[90vh] flex flex-col relative">
+            {/* BOTÓN CERRAR */}
+            <button
+              onClick={handleCerrarPreview}
+              className="absolute top-2 right-2 z-10 bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-full transition-colors shadow-lg"
+              title="Cerrar"
+            >
+              <X size={16} />
+            </button>
+
+            {/* CONTENIDO - IFRAME */}
+            <div className="flex-1 overflow-hidden bg-gray-100 rounded-lg">
+              <iframe
+                src={pdfUrl}
+                className="w-full h-full border-0 rounded-lg"
+                title="Vista previa del reporte"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

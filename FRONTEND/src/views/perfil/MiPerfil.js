@@ -28,7 +28,7 @@ const MiPerfil = ({ visible, onClose }) => {
     try {
       setLoadingData(true)
       const response = await verPerfil()
-      
+
       if (response.Consulta && response.Perfil) {
         setFormData({
           nombre: response.Perfil.nombre_usuario || '',
@@ -39,7 +39,6 @@ const MiPerfil = ({ visible, onClose }) => {
         })
       }
     } catch (error) {
-      console.error('Error al cargar perfil:', error)
       alert('Error al cargar los datos del perfil')
     } finally {
       setLoadingData(false)
@@ -129,14 +128,13 @@ const MiPerfil = ({ visible, onClose }) => {
 
         alert('✅ Perfil actualizado exitosamente')
         onClose()
-        
+
         // Recargar la página para reflejar cambios
         window.location.reload()
       } else {
         alert('Error al actualizar el perfil')
       }
     } catch (error) {
-      console.error('Error al guardar:', error)
       alert('Error al actualizar el perfil: ' + (error.response?.data?.error || error.message))
     } finally {
       setLoading(false)
@@ -158,7 +156,7 @@ const MiPerfil = ({ visible, onClose }) => {
               <div className="d-flex flex-wrap gap-3 align-items-center mb-4">
                 <div className="d-flex flex-wrap flex-grow-1 gap-3 align-items-center">
                   {/* Avatar SVG */}
-                  <div 
+                  <div
                     className="d-flex justify-content-center align-items-center bg-light rounded-4 overflow-hidden"
                     style={{ width: '70px', height: '70px', minHeight: '70px' }}
                   >
@@ -280,9 +278,9 @@ const MiPerfil = ({ visible, onClose }) => {
                       onChange={handleChange}
                       className={`form-control ${errores.nombre ? 'is-invalid' : ''}`}
                       placeholder="Nombre de usuario"
-                      style={{ height: '50px' }}
+                      style={{ height: '50px', backgroundColor: 'white' }}
                     />
-                    <label 
+                    <label
                       className="position-absolute bg-white px-2"
                       style={{
                         top: formData.nombre ? '-10px' : '50%',
@@ -314,9 +312,9 @@ const MiPerfil = ({ visible, onClose }) => {
                       onChange={handleChange}
                       className={`form-control ${errores.email ? 'is-invalid' : ''}`}
                       placeholder="E-mail"
-                      style={{ height: '50px' }}
+                      style={{ height: '50px', backgroundColor: 'white' }}
                     />
-                    <label 
+                    <label
                       className="position-absolute bg-white px-2"
                       style={{
                         top: '-10px',
@@ -351,9 +349,9 @@ const MiPerfil = ({ visible, onClose }) => {
                       value={formData.nuevaContraseña}
                       onChange={handleChange}
                       className={`form-control ${errores.nuevaContraseña ? 'is-invalid' : ''}`}
-                      style={{ height: '50px' }}
+                      style={{ height: '50px', backgroundColor: 'white' }}
                     />
-                    <label 
+                    <label
                       className="position-absolute bg-white px-2"
                       style={{
                         top: formData.nuevaContraseña ? '-10px' : '50%',
@@ -384,9 +382,9 @@ const MiPerfil = ({ visible, onClose }) => {
                       value={formData.confirmarContraseña}
                       onChange={handleChange}
                       className={`form-control ${errores.confirmarContraseña ? 'is-invalid' : ''}`}
-                      style={{ height: '50px' }}
+                      style={{ height: '50px', backgroundColor: 'white' }}
                     />
-                    <label 
+                    <label
                       className="position-absolute bg-white px-2"
                       style={{
                         top: formData.confirmarContraseña ? '-10px' : '50%',
@@ -441,7 +439,7 @@ const MiPerfil = ({ visible, onClose }) => {
                   type="button"
                   onClick={handleSave}
                   disabled={loading}
-                  style={{ 
+                  style={{
                     height: '50px',
                     backgroundColor: '#6366f1',
                     borderColor: '#6366f1'

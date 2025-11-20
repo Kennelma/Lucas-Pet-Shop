@@ -90,7 +90,7 @@ const PagoParcial = ({ total, idTipoPago, onBack, onConfirm }) => {
       return;
     }
 
-    onConfirm({
+    await onConfirm({
       metodos: [{
         id_metodo_pago_fk: metodoPago.id,
         monto: monto
@@ -158,7 +158,7 @@ const PagoParcial = ({ total, idTipoPago, onBack, onConfirm }) => {
             className="w-full pl-8 pr-4 py-2 text-lg font-medium border-2 border-orange-300 rounded focus:border-orange-500 focus:outline-none"
           />
         </div>
-        
+
         {/* Sugerencias rápidas */}
         <div className="flex gap-1 mt-1">
           {[total * 0.25, total * 0.5, total * 0.75].map((sugerencia, idx) => (
@@ -172,7 +172,7 @@ const PagoParcial = ({ total, idTipoPago, onBack, onConfirm }) => {
             </button>
           ))}
         </div>
-        
+
         {/* MENSAJE DE ERROR SI EL MONTO ES INVÁLIDO */}
         {montoParcial && (parseFloat(montoParcial) <= 0 || parseFloat(montoParcial) >= total) && (
           <p className="mt-1 text-xs text-red-600">

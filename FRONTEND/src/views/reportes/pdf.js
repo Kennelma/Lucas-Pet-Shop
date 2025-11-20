@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf';
 import { procesarDatosPDF } from './pdf-components/pdfProcesador';
-import { 
-  generarEncabezado, 
+import {
+  generarEncabezado,
   generarTarjetasResumen,
   generarTablaResumen,
   generarDetalleIngresos,
@@ -9,13 +9,13 @@ import {
   generarResumenFinal,
   generarPiePagina
 } from './pdf-components/pdfComponentes';
-import { 
-  verificarEspacio, 
-  theme, 
-  CONFIG, 
-  Logger, 
-  PDFCache, 
-  ProgressTracker, 
+import {
+  verificarEspacio,
+  theme,
+  CONFIG,
+  Logger,
+  PDFCache,
+  ProgressTracker,
   PDFValidationError,
   PDFGenerationError,
   PDFValidator,
@@ -72,30 +72,30 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
 
   // ========== FASE 1: PROCESAMIENTO DE DATOS ==========
   ProgressTracker.start('Procesamiento', 1);
-  
+
   // ✅ Verificar caché si está habilitado
-  const cacheKey = CONFIG.performance.enableCache 
+  const cacheKey = CONFIG.performance.enableCache
     ? `pdf_${anio}_${mesFiltrado}_${datosTabla.length}`
     : null;
-  
+
   let datosProcesados = cacheKey ? PDFCache.get(cacheKey) : null;
-  
+
   if (!datosProcesados) {
     try {
       datosProcesados = procesarDatosPDF(
-        datosTabla, 
-        totalIngresos, 
-        totalGastos, 
-        gananciaTotal, 
-        anio, 
-        mesFiltrado, 
+        datosTabla,
+        totalIngresos,
+        totalGastos,
+        gananciaTotal,
+        anio,
+        mesFiltrado,
         detallesCompletos
       );
-      
+
       if (cacheKey) {
         PDFCache.set(cacheKey, datosProcesados);
       }
-      
+
       ProgressTracker.complete();
       Logger.info('Datos procesados exitosamente');
     } catch (error) {
@@ -109,7 +109,7 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
 
   // ========== FASE 2: GENERACIÓN DEL PDF (DIBUJO) ==========
   ProgressTracker.start('Generación', 5);
-  
+
   let doc;
   try {
     doc = new jsPDF();
@@ -118,10 +118,10 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
     // Generar encabezado y tarjetas
     generarEncabezado(doc, datosProcesados.datosEncabezado);
     ProgressTracker.update(2);
-    
+
     generarTarjetasResumen(doc, datosProcesados.datosTarjetas);
     ProgressTracker.update(3);
-    
+
     Logger.info('Encabezado y tarjetas generados');
   } catch (error) {
     Logger.error('Error al generar encabezado', error);
@@ -178,43 +178,45 @@ export const descargarPDFTabla = (datosTabla, totalIngresos, totalGastos, gananc
   } catch (error) {
     Logger.warn('Error al generar pie de página (no crítico)', error);
   }
-  
+
   ProgressTracker.complete();
 
   // ========== VALIDACIÓN DE SALIDA ==========
   ProgressTracker.start('Validación final', 1);
   const validation = PDFValidator.validateOutput(doc);
-  
+
   if (!validation.valid) {
     const errors = validation.issues.filter(i => i.level === 'error');
     Logger.error('PDF inválido', errors);
     alert(`Error en el PDF generado: ${errors.map(e => e.message).join(', ')}`);
     return;
   }
-  
+
   if (validation.issues.length > 0) {
     validation.issues.forEach(issue => {
       Logger.warn(`Advertencia en PDF: ${issue.message}`);
     });
   }
-  
+
   ProgressTracker.complete();
 
-  // ========== GUARDAR PDF ==========
-  ProgressTracker.start('Guardando', 1);
+  // ========== RETORNAR EL DOCUMENTO ==========
+  ProgressTracker.start('Finalizando', 1);
   try {
-    doc.save(datosProcesados.nombreArchivo);
     ProgressTracker.complete();
-    
+
     Logger.info('✅ PDF generado exitosamente', {
       archivo: datosProcesados.nombreArchivo,
       paginas: doc.internal.getNumberOfPages(),
       cacheStats: PDFCache.getStats()
     });
-    
+
+    // Retornar el documento para que pueda ser manejado externamente
+    return doc;
+
   } catch (error) {
-    Logger.error('Error al guardar PDF', error);
-    throw new PDFGenerationError('Error al descargar el archivo PDF', 'guardado');
+    Logger.error('Error al finalizar PDF', error);
+    throw new PDFGenerationError('Error al generar el archivo PDF', 'finalizacion');
   }
 };
 
