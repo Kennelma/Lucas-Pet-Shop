@@ -66,7 +66,6 @@ export const useMedicamentos = () => {
       setLoading(false);
 
     } catch (error) {
-      console.error('Error al cargar datos:', error);
       setLoading(false);
     }
   };
@@ -195,7 +194,6 @@ export const useMedicamentos = () => {
     // Buscar el medicamento para obtener su precio
     const medicamento = medicamentos.find(m => m.id_producto_pk === formData.id_producto_fk);
     if (!medicamento) {
-      console.error('No se encontró el medicamento');
       return false;
     }
 
@@ -283,14 +281,12 @@ export const useMedicamentos = () => {
         return false;
       }
     } catch (error) {
-      console.error('Error al eliminar lote:', error);
       return false;
     }
   };
 
   const editarLote = async (loteEditado) => {
     try {
-      console.log('📥 Lote a editar:', loteEditado);
       
       const datosActualizar = {
         tipo_producto: 'LOTES',
@@ -299,11 +295,7 @@ export const useMedicamentos = () => {
         stock_lote: parseInt(loteEditado.stock_lote)
       };
 
-      console.log('📤 Enviando:', datosActualizar);
-
       const resultado = await actualizarProducto(datosActualizar);
-
-      console.log('📩 Respuesta:', resultado);
 
       if (resultado.Consulta) {
         await cargarDatos();
@@ -311,7 +303,6 @@ export const useMedicamentos = () => {
       }
       return false;
     } catch (error) {
-      console.error('❌ Error:', error);
       return false;
     }
   };

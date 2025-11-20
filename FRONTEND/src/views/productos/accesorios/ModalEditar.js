@@ -223,7 +223,6 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
         });
       }
     } catch (err) {
-      console.error(err);
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -289,6 +288,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
             onChange={(e) => handleChange('nombre', e.target.value)}
             className="w-full rounded-xl h-9 text-sm"
             placeholder="Ej: Collar de cuero"
+            autoComplete="off"
           />
           {errores.nombre && <p className="text-xs text-red-600 mt-1">{errores.nombre}</p>}
         </span>
@@ -337,6 +337,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
               style={{ paddingLeft: '2rem' }}
               placeholder="0.00"
               step="0.01"
+              autoComplete="off"
             />
           </div>
           {errores.precio && <p className="text-xs text-red-600 mt-1">{errores.precio}</p>}
@@ -372,6 +373,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
                 step="0.01"
                 min="0"
                 max="100"
+                autoComplete="off"
               />
               <span className="text-xs text-gray-600">
                 Precio base: L {precioBase} (sin impuesto)

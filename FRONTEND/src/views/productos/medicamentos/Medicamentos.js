@@ -229,7 +229,6 @@ const Medicamentos = () => {
       throw new Error(response.error || "Error al cambiar estado");
     }
   } catch (error) {
-    console.error('Error al cambiar estado:', error);
     Swal.fire({
       icon: "error",
       title: "Error",
@@ -441,6 +440,7 @@ const Medicamentos = () => {
         onSave={handleGuardarMedicamento}
         medicamentoEditando={medicamentoEditando}
         medicamentosExistentes={medicamentos}
+        lotesExistentes={lotes}
       />
 
       <ModalLote

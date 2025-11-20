@@ -202,11 +202,7 @@ const ModalAgregar = ({ isOpen, onClose, onSave, accesoriosExistentes = [] }) =>
         tiene_impuesto: aplicaImpuesto ? 1 : 0
       };
 
-      console.log('🔍 ModalAgregarAccesorio - Enviando datos:', body);
-
       const res = await insertarProducto(body);
-
-      console.log('🔍 ModalAgregarAccesorio - Respuesta recibida:', res);
 
       if (res && res.Consulta) {
         Swal.fire({
@@ -230,7 +226,6 @@ const ModalAgregar = ({ isOpen, onClose, onSave, accesoriosExistentes = [] }) =>
         onClose();
       } else {
         const errorMsg = res?.error || 'Error desconocido';
-        console.error('❌ Error en respuesta:', res);
         Swal.fire({
           icon: 'error',
           title: 'Error',
@@ -238,7 +233,6 @@ const ModalAgregar = ({ isOpen, onClose, onSave, accesoriosExistentes = [] }) =>
         });
       }
     } catch (err) {
-      console.error('❌ Error en handleSubmit:', err);
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -304,6 +298,7 @@ const ModalAgregar = ({ isOpen, onClose, onSave, accesoriosExistentes = [] }) =>
             onChange={(e) => handleChange('nombre', e.target.value)}
             className="w-full rounded-xl h-9 text-sm"
             placeholder="Ej: Collar de cuero"
+            autoComplete="off"
           />
           {errores.nombre && <p className="text-xs text-red-600 mt-1">{errores.nombre}</p>}
         </span>
@@ -356,6 +351,7 @@ const ModalAgregar = ({ isOpen, onClose, onSave, accesoriosExistentes = [] }) =>
               className="w-full rounded-xl h-9 text-sm"
               style={{ paddingLeft: '2rem' }}
               placeholder="0.00"
+              autoComplete="off"
             />
           </div>
           {errores.precio && data.precio !== '' && data.precio !== '0.00' && parseFloat(data.precio) !== 0 && (
@@ -418,6 +414,7 @@ const ModalAgregar = ({ isOpen, onClose, onSave, accesoriosExistentes = [] }) =>
             inputClassName="h-9 text-sm"
             placeholder="Mínimo 5 unidades"
             min={0}
+            autoComplete="off"
           />
           {errores.cantidad && <p className="text-xs text-red-600 mt-1">{errores.cantidad}</p>}
         </span>

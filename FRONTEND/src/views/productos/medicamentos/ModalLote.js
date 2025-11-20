@@ -210,7 +210,7 @@ const ModalLote = ({ isOpen, onClose, onSave, medicamentoSeleccionado, lotesExis
             value={formData.stock_lote}
             onChange={(e) => handleChange('stock_lote', e.target.value)}
             className="w-full rounded-xl h-9 text-sm"
-            placeholder="Mínimo 5 unidades"
+            autoComplete="off"
           />
           {errores.stock_lote && <p className="text-xs text-red-600 mt-1">{errores.stock_lote}</p>}
         </span>

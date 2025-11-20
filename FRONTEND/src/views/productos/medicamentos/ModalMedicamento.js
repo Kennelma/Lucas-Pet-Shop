@@ -435,6 +435,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                 onChange={e => handleChange('nombre_producto', e.target.value)}
                 className="w-full rounded-xl h-9 text-sm"
                 placeholder="Ej: Amoxicilina"
+                autoComplete="off"
               />
               {errores.nombre_producto && <p className="text-xs text-red-600 mt-1">{errores.nombre_producto}</p>}
             </span>
@@ -454,6 +455,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                   className="w-full rounded-xl h-9 text-sm"
                   style={{ paddingLeft: '2rem' }}
                   placeholder="0.00"
+                  autoComplete="off"
                 />
               </div>
               {errores.precio_producto && <p className="text-xs text-red-600 mt-1">{errores.precio_producto}</p>}
@@ -485,6 +487,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                     step="0.01"
                     min="0"
                     max="100"
+                    autoComplete="off"
                   />
                   <span className="text-sm text-gray-600">
                     PRECIO BASE: L {precioBase.toFixed(2)} (SIN IMPUESTO)
@@ -543,7 +546,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                 {(() => {
                   const baseItems = [
                     "ANTIBIÓTICO","ANTIPARASITARIO","ANTIINFLAMATORIO","ANALGÉSICO","ANTIFÚNGICO",
-                    "ANTIVIRAL","VACUNA","DESPARASITANTE","SUPLEMENTO","VITAMINAS"
+                    "ANTIVIRAL","VACUNA","DESPARASITANTE","VITAMINAS"
                   ];
                   const existentes = (medicamentosExistentes || [])
                     .map(m => m.tipo_medicamento)
@@ -567,7 +570,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                   value={formData.cantidad_contenido}
                   onChange={e => handleChange('cantidad_contenido', e.target.value)}
                   className="w-full rounded-xl h-9 text-sm"
-                  placeholder="Ej: 500"
+                  autoComplete="off"
                 />
               </span>
               <span>
@@ -641,7 +644,7 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
                 value={formData.stock_lote}
                 onChange={(e) => handleChange('stock_lote', e.target.value)}
                 className="w-full rounded-xl h-9 text-sm"
-                placeholder="Mínimo 5 unidades"
+                autoComplete="off"
               />
               {errores.stock_lote && <p className="text-xs text-red-600 mt-1">{errores.stock_lote}</p>}
             </span>
