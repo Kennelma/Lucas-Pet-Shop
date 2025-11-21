@@ -122,7 +122,6 @@ router.post('/whatsapp/logout', whatsapp.cerrarSesion);
 router.post('/whatsapp/enviar-recordatorios', whatsapp.enviarRecordatoriosPendientes);
 
 
-
 // ====== RUTAS DEL CAI ==========
 router.get('/sar/verCatalogo', sar.verCatalogoCAI); //VER CATALOGO DE CAI
 router.post('/sar/crear', sar.crearCAI); //AGREGAR AL CATALOGO UN NUEVO CAI

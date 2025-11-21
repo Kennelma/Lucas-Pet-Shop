@@ -57,6 +57,7 @@ async function obtenerSiguienteNumeroFactura(conn) {
     //OBTENER CAI ACTIVO
     const [cai] = await conn.query(
         `SELECT
+            
             codigo_cai,
             prefijo,
             numero_actual,
@@ -99,11 +100,12 @@ async function obtenerSiguienteNumeroFactura(conn) {
     //SE VALIDA RANGO
     if (caiData.numero_actual > caiData.rango_fin) {
     await conn.query(
-        `UPDATE tbl_cai SET activo = FALSE
+        `UPDATE tbl_cai
+            SET activo = FALSE
          WHERE activo = TRUE AND tipo_documento = '01'`
     );
     throw new Error(`FACTURAS AGOTADAS. SE ALCANZÓ EL LÍMITE DE RANGO: (${caiData.rango_fin}). DEBE SOLICITAR UN NUEVO CAI AL SAR.`);
-}
+    }
 
 
     //SE GENERA NUMERO FORMATEADO CON EL PREFIJO DEL CAI
@@ -542,7 +544,7 @@ exports.crearFacturaSinPago = async (req, res) => {
         const estado_factura = estado[0].id_estado_pk;
 
         //OBTENER SIGUIENTE NÚMERO DE FACTURA CON CAI
-        const { numero_factura, cai, fecha_limite } = await obtenerSiguienteNumeroFactura(conn);
+        const { numero_factura, cai } = await obtenerSiguienteNumeroFactura(conn);
 
         //INSERTAR FACTURA
         const [factura] = await conn.query(

@@ -31,7 +31,9 @@ exports.verCatalogoCAI = async (req, res) => {
             Consulta: true,
             Catalogo: filas || []
         });
+
     } catch (error) {
+        await conn.rollback();
         res.status(500).json({
             Consulta: false,
             error: error.message
@@ -40,7 +42,6 @@ exports.verCatalogoCAI = async (req, res) => {
         conn.release();
     }
 };
-
 
 //==============CREAR UN NUEVO CAI==================
 exports.crearCAI = async (req, res) => {
@@ -108,7 +109,7 @@ exports.crearCAI = async (req, res) => {
                 prefijo,
                 rango_inicio,
                 rango_fin,
-                rango_inicio, // NUMERO_ACTUAL EMPIEZA EN RANGO_INICIO
+                rango_inicio, //NUMERO_ACTUAL EMPIEZA EN RANGO_INICIO
                 fecha_limite,
                 punto_emision,
                 tipo_documento
@@ -177,49 +178,65 @@ exports.obtenerAlertasCAI = async (req, res) => {
 
         const alertas = [];
 
-        //FACTURAS RESTANTES MENOS DE 15 Y 10
-        if (facturasRestantes <= 15 && facturasRestantes > 10) {
+
+        // ALERTAS DE FACTURAS RESTANTES
+        if (facturasRestantes > 10 && facturasRestantes <= 15) {
             alertas.push({
                 tipo: 'facturas',
                 mensaje: `SOLO QUEDAN ${facturasRestantes} FACTURAS DISPONIBLES CON EL CAI ACTUAL.`,
                 severidad: 'advertencia',
                 valor: facturasRestantes
             });
-        } else if (facturasRestantes <= 10 && facturasRestantes > 0) {
+
+        } else if (facturasRestantes > 0 && facturasRestantes <= 10) {
             alertas.push({
                 tipo: 'facturas',
                 mensaje: `ATENCIÓN: SOLO QUEDAN ${facturasRestantes} FACTURAS. SOLICITE UN NUEVO CAI.`,
                 severidad: 'advertencia',
                 valor: facturasRestantes
             });
+
         } else if (facturasRestantes <= 0) {
             alertas.push({
                 tipo: 'facturas',
-                mensaje: 'SE HAN AGOTADO TODAS LAS FACTURAS CON EL CAI ACTUAL.',
+                mensaje: 'SE HAN AGOTADO TODOS LOS RANGOS DISPONIBLES CON EL CAI ACTUAL. CONTACTESE CON SU CONTADOR',
                 severidad: 'critico',
                 valor: 0
             });
         }
 
-        //FECHA EL CAI VIENE A VENCER EN 5 DIAS O MENOS
-        if (diasRestantes <= 10 && diasRestantes > 0) {
-            const fechaFormateada = moment(caiData.fecha_limite).tz('America/Tegucigalpa').format('DD/MM/YYYY');
-            alertas.push({
-                tipo: 'fecha',
-                mensaje: `El CAI VENCE EN ${diasRestantes} DÍAS.`,
-                severidad: 'advertencia',
-                valor: diasRestantes,
-                fecha: fechaFormateada
-            });
-        } else if (diasRestantes <= 0) {
-            const fechaFormateada = moment(caiData.fecha_limite).tz('America/Tegucigalpa').format('DD/MM/YYYY');
-            alertas.push({
-                tipo: 'fecha',
-                mensaje: 'EL CAI HA VENCIDO',
-                severidad: 'critico',
-                valor: 0,
-                fecha: fechaFormateada
-            });
+
+
+        // ALERTAS DE FECHA SOLO SI TODAVÍA HAY FACTURAS
+        if (facturasRestantes > 0) {
+
+            //FECHA DEL CAI VIENE A VENCER EN 10 DÍAS O MENOS
+            if (diasRestantes <= 10 && diasRestantes > 0) {
+                const fechaFormateada = moment(caiData.fecha_limite)
+                    .tz('America/Tegucigalpa')
+                    .format('DD/MM/YYYY');
+
+                alertas.push({
+                    tipo: 'fecha',
+                    mensaje: `El CAI VENCE EN ${diasRestantes} DÍAS.`,
+                    severidad: 'advertencia',
+                    valor: diasRestantes,
+                    fecha: fechaFormateada
+                });
+
+            } else if (diasRestantes <= 0) {
+                const fechaFormateada = moment(caiData.fecha_limite)
+                    .tz('America/Tegucigalpa')
+                    .format('DD/MM/YYYY');
+
+                alertas.push({
+                    tipo: 'fecha',
+                    mensaje: 'EL CAI HA VENCIDO',
+                    severidad: 'critico',
+                    valor: 0,
+                    fecha: fechaFormateada
+                });
+            }
         }
 
         res.status(200).json({
@@ -235,6 +252,7 @@ exports.obtenerAlertasCAI = async (req, res) => {
         });
 
     } catch (error) {
+        await conn.rollback();
         res.status(500).json({
             Consulta: false,
             error: error.message
