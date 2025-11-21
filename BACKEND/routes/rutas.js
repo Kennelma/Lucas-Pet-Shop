@@ -124,9 +124,9 @@ router.post('/whatsapp/enviar-recordatorios', whatsapp.enviarRecordatoriosPendie
 
 
 // ====== RUTAS DEL CAI ==========
-router.get('/sar/verCatalogo', verificarToken, sar.verCatalogoCAI); //VER CATALOGO DE CAI
-router.post('/sar/crear', verificarToken, sar.crearCAI); //AGREGAR AL CATALOGO UN NUEVO CAI
-router.get('/sar/verActivo', verificarToken, sar.verCAIActivo); //VER CAI ACTIVO CON ESTADISTICAS
-router.get('/sar/alertas', verificarToken, sar.obtenerAlertasCAI); //MOSTRAR ALERTAS DEL CAI ACTIVO
+router.get('/sar/verCatalogo', sar.verCatalogoCAI); //VER CATALOGO DE CAI
+router.post('/sar/crear', sar.crearCAI); //AGREGAR AL CATALOGO UN NUEVO CAI
+router.get('/sar/verActivo', sar.verCAIActivo); //VER CAI ACTIVO CON ESTADISTICAS
+router.get('/sar/alertas', sar.obtenerAlertasCAI); //MOSTRAR ALERTAS DEL CAI ACTIVO
 
 module.exports = router;

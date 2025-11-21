@@ -20,7 +20,8 @@ exports.verCatalogoCAI = async (req, res) => {
                 tipo_documento,
                 activo,
                 (numero_actual - rango_inicio) AS facturas_usadas,
-                (rango_fin - rango_inicio + 1) AS total_facturas
+                (rango_fin - rango_inicio + 1) AS total_facturas,
+                (rango_fin - numero_actual + 1) AS facturas_disponibles
             FROM tbl_cai
             ORDER BY activo DESC, id_cai_pk DESC
         `);
@@ -139,6 +140,7 @@ exports.verCAIActivo = async (req, res) => {
     }
 };
 
+
 //==============CREAR UN NUEVO CAI==================
 exports.crearCAI = async (req, res) => {
 
@@ -149,33 +151,38 @@ exports.crearCAI = async (req, res) => {
 
         const {
             codigo_cai,
-            prefijo,
-            rango_inicio,
-            rango_fin,
-            fecha_limite,
-            punto_emision,
-            tipo_documento
+            cantidad_facturas,
+            fecha_limite
         } = req.body;
 
+        // VALORES POR DEFECTO
+        const establecimiento = '000';
+        const punto_emision = '002';
+        const tipo_documento = '01';
+        const prefijo = `${establecimiento}-${punto_emision}-${tipo_documento}`;
+        const rango_inicio = 1;
+        const rango_fin = parseInt(cantidad_facturas);
+
         //VALIDACIONES
-        if (!codigo_cai || !prefijo || !rango_inicio || !rango_fin || !fecha_limite) {
-            throw new Error('TODOS LOS CAMPOS DEBEN SER LLENADOS');
+        if (!codigo_cai || !cantidad_facturas || !fecha_limite) {
+            throw new Error('TODOS LOS CAMPOS SON OBLIGATORIOS');
         }
 
-        if (parseInt(rango_fin) <= parseInt(rango_inicio)) {
-            throw new Error('EL RANGO FINAL DEBE SER MAYOR AL RANGO INICIAL');
+        if (parseInt(cantidad_facturas) <= 0) {
+            throw new Error('LA CANTIDAD DE FACTURAS DEBE SER MAYOR A 0');
         }
 
         if (new Date(fecha_limite) <= new Date()) {
             throw new Error('LA FECHA LÍMITE DEBE SER FUTURA');
         }
 
+        // VALIDAR QUE NO EXISTA CAI ACTIVO
         const [caiActivo] = await conn.query(
             `SELECT id_cai_pk
             FROM tbl_cai
             WHERE activo = TRUE
             AND tipo_documento = ?`,
-            [tipo_documento || '01']
+            [tipo_documento]
         );
 
         if (caiActivo && caiActivo.length > 0) {
@@ -198,12 +205,12 @@ exports.crearCAI = async (req, res) => {
             [
                 codigo_cai,
                 prefijo,
-                parseInt(rango_inicio),
-                parseInt(rango_fin),
-                parseInt(rango_inicio), //NUMERO_ACTUAL EMPIEZA EN RANGO_INICIO
+                rango_inicio,
+                rango_fin,
+                rango_inicio, // NUMERO_ACTUAL EMPIEZA EN RANGO_INICIO
                 fecha_limite,
-                punto_emision || '002',
-                tipo_documento || '01'
+                punto_emision,
+                tipo_documento
             ]
         );
 
@@ -224,6 +231,7 @@ exports.crearCAI = async (req, res) => {
         conn.release();
     }
 };
+
 
 //==============OBTENER ALERTAS DEL CAI====================
 exports.obtenerAlertasCAI = async (req, res) => {

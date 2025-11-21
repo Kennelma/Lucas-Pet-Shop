@@ -60,6 +60,7 @@ async function obtenerSiguienteNumeroFactura(conn) {
             codigo_cai,
             prefijo,
             numero_actual,
+            rango_inicio,
             rango_fin,
             fecha_limite,
             punto_emision,
@@ -96,14 +97,12 @@ async function obtenerSiguienteNumeroFactura(conn) {
 
     //SE VALIDA RANGO
     if (caiData.numero_actual > caiData.rango_fin) {
-        //SE DESACTIVA EL CAI AGOTADO
-        await conn.query(
-            `UPDATE tbl_cai
-            SET activo = FALSE
-            WHERE activo = TRUE AND tipo_documento = '01'`
-        );
-        throw new Error(`FACTURAS AGOTADAS. SÉ ALCANZÓ EL LIMITE DE RANGO: (${caiData.rango_fin}). DEBE SOLICITAR UN NUEVO CAI AL SAR.`);
-    }
+    await conn.query(
+        `UPDATE tbl_cai SET activo = FALSE
+         WHERE activo = TRUE AND tipo_documento = '01'`
+    );
+    throw new Error(`FACTURAS AGOTADAS. SE ALCANZÓ EL LÍMITE DE RANGO: (${caiData.rango_fin}). DEBE SOLICITAR UN NUEVO CAI AL SAR.`);
+}
 
 
     //SE GENERA NUMERO FORMATEADO CON EL PREFIJO DEL CAI
@@ -119,9 +118,9 @@ async function obtenerSiguienteNumeroFactura(conn) {
     return {
         numero_factura: numeroFormateado,
         cai: caiData.codigo_cai,
+        rango_inicio: caiData.rango_inicio,
+        rango_fin: caiData.rango_fin,
         fecha_limite: caiData.fecha_limite,
-        rango_inicio: 1,
-        rango_fin: caiData.rango_fin
     };
 }
 
