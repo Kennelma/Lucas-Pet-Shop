@@ -6,15 +6,17 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { verCatalogoCAI } from '../../AXIOS.SERVICES/sar-axios';
 import Swal from 'sweetalert2';
 
-const SAR = () => {
 
+const SAR = () => {
     const [registrosSAR, setRegistrosSAR] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    //FUNCION QUE EJECUTA AL INICIAR EL COMPONENTE
     useEffect(() => {
         cargarCatalogo();
     }, []);
 
+    //FUNCION PARA CARGAR EL CATALOGO DE CAI
     const cargarCatalogo = async () => {
         try {
             setLoading(true);
@@ -28,7 +30,7 @@ const SAR = () => {
         }
     };
 
-    // Template para el estado
+    //ESTADO DEL CAI EN LA TABLA
     const estadoTemplate = (rowData) => {
         return (
             <span className={`px-3 py-1 rounded-full text-white text-sm font-semibold ${
@@ -41,6 +43,7 @@ const SAR = () => {
 
     return (
         <div className="p-6" style={{ fontFamily: 'Poppins', backgroundColor: "#F7F8F2" }}>
+
             <div className="p-6 pb-12">
 
                 {/* Título */}
@@ -69,7 +72,8 @@ const SAR = () => {
                         <button
                             className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded flex items-center"
                             onClick={() => {
-                                // Lógica para agregar un nuevo registro SAR
+
+                                toast.info('Función de agregar CAI pendiente de implementar');
                             }}
                         >
                             <FontAwesomeIcon icon={faPlus} className="mr-2" />

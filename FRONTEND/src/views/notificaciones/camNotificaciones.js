@@ -80,7 +80,7 @@ const CamNotificaciones = () => {
     if (tipo === 'LOTE_PROXIMO_VENCER') {
       return <AiFillAlert style={{ fontSize: '24px', color: '#2563e9ff' }} />
     }
-    return '🔔'
+    return <CIcon icon={cilWarning} size="lg" style={{ color: '#6B7280' }} />
   }
 
   const determinarPlantilla = (tipo, mensaje) => {
@@ -95,31 +95,6 @@ const CamNotificaciones = () => {
     if (tipo === 'STOCK_BAJOS') return 1
 
     return 0
-  }
-
-  const reproducirSonido = () => {
-    try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)()
-      const oscillator = audioContext.createOscillator()
-      const gainNode = audioContext.createGain()
-
-      oscillator.connect(gainNode)
-      gainNode.connect(audioContext.destination)
-
-      oscillator.frequency.value = 800
-      oscillator.type = 'sine'
-
-      gainNode.gain.setValueAtTime(0, audioContext.currentTime)
-      gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.1)
-      gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3)
-
-      oscillator.start(audioContext.currentTime)
-      oscillator.stop(audioContext.currentTime + 0.3)
-
-      setTimeout(() => audioContext.close(), 400)
-    } catch (error) {
-      console.error('Error al reproducir sonido:', error)
-    }
   }
 
   // ============== EFECTOS ==============
@@ -139,7 +114,6 @@ const CamNotificaciones = () => {
     if (noLeidas > prevCount && prevCount >= 0) {
       setAnimarCampana(true)
       setTimeout(() => setAnimarCampana(false), 500)
-      reproducirSonido()
     }
 
     localStorage.setItem('notif_count', noLeidas.toString())
@@ -366,10 +340,6 @@ const CamNotificaciones = () => {
           onClick={() => {
             setDropdownOpen(!dropdownOpen)
             setMostrarNotificacionFlotante(false)
-            if (!dropdownOpen) {
-              const ctx = new (window.AudioContext || window.webkitAudioContext)()
-              ctx.resume().then(() => ctx.close())
-            }
           }}
           className="nav-link border-0 bg-transparent"
           style={{ cursor: 'pointer', position: 'relative', padding: '0.3rem 1rem' }}

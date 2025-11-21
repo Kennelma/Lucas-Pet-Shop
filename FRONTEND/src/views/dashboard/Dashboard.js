@@ -6,6 +6,9 @@ import ModalAgregarGasto from './modal_nuevo_gasto';
 import ModalTablaGastos from './modal_tabla_gastos';
 import { ver } from '../../AXIOS.SERVICES/empresa-axios';
 
+import { obtenerAlertasCAI } from "../../AXIOS.SERVICES/sar-axios";
+import { toast } from "react-toastify";
+
 const Dashboard = () => {
   const navigate = useNavigate();
 
@@ -21,19 +24,81 @@ const Dashboard = () => {
   useEffect(() => {
     if (!token) navigate('/login');
 
-    // Mostrar mensaje de bienvenida si viene del login
-    const showWelcome = sessionStorage.getItem('showWelcome');
-    if (showWelcome === 'true') {
-      Swal.fire({
-        icon: 'success',
-        title: '¡Bienvenido!',
-        text: 'Inicio de sesión exitoso',
-        timer: 2500,
-        showConfirmButton: false,
-      });
-      sessionStorage.removeItem('showWelcome');
-    }
+    const inicializarDashboard = async () => {
+      // Mostrar mensaje de bienvenida si viene del login
+      const showWelcome = sessionStorage.getItem('showWelcome');
+      if (showWelcome === 'true') {
+        await Swal.fire({
+          icon: 'success',
+          title: '¡Bienvenido!',
+          text: 'Inicio de sesión exitoso',
+          timer: 2500,
+          showConfirmButton: false,
+        });
+        sessionStorage.removeItem('showWelcome');
+      }
+
+      //SE CARGAN LAS ALERTAS CAI DESPUÉS DE LA BIENVENIDA
+      await cargarAlertasCAI();
+    };
+
+    inicializarDashboard();
   }, [token, navigate]);
+
+  //FUNCION PARA FORMATEAR FECHA
+      const formatearFecha = (fecha) => {
+          if (!fecha) return '';
+          const date = new Date(fecha);
+          const day = String(date.getDate()).padStart(2, '0');
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}-${month}-${year}`;
+      };
+
+
+  //FUNCION PARA CARGAR ALERTAS CAI
+  const cargarAlertasCAI = async () => {
+    try {
+      const data = await obtenerAlertasCAI();
+
+      if (!data.hayAlertas) return;
+
+      data.alertas.forEach(alerta => {
+        //ALERTAS CRÍTICAS -> SweetAlert2
+        if (alerta.severidad === "critico") {
+          const config = {
+            icon: "error",
+            title: "ALERTA CRÍTICA DE CAI",
+            text: alerta.mensaje,
+            confirmButtonText: "Entendido",
+            confirmButtonColor: "#d33"
+          };
+
+          //AGREGAR FECHA LÍMITE SI VIENE
+          if (alerta.fecha) {
+            config.footer = `<strong>Fecha límite: ${formatearFecha(alerta.fecha)}</strong>`;
+          }
+
+          Swal.fire(config);
+        }
+
+        //ALERTAS DE ADVERTENCIA -> Toast
+        if (alerta.severidad === "advertencia") {
+          toast.warning(alerta.mensaje, {
+            position: "top-center",
+            autoClose: 6000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true
+          });
+        }
+      });
+
+    } catch (error) {
+      console.error("Error cargando alertas CAI:", error);
+    }
+  };
 
   const today = new Date();
 
@@ -75,7 +140,7 @@ const Dashboard = () => {
     );
   });
 
-  // Mostrar solo los últimos 5 gastos
+  //Mostrar solo los últimos 5 gastos
   const lastTwoExpenses = filteredExpenses.slice(-5);
 
   const totalExpenses = filteredExpenses.reduce((total, expense) => {

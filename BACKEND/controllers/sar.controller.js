@@ -1,6 +1,7 @@
 require('dotenv').config()
 
 const mysqlConnection = require('../config/conexion');
+const moment = require('moment-timezone');
 
 //============VER CATALOGO DE CAI====================
 exports.verCatalogoCAI = async (req, res) => {
@@ -30,106 +31,6 @@ exports.verCatalogoCAI = async (req, res) => {
             Consulta: true,
             Catalogo: filas || []
         });
-    } catch (error) {
-        res.status(500).json({
-            Consulta: false,
-            error: error.message
-        });
-    } finally {
-        conn.release();
-    }
-};
-
-//================VER CAI ACTIVO (QUE SE ESTÁ USANDO)====================
-exports.verCAIActivo = async (req, res) => {
-
-    const conn = await mysqlConnection.getConnection();
-
-    try {
-        const [cai] = await conn.query(
-            `SELECT
-                id_cai_pk,
-                codigo_cai,
-                prefijo,
-                rango_inicio,
-                rango_fin,
-                numero_actual,
-                fecha_limite,
-                punto_emision,
-                tipo_documento,
-                activo
-            FROM tbl_cai
-            WHERE activo = TRUE
-            AND tipo_documento = '01'
-            LIMIT 1`
-        );
-
-        if (!cai || cai.length === 0) {
-            return res.status(404).json({
-                Consulta: false,
-                mensaje: 'No hay CAI activo configurado'
-            });
-        }
-
-        const caiActual = cai[0];
-
-        //CALCULAR ESTADÍSTICAS
-        const facturasUsadas = caiActual.numero_actual - caiActual.rango_inicio;
-        const facturasDisponibles = caiActual.rango_fin - caiActual.numero_actual + 1;
-        const totalFacturas = caiActual.rango_fin - caiActual.rango_inicio + 1;
-        const porcentajeUsado = ((facturasUsadas / totalFacturas) * 100).toFixed(2);
-
-        //CALCULAR DÍAS RESTANTES
-        const fechaLimite = new Date(caiActual.fecha_limite);
-        const hoy = new Date();
-        const diasRestantes = Math.ceil((fechaLimite - hoy) / (1000 * 60 * 60 * 24));
-
-        //GENERAR ALERTAS
-        const alertas = [];
-
-        if (diasRestantes < 30 && diasRestantes > 0) {
-            alertas.push({
-                tipo: 'FECHA',
-                mensaje: `El CAI VENCE EN ${diasRestantes} días`,
-                severidad: diasRestantes < 7 ? 'error' : 'warning'
-            });
-        } else if (diasRestantes <= 0) {
-            alertas.push({
-                tipo: 'FECHA',
-                mensaje: 'El CAI ESTÁ VENCIDO. DEBE SOLICITAR UNO NUEVO AL SAR.',
-                severidad: 'error'
-            });
-        }
-
-        if (facturasDisponibles < 100 && facturasDisponibles > 0) {
-            alertas.push({
-                tipo: 'FACTURAS',
-                mensaje: `SÓLO QUEDAN ${facturasDisponibles} FACTURAS DISPONIBLES`,
-                severidad: facturasDisponibles < 50 ? 'error' : 'warning'
-            });
-        } else if (facturasDisponibles <= 0) {
-            alertas.push({
-                tipo: 'FACTURAS',
-                mensaje: 'SE AGOTARON LAS FACTURAS. DEBE SOLICITAR UN NUEVO CAI AL SAR.',
-                severidad: 'error'
-            });
-        }
-
-        res.status(200).json({
-            Consulta: true,
-            data: {
-                ...caiActual,
-                estadisticas: {
-                    facturasUsadas,
-                    facturasDisponibles,
-                    totalFacturas,
-                    porcentajeUsado,
-                    diasRestantes
-                },
-                alertas
-            }
-        });
-
     } catch (error) {
         res.status(500).json({
             Consulta: false,
@@ -276,39 +177,48 @@ exports.obtenerAlertasCAI = async (req, res) => {
 
         const alertas = [];
 
-        // FACTURAS
-        if (facturasRestantes <= 100 && facturasRestantes > 0) {
+        //FACTURAS RESTANTES MENOS DE 15 Y 10
+        if (facturasRestantes <= 15 && facturasRestantes > 10) {
             alertas.push({
                 tipo: 'facturas',
                 mensaje: `SOLO QUEDAN ${facturasRestantes} FACTURAS DISPONIBLES CON EL CAI ACTUAL.`,
-                severidad: facturasRestantes <= 50 ? 'critico' : 'advertencia',
+                severidad: 'advertencia',
+                valor: facturasRestantes
+            });
+        } else if (facturasRestantes <= 10 && facturasRestantes > 0) {
+            alertas.push({
+                tipo: 'facturas',
+                mensaje: `ATENCIÓN: SOLO QUEDAN ${facturasRestantes} FACTURAS. SOLICITE UN NUEVO CAI.`,
+                severidad: 'advertencia',
                 valor: facturasRestantes
             });
         } else if (facturasRestantes <= 0) {
             alertas.push({
                 tipo: 'facturas',
-                mensaje: 'LAS FACTURAS DISPONIBLES SE HAN AGOTADO CON EL CAI ACTUAL.',
+                mensaje: 'SE HAN AGOTADO TODAS LAS FACTURAS CON EL CAI ACTUAL.',
                 severidad: 'critico',
                 valor: 0
             });
         }
 
-        // FECHA
-        if (diasRestantes <= 30 && diasRestantes > 0) {
+        //FECHA EL CAI VIENE A VENCER EN 5 DIAS O MENOS
+        if (diasRestantes <= 10 && diasRestantes > 0) {
+            const fechaFormateada = moment(caiData.fecha_limite).tz('America/Tegucigalpa').format('DD/MM/YYYY');
             alertas.push({
                 tipo: 'fecha',
                 mensaje: `El CAI VENCE EN ${diasRestantes} DÍAS.`,
-                severidad: diasRestantes <= 7 ? 'critico' : 'advertencia',
+                severidad: 'advertencia',
                 valor: diasRestantes,
-                fecha: caiData.fecha_limite
+                fecha: fechaFormateada
             });
         } else if (diasRestantes <= 0) {
+            const fechaFormateada = moment(caiData.fecha_limite).tz('America/Tegucigalpa').format('DD/MM/YYYY');
             alertas.push({
                 tipo: 'fecha',
                 mensaje: 'EL CAI HA VENCIDO',
                 severidad: 'critico',
                 valor: 0,
-                fecha: caiData.fecha_limite
+                fecha: fechaFormateada
             });
         }
 
@@ -333,5 +243,3 @@ exports.obtenerAlertasCAI = async (req, res) => {
         conn.release();
     }
 };
-
-module.exports = exports;

@@ -90,7 +90,8 @@ async function obtenerSiguienteNumeroFactura(conn) {
 
     await conn.query(
         `UPDATE tbl_cai
-        SET activo = FALSE WHERE activo = TRUE AND tipo_documento = '01'`
+        SET activo = FALSE
+        WHERE activo = TRUE AND tipo_documento = '01'`
         );
         throw new Error(`CAI VENCIDO (fecha límite: ${caiData.fecha_limite}). NO SE PUEDEN GENERAR FACTURAS, DEBE SOLICITAR UN NUEVO CAI AL SAR.`);
     }

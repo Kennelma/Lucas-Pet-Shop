@@ -23,20 +23,11 @@ export const crearCAI = async (datosCAI) => {
     }
 };
 
-//SERVICIO DE AXIOS PARA VER EL CAI ACTIVO CON ESTADISTICAS
-export const verCAIActivo = async () => {
-    try {
-        const res = await axiosInstance.get(`${API_URL}/verActivo`);
-        return res.data;
-    } catch (error) {
-        throw error;
-    }
-};
 
 //SERVICIO DE AXIOS PARA OBTENER LAS ALERTAS DEL CAI ACTIVO
 export const obtenerAlertasCAI = async () => {
     try {
-        const res = await axiosInstance.get(`${API_URL} /alertas`);
+        const res = await axiosInstance.get(`${API_URL}/alertas`);
         return res.data;
     }
     catch (error) {
