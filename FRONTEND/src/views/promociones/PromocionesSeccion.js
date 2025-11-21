@@ -208,7 +208,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
         </div>
 
         <button
-          className="bg-blue-400 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition-colors flex items-center gap-2"
+          className="bg-blue-800 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition-colors flex items-center gap-2"
           style={{ borderRadius: '12px' }}
           onClick={() => abrirModalPromocion(null)}
         >

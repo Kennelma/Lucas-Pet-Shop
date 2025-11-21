@@ -172,6 +172,13 @@ const getNavigation = () => {
       rolesPermitidos: ['administrador'],
     },
 
+    {
+      component: CNavItem,
+      name: 'SAR',
+      to: '/sar',
+      icon: <FontAwesomeIcon icon={faBell} className="nav-icon" />,
+    },
+
 ];
 
   //FILTRAR LOS ITEMS DEL NAV SEGÚN EL ROL DEL USUARIO

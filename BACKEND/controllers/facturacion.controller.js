@@ -2,9 +2,7 @@ require('dotenv').config()
 
 const mysqlConnection = require('../config/conexion');
 
-//=========================================================
-// FUNCIÓN REUTILIZABLE PARA MANEJAR MOVIMIENTOS DE KARDEX
-//=========================================================
+//------FUNCION DE MOVIMIENTOS DE KARDEX----------------
 async function insertarMovimientoKardex (conn, datosMovimiento) {
   const {
     cantidad_movimiento,
@@ -53,10 +51,82 @@ async function insertarMovimientoKardex (conn, datosMovimiento) {
   );
 }
 
+//---- FUNCION PARA OBTENER SIGUIENTE NÚMERO DE FACTURA CON CAI
+async function obtenerSiguienteNumeroFactura(conn) {
+
+    //OBTENER CAI ACTIVO
+    const [cai] = await conn.query(
+        `SELECT
+            codigo_cai,
+            prefijo,
+            numero_actual,
+            rango_fin,
+            fecha_limite,
+            punto_emision,
+            tipo_documento
+        FROM tbl_cai
+        WHERE activo = TRUE
+        AND tipo_documento = '01'
+        LIMIT 1
+        FOR UPDATE`
+    );
+
+    if (!cai || cai.length === 0) {
+        throw new Error('NO HAY CAI ACTIVO PARA FACTURAR. CONTACTE AL ADMINISTRADOR.');
+    }
+
+    //VARIABLE PARA EL CAI
+    const caiData = cai[0];
+
+    //SE VALIDA FECHA LÍMITE DE EXPERIACIÓN
+    const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+    const fechaLimite = new Date(caiData.fecha_limite);
+        fechaLimite.setHours(0, 0, 0, 0);
+
+    //VALIDACION QUE ME DESACTIVA EL CAI SI LLEGO A SU FECHA LIMITE
+    if (fechaLimite < hoy) {
+
+    await conn.query(
+        `UPDATE tbl_cai
+        SET activo = FALSE WHERE activo = TRUE AND tipo_documento = '01'`
+        );
+        throw new Error(`CAI VENCIDO (fecha límite: ${caiData.fecha_limite}). NO SE PUEDEN GENERAR FACTURAS, DEBE SOLICITAR UN NUEVO CAI AL SAR.`);
+    }
+
+    //SE VALIDA RANGO
+    if (caiData.numero_actual > caiData.rango_fin) {
+        //SE DESACTIVA EL CAI AGOTADO
+        await conn.query(
+            `UPDATE tbl_cai
+            SET activo = FALSE
+            WHERE activo = TRUE AND tipo_documento = '01'`
+        );
+        throw new Error(`FACTURAS AGOTADAS. SÉ ALCANZÓ EL LIMITE DE RANGO: (${caiData.rango_fin}). DEBE SOLICITAR UN NUEVO CAI AL SAR.`);
+    }
+
+
+    //SE GENERA NUMERO FORMATEADO CON EL PREFIJO DEL CAI
+    const numeroFormateado = `${caiData.prefijo}-${String(caiData.numero_actual).padStart(8, '0')}`;
+
+    //SE INCREMENTA EL CONTADOR
+    await conn.query(
+        `UPDATE tbl_cai
+        SET numero_actual = numero_actual + 1
+        WHERE activo = TRUE AND tipo_documento = '01'` //TIPO DE DOCUMENTO, FACTURA
+    );
+
+    return {
+        numero_factura: numeroFormateado,
+        cai: caiData.codigo_cai,
+        fecha_limite: caiData.fecha_limite,
+        rango_inicio: 1,
+        rango_fin: caiData.rango_fin
+    };
+}
 
 //====================VALIDAR_DISPONIBILIDAD====================
 //ESTE ENDPOINT SE LLAMA ANTES DE IR A PAGOS
-//SOLO VALIDA QUE TODO ESTÉ DISPONIBLE, NO CREA FACTURA NI DESCUENTA INVENTARIO
 exports.validarDisponibilidad = async (req, res) => {
 
     const conn = await mysqlConnection.getConnection();
@@ -248,11 +318,6 @@ exports.validarDisponibilidad = async (req, res) => {
     }
 
 };
-
-
-//====================CREAR_FACTURA_CON_PAGO====================
-//CREA LA FACTURA, DESCUENTA INVENTARIO Y REGISTRA EL PAGO EN UNA SOLA TRANSACCIÓN
-
 
 //====================CREAR_FACTURA_SIN_PAGO====================
 exports.crearFacturaSinPago = async (req, res) => {
@@ -463,7 +528,7 @@ exports.crearFacturaSinPago = async (req, res) => {
             throw new Error('El total de la factura no puede ser cero o negativo.');
         }
 
-        // ⭐ FACTURA SIN PAGO: saldo = total, estado = PENDIENTE
+        // FACTURA SIN PAGO: saldo = total, estado = PENDIENTE
         const saldo = total_final;
         const estado_nombre = 'PENDIENTE';
 
@@ -476,16 +541,8 @@ exports.crearFacturaSinPago = async (req, res) => {
 
         const estado_factura = estado[0].id_estado_pk;
 
-        //SE GENERA EL NÚMERO DE FACTURA
-        const [[{ numero_factura }]] = await conn.query(`
-            SELECT CONCAT(
-                'FAC-', YEAR(CURDATE()), '-',
-                LPAD(COALESCE(MAX(SUBSTRING_INDEX(numero_factura, '-', -1)), 0) + 1, 3, '0')
-            ) AS numero_factura
-            FROM tbl_facturas
-            WHERE numero_factura LIKE CONCAT('FAC-', YEAR(CURDATE()), '-%')
-            FOR UPDATE
-        `);
+        //OBTENER SIGUIENTE NÚMERO DE FACTURA CON CAI
+        const { numero_factura, cai, fecha_limite } = await obtenerSiguienteNumeroFactura(conn);
 
         //INSERTAR FACTURA
         const [factura] = await conn.query(
@@ -632,6 +689,7 @@ exports.crearFacturaSinPago = async (req, res) => {
 
 };
 
+//====================CREAR_FACTURA_CON_PAGO====================
 exports.crearFacturaConPago = async (req, res) => {
 
     const conn = await mysqlConnection.getConnection();
@@ -651,24 +709,26 @@ exports.crearFacturaConPago = async (req, res) => {
             RTN,
             id_cliente,
             descuento,
-            items,  //ARRAY DE ITEMS
-            //DATOS DEL PAGO - AHORA ACEPTA ARRAY DE MÉTODOS O UN SOLO MÉTODO
+            items,
             monto_pagado,
             metodos_pago,  //ARRAY de métodos [{id_metodo_pago_fk: 1, monto: 50}, ...]
             id_metodo_pago,  //Un solo método (para compatibilidad)
             id_tipo_pago
         } = req.body;
 
-        // ⭐ VALIDAR: Aceptar tanto array de métodos como un solo método
+        //SE VALIDAN LOS MÉTODOS DE PAGO
         let metodosPagoValidados = [];
         let montoTotalPago = 0;
 
+        //CASOS DE USO:
         if (metodos_pago && Array.isArray(metodos_pago) && metodos_pago.length > 0) {
-            // CASO 1: Se enviaron múltiples métodos
+            //CASO 1: SE ENVIÓ UN ARRAY DE MÉTODOS DE PAGO
             metodosPagoValidados = metodos_pago;
             montoTotalPago = metodos_pago.reduce((sum, m) => sum + parseFloat(m.monto || 0), 0);
+
         } else if (id_metodo_pago && monto_pagado) {
-            // CASO 2: Se envió un solo método (formato antiguo)
+
+            //CASO 2: SE ENVIÓ UN SOLO MÉTODO DE PAGO CON MONTO
             metodosPagoValidados = [{ id_metodo_pago_fk: id_metodo_pago, monto: monto_pagado }];
             montoTotalPago = parseFloat(monto_pagado);
         } else {
@@ -897,12 +957,12 @@ exports.crearFacturaConPago = async (req, res) => {
         }
 
         if (total_final <= 0) {
-            throw new Error('El total de la factura no puede ser cero o negativo.');
+            throw new Error('EL TOTAL DE LA FACTURA DEBE SER MAYOR QUE CERO.');
         }
 
         //VALIDAR QUE EL MONTO PAGADO NO SEA MAYOR AL TOTAL
         if (montoTotalPago > total_final) {
-            throw new Error('El monto pagado no puede ser mayor al total de la factura.');
+            throw new Error('EL MONTO PAGADO NO PUEDE SER MAYOR AL TOTAL DE LA FACTURA.');
         }
 
         //CALCULAR SALDO DESPUÉS DEL PAGO
@@ -920,26 +980,9 @@ exports.crearFacturaConPago = async (req, res) => {
 
         const estado_factura = estado[0].id_estado_pk;
 
-        //GENERAR NÚMERO DE FACTURA (Formato: FAC-2025-001)
-        const [[{ numero_factura }]] = await conn.query(`
-            SELECT CONCAT(
-                'FAC-', YEAR(CURDATE()), '-',
-                LPAD(COALESCE(MAX(SUBSTRING_INDEX(numero_factura, '-', -1)), 0) + 1, 3, '0')
-            ) AS numero_factura
-            FROM tbl_facturas
-            WHERE numero_factura LIKE CONCAT('FAC-', YEAR(CURDATE()), '-%')
-            FOR UPDATE
-        `);
+        //OBTENER SIGUIENTE NÚMERO DE FACTURA CON CAI
+        const { numero_factura, cai, fecha_limite } = await obtenerSiguienteNumeroFactura(conn);
 
-        //VERIFICAR QUE EL NÚMERO NO EXISTA (POR SI HAY FORMATOS ANTIGUOS)
-        const [existente] = await conn.query(
-            `SELECT numero_factura FROM tbl_facturas WHERE numero_factura = ?`,
-            [numero_factura]
-        );
-
-        if (existente.length > 0) {
-            throw new Error(`El número de factura ${numero_factura} ya existe. Intente nuevamente.`);
-        }
 
         //INSERTAR FACTURA EN LA BASE DE DATOS
         const [factura] = await conn.query(
@@ -1140,47 +1183,7 @@ exports.crearFacturaConPago = async (req, res) => {
 
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //====================ENDPOINTS_AUXILIARES====================
-
 exports.encabezadoFactura = async (req, res) => {
 
     const conn = await mysqlConnection.getConnection();

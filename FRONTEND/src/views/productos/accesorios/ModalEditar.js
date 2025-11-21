@@ -8,7 +8,7 @@ import { InputSwitch } from 'primereact/inputswitch';
 import Swal from 'sweetalert2';
 import { actualizarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
-// ✅ AGREGAR accesoriosExistentes COMO PROP
+
 const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes = [] }) => {
   const [data, setData] = useState({
     nombre: '',

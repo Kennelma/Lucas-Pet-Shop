@@ -649,8 +649,8 @@ export default function GestionEmpresa() {
       <div
         className="rounded-xl p-6 mb-3 bg-cover bg-center"
         style={{
-          backgroundImage: 'url("/H8.jpg")',
-          backgroundColor: '#C7E4E2',
+          backgroundImage: 'url("/H8.png")',
+          backgroundColor: '#008FCC',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'right center',
@@ -658,11 +658,11 @@ export default function GestionEmpresa() {
         }}
       >
         <div className="flex justify-center items-center">
-          <h2 className="text-2xl font-black text-center text-black">
+          <h2 className="text-2xl  text-center text-white">
             GESTIÓN DE EMPRESAS
           </h2>
         </div>
-        <p className="text-center text-black italic mt-2">
+        <p className="text-center text-white italic mt-2">
           Administra empresas y sucursales del sistema
         </p>
       </div>
