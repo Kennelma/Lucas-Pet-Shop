@@ -88,7 +88,7 @@ exports.crearCAI = async (req, res) => {
         );
 
         if (caiActivo && caiActivo.length > 0) {
-            throw new Error('YA EXISTE UN CAI ACTIVO. NO SE PUEDE INGRESAR OTRO HASTA QUE EL ACTUAL SE AGOTE O VENZA.');
+            throw new Error('YA HAY UN CAI DISPONIBLE Y ACTIVO EN EL SISTEMA. NO SE PUEDE AGREGAR OTRO.');
         }
 
         //INSERTAR NUEVO CAI
@@ -199,7 +199,7 @@ exports.obtenerAlertasCAI = async (req, res) => {
         } else if (facturasRestantes <= 0) {
             alertas.push({
                 tipo: 'facturas',
-                mensaje: 'SE HAN AGOTADO TODOS LOS RANGOS DISPONIBLES CON EL CAI ACTUAL. CONTACTESE CON SU CONTADOR',
+                mensaje: 'SE HAN AGOTADO TODOS LOS RANGOS DISPONIBLES CON EL CAI ACTUAL. CONTACTE CON SU CONTADOR',
                 severidad: 'critico',
                 valor: 0
             });
