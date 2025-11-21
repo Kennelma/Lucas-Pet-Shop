@@ -175,10 +175,8 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
             reverseButtons: true,
             width: 380,
             padding: '16px',
-            customClass: {
-                confirmButton: 'bg-green-800 hover:bg-green-900 text-white p-button p-component',
-                cancelButton: 'p-button-text p-button p-component'
-            }
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280'
         });
 
         if (!result.isConfirmed) {
@@ -193,15 +191,17 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                 setClientes(data);
                 await Swal.fire({
                     icon: 'success',
-                    title: 'Cliente eliminado correctamente',
-                    confirmButtonColor: '#3085d6',
+                    title: '¡Cliente eliminado!',
+                    text: 'El cliente se ha eliminado correctamente',
+                    timer: 2000,
+                    showConfirmButton: false
                 });
             } else {
                 await Swal.fire({
                     icon: 'error',
                     title: 'Error',
                     text: 'No se pudo eliminar el cliente',
-                    confirmButtonColor: '#d33',
+                    confirmButtonColor: '#22c55e'
                 });
             }
         } catch (error) {
@@ -209,7 +209,7 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                 icon: 'error',
                 title: 'Error',
                 text: 'Ocurrió un error inesperado',
-                confirmButtonColor: '#d33',
+                confirmButtonColor: '#22c55e'
             });
         }
     };
@@ -288,8 +288,9 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                     await Swal.fire({
                         icon: 'success',
                         title: '¡Cliente registrado!',
-                        text: 'Cliente se ha registrado con éxito',
-                        confirmButtonColor: '#3085d6',
+                        text: 'El cliente se ha registrado correctamente',
+                        timer: 2000,
+                        showConfirmButton: false
                     });
                 }}
             />
@@ -305,8 +306,10 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                         setClientes(data);
                         await Swal.fire({
                             icon: 'success',
-                            title: 'Cliente actualizado correctamente',
-                            confirmButtonColor: '#3085d6',
+                            title: '¡Cliente actualizado!',
+                            text: 'El cliente se ha actualizado correctamente',
+                            timer: 2000,
+                            showConfirmButton: false
                         });
                     }}
                 />

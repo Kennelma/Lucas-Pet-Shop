@@ -64,34 +64,86 @@ const Dashboard = () => {
       if (!data.hayAlertas) return;
 
       data.alertas.forEach(alerta => {
-        //ALERTAS CRÍTICAS -> SweetAlert2
+        //ALERTAS CRÍTICAS (ROJO) 
         if (alerta.severidad === "critico") {
           const config = {
             icon: "error",
             title: "ALERTA CRÍTICA DE CAI",
             text: alerta.mensaje,
             confirmButtonText: "Entendido",
-            confirmButtonColor: "#d33"
+            confirmButtonColor: "#c52222ff"
           };
 
           //AGREGAR FECHA LÍMITE SI VIENE
           if (alerta.fecha) {
-            config.footer = `<strong>Fecha límite: ${formatearFecha(alerta.fecha)}</strong>`;
+            config.footer = `<strong style="color: #991b1b;">Fecha límite: ${formatearFecha(alerta.fecha)}</strong>`;
           }
 
           Swal.fire(config);
         }
 
-        //ALERTAS DE ADVERTENCIA -> Toast
+        //ALERTAS DE ADVERTENCIA -> Colores según rango
         if (alerta.severidad === "advertencia") {
-          toast.warning(alerta.mensaje, {
-            position: "top-center",
-            autoClose: 6000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true
-          });
+          // Verde: 11-15 facturas restantes
+          if (alerta.tipo === "facturas" && alerta.valor > 10 && alerta.valor <= 15) {
+            toast.success(alerta.mensaje, {
+              position: "top-center",
+              autoClose: 6000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              style: {
+                backgroundColor: '#d1f4e0',
+                color: '#21863cff',
+                border: '2px solid #4ade80',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              }
+            });
+          }
+          // Amarillo: 1-10 facturas restantes
+          else if (alerta.tipo === "facturas" && alerta.valor > 0 && alerta.valor <= 10) {
+            toast.warning(alerta.mensaje, {
+              position: "top-center",
+              autoClose: 6000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              style: {
+                backgroundColor: '#fec7c7ff',
+                color: '#920e0eff',
+                border: '2px solid #fb2424ff',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              }
+            });
+          }
+          // Naranja: Fecha próxima a vencer (10 días o menos)
+          else if (alerta.tipo === "fecha") {
+            toast.warning(alerta.mensaje, {
+              position: "top-center",
+              autoClose: 6000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              style: {
+                backgroundColor: '#feaaaaff',
+                color: '#9a1212ff',
+                border: '2px solid #fb3c3cff',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              }
+            });
+          }
         }
       });
 

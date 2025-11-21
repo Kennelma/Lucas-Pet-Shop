@@ -183,8 +183,8 @@ const ModalNuevoAnimal = ({ isOpen, onClose, onSave, animalesExistentes = [] }) 
         setTimeout(() => {
           Swal.fire({
             icon: "success",
-            title: "¡Agregado!",
-            text: "El animal fue agregado correctamente",
+            title: "¡Animal agregado!",
+            text: "El animal se ha agregado correctamente",
             timer: 1800,
             showConfirmButton: false,
           });

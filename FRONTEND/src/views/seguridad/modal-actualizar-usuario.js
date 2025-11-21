@@ -3,22 +3,24 @@ import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
-import { verRolesUsuarios, verSucursales, crearUsuario } from "../../../AXIOS.SERVICES/security-axios.js";
+import { verRolesUsuarios, verSucursales, verEstadosUsuarios, actualizarUsuario } from "../../AXIOS.SERVICES/security-axios.js";
 
-export default function ModalNuevoUsuario({ onClose, onUsuarioCreado }) {
+export default function ModalActualizarUsuario({ usuarioData, onClose, onUsuarioActualizado }) {
   const [form, setForm] = useState({
+    id_usuario_pk: "",
     usuario: "",
     email_usuario: "",
-    contrasena_usuario: "",
+    contrasena_usuario: "", 
     id_rol_fk: "",
-    id_sucursal_fk: ""
+    id_sucursal_fk: "",
+    cat_estado_fk: ""
   });
 
   const [roles, setRoles] = useState([]);
   const [sucursales, setSucursales] = useState([]);
+  const [estados, setEstados] = useState([]);
   const [msg, setMsg] = useState("");
   const [errores, setErrores] = useState({});
-  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -37,6 +39,15 @@ export default function ModalNuevoUsuario({ onClose, onUsuarioCreado }) {
           console.warn("No se pudieron cargar sucursales:", errSuc);
           setSucursales([]);
         }
+
+        try {
+          const responseEstados = await verEstadosUsuarios();
+          const estadosData = responseEstados?.datos || responseEstados?.entidad || responseEstados || [];
+          setEstados(Array.isArray(estadosData) ? estadosData : []);
+        } catch (errEst) {
+          console.warn("No se pudieron cargar estados:", errEst);
+          setEstados([]);
+        }
       } catch (err) {
         console.error("Error cargando roles:", err);
         setErrores({ general: err.message || "Error al cargar roles" });
@@ -45,10 +56,25 @@ export default function ModalNuevoUsuario({ onClose, onUsuarioCreado }) {
     cargarDatos();
   }, []);
 
+  // Cargar datos del usuario a editar
+  useEffect(() => {
+    if (usuarioData) {
+      setForm({
+        id_usuario_pk: usuarioData.id_usuario_pk || "",
+        usuario: usuarioData.usuario || "",
+        email_usuario: usuarioData.email_usuario || "",
+        contrasena_usuario: "", // VACÍO - no se precarga la contraseña
+        id_rol_fk: usuarioData.id_rol_fk || "",
+        id_sucursal_fk: usuarioData.id_sucursal_fk || "",
+        cat_estado_fk: usuarioData.cat_estado_fk || ""
+      });
+    }
+  }, [usuarioData]);
+
   const handleChange = (field, value) => {
     setForm((prev) => ({
       ...prev,
-      [field]: field === "id_rol_fk" ? Number(value) : value
+      [field]: (field === "id_rol_fk" || field === "id_sucursal_fk") ? Number(value) : value
     }));
     // Limpiar error del campo
     if (errores[field]) {
@@ -80,7 +106,8 @@ export default function ModalNuevoUsuario({ onClose, onUsuarioCreado }) {
       newErrors.id_sucursal_fk = "Debe seleccionar una sucursal.";
     }
 
-    if (form.contrasena_usuario.length < 6) {
+    // Solo validar contraseña si se proporciona una nueva
+    if (form.contrasena_usuario && form.contrasena_usuario.length < 6) {
       newErrors.contrasena_usuario = "La contraseña debe tener al menos 6 caracteres.";
     }
 
@@ -93,37 +120,35 @@ export default function ModalNuevoUsuario({ onClose, onUsuarioCreado }) {
       setSubmitting(true);
 
       const datosUsuario = {
+        id_usuario_pk: form.id_usuario_pk,
         usuario: form.usuario.trim(),
         email_usuario: form.email_usuario.trim(),
-        contrasena_usuario: form.contrasena_usuario,
         id_rol_fk: Number(form.id_rol_fk),
-        id_sucursal_fk: Number(form.id_sucursal_fk)
+        id_sucursal_fk: Number(form.id_sucursal_fk),
+        cat_estado_fk: form.cat_estado_fk || null
       };
 
-      console.log("📤 Enviando datos:", datosUsuario);
+      // Solo incluir contraseña si se proporcionó una nueva
+      if (form.contrasena_usuario && form.contrasena_usuario.trim() !== '') {
+        datosUsuario.contrasena_usuario = form.contrasena_usuario;
+      }
 
-      const response = await crearUsuario(datosUsuario);
+      console.log("📤 Enviando datos de actualización:", datosUsuario);
+
+      const response = await actualizarUsuario(datosUsuario);
 
       console.log("📥 Respuesta del servidor:", response);
 
       if (response?.Consulta === true) {
-        setForm({
-          usuario: "",
-          email_usuario: "",
-          contrasena_usuario: "",
-          id_rol_fk: "",
-          id_sucursal_fk: ""
-        });
-
-        if (onUsuarioCreado) onUsuarioCreado();
+        if (onUsuarioActualizado) onUsuarioActualizado();
         if (onClose) onClose();
 
       } else {
-        throw new Error(response?.mensaje || response?.error || "No se pudo crear el usuario.");
+        throw new Error(response?.mensaje || response?.error || "No se pudo actualizar el usuario.");
       }
     } catch (err) {
-      console.error("❌ Error creando usuario:", err);
-      const errorMsg = err.response?.data?.mensaje || err.response?.data?.error || err.message || "Error al crear usuario";
+      console.error("❌ Error actualizando usuario:", err);
+      const errorMsg = err.response?.data?.mensaje || err.response?.data?.error || err.message || "Error al actualizar usuario";
       setErrores({ general: errorMsg });
     } finally {
       setSubmitting(false);
@@ -140,7 +165,7 @@ export default function ModalNuevoUsuario({ onClose, onUsuarioCreado }) {
         disabled={submitting}
       />
       <Button
-        label={submitting ? "Guardando..." : "Guardar"}
+        label={submitting ? "Actualizando..." : "Actualizar"}
         icon="pi pi-check"
         onClick={handleSubmit}
         disabled={submitting}
@@ -151,7 +176,7 @@ export default function ModalNuevoUsuario({ onClose, onUsuarioCreado }) {
 
   return (
     <Dialog
-      header={<div className="w-full text-center text-lg font-bold" id="modal-title">NUEVO USUARIO</div>}
+      header={<div className="w-full text-center text-lg font-bold" id="modal-title">EDITAR USUARIO</div>}
       visible={true}
       style={{ width: '28rem', borderRadius: '1.5rem' }}
       modal
@@ -168,7 +193,7 @@ export default function ModalNuevoUsuario({ onClose, onUsuarioCreado }) {
       aria-describedby="modal-content"
       keepInViewport={true}
     >
-      <div id="modal-content" className="flex flex-col gap-3" role="form" aria-label="Formulario de nuevo usuario">
+      <div id="modal-content" className="flex flex-col gap-3" role="form" aria-label="Formulario de edición de usuario">
         {/* Usuario */}
         <div className="form-field">
           <label htmlFor="usuario" className="text-xs font-semibold text-gray-700 mb-1 block">USUARIO *</label>
@@ -213,9 +238,11 @@ export default function ModalNuevoUsuario({ onClose, onUsuarioCreado }) {
           )}
         </div>
 
-        {/* Contraseña */}
+        {/* Contraseña - OPCIONAL para actualizar */}
         <div className="form-field">
-          <label htmlFor="contrasena_usuario" className="text-xs font-semibold text-gray-700 mb-1 block">CONTRASEÑA *</label>
+          <label htmlFor="contrasena_usuario" className="text-xs font-semibold text-gray-700 mb-1 block">
+            NUEVA CONTRASEÑA (Opcional)
+          </label>
           <InputText
             id="contrasena_usuario"
             name="contrasena_usuario"
@@ -223,8 +250,7 @@ export default function ModalNuevoUsuario({ onClose, onUsuarioCreado }) {
             value={form.contrasena_usuario}
             onChange={(e) => handleChange('contrasena_usuario', e.target.value)}
             className="w-full rounded-xl h-9 text-sm"
-            placeholder="Mínimo 6 caracteres"
-            aria-required="true"
+            placeholder="Dejar vacío para mantener la actual"
             aria-invalid={!!errores.contrasena_usuario}
             aria-describedby={errores.contrasena_usuario ? "contrasena-error" : undefined}
           />
@@ -277,6 +303,29 @@ export default function ModalNuevoUsuario({ onClose, onUsuarioCreado }) {
           {errores.id_sucursal_fk && (
             <p id="sucursal-error" className="text-xs text-red-600 mt-1" role="alert" aria-live="polite">
               {errores.id_sucursal_fk}
+            </p>
+          )}
+        </div>
+
+        {/* Estado */}
+        <div className="form-field">
+          <label htmlFor="cat_estado_fk" className="text-xs font-semibold text-gray-700 mb-1 block">ESTADO *</label>
+          <Dropdown
+            id="cat_estado_fk"
+            value={form.cat_estado_fk}
+            options={estados}
+            onChange={(e) => handleChange('cat_estado_fk', e.value)}
+            optionLabel="nombre_estado"
+            optionValue="id_estado_pk"
+            placeholder="-- Selecciona un estado --"
+            className="w-full text-sm"
+            aria-required="true"
+            aria-invalid={!!errores.cat_estado_fk}
+            aria-describedby={errores.cat_estado_fk ? "estado-error" : undefined}
+          />
+          {errores.cat_estado_fk && (
+            <p id="estado-error" className="text-xs text-red-600 mt-1" role="alert" aria-live="polite">
+              {errores.cat_estado_fk}
             </p>
           )}
         </div>

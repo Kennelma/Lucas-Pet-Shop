@@ -198,8 +198,8 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
       if (res.Consulta) {
         Swal.fire({
           icon: 'success',
-          title: '¡Actualizado!',
-          text: `${data.nombre} fue actualizado correctamente`,
+          title: '¡Accesorio actualizado!',
+          text: 'El accesorio se ha actualizado correctamente',
           timer: 1500,
           showConfirmButton: false
         });

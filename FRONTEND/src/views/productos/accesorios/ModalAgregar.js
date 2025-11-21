@@ -211,8 +211,8 @@ const ModalAgregar = ({ isOpen, onClose, onSave, accesoriosExistentes = [] }) =>
       if (res && res.Consulta) {
         Swal.fire({
           icon: 'success',
-          title: '¡Agregado!',
-          text: `${data.nombre} fue agregado correctamente`,
+          title: '¡Accesorio agregado!',
+          text: 'El accesorio se ha agregado correctamente',
           timer: 1500,
           showConfirmButton: false
         });

@@ -165,9 +165,10 @@ const ModalNuevoCAI = ({ isOpen, onClose }) => {
         setTimeout(() => {
           Swal.fire({
             icon: 'success',
-            title: 'CAI Guardado',
+            title: '¡CAI registrado!',
             text: 'El CAI se ha registrado correctamente',
-            confirmButtonColor: '#22c55e'
+            timer: 2000,
+            showConfirmButton: false
           });
         }, 100);
       } catch (error) {

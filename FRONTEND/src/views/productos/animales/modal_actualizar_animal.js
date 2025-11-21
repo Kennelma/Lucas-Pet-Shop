@@ -189,8 +189,8 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData, animalesExis
         setTimeout(() => {
           Swal.fire({
             icon: "success",
-            title: "¡Actualizado!",
-            text: "El animal fue actualizado correctamente",
+            title: "¡Animal actualizado!",
+            text: "El animal se ha actualizado correctamente",
             timer: 1800,
             showConfirmButton: false,
           });

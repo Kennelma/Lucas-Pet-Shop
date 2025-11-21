@@ -203,8 +203,8 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
         setTimeout(() => {
           Swal.fire({
             icon: "success",
-            title: "¡Actualizado!",
-            text: "El alimento fue actualizado correctamente",
+            title: "¡Alimento actualizado!",
+            text: "El alimento se ha actualizado correctamente",
             timer: 1800,
             showConfirmButton: false,
           });

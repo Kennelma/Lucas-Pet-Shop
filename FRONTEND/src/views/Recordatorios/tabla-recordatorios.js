@@ -207,8 +207,10 @@ const TablaRecordatorios = ({
       if (resultado.success || resultado.Consulta) {
         await Swal.fire({
           icon: "success",
-          title: "Recordatorio eliminado correctamente",
-          confirmButtonColor: "#3085d6",
+          title: "¡Recordatorio eliminado!",
+          text: "El recordatorio se ha eliminado correctamente",
+          timer: 2000,
+          showConfirmButton: false
         });
         // RECARGAR LA TABLA PARA REFLEJAR CAMBIOS
         recargar();
@@ -386,8 +388,10 @@ const TablaRecordatorios = ({
           onGuardar={async () => {
             Swal.fire({
               icon: "success",
-              title: "Recordatorio guardado",
+              title: "¡Recordatorio guardado!",
               text: "El recordatorio se ha registrado correctamente",
+              timer: 2000,
+              showConfirmButton: false
             });
             setOpenModal(false);
             await recargar();
@@ -411,8 +415,10 @@ const TablaRecordatorios = ({
             if (res?.Consulta || res?.ok || res?.exito) {
               Swal.fire({
                 icon: "success",
-                title: "Recordatorio actualizado",
-                text: "Se actualizó correctamente",
+                title: "¡Recordatorio actualizado!",
+                text: "El recordatorio se ha actualizado correctamente",
+                timer: 2000,
+                showConfirmButton: false
               });
               setOpenModalActualizar(false);
               setRecordatorioAEditar(null);

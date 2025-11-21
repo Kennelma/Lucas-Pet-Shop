@@ -199,7 +199,7 @@ exports.obtenerAlertasCAI = async (req, res) => {
         } else if (facturasRestantes <= 0) {
             alertas.push({
                 tipo: 'facturas',
-                mensaje: 'SE HAN AGOTADO TODOS LOS RANGOS DISPONIBLES CON EL CAI ACTUAL. CONTACTE CON SU CONTADOR',
+                mensaje: 'Se han agotado todas las facturas disponibles con el CAI actual. Contacte con su contador',
                 severidad: 'critico',
                 valor: 0
             });
