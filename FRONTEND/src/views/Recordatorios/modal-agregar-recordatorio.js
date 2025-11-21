@@ -154,7 +154,7 @@ const ModalRecordatorio = ({ isOpen, onClose, onGuardar, tipoServicio = [], frec
 
   return (
     <Dialog
-      header="Nuevo Recordatorio"
+      header="NUEVO RECORDATORIO "
       visible={isOpen}
       style={{ width: '30rem' }}
       onHide={() => { limpiar(); onClose?.(); }}
