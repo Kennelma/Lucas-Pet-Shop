@@ -133,42 +133,6 @@ export default function Usuarios() {
 
   useEffect(() => {
     cargarUsuarios();
-
-    // Verificar y actualizar estados cada minuto
-    const intervalId = setInterval(() => {
-      setUsuarios(prevUsuarios => {
-        const ahora = new Date();
-        let hayActualizaciones = false;
-        
-        const usuariosActualizados = prevUsuarios.map(usuario => {
-          // Si está bloqueado y el bloqueo ha expirado
-          if (usuario.estado.toLowerCase() === 'bloqueado' && usuario.bloqueadoHasta) {
-            const fechaBloqueo = new Date(usuario.bloqueadoHasta);
-            if (fechaBloqueo <= ahora) {
-              hayActualizaciones = true;
-              const usuarioActualizado = {
-                ...usuario,
-                cat_estado_fk: 1,
-                estado: 'Activo',
-                intentosFallidos: 0
-              };
-              
-              // Si este usuario está seleccionado en el perfil, actualizarlo también
-              if (usuarioPerfilSeleccionado?.id_usuario_pk === usuario.id_usuario_pk) {
-                setUsuarioPerfilSeleccionado(usuarioActualizado);
-              }
-              
-              return usuarioActualizado;
-            }
-          }
-          return usuario;
-        });
-
-        return hayActualizaciones ? usuariosActualizados : prevUsuarios;
-      });
-    }, 60000); // Cada 60 segundos
-
-    return () => clearInterval(intervalId);
   }, []);
 
   const cargarUsuarios = async () => {

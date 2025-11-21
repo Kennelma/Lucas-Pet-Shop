@@ -39,6 +39,7 @@ const DetallesFactura = ({
   onCancel,
   RTN,
   id_cliente,
+  nombreCliente,
   setActiveTab,
   setFacturaParaImprimir,
 }) => {
@@ -261,7 +262,8 @@ const DetallesFactura = ({
     //PREPARAR DATOS PARA ENVIAR AL BACKEND
     const datosFactura = {
       RTN: RTN || null,
-      id_cliente: id_cliente || null,
+      id_cliente: idClienteFinal,
+      nombre_cliente: nombreClienteFinal,
       descuento: DESCUENTO,
       items: items.map((item) => ({
         tipo: item.tipo,

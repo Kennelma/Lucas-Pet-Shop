@@ -273,6 +273,7 @@ exports.crearFacturaSinPago = async (req, res) => {
         const {
             RTN,
             id_cliente,
+            nombre_cliente,
             descuento,
             items
         } = req.body;
@@ -946,6 +947,7 @@ exports.crearFacturaConPago = async (req, res) => {
                 numero_factura,
                 fecha_emision,
                 RTN,
+                nombre_cliente,
                 subtotal_exento,
                 subtotal_gravado,
                 impuesto,
@@ -956,11 +958,12 @@ exports.crearFacturaConPago = async (req, res) => {
                 id_usuario_fk,
                 id_estado_fk,
                 id_cliente_fk
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
             [
                 numero_factura,
                 fechaEmision,
                 RTN || null,
+                nombre_cliente || null,
                 subtotal_exento.toFixed(2),
                 subtotal_gravado.toFixed(2),
                 impuesto.toFixed(2),
@@ -1457,8 +1460,11 @@ exports.historialFacturas = async (req, res) => {
                 u.usuario,
                 s.nombre_sucursal,
                 c.nombre_estado,
-                cl.nombre_cliente,
-                cl.apellido_cliente,
+                COALESCE(
+                    NULLIF(f.nombre_cliente, ''),
+                    CONCAT_WS(' ', cl.nombre_cliente, cl.apellido_cliente),
+                    'CONSUMIDOR FINAL'
+                ) AS nombre_cliente,
                 cl.identidad_cliente
             FROM tbl_facturas f
             INNER JOIN tbl_usuarios u ON f.id_usuario_fk = u.id_usuario_pk
@@ -1559,6 +1565,7 @@ exports.ImpresionFactura = async (req, res) => {
             `SELECT
                 f.id_factura_pk,
                 f.numero_factura,
+                f.nombre_cliente,
                 f.fecha_emision,
                 f.RTN,
                 f.subtotal_exento,
@@ -1569,8 +1576,11 @@ exports.ImpresionFactura = async (req, res) => {
                 f.saldo,
                 c.nombre_estado as estado,
                 cl.id_cliente_pk,
-                cl.nombre_cliente,
-                cl.apellido_cliente,
+                COALESCE(
+                    NULLIF(f.nombre_cliente, ''),
+                    CONCAT_WS(' ', cl.nombre_cliente, cl.apellido_cliente),
+                    'CONSUMIDOR FINAL'
+                ) AS nombre_cliente,
                 cl.identidad_cliente,
                 cl.telefono_cliente,
                 u.usuario as vendedor,

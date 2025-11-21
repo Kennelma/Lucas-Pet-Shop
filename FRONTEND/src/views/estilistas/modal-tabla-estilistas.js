@@ -102,8 +102,8 @@ const ModalTablaEstilistas = ({ visible, onHide, onRefresh, onDelete }) => {
     return (
       <div className="flex items-center justify-center">
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          rowData.activo 
-            ? 'bg-green-100 text-green-800' 
+          rowData.activo
+            ? 'bg-green-100 text-green-800'
             : 'bg-red-100 text-red-800'
         }`}>
           {rowData.activo ? 'Activo' : 'Inactivo'}
@@ -130,7 +130,7 @@ const ModalTablaEstilistas = ({ visible, onHide, onRefresh, onDelete }) => {
       <Dialog
         header={
           <div className="flex items-center gap-2">
-           
+
             <span className="font-poppins font-bold uppercase text-sm text-center w-full">Gestión de Estilistas</span>
           </div>
         }
