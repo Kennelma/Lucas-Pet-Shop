@@ -3,6 +3,7 @@ import { Building2, Plus, Edit2, Trash2, Search, MoreHorizontal } from 'lucide-r
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { ver, insertar, actualizarRegistro } from '../../AXIOS.SERVICES/empresa-axios';
+import Swal from 'sweetalert2';
 
 // Importar modales reales
 import ModalAgregarEmpresa from './informacion-empresa/modal-agregar-empresa';
@@ -372,14 +373,33 @@ export default function GestionEmpresa() {
       if (resultado?.Consulta !== false) {
         cerrarModalEmpresa();
         refrescarDatos();
+
+        Swal.fire({
+          icon: 'success',
+          title: modalEmpresa.mode === 'edit' ? 'Empresa Actualizada' : 'Empresa Creada',
+          text: modalEmpresa.mode === 'edit'
+            ? 'La empresa se actualizó correctamente'
+            : 'La empresa se creó correctamente',
+          confirmButtonColor: '#22c55e'
+        });
       } else {
-        alert('Error al guardar empresa: ' + (resultado?.error || 'Error desconocido'));
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: resultado?.error || 'Error al guardar empresa',
+          confirmButtonColor: '#ef4444'
+        });
       }
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
         console.error('Error al guardar empresa:', error);
       }
-      alert('Error al guardar empresa: ' + error.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Error al guardar empresa',
+        confirmButtonColor: '#ef4444'
+      });
     } finally {
       setLoadingModal(false);
     }
@@ -467,14 +487,33 @@ export default function GestionEmpresa() {
       if (resultado?.Consulta !== false) {
         cerrarModalSucursal();
         refrescarDatos();
+
+        Swal.fire({
+          icon: 'success',
+          title: modalSucursal.mode === 'edit' ? 'Sucursal Actualizada' : 'Sucursal Creada',
+          text: modalSucursal.mode === 'edit'
+            ? 'La sucursal se actualizó correctamente'
+            : 'La sucursal se creó correctamente',
+          confirmButtonColor: '#22c55e'
+        });
       } else {
-        alert('Error al guardar sucursal: ' + (resultado?.error || 'Error desconocido'));
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: resultado?.error || 'Error al guardar sucursal',
+          confirmButtonColor: '#ef4444'
+        });
       }
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
         console.error('Error al guardar sucursal:', error);
       }
-      alert('Error al guardar sucursal: ' + error.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Error al guardar sucursal',
+        confirmButtonColor: '#ef4444'
+      });
     } finally {
       setLoadingModal(false);
     }

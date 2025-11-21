@@ -57,7 +57,7 @@ async function obtenerSiguienteNumeroFactura(conn) {
     //OBTENER CAI ACTIVO
     const [cai] = await conn.query(
         `SELECT
-            
+            id_cai_pk,
             codigo_cai,
             prefijo,
             numero_actual,
@@ -120,6 +120,7 @@ async function obtenerSiguienteNumeroFactura(conn) {
 
     return {
         numero_factura: numeroFormateado,
+        id_cai: caiData.id_cai_pk,
         cai: caiData.codigo_cai,
         rango_inicio: caiData.rango_inicio,
         rango_fin: caiData.rango_fin,
@@ -544,7 +545,7 @@ exports.crearFacturaSinPago = async (req, res) => {
         const estado_factura = estado[0].id_estado_pk;
 
         //OBTENER SIGUIENTE NÚMERO DE FACTURA CON CAI
-        const { numero_factura, cai } = await obtenerSiguienteNumeroFactura(conn);
+        const { numero_factura, id_cai } = await obtenerSiguienteNumeroFactura(conn);
 
         //INSERTAR FACTURA
         const [factura] = await conn.query(
@@ -559,10 +560,11 @@ exports.crearFacturaSinPago = async (req, res) => {
                 total,
                 saldo,
                 id_sucursal_fk,
+                id_cai_fk,
                 id_usuario_fk,
                 id_estado_fk,
                 id_cliente_fk
-            ) VALUES (?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            ) VALUES (?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 numero_factura,
                 RTN || null,
@@ -573,6 +575,7 @@ exports.crearFacturaSinPago = async (req, res) => {
                 total_final.toFixed(2),
                 saldo.toFixed(2),
                 id_sucursal,
+                id_cai,
                 id_usuario,
                 estado_factura,
                 id_cliente || null
@@ -581,7 +584,7 @@ exports.crearFacturaSinPago = async (req, res) => {
 
         const id_factura = factura.insertId;
 
-        // INSERTAR DETALLES Y DESCONTAR INVENTARIO
+        //INSERTAR DETALLES Y DESCONTAR INVENTARIO
         for (const detalle of detallesValidados) {
 
             const [detalleInsertado] = await conn.query(
@@ -710,6 +713,7 @@ exports.crearFacturaConPago = async (req, res) => {
         const {
             RTN,
             id_cliente,
+            nombre_cliente,
             descuento,
             items,
             monto_pagado,
@@ -970,8 +974,15 @@ exports.crearFacturaConPago = async (req, res) => {
         //CALCULAR SALDO DESPUÉS DEL PAGO
         const saldo = total_final - montoTotalPago;
 
-        //DETERMINAR ESTADO DE LA FACTURA (PAGADA O PENDIENTE)
-        const estado_nombre = saldo === 0 ? 'PAGADA' : 'PENDIENTE';
+        //DETERMINAR ESTADO DE LA FACTURA (PAGADA, PARCIAL O PENDIENTE)
+        let estado_nombre;
+        if (saldo === 0) {
+            estado_nombre = 'PAGADA';
+        } else if (montoTotalPago > 0) {
+            estado_nombre = 'PARCIAL';
+        } else {
+            estado_nombre = 'PENDIENTE';
+        }
 
         const [estado] = await conn.query(
             `SELECT id_estado_pk
@@ -983,7 +994,7 @@ exports.crearFacturaConPago = async (req, res) => {
         const estado_factura = estado[0].id_estado_pk;
 
         //OBTENER SIGUIENTE NÚMERO DE FACTURA CON CAI
-        const { numero_factura, cai, fecha_limite } = await obtenerSiguienteNumeroFactura(conn);
+        const { numero_factura, id_cai } = await obtenerSiguienteNumeroFactura(conn);
 
 
         //INSERTAR FACTURA EN LA BASE DE DATOS
@@ -1000,10 +1011,11 @@ exports.crearFacturaConPago = async (req, res) => {
                 total,
                 saldo,
                 id_sucursal_fk,
+                id_cai_fk,
                 id_usuario_fk,
                 id_estado_fk,
                 id_cliente_fk
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
             [
                 numero_factura,
                 fechaEmision,
@@ -1016,6 +1028,7 @@ exports.crearFacturaConPago = async (req, res) => {
                 total_final.toFixed(2),
                 saldo.toFixed(2),
                 id_sucursal,
+                id_cai,
                 id_usuario,
                 estado_factura,
                 id_cliente || null
@@ -1173,14 +1186,15 @@ exports.crearFacturaConPago = async (req, res) => {
         });
 
     } catch (err) {
-        await conn.rollback();
-        res.status(500).json({
-            success: false,
-            mensaje: 'Error al crear la factura',
-            error: err.message
+        console.error("❌ ERROR EN crearFacturaConPago:", {
+            mensaje: err.message,
+            stack: err.stack
         });
+
+        await conn.rollback();
+        throw err;
     } finally {
-        conn.release();
+        if (conn) conn.release();
     }
 
 };
@@ -1569,6 +1583,7 @@ exports.ImpresionFactura = async (req, res) => {
         //CONSULTA_PRINCIPAL_DE_FACTURA_CON_TODOS_LOS_DATOS
         const [factura] = await conn.query(
             `SELECT
+
                 f.id_factura_pk,
                 f.numero_factura,
                 f.nombre_cliente,
@@ -1580,6 +1595,7 @@ exports.ImpresionFactura = async (req, res) => {
                 f.impuesto,
                 f.total,
                 f.saldo,
+
                 c.nombre_estado as estado,
                 cl.id_cliente_pk,
                 COALESCE(
@@ -1589,15 +1605,25 @@ exports.ImpresionFactura = async (req, res) => {
                 ) AS nombre_cliente,
                 cl.identidad_cliente,
                 cl.telefono_cliente,
+
+
                 u.usuario as vendedor,
                 s.nombre_sucursal,
                 s.direccion_sucursal,
-                s.telefono_sucursal
+                s.telefono_sucursal,
+
+                cai.codigo_cai,
+                cai.rango_inicio,
+                cai.rango_fin,
+                cai.fecha_limite
+
             FROM tbl_facturas f
             INNER JOIN cat_estados c ON f.id_estado_fk = c.id_estado_pk
             INNER JOIN tbl_usuarios u ON f.id_usuario_fk = u.id_usuario_pk
             INNER JOIN tbl_sucursales s ON f.id_sucursal_fk = s.id_sucursal_pk
             LEFT JOIN tbl_clientes cl ON f.id_cliente_fk = cl.id_cliente_pk
+            INNER JOIN tbl_cai cai ON f.id_cai_fk = cai.id_cai_pk
+
             WHERE f.numero_factura = ?`,
             [numero_factura]
         );

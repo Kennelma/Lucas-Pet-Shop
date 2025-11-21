@@ -6,7 +6,7 @@ import { verServiciosFavoritos } from "../../AXIOS.SERVICES/services-axios";
 const ServiciosFavoritos = () => {
   const [serviciosFavoritos, setServiciosFavoritos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [mostrarComponente, setMostrarComponente] = useState(true);
+  const [mostrarComponente, setMostrarComponente] = useState(false);
 
   // Colores para los servicios
   const colores = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-red-500', 'bg-indigo-500'];
@@ -16,15 +16,15 @@ const ServiciosFavoritos = () => {
       setLoading(true);
       try {
         const favoritosData = await verServiciosFavoritos();
-        
+
         if (favoritosData && favoritosData.length > 0) {
           // Agrupar los datos por nombre del servicio para sumar las ventas del mismo servicio
           const serviciosAgrupados = {};
-          
+
           favoritosData.forEach(favorito => {
             const nombreServicio = favorito.nombre_item || 'SERVICIO SIN NOMBRE';
             const ventasActuales = parseInt(favorito.total_vendido) || 0;
-            
+
             if (serviciosAgrupados[nombreServicio]) {
               // Si ya existe, sumar las ventas
               serviciosAgrupados[nombreServicio].cantidad_pedidos += ventasActuales;
@@ -54,7 +54,7 @@ const ServiciosFavoritos = () => {
 
           // Calcular porcentajes
           const totalPedidos = serviciosProcesados.reduce((sum, s) => sum + s.cantidad_pedidos, 0);
-          
+
           const serviciosConPorcentajes = serviciosProcesados.map(servicio => ({
             ...servicio,
             porcentaje: totalPedidos > 0 ? Math.round((servicio.cantidad_pedidos / totalPedidos) * 100) : 0
@@ -83,7 +83,7 @@ const ServiciosFavoritos = () => {
         <div className="flex justify-between items-center mb-4">
           <div className="flex flex-col items-center justify-center flex-1 text-center">
             <h3 className="text-lg font-semibold text-gray-600 mb-2">
-              No hay servicios para mostrar estadísticas
+              No hay facturas con servicios para mostrar estadísticas
             </h3>
             <p className="text-gray-500 text-sm">
               Agrega servicios primero para ver cuáles son los más solicitados
@@ -100,7 +100,7 @@ const ServiciosFavoritos = () => {
         {mostrarComponente && (
           <div className="text-center py-4">
             <p className="text-gray-400 italic">
-              📊 El sistema de favoritos está listo para funcionar
+              El sistema de favoritos está listo para funcionar
             </p>
           </div>
         )}
@@ -123,7 +123,7 @@ const ServiciosFavoritos = () => {
           <FontAwesomeIcon icon={mostrarComponente ? faChevronUp : faChevronDown} size="sm" />
         </button>
       </div>
-      
+
       {mostrarComponente && (
         <div className="flex items-start gap-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 flex-1 items-stretch">

@@ -262,8 +262,8 @@ const DetallesFactura = ({
     //PREPARAR DATOS PARA ENVIAR AL BACKEND
     const datosFactura = {
       RTN: RTN || null,
-      id_cliente: idClienteFinal,
-      nombre_cliente: nombreClienteFinal,
+      id_cliente: id_cliente || null,
+      nombre_cliente: nombreCliente || "Cliente Contado",
       descuento: DESCUENTO,
       items: items.map((item) => ({
         tipo: item.tipo,
@@ -466,7 +466,7 @@ const DetallesFactura = ({
       }
 
       const numeroFactura = response.data.numero_factura;
-      const saldoPendiente = response.data?.saldo ?? 0;
+      const saldoPendiente = parseFloat(response.data?.saldo ?? 0);
 
       //CERRAR MODAL
       setShowPaymentModal(false);

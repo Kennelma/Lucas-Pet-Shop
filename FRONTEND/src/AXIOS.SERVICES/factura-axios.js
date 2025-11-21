@@ -34,17 +34,25 @@ export const crearFacturaConPago = async (datosFactura) => {
     );
     return res.data;
   } catch (err) {
-    const msg =
-      err?.response?.data?.mensaje ||
-      err?.response?.data?.error ||
-      err.message ||
-      "Error de red";
-    console.error("Error al crear factura con pago:", msg);
-    return {
-      success: false,
-      mensaje: msg,
-      error: err?.response?.data,
-    };
+    console.error("❌ ERROR AL CREAR FACTURA (FRONT):", {
+    mensaje: err?.response?.data?.mensaje || err.message,
+    status: err?.response?.status,
+    headers: err?.response?.headers,
+    dataCompleta: err?.response?.data,
+    requestData: datosFactura
+  });
+
+  const msg =
+    err?.response?.data?.mensaje ||
+    err?.response?.data?.error ||
+    err.message ||
+    "Error de red";
+
+  return {
+    success: false,
+    mensaje: msg,
+    error: err?.response?.data,
+  };
   }
 };
 

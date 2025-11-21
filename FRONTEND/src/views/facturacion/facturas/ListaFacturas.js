@@ -447,8 +447,8 @@ const handleVerFactura = (factura) => {
 
                 return (
                   <tr key={index} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{factura.numero_factura}</div>
+                    <td className="px-4 py-2">
+                      <div className="text-sm font-medium text-gray-900 break-words max-w-[180px]">{factura.numero_factura}</div>
                     </td>
                   <td className="px-3 py-2 whitespace-nowrap">
                     <div className="text-sm text-gray-600">

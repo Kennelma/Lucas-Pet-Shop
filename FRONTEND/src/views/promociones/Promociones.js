@@ -17,11 +17,6 @@ const Promociones = () => {
   const [promocionSeleccionada, setPromocionSeleccionada] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Aplicar Poppins al contenedor principal
-  useEffect(() => {
-    document.body.style.fontFamily = 'Poppins';
-  }, []);
-
   useEffect(() => {
     cargarDatos();
   }, []);

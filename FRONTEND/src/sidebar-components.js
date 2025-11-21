@@ -21,7 +21,8 @@ import {
   faStore,
   faShield,
   faChartArea,
-  faBorderAll
+  faBorderAll,
+  faFileInvoice
 } from '@fortawesome/free-solid-svg-icons'
 
 //FUNCIÓN PARA OBTENER LA NAVEGACIÓN FILTRADA SEGÚN EL ROL DEL USUARIO
@@ -176,7 +177,7 @@ const getNavigation = () => {
       component: CNavItem,
       name: 'SAR',
       to: '/sar',
-      icon: <FontAwesomeIcon icon={faBell} className="nav-icon" />,
+      icon: <FontAwesomeIcon icon={faFileInvoice} className="nav-icon" />,
     },
 
 ];
