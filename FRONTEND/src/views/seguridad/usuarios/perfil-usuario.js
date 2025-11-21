@@ -30,10 +30,10 @@ const ActionMenu = ({ usuario, onEditar, onEliminar }) => {
 
       {isOpen && (
         <div
-          className="absolute right-0 top-10  border border-gray-200 rounded-lg shadow-lg min-w-[140px] z-50"
+          className="absolute right-0 top-10  border border-gray-200 rounded-lg shadow-lg min-w-[140px] z-50 bg-white"
         >
           <div
-            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors bg-white whitespace-nowrap"
             onClick={(e) => {
               e.stopPropagation();
               setIsOpen(false);
@@ -47,7 +47,7 @@ const ActionMenu = ({ usuario, onEditar, onEliminar }) => {
           <hr className="my-0 border-gray-200" />
 
           <div
-            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
+            className="px-2 py-1.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-2 transition-colors bg-white whitespace-nowrap"
             onClick={(e) => {
               e.stopPropagation();
               setIsOpen(false);

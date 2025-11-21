@@ -8,14 +8,13 @@ import { InputSwitch } from 'primereact/inputswitch';
 import Swal from 'sweetalert2';
 import { actualizarProducto } from '../../../AXIOS.SERVICES/products-axios';
 
-// ✅ AGREGAR accesoriosExistentes COMO PROP
+
 const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes = [] }) => {
   const [data, setData] = useState({
     nombre: '',
     categoria: 'COLLAR',
     cantidad: 0,
     precio: 0,
-    sku: '',
     activo: true
   });
   const [errores, setErrores] = useState({});
@@ -37,12 +36,6 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
     { label: 'HIGIENE', value: 'HIGIENE' },
     { label: 'ROPA', value: 'ROPA' }
   ];
-
-  const generarSKU = (nombre, id) => {
-    if (!nombre) return '';
-    const partes = nombre.trim().split(' ').map(p => p.substring(0, 3).toUpperCase());
-    return partes.join('-') + (id ? `-${id}` : '-XXX');
-  };
 
   const recalcularPrecio = (base, tasa, aplicar) => {
     const pBase = parseFloat(base) || 0;
@@ -80,7 +73,6 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
         categoria: (editData.tipo_accesorio || editData.categoria || 'COLLAR').toUpperCase(),
         cantidad: editData.stock || 0,
         precio: precioInicial,
-        sku: generarSKU(editData.nombre_producto || editData.nombre || '', editData.id_producto),
         activo: editData.activo !== undefined ? editData.activo : true
       });
       setErrores({});
@@ -94,7 +86,6 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
 
     setData(prev => {
       const newData = { ...prev, [field]: val };
-      if (field === 'nombre') newData.sku = generarSKU(val, editData.id_producto);
 
       if (field === 'precio') {
         const precioActual = parseFloat(val) || 0;
@@ -115,17 +106,17 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
     // ✅ VALIDACIÓN MEJORADA CON NOMBRES DUPLICADOS
     setErrores(prev => {
       const newErrores = { ...prev };
-      
+
       if (field === 'nombre') {
         if (!val.trim()) {
           newErrores[field] = 'El nombre del accesorio es obligatorio';
         } else {
           // Verificar si ya existe otro accesorio con ese nombre (excluyendo el actual)
-          const nombreExiste = accesoriosExistentes.some(acc => 
+          const nombreExiste = accesoriosExistentes.some(acc =>
             acc.nombre.toLowerCase() === val.trim().toLowerCase() &&
             acc.id_producto !== editData.id_producto
           );
-          
+
           if (nombreExiste) {
             newErrores[field] = 'Ya existe un accesorio con este nombre';
           } else {
@@ -140,7 +131,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
           newErrores[field] = 'Debe ser mayor a 0';
         }
       }
-      
+
       return newErrores;
     });
   };
@@ -163,21 +154,21 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
 
   const validarDatos = () => {
     let temp = {};
-    
+
     if (!data.nombre?.trim()) {
       temp.nombre = 'El nombre del accesorio es obligatorio';
     } else {
       // ✅ VALIDACIÓN DE NOMBRE DUPLICADO EN EL SUBMIT
-      const nombreExiste = accesoriosExistentes.some(acc => 
+      const nombreExiste = accesoriosExistentes.some(acc =>
         acc.nombre.toLowerCase() === data.nombre.trim().toLowerCase() &&
         acc.id_producto !== editData.id_producto
       );
-      
+
       if (nombreExiste) {
         temp.nombre = 'Ya existe un accesorio con este nombre';
       }
     }
-    
+
     if (!data.categoria) temp.categoria = 'Campo obligatorio';
     if (parseFloat(data.precio) <= 0) temp.precio = 'Debe ser mayor a 0';
     if (data.cantidad < 0) temp.cantidad = 'No puede ser negativo';
@@ -198,7 +189,6 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
         stock: data.cantidad,
         precio_producto: parseFloat(data.precio),
         tipo_producto: 'ACCESORIOS',
-        sku: data.sku,
         activo: data.activo ? 1 : 0,
         tiene_impuesto: aplicaImpuesto ? 1 : 0
       };
@@ -291,18 +281,6 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
             placeholder="Ej: Collar de cuero"
           />
           {errores.nombre && <p className="text-xs text-red-600 mt-1">{errores.nombre}</p>}
-        </span>
-
-        {/* SKU */}
-        <span>
-          <label htmlFor="sku" className="text-xs font-semibold text-gray-700 mb-1">SKU (GENERADO AUTOMÁTICAMENTE)</label>
-          <InputText
-            id="sku"
-            name="sku"
-            value={data.sku}
-            readOnly
-            className="w-full rounded-xl h-9 text-sm bg-gray-100"
-          />
         </span>
 
         {/* Categoría */}

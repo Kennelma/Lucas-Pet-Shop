@@ -34,7 +34,6 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData, animalesExis
     precio: 0,
     cantidad: 0,
     stock_minimo: 0,
-    sku: '',
     tiene_impuesto: false
   });
   const [errores, setErrores] = useState({});
@@ -42,13 +41,6 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData, animalesExis
   const [aplicaImpuesto, setAplicaImpuesto] = useState(false);
   const [tasaImpuesto, setTasaImpuesto] = useState(15);
   const [precioBase, setPrecioBase] = useState(0);
-
-  //GENERAR SKU
-  const generarSKU = (nombre) => {
-    if (!nombre) return '';
-    const partes = nombre.trim().split(' ').map(p => p.substring(0, 3).toUpperCase());
-    return partes.join('-');
-  };
 
   //CALCULAR PRECIO FINAL CON ISV
   const calcularPrecioFinalConISV = () => {
@@ -75,7 +67,6 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData, animalesExis
         precio: precioInicial,
         cantidad: Number.parseInt(editData.stock) || 0,
         stock_minimo: Number.parseInt(editData.stock_minimo) || 0,
-        sku: generarSKU(editData.nombre),
         tiene_impuesto: tieneImpuesto
       });
       setAplicaImpuesto(tieneImpuesto);
@@ -101,7 +92,6 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData, animalesExis
 
     setData(prev => {
       const newData = { ...prev, [field]: val };
-      if (field === 'nombre') newData.sku = generarSKU(val);
       if (field === 'precio') {
         const precioActual = parseFloat(val) || 0;
         const tasa = parseFloat(tasaImpuesto) || 0;
@@ -183,7 +173,6 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData, animalesExis
         especie: data.especie,
         sexo: data.sexo,
         tipo_producto: 'ANIMALES',
-        sku: generarSKU(data.nombre),
         tiene_impuesto: aplicaImpuesto ? 1 : 0,
         tasa_impuesto: aplicaImpuesto ? parseFloat(tasaImpuesto) : 0
       };
@@ -283,12 +272,6 @@ const ModalActualizarAnimal = ({ isOpen, onClose, onSave, editData, animalesExis
             placeholder="Ej: Rocky" 
           />
           {errores.nombre && <p className="text-xs text-red-600 mt-1">{errores.nombre}</p>}
-        </span>
-
-        {/* SKU */}
-        <span>
-          <label htmlFor="sku" className="text-xs font-semibold text-gray-700 mb-1">SKU</label>
-          <InputText id="sku" value={data.sku} readOnly className="w-full rounded-xl h-9 text-sm bg-gray-100" />
         </span>
 
         {/* ESPECIE Y SEXO */}
