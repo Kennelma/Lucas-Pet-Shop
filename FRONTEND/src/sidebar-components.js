@@ -20,8 +20,7 @@ import {
   faShower,
   faStore,
   faShield,
-  faChartArea,
-  faBorderAll
+  faFileInvoice
 } from '@fortawesome/free-solid-svg-icons'
 
 //FUNCIÓN PARA OBTENER LA NAVEGACIÓN FILTRADA SEGÚN EL ROL DEL USUARIO
@@ -29,7 +28,7 @@ const getNavigation = () => {
 
   //OBTENER EL USUARIO LOGUEADO DEL SESSION STORAGE
   const usuarioActual = JSON.parse(sessionStorage.getItem('usuario') || '{}');
-  const rolActual = usuarioActual?.rol?.toLowerCase();
+  const rolActual = (usuarioActual?.rol || '').trim().toUpperCase(); // Limpiar espacios y convertir a mayúsculas
 
   //DEFINICIÓN COMPLETA DE TODOS LOS ITEMS DEL SIDEBAR
   const navCompleto = [
@@ -119,13 +118,13 @@ const getNavigation = () => {
       ],
     },
 
-    //EMPRESA Y SUCURSALES - SOLO VISIBLE PARA ADMINISTRADOR
+    //EMPRESA Y SUCURSALES - VISIBLE PARA ADMINISTRADOR Y ASISTENTE
     {
       component: CNavItem,
       name: 'Empresa',
       icon: <FontAwesomeIcon icon={faStore} className="nav-icon" />,
       to: '/empresa',
-      rolesPermitidos: ['administrador'],
+      rolesPermitidos: ['ADMINISTRADOR', 'ASISTENTE'],
     },
 
     //CLIENTES - VISIBLE PARA TODOS LOS ROLES
@@ -136,13 +135,13 @@ const getNavigation = () => {
       icon: <FontAwesomeIcon icon={faUsers} className="nav-icon" />,
     },
 
-    //SEGURIDAD - SOLO VISIBLE PARA ADMINISTRADOR
+    //SEGURIDAD - VISIBLE PARA ADMINISTRADOR Y ASISTENTE
     {
       component: CNavItem,
       name: 'Seguridad',
       to: '/seguridad',
       icon: <FontAwesomeIcon icon={faShield} className="nav-icon" />,
-      rolesPermitidos: ['administrador'],
+      rolesPermitidos: ['ADMINISTRADOR', 'ASISTENTE'],
     },
 
     //RECORDATORIOS - VISIBLE PARA TODOS LOS ROLES
@@ -153,23 +152,31 @@ const getNavigation = () => {
       icon: <FontAwesomeIcon icon={faBell} className="nav-icon" />,
     },
 
-    //ESTILISTAS Y BONIFICACIONES - SOLO VISIBLE PARA ADMINISTRADOR
+    //ESTILISTAS Y BONIFICACIONES - VISIBLE PARA ADMINISTRADOR Y ASISTENTE
     {
       component: CNavItem,
       name: 'Estilistas',
       to: '/estilistas',
       icon: <FontAwesomeIcon icon={faCoins} className="nav-icon" />,
-      rolesPermitidos: ['administrador'],
+      rolesPermitidos: ['ADMINISTRADOR', 'ASISTENTE'],
     },
 
-
-    //REPORTES - SOLO VISIBLE PARA ADMINISTRADOR
+    //REPORTES - VISIBLE PARA ADMINISTRADOR Y ASISTENTE
     {
       component: CNavItem,
       name: 'Reportes',
       to: '/reportes',
       icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
-      rolesPermitidos: ['administrador'],
+      rolesPermitidos: ['ADMINISTRADOR', 'ASISTENTE'],
+    },
+
+    //SAR - SOLO VISIBLE PARA ADMINISTRADOR (NO PARA ASISTENTE)
+    {
+      component: CNavItem,
+      name: 'SAR',
+      to: '/sar',
+      icon: <FontAwesomeIcon icon={faFileInvoice} className="nav-icon" />,
+      rolesPermitidos: ['ADMINISTRADOR'],
     },
 
 ];
@@ -181,7 +188,9 @@ const getNavigation = () => {
       return true;
     }
     //SI TIENE RESTRICCIÓN, VERIFICAR SI EL ROL DEL USUARIO ESTÁ EN LA LISTA PERMITIDA
-    return item.rolesPermitidos.includes(rolActual);
+    //Normalizar ambos lados a mayúsculas para comparar correctamente
+    const rolesPermitidosUpper = item.rolesPermitidos.map(r => r.toUpperCase());
+    return rolesPermitidosUpper.includes(rolActual);
   });
 };
 

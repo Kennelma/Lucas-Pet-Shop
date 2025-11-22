@@ -116,8 +116,8 @@ const Medicamentos = () => {
       // Mostrar alerta de éxito
       Swal.fire({
         icon: 'success',
-        title: medicamentoEditando ? '¡Actualizado!' : '¡Agregado!',
-        text: medicamentoEditando ? 'Medicamento actualizado correctamente' : 'Medicamento agregado correctamente',
+        title: medicamentoEditando ? '¡Medicamento actualizado!' : '¡Medicamento agregado!',
+        text: medicamentoEditando ? 'El medicamento se ha actualizado correctamente' : 'El medicamento se ha agregado correctamente',
         timer: 2000,
         showConfirmButton: false
       });
@@ -134,7 +134,7 @@ const Medicamentos = () => {
       Swal.fire({
         icon: 'success',
         title: '¡Lote agregado!',
-        text: 'Lote agregado correctamente',
+        text: 'El lote se ha agregado correctamente',
         timer: 2000,
         showConfirmButton: false
       });
@@ -161,8 +161,8 @@ const Medicamentos = () => {
     if (exito) {
       Swal.fire({
         icon: 'success',
-        title: '¡Actualizado!',
-        text: 'Lote actualizado correctamente',
+        title: '¡Lote actualizado!',
+        text: 'El lote se ha actualizado correctamente',
         timer: 1500,
         showConfirmButton: false,
         didOpen: () => {
@@ -221,7 +221,7 @@ const Medicamentos = () => {
         Swal.fire({
           icon: 'success',
           title: '¡Medicamento eliminado!',
-          text: 'El medicamento fue eliminado correctamente',
+          text: 'El medicamento se ha eliminado correctamente',
           timer: 2000,
           showConfirmButton: false
         });
@@ -257,7 +257,7 @@ const Medicamentos = () => {
       Swal.fire({
         icon: "success",
         title: nuevoEstadoNumerico === 1 ? "¡Medicamento Activado!" : "¡Medicamento Desactivado!",
-        text: "Estado actualizado correctamente",
+        text: "El estado se ha actualizado correctamente",
         timer: 1500,
         showConfirmButton: false,
       });
@@ -313,7 +313,7 @@ const Medicamentos = () => {
         Swal.fire({
           icon: 'success',
           title: '¡Lote eliminado!',
-          text: 'El lote fue eliminado correctamente',
+          text: 'El lote se ha eliminado correctamente',
           timer: 2000,
           showConfirmButton: false,
           didOpen: () => {

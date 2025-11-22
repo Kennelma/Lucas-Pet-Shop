@@ -119,8 +119,8 @@ const Servicios = () => {
       if (resultado.Consulta) {
         Swal.fire({
           icon: 'success',
-          title: servicioEditando ? 'Servicio actualizado' : 'Servicio creado',
-          text: resultado.message || 'Operación completada exitosamente',
+          title: servicioEditando ? '¡Servicio actualizado!' : '¡Servicio creado!',
+          text: servicioEditando ? 'El servicio se ha actualizado correctamente' : 'El servicio se ha creado correctamente',
           timer: 2000,
           showConfirmButton: false
         });
@@ -183,7 +183,7 @@ const Servicios = () => {
         Swal.fire({
           icon: 'success',
           title: nuevoEstado ? '¡Servicio Activado!' : '¡Servicio Desactivado!',
-          text: 'Estado actualizado correctamente',
+          text: 'El estado se ha actualizado correctamente',
           timer: 1500,
           showConfirmButton: false
         });
@@ -241,8 +241,8 @@ const Servicios = () => {
         await eliminarServicio(servicio.id_servicio_peluqueria_pk, 'PELUQUERIA');
         await Swal.fire({
           icon: 'success',
-          title: '¡Eliminado!',
-          text: 'El servicio fue eliminado correctamente',
+          title: '¡Servicio eliminado!',
+          text: 'El servicio se ha eliminado correctamente',
           timer: 2000,
           showConfirmButton: false
         });

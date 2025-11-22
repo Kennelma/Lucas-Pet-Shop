@@ -282,21 +282,18 @@ const Accesorios = () => {
     }
 
     try {
-      const payload = {
-        id_producto: accesorio.id_producto,
-        tipo_producto: "ACCESORIOS",
-        activo: nuevoEstado ? 1 : 0,
+      const payload = {
+        id_producto: accesorio.id_producto,
+        tipo_producto: "ACCESORIOS",
+        activo: nuevoEstado ? 1 : 0,
         // Incluir la data existente
         nombre_producto: accesorio.nombre,
         tipo_accesorio: accesorio.categoria,
         stock: accesorio.stock,
         precio_producto: accesorio.precio,
-        sku: accesorio.sku,
         tiene_impuesto: accesorio.tiene_impuesto ? 1 : 0,
         tasa_impuesto: accesorio.tasa_impuesto
-      };
-
-      const resultado = await actualizarProducto(payload);
+      };      const resultado = await actualizarProducto(payload);
 
       if (resultado.Consulta) {
         setAccesorios((prev) =>

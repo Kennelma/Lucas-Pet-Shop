@@ -1,6 +1,5 @@
 //IMPORTACIONES
 import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 //FUNCION_PRINCIPAL_PARA_GENERAR_PDF_DE_FACTURA
 export const generarPDFFactura = (datosFactura) => {
@@ -36,88 +35,102 @@ export const generarPDFFactura = (datosFactura) => {
 
   //FUNCION_AUXILIAR_LINEA_SEPARADORA
   const addSeparator = () => {
-    yPos += 3;
+    yPos += 2;
     doc.setLineWidth(0.3);
     doc.line(margin, yPos, pageWidth - margin, yPos);
-    yPos += 4;
+    yPos += 3;
   };
 
   //CARGAR_LOGO_DE_EMPRESA_(CON_MANEJO_DE_ERRORES)
   try {
     const logoPath = '/images_LP/logo.png';
-    const width = 30;
-    const height = 30;
-    doc.addImage(logoPath, 'PNG', pageWidth / 2 - width / 2, yPos + 5, width, height);
-    yPos += 40;
+    const width = 25;
+    const height = 25;
+    doc.addImage(logoPath, 'PNG', pageWidth / 2 - width / 2, yPos, width, height);
+    yPos += 28;
   } catch (error) {
     console.warn('No se pudo cargar el logo:', error.message);
-    yPos += 5;
+    yPos += 2;
   }
 
   //INFORMACION_DE_LA_EMPRESA
-  addCenteredText(empresa.nombre_empresa || 'MI EMPRESA', 13, true, 2);
-  yPos += 1;
+  addCenteredText(empresa.nombre_empresa || '-', 12, true, 1);
 
-  doc.setFontSize(8);
+  doc.setFontSize(7);
   doc.setFont(undefined, 'normal');
-  doc.text(factura.direccion_sucursal || factura.nombre_sucursal || '', pageWidth / 2, yPos, { align: 'center', maxWidth: contentWidth });
-  yPos += 10;
+  const direccion = (factura.direccion_sucursal || factura.nombre_sucursal || '').toUpperCase();
+  doc.text(direccion, pageWidth / 2, yPos, { align: 'center', maxWidth: contentWidth });
+  yPos += 6;
 
-  doc.text(`Tel: ${empresa.telefono_empresa || ''}`, pageWidth / 2, yPos, { align: 'center' });
-  yPos += 5;
+  const telefonoFormateado = empresa.telefono_empresa
+    ? `+504 ${empresa.telefono_empresa.substring(0, 4)}-${empresa.telefono_empresa.substring(4)}`
+    : '';
+  doc.text(`Tel: ${telefonoFormateado} | RTN: ${empresa.rtn_empresa || ''}`, pageWidth / 2, yPos, { align: 'center' });
+  yPos += 4;
+
 
   if (empresa.correo_empresa) {
     doc.text(empresa.correo_empresa, pageWidth / 2, yPos, { align: 'center' });
-    yPos += 5;
+    yPos += 4;
   }
 
-  doc.text(`RTN: ${empresa.rtn_empresa || ''}`, pageWidth / 2, yPos, { align: 'center' });
-  yPos += 8;
-
-  doc.text(`CAI: 00000000000000000`, pageWidth / 2, yPos, { align: 'center' });
-   yPos += 8;
-
-  //TITULO_FACTURA
-  addCenteredText('FACTURA DE VENTA', 12, true, 2);
-
-  //VENDEDOR_Y_SUCURSAL
+  // BLOQUE CAI DETALLADO
   doc.setFontSize(6);
-  doc.text(`SUCURSAL: ${factura.nombre_sucursal || ''}`, pageWidth / 2, yPos, { align: 'center' });
+  doc.text('CAI:', pageWidth / 2, yPos, { align: 'center' });
   yPos += 3;
-  doc.text(`Vendedor: ${factura.vendedor || ''}`, pageWidth / 2, yPos, { align: 'center' });
+  doc.setFontSize(7);
+  doc.text(factura.codigo_cai || '', pageWidth / 2, yPos, { align: 'center' });
+  yPos += 4;
+  doc.setFontSize(6);
+  // Mostrar rango_cai si existe, si no, mostrar rango_inicio y rango_fin
+  if (factura.rango_cai) {
+    doc.text(`Rango: ${factura.rango_cai}`, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 3;
+  } else if (factura.rango_inicio && factura.rango_fin) {
+    doc.text(`Rango: ${factura.rango_inicio} - ${factura.rango_fin}`, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 3;
+  }
+
+  const fechaLimite = factura.fecha_limite
+    ? new Date(factura.fecha_limite).toLocaleDateString('es-HN')
+    : '';
+  doc.text(`Fecha límite de emisión: ${fechaLimite}`, pageWidth / 2, yPos, { align: 'center' });
   yPos += 5;
 
+  //TITULO_FACTURA
+  addCenteredText('FACTURA DE VENTA', 11, true, 2);
+  yPos += 1;
+
   //INFORMACION_DE_FACTURA
-  doc.setFontSize(8);
+  doc.setFontSize(7);
   doc.setFont(undefined, 'normal');
 
   const fecha = new Date(factura.fecha_emision).toLocaleDateString('es-HN');
   doc.text(`No: ${factura.numero_factura}`, margin, yPos);
   doc.text(`Fecha: ${fecha}`, pageWidth - margin, yPos, { align: 'right' });
-  yPos += 5;
+  yPos += 4;
 
-  if (factura.RTN) {
-    doc.text(`RTN Cliente: ${factura.RTN}`, margin, yPos);
-    yPos += 5;
-  }
+  //VENDEDOR_Y_SUCURSAL
+  doc.setFontSize(6.5);
+  doc.text(`Sucursal: ${factura.nombre_sucursal || ''}`, margin, yPos);
+  yPos += 3;
+  doc.text(`Vendedor: ${factura.vendedor || ''}`, margin, yPos);
+  yPos += 4;
 
   //INFORMACION_DEL_CLIENTE
-  doc.setFontSize(5);
+  doc.setFontSize(7);
   doc.setFont(undefined, 'bold');
   doc.text('CLIENTE:', margin, yPos);
-
   doc.setFont(undefined, 'normal');
-  doc.setFontSize(6.5);
+
   const nombreCliente = `${factura.nombre_cliente || ''} ${factura.apellido_cliente || ''}`.trim();
-  doc.text(nombreCliente || 'Consumidor General', margin + 12, yPos);
+  doc.text(nombreCliente || 'Consumidor General', margin + 15, yPos);
   yPos += 3;
 
-  doc.setFontSize(8);
-  if (factura.identidad_cliente && !factura.RTN) {
-    yPos += 1;
-    doc.text(`ID: ${factura.identidad_cliente}`, margin, yPos);
-    yPos += 3;
-  }
+  doc.text(`RTN: ${factura.RTN || ''}`, margin, yPos);
+  yPos += 3;
+  doc.text(`ID: ${factura.identidad_cliente || ''}`, margin, yPos);
+  yPos += 3;
 
   //ESTILISTAS_ASIGNADOS
   if (items && items.length > 0) {
@@ -137,39 +150,35 @@ export const generarPDFFactura = (datosFactura) => {
     });
 
     if (estilistasMascotas.size > 0) {
-      yPos += 1;
-      doc.setFontSize(7);
-      doc.setFont(undefined, 'normal');
+      doc.setFontSize(6.5);
       const estilistasList = Array.from(estilistasMascotas).map(([nombre, cantidad]) =>
-        `${nombre} (${cantidad} mascotas)`
+        `${nombre} (${cantidad})`
       ).join(', ');
-      doc.text(`Pet groomer: ${estilistasList}`, margin, yPos);
-      yPos += 4;
-      doc.setFont(undefined, 'normal');
+      doc.text(`Groomer: ${estilistasList}`, margin, yPos, { maxWidth: contentWidth });
+      yPos += 3;
     }
   }
 
   addSeparator();
 
   //ENCABEZADO_DE_ITEMS
-  doc.setFontSize(7);
+  doc.setFontSize(6.5);
   doc.setFont(undefined, 'bold');
-  yPos += 1;
 
   doc.text('CANT', margin, yPos);
   doc.text('DESCRIPCIÓN', margin + 10, yPos);
-  doc.text('P.UNIT', pageWidth - 33, yPos, { align: 'right' });
-  doc.text('AJUSTE', pageWidth - 19, yPos, { align: 'right' });
+  doc.text('P.UNIT', pageWidth - 36, yPos, { align: 'right' });
+  doc.text('AJUSTE', pageWidth - 21, yPos, { align: 'right' });
   doc.text('SUBTOTAL', pageWidth - margin, yPos, { align: 'right' });
   yPos += 3;
 
   doc.setLineWidth(0.2);
   doc.line(margin, yPos, pageWidth - margin, yPos);
-  yPos += 4;
+  yPos += 3;
 
   //LISTADO_DE_ITEMS
   doc.setFont(undefined, 'normal');
-  doc.setFontSize(6.5);
+  doc.setFontSize(6);
 
   items.forEach((item) => {
     const cantidad = item.cantidad_item;
@@ -178,25 +187,22 @@ export const generarPDFFactura = (datosFactura) => {
     const ajuste = parseFloat(item.ajuste_precio || 0).toFixed(2);
     const total = parseFloat(item.total_linea).toFixed(2);
 
-    //CALCULAR_ANCHO_DISPONIBLE_PARA_DESCRIPCION
-    const anchoDisponible = pageWidth - 33 - (margin + 10) - 2; //RESTAR POSICION DE PRECIO Y MARGEN
+    const anchoDisponible = pageWidth - 45 - (margin + 10);
     const lineasNombre = doc.splitTextToSize(nombre, anchoDisponible);
 
     //PRIMERA_LINEA_CON_TODOS_LOS_DATOS
     doc.text(`${cantidad}`, margin, yPos);
     doc.text(lineasNombre[0], margin + 10, yPos);
-    doc.text(`L${precio}`, pageWidth - 33, yPos, { align: 'right' });
-    doc.text(`L${ajuste}`, pageWidth - 19, yPos, { align: 'right' });
+    doc.text(`L${precio}`, pageWidth - 36, yPos, { align: 'right' });
+    doc.text(`L${ajuste}`, pageWidth - 21, yPos, { align: 'right' });
     doc.text(`L${total}`, pageWidth - margin, yPos, { align: 'right' });
-    yPos += 3.5;
+    yPos += 3;
 
     //LINEAS_ADICIONALES_SI_DESCRIPCION_ES_LARGA
     for (let i = 1; i < lineasNombre.length; i++) {
       doc.text(lineasNombre[i], margin + 10, yPos);
-      yPos += 3;
+      yPos += 2.5;
     }
-
-    yPos += 0.5;
   });
 
   addSeparator();
@@ -219,9 +225,10 @@ export const generarPDFFactura = (datosFactura) => {
 
   doc.text('Descuento:', margin, yPos);
   doc.text(`L ${parseFloat(factura.descuento).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
-  yPos += 3;
+  yPos += 4;
 
   doc.setFont(undefined, 'bold');
+  doc.setFontSize(8);
   doc.text('TOTAL A PAGAR:', margin, yPos);
   doc.text(`L ${parseFloat(factura.total).toFixed(2)}`, pageWidth - margin, yPos, { align: 'right' });
   yPos += 1;
@@ -235,7 +242,7 @@ export const generarPDFFactura = (datosFactura) => {
     doc.setFontSize(7);
     doc.setFont(undefined, 'bold');
     doc.text('HISTORIAL DE PAGOS:', margin, yPos);
-    yPos += 4;
+    yPos += 3;
 
     doc.setFont(undefined, 'normal');
     doc.setFontSize(6);
@@ -257,7 +264,6 @@ export const generarPDFFactura = (datosFactura) => {
     doc.line(margin, yPos, pageWidth - margin, yPos);
     yPos += 3;
 
-    //TOTAL_PAGADO_Y_SALDO_PENDIENTE
     doc.setFont(undefined, 'bold');
     doc.text('Total Pagado:', margin, yPos);
     doc.text(`L${factura.total_pagado}`, pageWidth - margin, yPos, { align: 'right' });
@@ -269,11 +275,11 @@ export const generarPDFFactura = (datosFactura) => {
   }
 
   //PIE_DE_PAGINA
-  yPos += 6;
-  doc.setFontSize(8);
+  yPos += 5;
+  doc.setFontSize(7);
   doc.setFont(undefined, 'italic');
   doc.text('¡Gracias por su compra!', pageWidth / 2, yPos, { align: 'center' });
-  yPos += 5;
+  yPos += 4;
   doc.setFont(undefined, 'normal');
   doc.text('Conserve este ticket', pageWidth / 2, yPos, { align: 'center' });
 

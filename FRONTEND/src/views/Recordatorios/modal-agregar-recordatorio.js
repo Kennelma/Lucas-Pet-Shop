@@ -118,7 +118,7 @@ const ModalRecordatorio = ({ isOpen, onClose, onGuardar, tipoServicio = [], frec
     }
 
      // CONVERTIR FORMATO DE FECHA
-      const fechaFormateada = fechaProgramacion + ':00'; 
+      const fechaFormateada = fechaProgramacion + ':00';
 
       const datosRegistro = {
         tipo_item: Number(tipoItem),
@@ -154,13 +154,13 @@ const ModalRecordatorio = ({ isOpen, onClose, onGuardar, tipoServicio = [], frec
 
   return (
     <Dialog
-      header="NUEVO RECORDATORIO "
+      header="NUEVO RECORDATORIO"
       visible={isOpen}
       style={{ width: '30rem' }}
       onHide={() => { limpiar(); onClose?.(); }}
       modal
     >
-      <div className="flex flex-col gap-4">
+      <div className="flexflex-col gap-4">
         {errorMsg && (
           <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded px-3 py-2">
             {errorMsg}

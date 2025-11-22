@@ -3,6 +3,7 @@ import { Building2, Plus, Edit2, Trash2, Search, MoreHorizontal } from 'lucide-r
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { ver, insertar, actualizarRegistro } from '../../AXIOS.SERVICES/empresa-axios';
+import Swal from 'sweetalert2';
 
 // Importar modales reales
 import ModalAgregarEmpresa from './informacion-empresa/modal-agregar-empresa';
@@ -372,14 +373,33 @@ export default function GestionEmpresa() {
       if (resultado?.Consulta !== false) {
         cerrarModalEmpresa();
         refrescarDatos();
+
+        Swal.fire({
+          icon: 'success',
+          title: modalEmpresa.mode === 'edit' ? 'Empresa Actualizada' : 'Empresa Creada',
+          text: modalEmpresa.mode === 'edit'
+            ? 'La empresa se actualizó correctamente'
+            : 'La empresa se creó correctamente',
+          confirmButtonColor: '#22c55e'
+        });
       } else {
-        alert('Error al guardar empresa: ' + (resultado?.error || 'Error desconocido'));
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: resultado?.error || 'Error al guardar empresa',
+          confirmButtonColor: '#ef4444'
+        });
       }
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
         console.error('Error al guardar empresa:', error);
       }
-      alert('Error al guardar empresa: ' + error.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Error al guardar empresa',
+        confirmButtonColor: '#ef4444'
+      });
     } finally {
       setLoadingModal(false);
     }
@@ -467,14 +487,33 @@ export default function GestionEmpresa() {
       if (resultado?.Consulta !== false) {
         cerrarModalSucursal();
         refrescarDatos();
+
+        Swal.fire({
+          icon: 'success',
+          title: modalSucursal.mode === 'edit' ? 'Sucursal Actualizada' : 'Sucursal Creada',
+          text: modalSucursal.mode === 'edit'
+            ? 'La sucursal se actualizó correctamente'
+            : 'La sucursal se creó correctamente',
+          confirmButtonColor: '#22c55e'
+        });
       } else {
-        alert('Error al guardar sucursal: ' + (resultado?.error || 'Error desconocido'));
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: resultado?.error || 'Error al guardar sucursal',
+          confirmButtonColor: '#ef4444'
+        });
       }
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
         console.error('Error al guardar sucursal:', error);
       }
-      alert('Error al guardar sucursal: ' + error.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Error al guardar sucursal',
+        confirmButtonColor: '#ef4444'
+      });
     } finally {
       setLoadingModal(false);
     }
@@ -649,8 +688,8 @@ export default function GestionEmpresa() {
       <div
         className="rounded-xl p-6 mb-3 bg-cover bg-center"
         style={{
-          backgroundImage: 'url("/H8.jpg")',
-          backgroundColor: '#C7E4E2',
+          backgroundImage: 'url("/H8.png")',
+          backgroundColor: '#008FCC',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'right center',
@@ -658,11 +697,11 @@ export default function GestionEmpresa() {
         }}
       >
         <div className="flex justify-center items-center">
-          <h2 className="text-2xl font-black text-center text-black">
+          <h2 className="text-2xl  text-center text-white">
             GESTIÓN DE EMPRESAS
           </h2>
         </div>
-        <p className="text-center text-black italic mt-2">
+        <p className="text-center text-white italic mt-2">
           Administra empresas y sucursales del sistema
         </p>
       </div>

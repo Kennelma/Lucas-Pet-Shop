@@ -132,12 +132,14 @@ exports.procesarPago = async (req, res) => {
                         `INSERT INTO tbl_pago_aplicacion (
                             id_pago_fk,
                             id_factura_fk,
-                            monto
-                        ) VALUES (?, ?, ?)`,
+                            monto,
+                            fecha_aplicacion
+                        ) VALUES (?, ?, ?, ?)`,
                         [
                             pagos.insertId,
                             facturas[0].id_factura_pk,
-                            monto
+                            monto,
+                            fecha_pago
                         ]
                     );
 

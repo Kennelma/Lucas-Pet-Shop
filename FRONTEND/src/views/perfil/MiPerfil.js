@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { CModal, CModalBody, CSpinner } from '@coreui/react'
 import { verPerfil, actualizarPerfil } from '../../AXIOS.SERVICES/profile-axios'
+import Swal from "sweetalert2";
 
 const MiPerfil = ({ visible, onClose }) => {
   // Estados para los campos del formulario
@@ -126,7 +127,14 @@ const MiPerfil = ({ visible, onClose }) => {
           sessionStorage.setItem('usuario', JSON.stringify(usuarioActualizado))
         }
 
-        alert('✅ Perfil actualizado exitosamente')
+        Swal.fire({
+    icon: "success",
+    title: "¡Perfil Actualizado!",
+    text: "Los cambios se guardaron correctamente",
+    timer: 1800,
+    showConfirmButton: false,
+  });
+
         onClose()
 
         // Recargar la página para reflejar cambios
@@ -279,6 +287,7 @@ const MiPerfil = ({ visible, onClose }) => {
                       className={`form-control ${errores.nombre ? 'is-invalid' : ''}`}
                       placeholder="Nombre de usuario"
                       style={{ height: '50px', backgroundColor: 'white' }}
+                      autoComplete="off"
                     />
                     <label
                       className="position-absolute bg-white px-2"
@@ -313,6 +322,7 @@ const MiPerfil = ({ visible, onClose }) => {
                       className={`form-control ${errores.email ? 'is-invalid' : ''}`}
                       placeholder="E-mail"
                       style={{ height: '50px', backgroundColor: 'white' }}
+                      autoComplete="off"
                     />
                     <label
                       className="position-absolute bg-white px-2"
@@ -350,6 +360,7 @@ const MiPerfil = ({ visible, onClose }) => {
                       onChange={handleChange}
                       className={`form-control ${errores.nuevaContraseña ? 'is-invalid' : ''}`}
                       style={{ height: '50px', backgroundColor: 'white' }}
+
                     />
                     <label
                       className="position-absolute bg-white px-2"
