@@ -1,6 +1,6 @@
 const cron = require('node-cron');
 const mysqlConnection = require('../config/conexion');
-const { getWhatsAppSocket, isWhatsAppConnected } = require('../config/whatsapp');
+const { getWhatsAppSocket, isWhatsAppConnected } = require('../config/WhatsApp');
 const { getTimezoneOffset } = require('../config/utils/timezone');
 
 //FUNCION PARA ENVIAR RECORDATORIO POR WHATSAPP
@@ -16,11 +16,9 @@ async function enviarRecordatorio(telefono, mensaje, nombreCliente, idRecordator
 
     await sock.sendMessage(jid, { text: mensaje });
 
-    console.log(`Recordatorio ${idRecordatorio} enviado a ${nombreCliente} (${telefono})`);
     return true;
 
   } catch (error) {
-    console.error(`Error al enviar a ${telefono}:`, error.message);
     throw error;
   }
 }
@@ -62,8 +60,6 @@ cron.schedule('*/1 * * * *', async () => {
     if (recordatoriosPendientes.length === 0) {
       return;
     }
-
-    console.log(`Procesando ${recordatoriosPendientes.length} recordatorios...`);
 
     //PROCESAR CADA RECORDATORIO
     for (const recordatorio of recordatoriosPendientes) {
@@ -108,8 +104,6 @@ cron.schedule('*/1 * * * *', async () => {
           continue;
         }
 
-        console.log(`Enviando a ${clientes.length} clientes...`);
-
         //ENVIAR A CADA CLIENTE
         let enviados = 0;
         let fallidos = 0;
@@ -126,11 +120,8 @@ cron.schedule('*/1 * * * *', async () => {
             await new Promise(resolve => setTimeout(resolve, 1000));
           } catch (error) {
             fallidos++;
-            console.error(`Fallo al enviar a ${cliente.nombre_cliente}:`, error.message);
           }
         }
-
-        console.log(`Resultado: ${enviados} enviados, ${fallidos} fallidos`);
 
         //ACTUALIZAR_ESTADO_DEL_RECORDATORIO
         if (enviados > 0) {
@@ -153,14 +144,12 @@ cron.schedule('*/1 * * * *', async () => {
           WHERE r.id_recordatorio_pk = ?
         `, [estadoEnviado?.[0]?.id_estado_pk, recordatorio.id_recordatorio_pk]);
 
-          console.log(`Recordatorio ${recordatorio.id_recordatorio_pk} completado. Proximo en ${recordatorio.dias_intervalo} dias`);
         } else {
           throw new Error('No se pudo enviar a ningun cliente');
         }
 
       } catch (error) {
         //MANEJO_DE_ERRORES_MARCAR_COMO_FALLIDO_Y_APLICAR_BACKOFF
-        console.error(`Error recordatorio ${recordatorio.id_recordatorio_pk}:`, error.message);
 
         try {
           const [estadoFallido] = await conn.query(`
@@ -182,13 +171,7 @@ cron.schedule('*/1 * * * *', async () => {
             WHERE id_recordatorio_pk = ?
           `, [intentos, estadoFallido?.[0]?.id_estado_pk, intentos, intentos, recordatorio.id_recordatorio_pk]);
 
-          if (intentos >= 3) {
-            console.log(`Recordatorio ${recordatorio.id_recordatorio_pk} DESACTIVADO tras 3 intentos`);
-          } else {
-            console.log(`Recordatorio ${recordatorio.id_recordatorio_pk} reintentara en 15 min (${intentos}/3)`);
-          }
         } catch (updateError) {
-          console.error(`Error critico al actualizar:`, updateError.message);
           await conn.query(
             `UPDATE tbl_recordatorios SET processing = 0 WHERE id_recordatorio_pk = ?`,
             [recordatorio.id_recordatorio_pk]
@@ -198,7 +181,7 @@ cron.schedule('*/1 * * * *', async () => {
     }
 
   } catch (error) {
-    console.error('[CRON RECORDATORIOS] Error general:', error);
+    // Silenciar errores generales del cron
   } finally {
     conn.release();
   }
@@ -206,7 +189,5 @@ cron.schedule('*/1 * * * *', async () => {
   scheduled: true,
   timezone: 'America/Tegucigalpa'
 });
-
-console.log('Job de recordatorios iniciado (cada 1 minuto - America/Tegucigalpa)\n');
 
 module.exports = {};

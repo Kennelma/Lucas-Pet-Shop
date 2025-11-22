@@ -342,7 +342,7 @@ const Dashboard = () => {
                   </button>
 
                   <div className="flex items-center justify-center gap-2 text-slate-700 font-medium bg-white px-2 py-1 rounded-lg border-2 border-yellow-400 flex-1 min-w-0">
-                    <lucideReact.Calendar className="w-4 h-4 text-yellow-600 flex-shrink-0" />
+                    <lucideReact.Calendar className="w-4 h-4 text-yellow-600 shrink-0" />
                     <span className="text-slate-900 text-[10px] sm:text-xs whitespace-nowrap">{filterDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</span>
                   </div>
 

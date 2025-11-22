@@ -43,8 +43,6 @@ exports.verRolesUsuarios = async (req, res) => {
         throw new Error('NO ES PARTE DE LAS OPCIONES PARA INGRESAR USUARIOS');
     }
 
-    await conn.commit();
-
     res.json({
       Consulta: true,
       mensaje: 'Datos obtenidos con éxito',

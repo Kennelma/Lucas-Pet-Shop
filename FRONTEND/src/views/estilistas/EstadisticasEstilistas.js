@@ -351,7 +351,7 @@ const EstadisticasEstilistas = () => {
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div
-                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          className="w-3 h-3 rounded-full shrink-0"
                           style={{ backgroundColor: item.color }}
                         />
                         <p className="text-xs text-slate-900 uppercase truncate" style={{ marginTop: '1rem' }}>{item.nombreCompleto}</p>

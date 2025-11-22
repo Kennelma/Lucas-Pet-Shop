@@ -55,14 +55,8 @@ cron.schedule('*/30 * * * *', async () => { // CADA 30 MINUTOS
         END
     `, [fecha_actual, idCaducado, idAgotado, idPorAcabarse, fecha_actual, idDisponible]);
 
-    console.log(`ESTADO DE LOTES ACTUALIZADOS (${fecha_actual})`);
-
   } catch (error) {
-    if (error.code === 'ER_LOCK_WAIT_TIMEOUT' || error.code === 'ER_LOCK_DEADLOCK') {
-      console.log('Actualización de estado de lotes omitida - tablas en uso');
-    } else {
-      console.error('ERROR AL ACTUALIZAR ESTADO DE LOTES:', error.message);
-    }
+    // Silenciar errores de locks de base de datos
   } finally {
     conn.release();
   }
@@ -140,14 +134,8 @@ cron.schedule('*/10 * * * *', async () => { // CADA 10 MINUTOS
       fecha_actual //DATEDIFF(l.fecha_vencimiento, ?) IN (30,60,90)
     ]);
 
-    console.log(`NOTIFICACIONES PROCESADAS (${fecha_actual})`);
-
   } catch (error) {
-    if (error.code === 'ER_LOCK_WAIT_TIMEOUT' || error.code === 'ER_LOCK_DEADLOCK') {
-      console.log('Procesamiento de notificaciones omitido - tablas en uso');
-    } else {
-      console.error('ERROR EN NOTIFICACIONES:', error?.message);
-    }
+    // Silenciar errores de locks de base de datos
   } finally {
     conn.release();
   }
@@ -178,10 +166,8 @@ cron.schedule('0 3 * * *', async () => {
       WHERE DATE(fecha_creacion) < ?
     `, [fecha_limite]);
 
-    console.log(`NOTIFICACIONES ELIMINADAS HASTA: ${fecha_limite} - TOTAL: ${result.affectedRows}`);
-
   } catch (error) {
-    console.error('ERROR EN LA LIMPIEZA DE NOTIFICACIONES:', error?.message);
+    // Silenciar errores de limpieza de notificaciones
   } finally {
     conn.release();
   }

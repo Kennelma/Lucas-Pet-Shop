@@ -1,6 +1,4 @@
 //Constante para el maquete MySQL
-const path = require('path');
-
 require('dotenv').config();
 
 const mysql = require('mysql2/promise');
@@ -20,16 +18,15 @@ const mysqlConnection = mysql.createPool({
     acquireTimeout: 10000,
     connectionLimit: 5,
     timezone: '-06:00', //Zona horaria de Tegucigalpa
-    ssl: {
-        rejectUnauthorized: false
-    }
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: true } : false
 });
 
 //MENSAJE DE CONFIRMACIÓN DE CONEXIÓN Y MANEJO DE ERRORES
 (async () => {
     try {
         await mysqlConnection.getConnection();
-        console.log('Conexión a MySQL OK');
+        console.log('Conectado a MySQL correctamente');
+        //MySQL connected
     } catch (err) {
         console.log('Error conectando a MySQL:', err.message);
         process.exit(1);

@@ -97,7 +97,7 @@ const PerfilUsuario = ({ usuarioSeleccionado, onEditar, onEliminar }) => {
 
   return (
     <div className="flex flex-col w-full h-full bg-green-50">
-      <div className="flex-shrink-0 w-full">
+      <div className="shrink-0 w-full">
         <div className="p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="flex-1 text-center font-semibold text-gray-700 font-poppins uppercase text-sm tracking-wide">
@@ -138,14 +138,14 @@ const PerfilUsuario = ({ usuarioSeleccionado, onEditar, onEliminar }) => {
                     </svg>
                     <span>Sucursal: {usuarioSeleccionado.nombreSucursal || 'Sin sucursal'}</span>
                   </p>
-                
+
                   {/* Bloqueado hasta - solo se muestra si aún está bloqueado */}
                   {estaBloqueado(usuarioSeleccionado.bloqueadoHasta) && (
                     <div className="flex flex-col gap-1 w-full items-center mt-2">
                       <span className="text-gray-600 font-medium text-xs text-center">Bloqueado hasta:</span>
                       <div className="px-3 py-2 rounded-lg text-xs font-semibold text-center bg-red-50 text-red-700 border border-red-200 w-fit mx-auto">
                         <div className="flex items-center justify-center gap-2">
-                          <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                           </svg>
                           <span className="break-all">{formatearFecha(usuarioSeleccionado.bloqueadoHasta)}</span>

@@ -41,16 +41,16 @@ const VentasDiarias = () => {
 
   const ventasConAngulos = useMemo(() => {
     if (!ventas || ventas.length === 0 || totalUnidades === 0) return [];
-    
+
     return ventas.map((item, index) => {
       const porcentaje = (Number(item.total_vendido) / totalUnidades) * 100;
       const angle = (porcentaje / 100) * 360;
-      
+
       const startAngle = ventas.slice(0, index).reduce((acc, prevItem) => {
         const prevPorcentaje = (Number(prevItem.total_vendido) / totalUnidades) * 100;
         return acc + ((prevPorcentaje / 100) * 360);
       }, 0);
-      
+
       return {
         ...item,
         porcentaje,
@@ -74,7 +74,7 @@ const VentasDiarias = () => {
         "Z"
       ].join(" ");
     }
-    
+
     const start = polarToCartesian(cx, cy, radio, endAngle);
     const end = polarToCartesian(cx, cy, radio, startAngle);
     const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
@@ -107,7 +107,7 @@ const VentasDiarias = () => {
       <div className="bg-white rounded-lg shadow-md p-6 h-full flex flex-col items-center justify-center">
         <Package className="w-16 h-16 mb-4 text-red-500" />
         <p className="text-lg font-semibold text-red-500">{error}</p>
-        <button 
+        <button
           onClick={cargarVentas}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
         >
@@ -146,12 +146,12 @@ const VentasDiarias = () => {
 
       <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
         {/* Gráfico de pastel */}
-        <div className="flex-shrink-0 w-full md:w-auto flex justify-center">
+        <div className="shrink-0 w-full md:w-auto flex justify-center">
           <div className="relative">
             <svg className="w-64 h-64 md:w-[280px] md:h-[280px]" viewBox="0 0 280 280">
               {ventasConAngulos.map((item, index) => {
                 const path = generarPathPastel(cx, cy, radio, item.startAngle, item.endAngle);
-                
+
                 return (
                   <g key={index}>
                     <path
@@ -159,7 +159,7 @@ const VentasDiarias = () => {
                       fill={COLORS[index % COLORS.length]}
                       stroke="white"
                       strokeWidth="0"
-                      style={{ 
+                      style={{
                         cursor: 'pointer',
                         opacity: hoveredItem === index ? 0.8 : 1,
                         transition: 'opacity 0.2s'
@@ -196,16 +196,16 @@ const VentasDiarias = () => {
         <div className="flex-1 w-full overflow-y-auto pr-1 custom-scrollbar max-h-60 md:max-h-[280px]">
           <div className="grid grid-cols-1 gap-1.5">
             {ventas.map((item, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className={`flex items-center gap-2 p-1.5 rounded-md transition-all cursor-pointer ${
                   hoveredItem === index ? 'bg-gray-100' : 'hover:bg-gray-50'
                 }`}
                 onMouseEnter={() => setHoveredItem(index)}
                 onMouseLeave={() => setHoveredItem(null)}
               >
-                <div 
-                  className="w-3 h-3 rounded-sm flex-shrink-0" 
+                <div
+                  className="w-3 h-3 rounded-sm shrink-0"
                   style={{ backgroundColor: COLORS[index % COLORS.length] }}
                 />
                 <div className="flex-1 min-w-0">

@@ -11,7 +11,7 @@ export default function VeterinariaLanding() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  
+
   useEffect(() => {
     // Load Poppins font
     const link = document.createElement('link');
@@ -21,13 +21,13 @@ export default function VeterinariaLanding() {
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setShowNavbar(false);
       } else {
         setShowNavbar(true);
       }
-      
+
       setLastScrollY(currentScrollY);
     };
 
@@ -49,24 +49,24 @@ export default function VeterinariaLanding() {
 
  // 🔹 Lista de botones de contacto
 const contactButtons = [
-  { 
-    icon: <img src="/icons/instagram-icon.png" alt="Instagram" className="w-12 h-12 rounded-lg hover:scale-110 transition-transform duration-300" />, 
-    link: "https://www.instagram.com/lucas_petshop_hn?utm_source=qr&igsh=NHB6dXUyejE3YTNz" 
+  {
+    icon: <img src="/icons/instagram-icon.png" alt="Instagram" className="w-12 h-12 rounded-lg hover:scale-110 transition-transform duration-300" />,
+    link: "https://www.instagram.com/lucas_petshop_hn?utm_source=qr&igsh=NHB6dXUyejE3YTNz"
   },
-  { 
-    icon: <img src="/icons/facebook-icon.png" alt="Facebook" className="w-12 h-12 rounded-lg hover:scale-110 transition-transform duration-300" />, 
-    link: "https://www.facebook.com/share/1EshaJDckp/" 
+  {
+    icon: <img src="/icons/facebook-icon.png" alt="Facebook" className="w-12 h-12 rounded-lg hover:scale-110 transition-transform duration-300" />,
+    link: "https://www.facebook.com/share/1EshaJDckp/"
   },
-  { 
-    icon: <img src="/icons/whatsapp-icon.png" alt="WhatsApp" className="w-12 h-12 rounded-lg hover:scale-110 transition-transform duration-300" />, 
-    link: "https://wa.me/50489204753" 
+  {
+    icon: <img src="/icons/whatsapp-icon.png" alt="WhatsApp" className="w-12 h-12 rounded-lg hover:scale-110 transition-transform duration-300" />,
+    link: "https://wa.me/50489204753"
   },
-  { 
-    icon: <img src="/icons/email-icon.png" alt="Email" className="w-12 h-12 rounded-lg hover:scale-110 transition-transform duration-300" />, 
-    link: "mailto:lucaspetshop1@gmail.com" 
+  {
+    icon: <img src="/icons/email-icon.png" alt="Email" className="w-12 h-12 rounded-lg hover:scale-110 transition-transform duration-300" />,
+    link: "mailto:lucaspetshop1@gmail.com"
   },
-  { 
-    icon: <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center"><Phone className="w-6 h-6 text-blue-500" /></div>, 
+  {
+    icon: <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center"><Phone className="w-6 h-6 text-blue-500" /></div>,
     phone: "+504 2281-7170"
   },
 ];
@@ -75,7 +75,7 @@ const contactButtons = [
 
   return (
 
-    <div className="min-h-screen font-poppins" style={{ 
+    <div className="min-h-screen font-poppins" style={{
       background: 'linear-gradient(to bottom, #fff9e2 0%, #fff9e2 40%, #fffbf0 75%, #fdf2f8 100%)',
       fontFamily: "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif"
     }}>
@@ -94,38 +94,38 @@ const contactButtons = [
                 LUCAS PET SHOP
               </span>
             </div>
-            
+
             {/* Navegación desktop */}
             <div className="hidden lg:flex items-center gap-1 bg-white rounded-full px-2 py-0">
-                <button onClick={() => scrollToSection('inicio')} className="text-black px-4 lg:px-5 py-2 !rounded-full font-semibold hover:bg-gray-100 hover:shadow-sm transition-all duration-300 hover:scale-105 tracking-wide">
+                <button onClick={() => scrollToSection('inicio')} className="text-black px-4 lg:px-5 py-2 rounded-full! font-semibold hover:bg-gray-100 hover:shadow-sm transition-all duration-300 hover:scale-105 tracking-wide">
                   Inicio
                 </button>
-                <button onClick={() => scrollToSection('servicios')} className="text-black px-4 lg:px-5 py-2 !rounded-full font-semibold hover:bg-gray-100 hover:shadow-sm transition-all duration-300 hover:scale-105 tracking-wide">
+                <button onClick={() => scrollToSection('servicios')} className="text-black px-4 lg:px-5 py-2 rounded-full! font-semibold hover:bg-gray-100 hover:shadow-sm transition-all duration-300 hover:scale-105 tracking-wide">
                   Servicios
                 </button>
-                <button onClick={() => scrollToSection('galeria')} className="text-black px-4 lg:px-5 py-2 !rounded-full font-semibold hover:bg-gray-100 hover:shadow-sm transition-all duration-300 hover:scale-105 tracking-wide">
+                <button onClick={() => scrollToSection('galeria')} className="text-black px-4 lg:px-5 py-2 rounded-full! font-semibold hover:bg-gray-100 hover:shadow-sm transition-all duration-300 hover:scale-105 tracking-wide">
                   Galería
                 </button>
-                <button onClick={() => scrollToSection('productos')} className="text-black px-4 lg:px-5 py-2 !rounded-full font-semibold hover:bg-gray-100 hover:shadow-sm transition-all duration-300 hover:scale-105 tracking-wide">
+                <button onClick={() => scrollToSection('productos')} className="text-black px-4 lg:px-5 py-2 rounded-full! font-semibold hover:bg-gray-100 hover:shadow-sm transition-all duration-300 hover:scale-105 tracking-wide">
                   Productos
                 </button>
-                <button onClick={() => scrollToSection('nosotros')} className="text-black px-4 lg:px-5 py-2 !rounded-full font-semibold hover:bg-gray-100 hover:shadow-sm transition-all duration-300 hover:scale-105 tracking-wide">
+                <button onClick={() => scrollToSection('nosotros')} className="text-black px-4 lg:px-5 py-2 rounded-full! font-semibold hover:bg-gray-100 hover:shadow-sm transition-all duration-300 hover:scale-105 tracking-wide">
                   Nosotros
                 </button>
-                <button onClick={() => scrollToSection('contacto')} className="text-black px-4 lg:px-5 py-2 !rounded-full font-semibold hover:bg-gray-100 hover:shadow-sm transition-all duration-300 hover:scale-105 tracking-wide">
+                <button onClick={() => scrollToSection('contacto')} className="text-black px-4 lg:px-5 py-2 rounded-full! font-semibold hover:bg-gray-100 hover:shadow-sm transition-all duration-300 hover:scale-105 tracking-wide">
                   Contacto
                 </button>
               </div>
-              
+
               {/* Botones de acción */}
               <div className="flex items-center gap-2">
                 <button onClick={() => navigate('/login')}
-                  className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-3 sm:px-4 lg:px-6 py-2 !rounded-full font-semibold hover:from-yellow-300 hover:to-yellow-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 text-xs sm:text-sm lg:text-base"
+                  className="bg-linear-to-r from-yellow-400 to-yellow-600 text-black px-3 sm:px-4 lg:px-6 py-2 rounded-full! font-semibold hover:from-yellow-300 hover:to-yellow-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 text-xs sm:text-sm lg:text-base"
                 >
                   <span className="hidden sm:inline">Iniciar Sesión</span>
                   <span className="sm:hidden">Login</span>
                 </button>
-                
+
                 {/* Botón hamburguesa para móvil */}
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -158,26 +158,26 @@ const contactButtons = [
       </nav>
 
       <div className="pt-[200px]">
-        <section id="inicio" className="bg-yellow-50 relative min-h-[600px] sm:min-h-[750px] lg:min-h-[850px] overflow-visible -mt-[60px] sm:-mt-[80px] lg:-mt-[106px] pt-[60px] sm:pt-[80px] lg:pt-[106px]">
+        <section id="inicio" className="bg-yellow-50 relative min-h-[600px] sm:min-h-[750px] lg:min-h-[850px] overflow-visible -mt-[60px] sm:-mt-20 lg:-mt-[106px] pt-[60px] sm:pt-20 lg:pt-[106px]">
           <div className="absolute inset-0 z-0">
-            <img 
+            <img
               src="/images_LP/landing.jpeg"
-              alt="Mascotas felices en Lucas Pet Shop" 
+              alt="Mascotas felices en Lucas Pet Shop"
               className="w-full h-full object-cover animate-fade-in"
               loading="eager"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/20"></div>
+            <div className="absolute inset-0 bg-linear-to-r from-black/60 via-black/40 to-black/20"></div>
           </div>
 
           <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 lg:pt-16 pb-16 sm:pb-20">
             <div className="max-w-xl lg:max-w-2xl animate-fade-in">
               {/* Banner */}
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400/20 to-pink-500/20 backdrop-blur-sm border border-yellow-300/30 rounded-full px-4 py-2 mb-6 animate-slide-up">
+              <div className="inline-flex items-center gap-2 bg-linear-to-r from-yellow-400/20 to-pink-500/20 backdrop-blur-sm border border-yellow-300/30 rounded-full px-4 py-2 mb-6 animate-slide-up">
                 <Heart className="w-4 h-4 text-yellow-300" />
                 <span className="text-yellow-200 font-semibold text-sm tracking-wide">Con amor desde 2015</span>
               </div>
 
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-extrabold !text-yellow-100 mb-4 sm:mb-6 leading-tight animate-slide-up tracking-tight">
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-extrabold text-yellow-100! mb-4 sm:mb-6 leading-tight animate-slide-up tracking-tight">
                 MÁS QUE UNA TIENDA,<br className="hidden sm:block"/>
                 <span className="text-yellow-300">UN HOGAR PARA TU MASCOTA</span>
               </h1>
@@ -185,15 +185,15 @@ const contactButtons = [
                 Cuidamos con amor y dedicación a tu mejor amigo. Servicios veterinarios, grooming y productos de calidad.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 animate-slide-up" style={{animationDelay: '0.4s'}}>
-                <button 
-                  onClick={() => scrollToSection('conocenos')} 
-                  className="bg-transparent border-2 border-white text-white px-6 sm:px-8 py-3 sm:py-4 !rounded-full font-bold hover:bg-white hover:text-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base tracking-wide"
+                <button
+                  onClick={() => scrollToSection('conocenos')}
+                  className="bg-transparent border-2 border-white text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full! font-bold hover:bg-white hover:text-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base tracking-wide"
                 >
                   Conoce más
                 </button>
-                <button 
-                  onClick={() => scrollToSection('contacto')} 
-                  className="bg-transparent border-2 border-white text-white px-6 sm:px-8 py-3 sm:py-4 !rounded-full font-bold hover:bg-white hover:text-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base tracking-wide"
+                <button
+                  onClick={() => scrollToSection('contacto')}
+                  className="bg-transparent border-2 border-white text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full! font-bold hover:bg-white hover:text-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base tracking-wide"
                 >
                   Contactanos
                 </button>
@@ -212,7 +212,7 @@ const contactButtons = [
           </div>
 
           {/* Curva SVG elegante al final de la imagen */}
-          <svg className="absolute bottom-[-1px] left-0 w-full z-20" viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg className="absolute -bottom-px left-0 w-full z-20" viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M0,64L80,58.7C160,53,320,43,480,48C640,53,800,75,960,80C1120,85,1280,75,1360,69.3L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" fill="url(#gradientCurve)"/>
             <defs>
               <linearGradient id="gradientCurve" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -228,13 +228,13 @@ const contactButtons = [
         </section>
 
           {/*SERVICIOS */}
-        <section 
+        <section
           id="servicios"
-          className="px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 relative bg-transparent" 
+          className="px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 relative bg-transparent"
         >
           <div className="max-w-7xl mx-auto relative z-5 pt-2 sm:pt-4 lg:pt-5">
             <div className="relative text-center mb-8 sm:mb-10 lg:mb-12 animate-fade-in">
-              <h3 className="text-4xl !font-black text-poppins-800 mb-3 sm:mb-4 tracking-tight ">SERVICIOS QUE TE OFRECEMOS</h3>
+              <h3 className="text-4xl font-black! text-poppins-800 mb-3 sm:mb-4 tracking-tight ">SERVICIOS QUE TE OFRECEMOS</h3>
               <p className="text-stone-800 leading-relaxed text-sm sm:text-base lg:text-lg max-w-4xl mx-auto">
                 En Lucas Pet Shop brindamos atención veterinaria, grooming profesional, alimentación balanceada y
                 <br className="hidden sm:block"/> productos de calidad para el bienestar completo de tu mascota.
@@ -242,8 +242,8 @@ const contactButtons = [
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-6xl mx-auto">
-              <div 
-                className="bg-white rounded-2xl sm:rounded-[2rem] lg:rounded-[2.5rem] p-4 sm:p-6 lg:p-8 text-stone-800 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 relative overflow-hidden animate-fade-in group"
+              <div
+                className="bg-white rounded-2xl sm:rounded-4xl lg:rounded-[2.5rem] p-4 sm:p-6 lg:p-8 text-stone-800 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 relative overflow-hidden animate-fade-in group"
               >
                 <div className="absolute -top-10 -right-10 w-20 sm:w-32 h-20 sm:h-32 bg-purple-200 rounded-full opacity-20 group-hover:opacity-30 transition-opacity"></div>
                 <div className="relative text-center">
@@ -257,8 +257,8 @@ const contactButtons = [
                 </div>
               </div>
 
-              <div 
-                className="bg-white rounded-2xl sm:rounded-[2rem] lg:rounded-[2.5rem] p-4 sm:p-6 lg:p-8 text-stone-800 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 relative overflow-hidden animate-fade-in group"
+              <div
+                className="bg-white rounded-2xl sm:rounded-4xl lg:rounded-[2.5rem] p-4 sm:p-6 lg:p-8 text-stone-800 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 relative overflow-hidden animate-fade-in group"
                 style={{animationDelay: '0.1s'}}
               >
                 <div className="absolute -top-10 -right-10 w-20 sm:w-32 h-20 sm:h-32 bg-rose-200 rounded-full opacity-20 group-hover:opacity-30 transition-opacity"></div>
@@ -273,8 +273,8 @@ const contactButtons = [
                 </div>
               </div>
 
-              <div 
-                className="bg-white rounded-2xl sm:rounded-[2rem] lg:rounded-[2.5rem] p-4 sm:p-6 lg:p-8 text-stone-800 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 relative overflow-hidden animate-fade-in group"
+              <div
+                className="bg-white rounded-2xl sm:rounded-4xl lg:rounded-[2.5rem] p-4 sm:p-6 lg:p-8 text-stone-800 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 relative overflow-hidden animate-fade-in group"
                 style={{animationDelay: '0.2s'}}
               >
                 <div className="absolute -top-10 -right-10 w-20 sm:w-32 h-20 sm:h-32 bg-emerald-200 rounded-full opacity-20 group-hover:opacity-30 transition-opacity"></div>
@@ -289,8 +289,8 @@ const contactButtons = [
                 </div>
               </div>
 
-              <div 
-                className="bg-white rounded-2xl sm:rounded-[2rem] lg:rounded-[2.5rem] p-4 sm:p-6 lg:p-8 text-stone-800 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 relative overflow-hidden animate-fade-in group"
+              <div
+                className="bg-white rounded-2xl sm:rounded-4xl lg:rounded-[2.5rem] p-4 sm:p-6 lg:p-8 text-stone-800 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 relative overflow-hidden animate-fade-in group"
                 style={{animationDelay: '0.3s'}}
               >
                 <div className="absolute -top-10 -right-10 w-20 sm:w-32 h-20 sm:h-32 bg-amber-200 rounded-full opacity-20 group-hover:opacity-30 transition-opacity"></div>
@@ -307,20 +307,20 @@ const contactButtons = [
             </div>
           </div>
         </section>
-        
+
         {/**GALERÍA DE TRABAJOS */}
         <section id="galeria">
           <GaleriaTrabajos />
         </section>
-        
+
         {/**PRODUCTOS */}
         <section id="productos">
           <CarouselProductos />
         </section>
-        
+
         {/**NOSOTROS */}
          <section id="nosotros" className="relative min-h-[700px] overflow-hidden bg-transparent">
-          
+
 
 
         {/* Imagen de fondo */}
@@ -330,7 +330,7 @@ const contactButtons = [
             alt="Equipo veterinario"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-pink-400/50 to-indigo-900/80"></div>
+          <div className="absolute inset-0 bg-linear-to-r from-pink-400/50 to-indigo-900/80"></div>
         </div>
 
         {/* Contenido sobre la imagen */}
@@ -341,7 +341,7 @@ const contactButtons = [
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-white mb-4 sm:mb-6 animate-slide-up tracking-tight drop-shadow-2xl">
                 ¿Por qué <span className="text-yellow-300">elegirnos</span>?
               </h2>
-              <div className="w-24 h-1 bg-gradient-to-r from-yellow-400 to-pink-400 rounded-full animate-slide-up" style={{animationDelay: '0.1s'}}></div>
+              <div className="w-24 h-1 bg-linear-to-r from-yellow-400 to-pink-400 rounded-full animate-slide-up" style={{animationDelay: '0.1s'}}></div>
             </div>
 
             <p className="text-sm sm:text-base lg:text-lg xl:text-xl mb-8 sm:mb-10 lg:mb-12 text-white/90 leading-relaxed animate-slide-up font-medium tracking-wide backdrop-blur-sm bg-white/10 rounded-2xl p-4 border border-white/20" style={{animationDelay: '0.2s'}}>
@@ -350,25 +350,25 @@ const contactButtons = [
 
             <div className="space-y-4 sm:space-y-6">
               {[
-                { 
-                  titulo: 'Comprometidos con su bienestar', 
+                {
+                  titulo: 'Comprometidos con su bienestar',
                   desc: 'Cuidamos con amor y respeto a su mascota.',
                   icon: <Heart className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" />
                 },
-                { 
-                  titulo: 'Confianza en cada compra', 
+                {
+                  titulo: 'Confianza en cada compra',
                   desc: 'Productos que cuidan vidas.',
                   icon: <Award className="w-5 h-5 sm:w-6 sm:h-6" />
                 },
-                { 
-                  titulo: 'Atención Personalizada', 
+                {
+                  titulo: 'Atención Personalizada',
                   desc: 'Cada mascota es única y merece cuidados especiales.',
                   icon: <Stethoscope className="w-5 h-5 sm:w-6 sm:h-6" />
                 }
               ].map((item, index) => (
                 <div key={index} className="group">
                   <div className="flex items-start space-x-4 animate-slide-up bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-xl" style={{animationDelay: `${0.4 + index * 0.2}s`}}>
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:bg-yellow-400/30 group-hover:scale-110 transition-all duration-300 border border-white/30">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shrink-0 shadow-lg group-hover:bg-yellow-400/30 group-hover:scale-110 transition-all duration-300 border border-white/30">
                       <div className="text-white group-hover:text-yellow-900">
                         {item.icon}
                       </div>
@@ -405,7 +405,7 @@ const contactButtons = [
         {/* Título  */}
         <div className="text-center mb-10 sm:mb-12 lg:mb-16 animate-fade-in">
           <div className="inline-block relative">
-            <h3 className="text-4xl !font-black text-poppins-800 mb-3 sm:mb-4 tracking-tight">
+            <h3 className="text-4xl font-black! text-poppins-800 mb-3 sm:mb-4 tracking-tight">
               CONTÁCTANOS
             </h3>
           </div>
@@ -419,7 +419,7 @@ const contactButtons = [
           <div className="lg:col-span-1 space-y-6 animate-fade-in">
             <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-4 sm:p-6 shadow-xl border border-white/20">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                   <Heart className="w-5 h-5 text-white" fill="currentColor" />
                 </div>
                 <h3 className="text-lg sm:text-xl font-extrabold text-gray-800 tracking-wide text-center">Atención Personalizada</h3>
@@ -427,7 +427,7 @@ const contactButtons = [
               <p className="text-gray-600 mb-4 text-sm leading-relaxed font-medium text-center">
                 Puedes visitarnos en nuestro centro veterinario o contactarnos a través de nuestras redes sociales, WhatsApp, correo electrónico o una llamada telefónica. ¡Estamos aquí para ayudarte!
               </p>
-              
+
               {/* Iconos de contacto */}
               <div className="flex flex-wrap gap-4 justify-center">
                 {contactButtons.map((btn, i) => (
@@ -478,7 +478,7 @@ const contactButtons = [
               <div className="rounded-2xl overflow-hidden">
                 <MapaGoogle />
               </div>
-              
+
               {/* Información de ubicación compacta */}
               <div className="px-2 py-1 text-center">
                 <h4 className="font-extrabold text-gray-800 mb-0.5 tracking-wide text-xs">📍 Nuestra Ubicación</h4>
@@ -510,11 +510,11 @@ const contactButtons = [
 
       <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-        
+
         * {
           font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif !important;
         }
-        
+
         @keyframes float {
           0%, 100% { transform: translateY(0px); }
           50% { transform: translateY(-20px); }
@@ -522,77 +522,77 @@ const contactButtons = [
         .animate-float {
           animation: float 3s ease-in-out infinite;
         }
-        
+
         @keyframes fade-in {
-          from { 
-            opacity: 0; 
-            transform: translateY(30px); 
+          from {
+            opacity: 0;
+            transform: translateY(30px);
           }
-          to { 
-            opacity: 1; 
-            transform: translateY(0); 
+          to {
+            opacity: 1;
+            transform: translateY(0);
           }
         }
         .animate-fade-in {
           animation: fade-in 0.8s ease-out forwards;
           opacity: 0;
         }
-        
+
         @keyframes slide-up {
-          from { 
-            opacity: 0; 
-            transform: translateY(50px); 
+          from {
+            opacity: 0;
+            transform: translateY(50px);
           }
-          to { 
-            opacity: 1; 
-            transform: translateY(0); 
+          to {
+            opacity: 1;
+            transform: translateY(0);
           }
         }
         .animate-slide-up {
           animation: slide-up 0.8s ease-out forwards;
           opacity: 0;
         }
-        
+
         @keyframes scale-in {
-          from { 
-            opacity: 0; 
-            transform: scale(0.8); 
+          from {
+            opacity: 0;
+            transform: scale(0.8);
           }
-          to { 
-            opacity: 1; 
-            transform: scale(1); 
+          to {
+            opacity: 1;
+            transform: scale(1);
           }
         }
         .animate-scale-in {
           animation: scale-in 0.6s ease-out forwards;
           opacity: 0;
         }
-        
+
         /* Responsive utilities */
         @media (max-width: 640px) {
           .slide-label {
             width: 80% !important;
           }
-          
+
           .slide-content h3 {
             font-size: 1.2rem !important;
           }
-          
+
           .slide-content p {
             font-size: 0.8rem !important;
           }
         }
-        
+
         /* Smooth scrolling  */
         html {
           scroll-behavior: smooth;
         }
-        
+
         /* Loading state para imágenes */
         img[loading="lazy"] {
           transition: opacity 0.3s ease-in-out;
         }
-        
+
         /* Hover effects globales */
         .hover-lift {
           transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;

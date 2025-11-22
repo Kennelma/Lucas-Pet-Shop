@@ -1,4 +1,4 @@
-const { getQRCode, isWhatsAppConnected, logoutWhatsApp, requestPairingCode, getWhatsAppSocket } = require('../config/whatsapp');
+const { getQRCode, isWhatsAppConnected, logoutWhatsApp, requestPairingCode, getWhatsAppSocket } = require('../config/WhatsApp');
 const mysqlConnection = require('../config/conexion');
 
 exports.obtenerQR = (req, res) => {
@@ -24,7 +24,7 @@ exports.obtenerQR = (req, res) => {
         return res.json({
             success: true,
             conectado: false,
-            qr: qr 
+            qr: qr
         });
 
     } catch (error) {

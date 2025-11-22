@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 //IMPORTACION DE LOS ARCHIVOS COMPLEMENTARIOS DEL MODULO DE CLIENTES
 import TablaClientes from "./tabla-clientes.js";
@@ -6,11 +6,6 @@ import PerfilCliente from "./perfil-cliente.js";
 
 const Clientes = () => {
     const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
-
-    //DEBUG_PARA_VER_CAMBIOS_EN_CLIENTE_SELECCIONADO
-    useEffect(() => {
-        console.log('Cliente actualizado en Clientes.js:', clienteSeleccionado);
-    }, [clienteSeleccionado]);
 
     return (
         <div className="p-6" style={{ fontFamily: 'Poppins', backgroundColor: "#F7F8F2" }}>

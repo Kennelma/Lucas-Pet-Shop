@@ -46,11 +46,11 @@ const Login = () => {
     setLoading(true);
 
     try {
-      //NORMALIZAR_LOGIN_A_MINUSCULAS
+      //NORMALIZAR LOGIN A MINUSCULAS
       const cleanLogin = login.trim().toLowerCase();
       const data = await loginUsuario({ login: cleanLogin, password });
 
-      //SI_NO_HAY_RESPUESTA_DEL_SERVIDOR
+      //SI NO HAY RESPUESTA DEL SERVIDOR
       if (!data) {
         toast.error('No se pudo conectar con el servidor', {
           position: 'top-center',
@@ -59,7 +59,7 @@ const Login = () => {
         return;
       }
 
-      //SI_EL_LOGIN_FUE_EXITOSO
+      //SI EL LOGIN FUE EXITOSO
       if (data.success) {
         sessionStorage.setItem('token', data.token);
         sessionStorage.setItem('usuario', JSON.stringify(data.usuario));
@@ -68,7 +68,7 @@ const Login = () => {
         return;
       }
 
-      //MANEJO_DE_ERRORES_SEGUN_CODIGO
+      //MANEJO DE ERRORES SEGUN CODIGO
       switch (data.code) {
         case 'USER_NOT_FOUND':
           toast.error('El usuario o correo ingresado no existe en el sistema', {
@@ -119,33 +119,33 @@ const Login = () => {
         autoClose: 5000,
       });
     } finally {
-      //DESACTIVAR_LOADING_AL_FINALIZAR
+      //DESACTIVAR LOADING AL FINALIZAR
       setLoading(false);
     }
   };
 
-  //ALTERNAR_VISIBILIDAD_DE_LA_CONTRASEÑA
+  //ALTERNAR VISIBILIDAD DE LA CONTRASEÑA
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  //CONVERTIR_LOGIN_A_MINUSCULAS_AL_ESCRIBIR
+  //CONVERTIR LOGIN A MINUSCULAS AL ESCRIBIR
   const handleLoginChange = (e) => {
     setLogin(e.target.value.toLowerCase());
   };
 
-  //RENDERIZADO_DEL_FORMULARIO
+  //RENDERIZADO DEL FORMULARIO
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-gray-100 p-4">
       <div className="flex w-full max-w-3xl shadow-2xl rounded-2xl overflow-hidden h-[450px] backdrop-blur-sm bg-white/95">
 
         {/* SECCION_IZQUIERDA_FORMULARIO */}
         <div className="w-1/2 p-10 bg-white/90 backdrop-blur-sm flex flex-col justify-center relative">
 
-          {/* TITULO_Y_SUBTITULO */}
+          {/* TITULO Y SUBTITULO */}
           <div className="text-center mb-6">
             <h3
-              className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+              className="text-3xl font-bold mb-2 bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
               style={{ fontFamily: 'Outfit, sans-serif' }}
             >
               PORTAL DE ACCESO
@@ -153,10 +153,10 @@ const Login = () => {
             <p className="text-gray-600 text-sm font-medium">Sistema de facturación</p>
           </div>
 
-          {/* FORMULARIO_DE_LOGIN */}
+          {/* FORMULARIO DE LOGIN */}
           <form onSubmit={handleLogin} className="space-y-6">
 
-            {/* CAMPO_USUARIO_O_CORREO */}
+            {/* CAMPO USUARIO O CORREO */}
             <div className="space-y-2">
               <input
                 id="login"
@@ -170,7 +170,7 @@ const Login = () => {
               />
             </div>
 
-            {/* CAMPO_CONTRASEÑA_CON_TOGGLE */}
+            {/* CAMPO CONTRASEÑA CON TOGGLE */}
 
             <div className="space-y-2">
               <div className="relative">
