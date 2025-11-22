@@ -16,7 +16,7 @@ exports.verRolesUsuarios = async (req, res) => {
     switch (opciones) {
       case 'ROLES':
         [resultado] = await conn.query(`
-          SELECT id_rol_pk, tipo_rol FROM cat_roles
+          SELECT id_rol_pk, tipo_rol FROM cat_roles where tipo_rol NOT IN ('ADMINISTRADOR')
         `);
         break;
 

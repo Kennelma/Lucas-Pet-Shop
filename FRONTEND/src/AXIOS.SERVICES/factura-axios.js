@@ -11,6 +11,19 @@ export const crearFacturaSinPago = async (datosFactura) => {
     );
     return res.data;
   } catch (err) {
+
+    const codigo = err?.response?.data?.codigo;
+
+
+    if (codigo === 'CAI_VENCIDO' || codigo === 'FACTURAS_AGOTADAS' || codigo === 'SIN_CAI') {
+      return {
+        success: false,
+        mensaje: err?.response?.data?.mensaje || err.message,
+        error: err?.response?.data,
+        silencioso: true
+      };
+    }
+
     const msg =
       err?.response?.data?.mensaje ||
       err?.response?.data?.error ||
@@ -34,17 +47,36 @@ export const crearFacturaConPago = async (datosFactura) => {
     );
     return res.data;
   } catch (err) {
-    const msg =
-      err?.response?.data?.mensaje ||
-      err?.response?.data?.error ||
-      err.message ||
-      "Error de red";
-    console.error("Error al crear factura con pago:", msg);
-    return {
-      success: false,
-      mensaje: msg,
-      error: err?.response?.data,
-    };
+    const codigo = err?.response?.data?.codigo;
+
+    if (codigo === 'CAI_VENCIDO' || codigo === 'FACTURAS_AGOTADAS' || codigo === 'SIN_CAI') {
+      return {
+        success: false,
+        mensaje: err?.response?.data?.mensaje || err.message,
+        error: err?.response?.data,
+        silencioso: true  // Flag para que el componente no muestre toast
+      };
+    }
+
+    console.error("ERROR AL CREAR FACTURA (FRONT):", {
+    mensaje: err?.response?.data?.mensaje || err.message,
+    status: err?.response?.status,
+    headers: err?.response?.headers,
+    dataCompleta: err?.response?.data,
+    requestData: datosFactura
+  });
+
+  const msg =
+    err?.response?.data?.mensaje ||
+    err?.response?.data?.error ||
+    err.message ||
+    "Error de red";
+
+  return {
+    success: false,
+    mensaje: msg,
+    error: err?.response?.data,
+  };
   }
 };
 
@@ -70,17 +102,6 @@ export const validarDisponibilidad = async (itemsFactura) => {
     };
   }
 };
-
-
-
-
-
-
-
-
-
-
-
 
 
 export const obtenerDetallesFactura = async (tipo_item) => {
@@ -201,20 +222,19 @@ export const obtenerDetalleFacturaSeleccionada = async (numFactura) => {
   }
 };
 
-//ENDPOINT DE BORRA FACTURAS
-export const borrarFactura = async (numero_factura) => {
+
+
+//SERVICIO PARA VALIDAR CAI ANTES DE FACTURAR
+export const validarCAIParaFacturar = async () => {
   try {
-    const { data } = await axiosInstance.delete(`${API_URL}/borrarFactura`, {
-      params: { numero_factura }
-    });
-
+    const { data } = await axiosInstance.get(`${API_URL}/caiDisponible`);
     return data;
-
   } catch (error) {
-    console.error("Error al borrar factura:", error);
+    console.error("Error al validar CAI:", error);
     return {
-      success: false,
-      mensaje: error?.response?.data?.mensaje || "Error al borrar la factura",
+      puedeFacturar: false,
+      mensaje: error?.response?.data?.mensaje || "Error al validar CAI",
+      tipoAlerta: "error"
     };
   }
 };

@@ -88,10 +88,6 @@ export const AppSidebarNav = ({ items }) => {
         toggler={navLink(name, icon)}
         className={hasActiveChild ? 'active' : ''}
         visible={openGroups[index] !== undefined ? openGroups[index] : true}
-        onVisibleChange={(visible) => {
-          //FORZAR QUE SIEMPRE ESTÉ ABIERTO
-          setOpenGroups(prev => ({ ...prev, [index]: true }))
-        }}
         {...rest}
       >
         {items?.map((item, index) =>

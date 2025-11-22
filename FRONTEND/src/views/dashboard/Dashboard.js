@@ -6,6 +6,9 @@ import ModalAgregarGasto from './modal_nuevo_gasto';
 import ModalTablaGastos from './modal_tabla_gastos';
 import { ver } from '../../AXIOS.SERVICES/empresa-axios';
 
+import { obtenerAlertasCAI } from "../../AXIOS.SERVICES/sar-axios";
+import { toast } from "react-toastify";
+
 const Dashboard = () => {
   const navigate = useNavigate();
 
@@ -21,19 +24,133 @@ const Dashboard = () => {
   useEffect(() => {
     if (!token) navigate('/login');
 
-    // Mostrar mensaje de bienvenida si viene del login
-    const showWelcome = sessionStorage.getItem('showWelcome');
-    if (showWelcome === 'true') {
-      Swal.fire({
-        icon: 'success',
-        title: '¡Bienvenido!',
-        text: 'Inicio de sesión exitoso',
-        timer: 2500,
-        showConfirmButton: false,
-      });
-      sessionStorage.removeItem('showWelcome');
-    }
+    const inicializarDashboard = async () => {
+      // Mostrar mensaje de bienvenida si viene del login
+      const showWelcome = sessionStorage.getItem('showWelcome');
+      if (showWelcome === 'true') {
+        await Swal.fire({
+          icon: 'success',
+          title: '¡Bienvenido!',
+          text: 'Inicio de sesión exitoso',
+          timer: 2500,
+          showConfirmButton: false,
+        });
+        sessionStorage.removeItem('showWelcome');
+      }
+
+      //SE CARGAN LAS ALERTAS CAI DESPUÉS DE LA BIENVENIDA
+      await cargarAlertasCAI();
+    };
+
+    inicializarDashboard();
   }, [token, navigate]);
+
+  //FUNCION PARA FORMATEAR FECHA
+      const formatearFecha = (fecha) => {
+          if (!fecha) return '';
+          const date = new Date(fecha);
+          const day = String(date.getDate()).padStart(2, '0');
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}-${month}-${year}`;
+      };
+
+
+  //FUNCION PARA CARGAR ALERTAS CAI
+  const cargarAlertasCAI = async () => {
+    try {
+      const data = await obtenerAlertasCAI();
+
+      if (!data.hayAlertas) return;
+
+      data.alertas.forEach(alerta => {
+        //ALERTAS CRÍTICAS (ROJO)
+        if (alerta.severidad === "critico") {
+          const config = {
+            icon: "error",
+            title: "ALERTA CRÍTICA DE CAI",
+            text: alerta.mensaje,
+            confirmButtonText: "Entendido",
+            confirmButtonColor: "#c52222ff"
+          };
+
+          //AGREGAR FECHA LÍMITE SI VIENE
+          if (alerta.fecha) {
+            config.footer = `<strong style="color: #991b1b;">Fecha límite: ${formatearFecha(alerta.fecha)}</strong>`;
+          }
+
+          Swal.fire(config);
+        }
+
+        //ALERTAS DE ADVERTENCIA -> Colores según rango
+        if (alerta.severidad === "advertencia") {
+          // Verde: 11-15 facturas restantes
+          if (alerta.tipo === "facturas" && alerta.valor > 10 && alerta.valor <= 15) {
+            toast.success(alerta.mensaje, {
+              position: "top-center",
+              autoClose: 6000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              style: {
+                backgroundColor: '#d1f4e0',
+                color: '#21863cff',
+                border: '2px solid #4ade80',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              }
+            });
+          }
+          // Amarillo: 1-10 facturas restantes
+          else if (alerta.tipo === "facturas" && alerta.valor > 0 && alerta.valor <= 10) {
+            toast.warning(alerta.mensaje, {
+              position: "top-center",
+              autoClose: 6000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              style: {
+                backgroundColor: '#fec7c7ff',
+                color: '#920e0eff',
+                border: '2px solid #fb2424ff',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              }
+            });
+          }
+          //Naranja: Fecha próxima a vencer (10 días o menos)
+          else if (alerta.tipo === "fecha") {
+            toast.warning(alerta.mensaje, {
+              position: "top-center",
+              autoClose: 6000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              style: {
+                backgroundColor: '#feaaaaff',
+                color: '#9a1212ff',
+                border: '2px solid #fb3c3cff',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              }
+            });
+          }
+        }
+      });
+
+    } catch (error) {
+      console.error("Error cargando alertas CAI:", error);
+    }
+  };
 
   const today = new Date();
 
@@ -75,7 +192,7 @@ const Dashboard = () => {
     );
   });
 
-  // Mostrar solo los últimos 5 gastos
+  //Mostrar solo los últimos 5 gastos
   const lastTwoExpenses = filteredExpenses.slice(-5);
 
   const totalExpenses = filteredExpenses.reduce((total, expense) => {
@@ -224,9 +341,9 @@ const Dashboard = () => {
                     <lucideReact.ChevronLeft className="w-5 h-5 text-slate-600" />
                   </button>
 
-                  <div className="flex items-center gap-2 text-slate-700 font-medium text-sm bg-white px-3 py-1 rounded-lg border-2 border-yellow-400">
-                    <lucideReact.Calendar className="w-4 h-4 text-yellow-600" />
-                    <span className="text-slate-900">{filterDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</span>
+                  <div className="flex items-center justify-center gap-2 text-slate-700 font-medium bg-white px-2 py-1 rounded-lg border-2 border-yellow-400 flex-1 min-w-0">
+                    <lucideReact.Calendar className="w-4 h-4 text-yellow-600 flex-shrink-0" />
+                    <span className="text-slate-900 text-[10px] sm:text-xs whitespace-nowrap">{filterDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</span>
                   </div>
 
                   <button

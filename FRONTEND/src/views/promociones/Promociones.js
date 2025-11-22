@@ -17,11 +17,6 @@ const Promociones = () => {
   const [promocionSeleccionada, setPromocionSeleccionada] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Aplicar Poppins al contenedor principal
-  useEffect(() => {
-    document.body.style.fontFamily = 'Poppins';
-  }, []);
-
   useEffect(() => {
     cargarDatos();
   }, []);
@@ -173,7 +168,7 @@ const Promociones = () => {
         Swal.fire({
           icon: 'success',
           title: nuevoEstado ? '¡Promoción Activada!' : '¡Promoción Desactivada!',
-          text: 'Estado actualizado correctamente',
+          text: 'El estado se ha actualizado correctamente',
           timer: 1500,
           showConfirmButton: false
         });

@@ -39,8 +39,10 @@ const DetallesFactura = ({
   onCancel,
   RTN,
   id_cliente,
+  nombreCliente,
   setActiveTab,
   setFacturaParaImprimir,
+  caiActivo = true,
 }) => {
 
   //====================ESTADOS====================
@@ -464,7 +466,9 @@ const DetallesFactura = ({
       }
 
       const numeroFactura = response.data.numero_factura;
-      const saldoPendiente = response.data?.saldo ?? 0;
+      let saldoPendiente = response.data?.saldo ?? 0;
+      // Asegura que saldoPendiente sea un número válido
+      saldoPendiente = Number(saldoPendiente) || 0;
 
       //CERRAR MODAL
       setShowPaymentModal(false);
@@ -1101,24 +1105,24 @@ const DetallesFactura = ({
             <div className="flex flex-1 justify-center" style={{ gap: "12px" }}>
               <button
                 onClick={handleGuardarFacturaSinPago}
-                disabled={loading}
-                className={`${
-                  loading
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-blue-500 hover:bg-blue-600"
-                } text-white px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl`}
+                disabled={loading || !caiActivo}
+                className={`
+                  ${(loading || !caiActivo)
+                    ? "bg-gray-400 cursor-not-allowed text-white! opacity-80!"
+                    : "bg-blue-500 hover:bg-blue-600 text-white"}
+                  px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl`}
                 style={{ borderRadius: "12px" }}
               >
                 {loading ? "Guardando..." : "GUARDAR SIN PAGAR"}
               </button>
               <button
                 onClick={handleOpenPaymentModal}
-                disabled={loading}
-                className={`${
-                  loading
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-green-500 hover:bg-green-600"
-                } text-white px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl`}
+                disabled={loading || !caiActivo}
+                className={`
+                  ${(loading || !caiActivo)
+                    ? "bg-gray-400 cursor-not-allowed text-white! opacity-80!"
+                    : "bg-green-500 hover:bg-green-600 text-white"}
+                  px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl`}
                 style={{ borderRadius: "12px" }}
               >
                 {loading ? "Guardando..." : "CONTINUAR CON PAGO"}
@@ -1143,8 +1147,8 @@ const DetallesFactura = ({
                     onCancel();
                   }
                 }}
-                disabled={loading}
-                className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl"
+                disabled={loading || !caiActivo}
+                className={`bg-red-500 ${loading || !caiActivo ? 'cursor-not-allowed bg-gray-400 hover:bg-gray-400' : 'hover:bg-red-600'} text-white px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl`}
                 style={{ borderRadius: "12px" }}
               >
                 CANCELAR

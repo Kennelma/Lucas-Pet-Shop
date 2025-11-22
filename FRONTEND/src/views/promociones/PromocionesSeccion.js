@@ -63,7 +63,7 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
       </button>
 
       {isOpen && (
-        <div 
+        <div
           className="bg-white border border-gray-200 rounded-lg shadow-lg min-w-[140px]"
           style={{
             position: 'fixed',
@@ -208,7 +208,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
         </div>
 
         <button
-          className="bg-blue-400 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition-colors flex items-center gap-2"
+          className="bg-blue-800 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition-colors flex items-center gap-2"
           style={{ borderRadius: '12px' }}
           onClick={() => abrirModalPromocion(null)}
         >
@@ -232,7 +232,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
           </button>
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div>
             <DataTable
                 value={promociones}
                 loading={false}
@@ -257,38 +257,47 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
                 style={{ width: '100%' }}
               >
 
-          <Column 
-            field="id_promocion_pk" 
-            header="ID" 
-            body={(rowData) => promociones.length - promociones.indexOf(rowData)}  
-            sortable 
+          <Column
+            field="id_promocion_pk"
+            header="ID"
+            body={(rowData) => promociones.length - promociones.indexOf(rowData)}
+            sortable
             className="text-sm"
             style={{ width: '5%', padding: '8px 8px' }}
             headerStyle={{ padding: '8px 8px' }}
           />
-          <Column 
-            field="nombre_promocion" 
-            header="NOMBRE" 
-            sortable 
+          <Column
+            field="nombre_promocion"
+            header="NOMBRE"
+            sortable
             className="text-sm"
-            style={{ width: '20%', padding: '8px 12px' }}
-            headerStyle={{ padding: '8px 12px' }}
-            bodyStyle={{ 
-              whiteSpace: 'normal',
-              wordWrap: 'break-word',
-              overflow: 'hidden',
-              textOverflow: 'clip',
-              lineHeight: '1.4',
-              padding: '8px 12px'
-            }}
+            style={{ width: '220px', maxWidth: '220px', minWidth: '160px', padding: '8px 12px' }}
+            headerStyle={{ padding: '8px 12px', width: '220px', maxWidth: '220px', minWidth: '160px' }}
+            body={(rowData) => (
+              <div
+                style={{
+                  width: '100%',
+                  minWidth: '160px',
+                  maxWidth: '220px',
+                  whiteSpace: 'normal',
+                  wordBreak: 'break-word',
+                  lineHeight: '1.4',
+                  padding: 0,
+                  display: 'block',
+                  overflow: 'visible',
+                }}
+              >
+                {rowData.nombre_promocion}
+              </div>
+            )}
           />
-          <Column 
-            field="descripcion_promocion" 
-            header="DESCRIPCIÓN" 
+          <Column
+            field="descripcion_promocion"
+            header="DESCRIPCIÓN"
             className="text-sm"
             style={{ width: '23%', padding: '8px 10px' }}
             headerStyle={{ padding: '8px 10px' }}
-            bodyStyle={{ 
+            bodyStyle={{
               whiteSpace: 'normal',
               wordWrap: 'break-word',
               overflow: 'hidden',
@@ -322,7 +331,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
             className="text-sm"
             style={{ width: '16%', padding: '8px 10px' }}
             headerStyle={{ padding: '8px 10px' }}
-            bodyStyle={{ 
+            bodyStyle={{
               whiteSpace: 'normal',
               wordWrap: 'break-word',
               overflow: 'hidden',
@@ -341,9 +350,9 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
             style={{ width: '15%', padding: '8px 8px' }}
             headerStyle={{ padding: '8px 8px' }}
           />
-          <Column 
-            header="ACCIONES" 
-            body={actionBotones} 
+          <Column
+            header="ACCIONES"
+            body={actionBotones}
             className="py-2 pr-9 pl-1 border-b text-sm"
             style={{ width: '10%', padding: '8px 8px' }}
             headerStyle={{ padding: '8px 8px' }}

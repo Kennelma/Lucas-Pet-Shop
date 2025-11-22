@@ -112,6 +112,15 @@ const Medicamentos = () => {
     if (success) {
       setModalVisible(false);
       setMedicamentoEditando(null);
+
+      // Mostrar alerta de éxito
+      Swal.fire({
+        icon: 'success',
+        title: medicamentoEditando ? '¡Medicamento actualizado!' : '¡Medicamento agregado!',
+        text: medicamentoEditando ? 'El medicamento se ha actualizado correctamente' : 'El medicamento se ha agregado correctamente',
+        timer: 2000,
+        showConfirmButton: false
+      });
     }
   };
 
@@ -120,6 +129,15 @@ const Medicamentos = () => {
     if (success) {
       setModalLoteVisible(false);
       setMedicamentoSeleccionado(null);
+
+      // Mostrar alerta de éxito
+      Swal.fire({
+        icon: 'success',
+        title: '¡Lote agregado!',
+        text: 'El lote se ha agregado correctamente',
+        timer: 2000,
+        showConfirmButton: false
+      });
     }
   };
 
@@ -137,16 +155,22 @@ const Medicamentos = () => {
     setModalEditarLoteVisible(true);
   };
 
-  // ✅ NUEVA FUNCIÓN: Guardar edición de lote
+  //FUNCION GUARDAR EDICION LOTE
   const handleGuardarEdicionLote = async (loteEditado) => {
     const exito = await editarLote(loteEditado);
     if (exito) {
       Swal.fire({
         icon: 'success',
-        title: '¡Actualizado!',
-        text: 'Lote actualizado correctamente',
+        title: '¡Lote actualizado!',
+        text: 'El lote se ha actualizado correctamente',
         timer: 1500,
-        showConfirmButton: false
+        showConfirmButton: false,
+        didOpen: () => {
+          const swalContainer = document.querySelector('.swal2-container');
+          if (swalContainer) {
+            swalContainer.style.setProperty('z-index', '999999', 'important');
+          }
+        }
       });
       setModalEditarLoteVisible(false);
       setLoteEditar(null);
@@ -155,7 +179,13 @@ const Medicamentos = () => {
         icon: 'error',
         title: 'Error',
         text: 'No se pudo actualizar el lote',
-        confirmButtonText: 'Entendido'
+        confirmButtonText: 'Entendido',
+        didOpen: () => {
+          const swalContainer = document.querySelector('.swal2-container');
+          if (swalContainer) {
+            swalContainer.style.setProperty('z-index', '999999', 'important');
+          }
+        }
       });
     }
   };
@@ -188,7 +218,13 @@ const Medicamentos = () => {
     if (result.isConfirmed) {
       const success = await eliminarMedicamento(medicamento.id_producto_pk);
       if (success) {
-        Swal.fire({ icon: "success", title: "¡Eliminado!", text: "El medicamento fue eliminado correctamente", timer: 1800, showConfirmButton: false, });
+        Swal.fire({
+          icon: 'success',
+          title: '¡Medicamento eliminado!',
+          text: 'El medicamento se ha eliminado correctamente',
+          timer: 2000,
+          showConfirmButton: false
+        });
       }
     }
   };
@@ -197,12 +233,14 @@ const Medicamentos = () => {
   if (!validarPermisoAdministrador('cambiar el estado de medicamentos')) return;
 
   try {
-    const nuevoEstado = !medicamento.activo;
+    // Convertir explícitamente a número para comparación correcta
+    const estadoActual = Number(medicamento.activo);
+    const nuevoEstadoNumerico = estadoActual === 1 ? 0 : 1;
 
     const datosActualizar = {
       id_producto: medicamento.id_producto_pk,
       tipo_producto: 'MEDICAMENTOS',
-      activo: nuevoEstado ? 1 : 0
+      activo: nuevoEstadoNumerico
     };
 
     const response = await actualizarProducto(datosActualizar);
@@ -211,15 +249,15 @@ const Medicamentos = () => {
       setMedicamentos(prev =>
         prev.map(med =>
           med.id_producto_pk === medicamento.id_producto_pk
-            ? { ...med, activo: nuevoEstado }
+            ? { ...med, activo: nuevoEstadoNumerico }
             : med
         )
       );
 
       Swal.fire({
         icon: "success",
-        title: nuevoEstado ? "¡Medicamento Activado!" : "¡Medicamento Desactivado!",
-        text: "Estado actualizado correctamente",
+        title: nuevoEstadoNumerico === 1 ? "¡Medicamento Activado!" : "¡Medicamento Desactivado!",
+        text: "El estado se ha actualizado correctamente",
         timer: 1500,
         showConfirmButton: false,
       });
@@ -227,10 +265,11 @@ const Medicamentos = () => {
       throw new Error(response.error || "Error al cambiar estado");
     }
   } catch (error) {
+    console.error('Error al cambiar estado:', error);
     Swal.fire({
       icon: "error",
       title: "Error",
-      text: "No se pudo cambiar el estado del medicamento",
+      text: error.message || "No se pudo cambiar el estado del medicamento",
       confirmButtonText: "Entendido"
     });
   }
@@ -271,7 +310,19 @@ const Medicamentos = () => {
       const success = await eliminarLote(lote.id_lote_medicamentos_pk);
       if (success) {
         await cargarDatos();
-        Swal.fire({ icon: "success", title: "¡Eliminado!", text: "El lote fue eliminado correctamente", timer: 1800, showConfirmButton: false,});
+        Swal.fire({
+          icon: 'success',
+          title: '¡Lote eliminado!',
+          text: 'El lote se ha eliminado correctamente',
+          timer: 2000,
+          showConfirmButton: false,
+          didOpen: () => {
+            const swalContainer = document.querySelector('.swal2-container');
+            if (swalContainer) {
+              swalContainer.style.setProperty('z-index', '999999', 'important');
+            }
+          }
+        });
       }
     }
   };

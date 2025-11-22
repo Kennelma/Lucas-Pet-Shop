@@ -75,7 +75,6 @@ const EncabezadoFactura = ({
 
     if (soloDigitos.length === 0 && identidad === '') {
       setNombreCliente('CONSUMIDOR FINAL');
-      setRTN('');
       setIdCliente(null); // ⭐ NUEVO
       setClienteEncontrado(true);
       setYaConsultado(false);
@@ -98,14 +97,12 @@ const EncabezadoFactura = ({
           if (cliente) {
             setIdentidad(cliente.identidad_cliente);
             setNombreCliente(`${cliente.nombre_cliente} ${cliente.apellido_cliente}`.trim());
-            setRTN('');
             setIdCliente(cliente.id_cliente_pk);
             setClienteEncontrado(true);
             setYaConsultado(true);
           } else {
             setIdentidad('');
             setNombreCliente('');
-            setRTN('');
             setIdCliente(null);
             setClienteEncontrado(false);
             setYaConsultado(true);
@@ -135,7 +132,6 @@ const EncabezadoFactura = ({
 
       setIdentidad(identidadCliente);
       setNombreCliente(nombreCompleto);
-      setRTN('');
       setIdCliente(nuevoCliente.id_cliente_pk); // ⭐ NUEVO
       setClienteEncontrado(true);
       setYaConsultado(true);

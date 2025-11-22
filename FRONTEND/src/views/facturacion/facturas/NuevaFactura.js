@@ -7,7 +7,8 @@ import DetallesFactura from "./DetallesFactura";
 import {
   obtenerDetallesFactura,
   obtenerUsuarioFactura,
-  obtenerEstilistasFactura
+  obtenerEstilistasFactura,
+  validarCAIParaFacturar
 } from "../../../AXIOS.SERVICES/factura-axios";
 
 const NuevaFactura = (props) => {
@@ -43,12 +44,29 @@ const NuevaFactura = (props) => {
 
   const [estilistas, setEstilistas] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [caiActivo, setCaiActivo] = useState(true); // Nuevo estado para CAI
 
   const navigate = useNavigate();
   const { setActiveTab, setFacturaParaImprimir } = props;
 
   //====================CARGA_INICIAL====================
   useEffect(() => {
+    // Validar CAI al entrar al módulo
+    const checkCAI = async () => {
+      const res = await validarCAIParaFacturar();
+      if (!res.puedeFacturar) {
+        setCaiActivo(false);
+        Swal.fire({
+          icon: res.tipoAlerta === 'critico' ? 'warning' : 'error',
+          title: 'ADVERTENCIA CAI',
+          text: res.mensaje,
+          confirmButtonColor: '#d33'
+        });
+      } else {
+        setCaiActivo(true);
+      }
+    };
+    checkCAI();
     cargarDatosUsuario();
     cargarEstilistas();
     cargarCatalogo("PRODUCTOS");
@@ -250,8 +268,10 @@ const NuevaFactura = (props) => {
           identidad={identidad}
           RTN={RTN}
           id_cliente={id_cliente}
+          nombreCliente={nombreCliente}
           setActiveTab={props.setActiveTab}
           setFacturaParaImprimir={setFacturaParaImprimir}
+          caiActivo={caiActivo}
         />
 
         {isLoading && (

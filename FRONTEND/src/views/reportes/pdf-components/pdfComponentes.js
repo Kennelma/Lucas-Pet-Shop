@@ -17,7 +17,7 @@ export const generarEncabezado = (doc, datosEncabezado) => {
   setFontSize(doc, 'title');
   setFont(doc, 'bold');
   setColor(doc, 'text.primary');
-  
+
   const titulo = obtenerTituloReporte(esDiario, mesFiltrado, anio);
   doc.text(titulo, 105, 15, { align: 'center' });
 
@@ -53,7 +53,7 @@ export const generarTarjetasResumen = (doc, datosTarjetas) => {
 
   setFontSize(doc, 'amount');
   setColor(doc, 'danger');
-  doc.text(moneda(totalGastos), 105, cardY + 16, { align: 'center' });
+  doc.text(moneda(totalGastos), 105, cardY + 16, { align: 'right' });
 
   // Balance
   const bgBalance = esPositivo ? theme.colors.bg.cardBalance : theme.colors.bg.cardBalanceNegative;
@@ -93,7 +93,7 @@ export const generarTablaResumen = (doc, datosTablaResumen) => {
   doc.text('Balance', 180, tableY + 5.5, { align: 'right' });
 
   let y = tableY + 14;
-  
+
   datosTabla.forEach((fila, index) => {
     if (index % 2 === 0) {
       setFillColor(doc, 'bg.tableRow');
@@ -103,7 +103,7 @@ export const generarTablaResumen = (doc, datosTablaResumen) => {
     setFontSize(doc, 'small');
     setFont(doc, 'regular');
     setColor(doc, 'text.primary');
-    
+
     const textoColumna = fila.fecha || fila.mes || fila.periodo || '';
     doc.text(textoColumna, 20, y);
 
@@ -120,7 +120,7 @@ export const generarTablaResumen = (doc, datosTablaResumen) => {
     doc.text(moneda(valorTotal), 180, y, { align: 'right' });
 
     y += theme.spacing.rowHeight;
-    
+
     if (index < datosTabla.length - 1 && necesitaNuevaPagina(doc, y, theme.spacing.rowHeight)) {
       doc.addPage();
       setFillColor(doc, 'bg.tableHeader');
@@ -164,7 +164,7 @@ export const generarDetalleIngresos = (doc, ingresos, yInicial) => {
   y += theme.spacing.lineHeight;
 
   y = generarEncabezadoIngresos(doc, y);
-  
+
   const conceptoStartX = 70;
 
   ingresos.forEach((ingreso, indice) => {
@@ -186,12 +186,12 @@ export const generarDetalleIngresos = (doc, ingresos, yInicial) => {
     setFont(doc, 'regular');
     setColor(doc, 'text.primary');
     setFontSize(doc, 'tiny');
-    
+
     const centroY = y + (alturaFila / 2) - 0.5;
     doc.text(ingreso.fechaFormateada, 18, centroY);
     doc.text(ingreso.documento || '', 42, centroY);
     doc.text(todasLineas, conceptoStartX, y + 1.5);
-    
+
     setColor(doc, 'successLight');
     setFont(doc, 'bold');
     doc.text(moneda(ingreso.monto), 185, centroY, { align: 'right' });
@@ -246,13 +246,13 @@ export const generarDetalleGastos = (doc, gastos, yInicial) => {
     setFont(doc, 'regular');
     setColor(doc, 'text.medium');
     setFontSize(doc, 'tiny');
-    
+
     const centroY = y + (alturaFila / 2) - 1.5;
 
     doc.text(gasto.fechaFormateada, 20, centroY);
     doc.text(gasto.documento || '', 50, centroY);
     doc.text(doc.splitTextToSize(detalle, theme.dimensions.gastosColumnWidth), 90, y);
-    
+
     setColor(doc, 'danger');
     setFont(doc, 'bold');
     doc.text(moneda(gasto.monto), 190, centroY, { align: 'right' });

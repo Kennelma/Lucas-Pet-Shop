@@ -8,10 +8,10 @@ const ActionMenu = ({ rowData, onEditar, onVerLotes, onAgregarLote, onEliminar, 
   const [shouldShowAbove, setShouldShowAbove] = useState(false);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
-  
+
 
   const checkPosition = () => {
-    
+
     const showAbove = rowIndex >= 2 || rowIndex >= (totalRows - 3);
     setShouldShowAbove(showAbove);
   };
@@ -35,7 +35,7 @@ const ActionMenu = ({ rowData, onEditar, onVerLotes, onAgregarLote, onEliminar, 
     document.addEventListener('mousedown', handleClickOutside);
     window.addEventListener('resize', handleResize);
     window.addEventListener('scroll', handleScroll, true);
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('resize', handleResize);
@@ -60,12 +60,12 @@ const ActionMenu = ({ rowData, onEditar, onVerLotes, onAgregarLote, onEliminar, 
   // Calcular posición para fixed positioning
   const getMenuPosition = () => {
     if (!buttonRef.current) return {};
-    
+
     const buttonRect = buttonRef.current.getBoundingClientRect();
     const menuHeight = 200; // Altura aproximada del menú
     const spaceBelow = window.innerHeight - buttonRect.bottom;
     const showAbove = spaceBelow < menuHeight && buttonRect.top > menuHeight;
-    
+
     return {
       position: 'fixed',
       left: `${buttonRect.right - 140}px`, // 140px es el ancho del menú
@@ -73,7 +73,7 @@ const ActionMenu = ({ rowData, onEditar, onVerLotes, onAgregarLote, onEliminar, 
       zIndex: '99999'
     };
   };
-  
+
   return (
     <div className="relative flex justify-center overflow-visible" ref={menuRef} style={{ overflow: 'visible' }}>
       <button
@@ -84,11 +84,11 @@ const ActionMenu = ({ rowData, onEditar, onVerLotes, onAgregarLote, onEliminar, 
       >
         <i className="pi pi-ellipsis-h text-white text-xs"></i>
       </button>
-      
+
       {isOpen && (
         <div className="bg-white border border-gray-200 rounded-lg shadow-xl min-w-[140px]"
              style={getMenuPosition()}>
-          <div 
+          <div
             className="px-2 py-1.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={(e) => {
               e.stopPropagation();
@@ -99,8 +99,8 @@ const ActionMenu = ({ rowData, onEditar, onVerLotes, onAgregarLote, onEliminar, 
             <i className="pi pi-pencil text-xs"></i>
             <span className="uppercase">EDITAR</span>
           </div>
-          
-          <div 
+
+          <div
             className="px-2 py-1.5 text-sm text-gray-700 hover:bg-cyan-50 hover:text-cyan-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={(e) => {
               e.stopPropagation();
@@ -111,8 +111,8 @@ const ActionMenu = ({ rowData, onEditar, onVerLotes, onAgregarLote, onEliminar, 
             <i className="pi pi-eye text-xs"></i>
             <span className="uppercase">VER LOTES</span>
           </div>
-          
-          <div 
+
+          <div
             className="px-2 py-1.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={(e) => {
               e.stopPropagation();
@@ -123,10 +123,10 @@ const ActionMenu = ({ rowData, onEditar, onVerLotes, onAgregarLote, onEliminar, 
             <i className="pi pi-plus text-xs"></i>
             <span className="uppercase">AGREGAR LOTE</span>
           </div>
-          
+
           <hr className="my-0 border-gray-200" />
-          
-          <div 
+
+          <div
             className="px-2 py-1.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={(e) => {
               e.stopPropagation();
@@ -143,17 +143,17 @@ const ActionMenu = ({ rowData, onEditar, onVerLotes, onAgregarLote, onEliminar, 
   );
 };
 
-const MedicamentoTable = ({ 
+const MedicamentoTable = ({
   medicamentos,
   stockTotals,
   lotesCounts,
-  onEditar, 
-  onAgregarLote, 
+  onEditar,
+  onAgregarLote,
   onVerLotes,
   onEliminar,
   onCambiarEstado,
   globalFilter,
-  setGlobalFilter 
+  setGlobalFilter
 }) => {
 
   // Template para mostrar el estado activo/inactivo
@@ -174,7 +174,7 @@ const MedicamentoTable = ({
         <label className="relative inline-flex items-center cursor-pointer">
           <input
             type="checkbox"
-            checked={rowData.activo}
+            checked={Boolean(rowData.activo)}
             onChange={handleCambiarEstado}
             className="sr-only peer"
           />
@@ -247,7 +247,7 @@ const MedicamentoTable = ({
 const actionBotones = (rowData, column) => {
   const rowIndex = medicamentosConStock.indexOf(rowData);
   return (
-    <ActionMenu 
+    <ActionMenu
       rowData={rowData}
       rowIndex={rowIndex}
       totalRows={medicamentosConStock.length}
@@ -300,39 +300,39 @@ const actionBotones = (rowData, column) => {
           selectionMode="single"
           rowClassName={(rowData) => `hover:bg-gray-50 cursor-pointer`}
         >
-          
-          <Column 
-            field="id_producto_pk" 
-            header="ID" 
+
+          <Column
+            field="id_producto_pk"
+            header="ID"
             body={(rowData) => medicamentosConStock.length - medicamentosConStock.indexOf(rowData)}
-            sortable 
+            sortable
             className="text-sm"
           />
-          
-          <Column 
-            field="nombre_producto" 
-            header="MEDICAMENTO" 
+
+          <Column
+            field="nombre_producto"
+            header="MEDICAMENTO"
             body={productoTemplate}
-            sortable 
+            sortable
             className="text-sm"
           />
-          <Column 
-            field="tipo_medicamento" 
-            header="PRESENTACIÓN" 
+          <Column
+            field="tipo_medicamento"
+            header="PRESENTACIÓN"
             body={tipoPresentacionTemplate}
-            sortable 
+            sortable
             className="text-sm"
           />
-          <Column 
+          <Column
             field="precio_producto"
-            header="PRECIO" 
+            header="PRECIO"
             body={precioTemplate}
-            sortable 
+            sortable
             className="text-sm"
           />
-          
-          <Column 
-            header="STOCK" 
+
+          <Column
+            header="STOCK"
             body={stockTemplate}
             sortable
             sortField="stockTotal"
@@ -340,27 +340,27 @@ const actionBotones = (rowData, column) => {
             className="text-sm text-center"
             bodyClassName="text   "
           />
-          
-          <Column 
-            header="LOTES" 
+
+          <Column
+            header="LOTES"
             body={lotesTemplate}
             className="text-sm text-center"
           />
-          <Column 
+          <Column
             field="activo"
-            header="ESTADO" 
+            header="ESTADO"
             body={estadoTemplate}
             sortable
             sortField="activo"
             className="text-sm"
           />
-          
-          <Column 
-            header="ACCIONES" 
-            body={actionBotones} 
+
+          <Column
+            header="ACCIONES"
+            body={actionBotones}
             className="py-2 pr-9 pl-1 border-b text-sm"
           />
-          
+
         </DataTable>
       )}
     </>

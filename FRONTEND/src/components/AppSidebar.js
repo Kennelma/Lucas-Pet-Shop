@@ -31,7 +31,8 @@ const AppSidebar = () => {
       position="fixed"
       unfoldable={unfoldable}
       visible={sidebarShow}
-      onVisibleChange={(visible) => dispatch({ type: 'set', sidebarShow: visible })}
+      onShow={() => dispatch({ type: 'set', sidebarShow: true })}
+      onHide={() => dispatch({ type: 'set', sidebarShow: false })}
     >
       {/* HEADER */}
       <CSidebarHeader className="border-bottom flex justify-between items-center">

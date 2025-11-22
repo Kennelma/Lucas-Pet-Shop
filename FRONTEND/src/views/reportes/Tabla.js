@@ -485,7 +485,7 @@ const Tabla = ({
                     {vistaActiva === 'diaria' && (
                       <Column
                         field="cantidadFacturas"
-                        header="FACTURAS"
+                        header="FACTURAS PAGADAS"
                         body={bodyFacturas}
                         className="text-sm"
                         style={{ width: '100px' }}

@@ -19,6 +19,8 @@ const notificaciones = require('../controllers/notificaciones.controller');
 const reportes = require('../controllers/reportes.controller');
 const perfil = require('../controllers/perfil.controller');
 const seguridad = require('../controllers/seguridad.controller');
+const sar = require('../controllers/sar.controller');
+
 
 //========== RUTAS DE AUTENTICACIÓN Y SEGURIDAD ==========
 router.post('/login', auth.login);
@@ -64,7 +66,7 @@ router.post ('/facturacion/validarDisponibilidad', verificarToken, facturas.vali
 
 router.get  ('/facturacion/verFacturas', facturas.historialFacturas);
 router.get  ('/facturacion/verDetalleFactura', facturas.detalleFacturaSeleccionada);
-//router.delete('/facturacion/borrarFactura', verificarToken, facturas.borrarFactura);
+router.get ('/facturacion/caiDisponible', facturas.validarCAIParaFacturar);
 
 
 //RUTA PARA IMPRIMIR LA FACTURA EN FORMATO PDF
@@ -120,5 +122,11 @@ router.get('/whatsapp/estado', whatsapp.verificarEstado);
 router.post('/whatsapp/pairing', whatsapp.solicitarCodigoEmparejamiento);
 router.post('/whatsapp/logout', whatsapp.cerrarSesion);
 router.post('/whatsapp/enviar-recordatorios', whatsapp.enviarRecordatoriosPendientes);
+
+
+// ====== RUTAS DEL CAI ==========
+router.get('/sar/verCatalogo', sar.verCatalogoCAI); //VER CATALOGO DE CAI
+router.post('/sar/crear', sar.crearCAI); //AGREGAR AL CATALOGO UN NUEVO CAI
+router.get('/sar/alertas', sar.obtenerAlertasCAI); //MOSTRAR ALERTAS DEL CAI ACTIVO
 
 module.exports = router;

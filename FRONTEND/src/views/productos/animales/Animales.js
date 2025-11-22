@@ -279,9 +279,9 @@ const Animales = () => {
         if (resp.Consulta) {
           Swal.fire({
             icon: "success",
-            title: "¡Eliminado!",
-            text: "El animal fue eliminado correctamente",
-            timer: 1800,
+            title: "¡Animal eliminado!",
+            text: "El animal se ha eliminado correctamente",
+            timer: 2000,
             showConfirmButton: false,
           });
           await cargarDatos();
@@ -333,7 +333,7 @@ const Animales = () => {
         Swal.fire({
           icon: 'success',
           title: nuevoEstado ? '¡Animal Activado!' : '¡Animal Desactivado!',
-          text: 'Estado actualizado correctamente',
+          text: 'El estado se ha actualizado correctamente',
           timer: 1500,
           showConfirmButton: false
         });

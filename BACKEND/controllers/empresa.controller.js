@@ -164,38 +164,6 @@ exports.actualizar = async (req, res) => {
                 );
                 break;
 
-            case 'USUARIOS':
-
-
-                let contraHasheada = null;
-
-                if (req.body.contrasena_usuario) {
-                    contraHasheada = await bcrypt.hash(req.body.contrasena_usuario, 10);
-                }
-
-                await conn.query(
-                    `UPDATE tbl_usuarios
-                    SET
-                        usuario            = COALESCE(?, usuario),
-                        email_usuario      = COALESCE(?, email_usuario),
-                        contrasena_usuario = COALESCE(?, contrasena_usuario),
-                        id_sucursal_fk     = COALESCE(?, id_sucursal_fk),
-                        cat_estado_fk      = COALESCE(?, cat_estado_fk),
-                        intentos_fallidos  = COALESCE(?, intentos_fallidos),
-                        bloqueado_hasta    = COALESCE(?, bloqueado_hasta)
-                    WHERE id_usuario_pk = ?`,
-                    [
-                        req.body.usuario || null,
-                        req.body.email_usuario || null,
-                        contraHasheada || null,
-                        req.body.id_sucursal_fk || null,
-                        req.body.cat_estado_fk || null,
-                        req.body.intentos_fallidos !== undefined ? req.body.intentos_fallidos : null,
-                        req.body.bloqueado_hasta || null,
-                        id
-                    ]
-                );
-                break;
 
             case 'GASTOS':
 
@@ -374,13 +342,6 @@ exports.eliminar = async (req, res) => {
                     [id]);
                 break;
 
-            case 'USUARIOS':
-
-                await conn.query(
-                    `DELETE FROM tbl_usuarios
-                    WHERE id_usuario_pk = ?`,
-                    [id]);
-                break;
 
             default:
                 throw new Error('Entidad no válida');
