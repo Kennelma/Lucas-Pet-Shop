@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "serve -s dist -l $PORT"
   },
   "keywords": [],
   "author": "",
@@ -48,6 +49,7 @@
     "react-toastify": "^11.0.5",
     "recharts": "^3.4.1",
     "redux": "^5.0.1",
+    "serve": "^14.2.5",
     "simplebar-react": "^3.3.2",
     "styled-jsx": "^5.1.7",
     "sweetalert2": "^11.26.3"
