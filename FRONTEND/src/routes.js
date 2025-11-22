@@ -13,7 +13,7 @@ const Servicios = React.lazy(() => import('./views/serviciosPeluqueria/Servicios
 const Recordatorios = React.lazy(() => import('./views/Recordatorios/Recordatorios'))
 const Empresa = React.lazy(() => import('./views/empresa/Gestion-Empresa'))
 const Facturacion = React.lazy(() => import('./views/facturacion/facturas/Facturacion'))
-const Seguridad = React.lazy(() => import('./views/seguridad/usuarios'))
+const Seguridad = React.lazy(() => import('./views/seguridad/Usuarios'))
 const Estilistas = React.lazy(() => import('./views/estilistas/Estilistas'))
 const Reportes = React.lazy(() => import('./views/reportes/Reportes'))
 const SAR = React.lazy(() => import('./views/sar/sar'))

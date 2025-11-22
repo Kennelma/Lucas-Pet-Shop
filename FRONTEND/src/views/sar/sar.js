@@ -8,6 +8,9 @@ import Swal from 'sweetalert2';
 import ModalNuevoCAI from './modal_nuevo_cai';
 
 const SAR = () => {
+    // Obtener el usuario actual y su rol
+    const usuarioActual = JSON.parse(sessionStorage.getItem('usuario') || '{}');
+    const rolActual = usuarioActual?.rol?.toLowerCase();
 const [registrosSAR, setRegistrosSAR] = useState([]);
 const [loading, setLoading] = useState(true);
 const [modalCAIOpen, setModalCAIOpen] = useState(false);
@@ -119,15 +122,17 @@ return (
                     `}
                 </style>
 
-                <div className="flex justify-end mb-4">
-                    <button
-                        className="bg-[#80d6afff] hover:bg-[#6bb39d] text-black px-4 py-2 rounded flex items-center"
-                        onClick={handleNuevoCAI}
-                    >
-                        <FontAwesomeIcon icon={faPlus} className="mr-2" />
-                        AGREGAR CAI
-                    </button>
-                </div>
+                {rolActual === 'administrador' && (
+                  <div className="flex justify-end mb-4">
+                      <button
+                          className="bg-[#80d6afff] hover:bg-[#6bb39d] text-black px-4 py-2 rounded flex items-center"
+                          onClick={handleNuevoCAI}
+                      >
+                          <FontAwesomeIcon icon={faPlus} className="mr-2" />
+                          AGREGAR CAI
+                      </button>
+                  </div>
+                )}
 
                 <DataTable
                     value={registrosSAR}
@@ -205,11 +210,13 @@ return (
             </div>
 
             {/* Modal para nuevo/editar CAI */}
-            <ModalNuevoCAI
-                isOpen={modalCAIOpen}
-                onClose={handleCerrarModal}
-                caiData={caiSeleccionado}
-            />
+                        {rolActual === 'administrador' && (
+                            <ModalNuevoCAI
+                                    isOpen={modalCAIOpen}
+                                    onClose={handleCerrarModal}
+                                    caiData={caiSeleccionado}
+                            />
+                        )}
         </div>
     </div>
 );
