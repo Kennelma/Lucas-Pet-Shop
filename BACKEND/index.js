@@ -19,7 +19,16 @@ require('./jobs/envio-recordatorios');
 //PARA QUE EL SERVIDOR PUEDA RECIBIR JSON Y XXWW-FORM-URLENCODED
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+
+//HABILITAR CORS
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://lucas-pet-shop.vercel.app'
+  ],
+  credentials: true
+}));
 
 app.use('/api', require('./routes/rutas'));
 
