@@ -17,7 +17,7 @@ const mysqlConnection = mysql.createPool({
     database: process.env.DB_NAME,
     multipleStatements: true,
     queueLimit: 0,
-    acquireTimeout: 10000,
+    waitForConnections: true,
     connectionLimit: 5,
     timezone: '-06:00', //Zona horaria de Tegucigalpa
     ssl: {
