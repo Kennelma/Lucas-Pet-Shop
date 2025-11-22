@@ -29,8 +29,8 @@ connectWhatsApp().catch(err => {
     console.error('ERROR AL CONECTAR WHATSAPP:', err);
 });
 
-const PORT = 4000;
-app.listen(PORT, function() {
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, '0.0.0.0', function() {
     console.log('SERVIDOR EN PUERTO ' + PORT);
     //console.log('📱 Escanea el QR de WhatsApp si aparece en la terminal');
 });
