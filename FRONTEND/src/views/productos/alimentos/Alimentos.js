@@ -281,8 +281,8 @@ const Alimentos = () => {
         if (resp.Consulta) {
           Swal.fire({
             icon: 'success',
-            title: '¡Eliminado!',
-            text: 'El alimento fue eliminado correctamente',
+            title: '¡Alimento eliminado!',
+            text: 'El alimento se ha eliminado correctamente',
             timer: 1800,
             showConfirmButton: false,
           });
@@ -335,7 +335,7 @@ const Alimentos = () => {
         Swal.fire({
           icon: 'success',
           title: nuevoEstado ? '¡Alimento Activado!' : '¡Alimento Desactivado!',
-          text: 'Estado actualizado correctamente',
+          text: 'El estado se ha actualizado correctamente',
           timer: 1500,
           showConfirmButton: false,
         });

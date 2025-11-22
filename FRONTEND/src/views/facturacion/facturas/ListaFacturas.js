@@ -324,7 +324,7 @@ const handleVerFactura = (factura) => {
     <div className="space-y-6 p-4 max-w-5xl mx-auto bg-white shadow-xl rounded-lg min-h-screen">
       {/*HEADER*/}
       <div className="mb-6">
-  <p className="text-gray-600 text-center font-bold italic">Gestiona y visualiza todas las facturas del sistema</p>
+        <p className="text-gray-600 text-center font-bold italic">Gestiona y visualiza todas las facturas del sistema</p>
       </div>
 
       {/*FILTROS_Y_BUSQUEDA*/}

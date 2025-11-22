@@ -180,8 +180,8 @@ const ModalNuevoAlimento = ({ isOpen, onClose, onSave, alimentosExistentes = [] 
         setTimeout(() => {
           Swal.fire({
             icon: "success",
-            title: "¡Agregado!",
-            text: "El alimento fue agregado correctamente",
+            title: "¡Alimento agregado!",
+            text: "El alimento se ha agregado correctamente",
             timer: 1800,
             showConfirmButton: false,
           });

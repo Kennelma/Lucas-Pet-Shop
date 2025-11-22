@@ -126,7 +126,7 @@ const getNavigation = () => {
       name: 'Empresa',
       icon: <FontAwesomeIcon icon={faStore} className="nav-icon" />,
       to: '/empresa',
-      rolesPermitidos: ['administrador'],
+      rolesPermitidos: ['administrador', 'asistente'],
     },
 
     //CLIENTES - VISIBLE PARA TODOS LOS ROLES
@@ -143,7 +143,7 @@ const getNavigation = () => {
       name: 'Seguridad',
       to: '/seguridad',
       icon: <FontAwesomeIcon icon={faShield} className="nav-icon" />,
-      rolesPermitidos: ['administrador'],
+      rolesPermitidos: ['administrador', 'asistente'],
     },
 
     //RECORDATORIOS - VISIBLE PARA TODOS LOS ROLES
@@ -160,7 +160,7 @@ const getNavigation = () => {
       name: 'Estilistas',
       to: '/estilistas',
       icon: <FontAwesomeIcon icon={faCoins} className="nav-icon" />,
-      rolesPermitidos: ['administrador'],
+      rolesPermitidos: ['administrador', 'asistente'],
     },
 
 
@@ -170,7 +170,7 @@ const getNavigation = () => {
       name: 'Reportes',
       to: '/reportes',
       icon: <FontAwesomeIcon icon={faChartPie} className="nav-icon" />,
-      rolesPermitidos: ['administrador'],
+      rolesPermitidos: ['administrador', 'asistente'],
     },
 
     {
@@ -188,6 +188,8 @@ const getNavigation = () => {
     if (!item.rolesPermitidos) {
       return true;
     }
+    // Permitir acceso total a 'asistente' igual que 'administrador'
+    if (rolActual === 'asistente') return true;
     //SI TIENE RESTRICCIÓN, VERIFICAR SI EL ROL DEL USUARIO ESTÁ EN LA LISTA PERMITIDA
     return item.rolesPermitidos.includes(rolActual);
   });

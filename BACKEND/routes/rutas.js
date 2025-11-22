@@ -66,6 +66,8 @@ router.post ('/facturacion/validarDisponibilidad', verificarToken, facturas.vali
 
 router.get  ('/facturacion/verFacturas', facturas.historialFacturas);
 router.get  ('/facturacion/verDetalleFactura', facturas.detalleFacturaSeleccionada);
+router.get ('/facturacion/caiDisponible', facturas.validarCAIParaFacturar);
+
 
 //RUTA PARA IMPRIMIR LA FACTURA EN FORMATO PDF
 router.get  ('/facturacion/imprimirFactura', facturas.ImpresionFactura);

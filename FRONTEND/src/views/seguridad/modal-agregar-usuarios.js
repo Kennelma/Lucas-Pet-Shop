@@ -3,7 +3,7 @@ import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
-import { verRolesUsuarios, verSucursales, crearUsuario } from "../../../AXIOS.SERVICES/security-axios.js";
+import { verRolesUsuarios, verSucursales, crearUsuario } from "../../AXIOS.SERVICES/security-axios.js";
 
 export default function ModalNuevoUsuario({ onClose, onUsuarioCreado }) {
   const [form, setForm] = useState({
@@ -26,7 +26,10 @@ export default function ModalNuevoUsuario({ onClose, onUsuarioCreado }) {
       setErrores({});
       try {
         const responseRoles = await verRolesUsuarios();
-        const rolesData = responseRoles?.datos || responseRoles?.entidad || responseRoles || [];
+        let rolesData = responseRoles?.datos || responseRoles?.entidad || responseRoles || [];
+        if (Array.isArray(rolesData)) {
+          rolesData = rolesData.filter(r => !(r.tipo_rol && r.tipo_rol.toLowerCase() === 'administrador'));
+        }
         setRoles(Array.isArray(rolesData) ? rolesData : []);
 
         try {

@@ -134,11 +134,12 @@ exports.procesarPago = async (req, res) => {
                             id_factura_fk,
                             monto,
                             fecha_aplicacion
-                        ) VALUES (?, ?, ?)`,
+                        ) VALUES (?, ?, ?, ?)`,
                         [
                             pagos.insertId,
                             facturas[0].id_factura_pk,
-                            monto, fecha_pago
+                            monto,
+                            fecha_pago
                         ]
                     );
 

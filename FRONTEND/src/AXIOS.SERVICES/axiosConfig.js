@@ -23,10 +23,7 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Solo redirigir si:
-    // 1. Es un 401
-    // 2. NO es la ruta de login (para evitar el loop)
-    // 3. Existe un token (significa que era una sesión válida que expiró)
+    
     if (
       error.response &&
       error.response.status === 401 &&
@@ -34,7 +31,7 @@ axiosInstance.interceptors.response.use(
       sessionStorage.getItem('token')
     ) {
       console.log('🚨 Sesión expirada. Redirigiendo al login...');
-      
+
       sessionStorage.setItem('sessionExpired', 'true');
 
       sessionStorage.removeItem('token');

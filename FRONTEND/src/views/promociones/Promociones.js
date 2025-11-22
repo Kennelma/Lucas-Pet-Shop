@@ -168,7 +168,7 @@ const Promociones = () => {
         Swal.fire({
           icon: 'success',
           title: nuevoEstado ? '¡Promoción Activada!' : '¡Promoción Desactivada!',
-          text: 'Estado actualizado correctamente',
+          text: 'El estado se ha actualizado correctamente',
           timer: 1500,
           showConfirmButton: false
         });

@@ -1,6 +1,5 @@
 //IMPORTACIONES
 import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 //FUNCION_PRINCIPAL_PARA_GENERAR_PDF_DE_FACTURA
 export const generarPDFFactura = (datosFactura) => {
@@ -75,15 +74,27 @@ export const generarPDFFactura = (datosFactura) => {
     yPos += 4;
   }
 
-  //BLOQUE_CAI_Y_FECHA_LIMITE
+  // BLOQUE CAI DETALLADO
   doc.setFontSize(6);
   doc.text('CAI:', pageWidth / 2, yPos, { align: 'center' });
   yPos += 3;
   doc.setFontSize(7);
-  doc.text('44009D-F53E7E-7C06E0-63BE03-090938-C3', pageWidth / 2, yPos, { align: 'center' });
+  doc.text(factura.codigo_cai || '', pageWidth / 2, yPos, { align: 'center' });
   yPos += 4;
   doc.setFontSize(6);
-  doc.text('Fecha límite de emisión: 19/11/2026', pageWidth / 2, yPos, { align: 'center' });
+  // Mostrar rango_cai si existe, si no, mostrar rango_inicio y rango_fin
+  if (factura.rango_cai) {
+    doc.text(`Rango: ${factura.rango_cai}`, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 3;
+  } else if (factura.rango_inicio && factura.rango_fin) {
+    doc.text(`Rango: ${factura.rango_inicio} - ${factura.rango_fin}`, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 3;
+  }
+
+  const fechaLimite = factura.fecha_limite
+    ? new Date(factura.fecha_limite).toLocaleDateString('es-HN')
+    : '';
+  doc.text(`Fecha límite de emisión: ${fechaLimite}`, pageWidth / 2, yPos, { align: 'center' });
   yPos += 5;
 
   //TITULO_FACTURA
@@ -116,13 +127,10 @@ export const generarPDFFactura = (datosFactura) => {
   doc.text(nombreCliente || 'Consumidor General', margin + 15, yPos);
   yPos += 3;
 
-  if (factura.RTN) {
-    doc.text(`RTN: ${factura.RTN}`, margin, yPos);
-    yPos += 3;
-  } else if (factura.identidad_cliente) {
-    doc.text(`ID: ${factura.identidad_cliente}`, margin, yPos);
-    yPos += 3;
-  }
+  doc.text(`RTN: ${factura.RTN || ''}`, margin, yPos);
+  yPos += 3;
+  doc.text(`ID: ${factura.identidad_cliente || ''}`, margin, yPos);
+  yPos += 3;
 
   //ESTILISTAS_ASIGNADOS
   if (items && items.length > 0) {
@@ -159,8 +167,8 @@ export const generarPDFFactura = (datosFactura) => {
 
   doc.text('CANT', margin, yPos);
   doc.text('DESCRIPCIÓN', margin + 10, yPos);
-  doc.text('P.UNIT', pageWidth - 33, yPos, { align: 'right' });
-  doc.text('AJUSTE', pageWidth - 19, yPos, { align: 'right' });
+  doc.text('P.UNIT', pageWidth - 36, yPos, { align: 'right' });
+  doc.text('AJUSTE', pageWidth - 21, yPos, { align: 'right' });
   doc.text('SUBTOTAL', pageWidth - margin, yPos, { align: 'right' });
   yPos += 3;
 
@@ -179,14 +187,14 @@ export const generarPDFFactura = (datosFactura) => {
     const ajuste = parseFloat(item.ajuste_precio || 0).toFixed(2);
     const total = parseFloat(item.total_linea).toFixed(2);
 
-    const anchoDisponible = pageWidth - 33 - (margin + 10) - 2;
+    const anchoDisponible = pageWidth - 45 - (margin + 10);
     const lineasNombre = doc.splitTextToSize(nombre, anchoDisponible);
 
     //PRIMERA_LINEA_CON_TODOS_LOS_DATOS
     doc.text(`${cantidad}`, margin, yPos);
     doc.text(lineasNombre[0], margin + 10, yPos);
-    doc.text(`L${precio}`, pageWidth - 33, yPos, { align: 'right' });
-    doc.text(`L${ajuste}`, pageWidth - 19, yPos, { align: 'right' });
+    doc.text(`L${precio}`, pageWidth - 36, yPos, { align: 'right' });
+    doc.text(`L${ajuste}`, pageWidth - 21, yPos, { align: 'right' });
     doc.text(`L${total}`, pageWidth - margin, yPos, { align: 'right' });
     yPos += 3;
 
