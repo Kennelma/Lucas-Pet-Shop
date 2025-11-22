@@ -3,7 +3,7 @@ const cors = require("cors");
 const app = express();
 const path = require('path');
 const mysqlConnection = require('./config/conexion');
-const { connectWhatsApp } = require('./config/whatsapp');
+const { connectWhatsApp } = require('./config/WhatsApp');
 
 
 //IMPORTACIÓN DE VARIABLES DE ENTORNO
@@ -31,8 +31,7 @@ connectWhatsApp().catch(err => {
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, '0.0.0.0', function() {
-    console.log('SERVIDOR EN PUERTO ' + PORT);
-    //console.log('📱 Escanea el QR de WhatsApp si aparece en la terminal');
+    console.log(`SERVIDOR EN PUERTO ${PORT}`);
 });
 
 module.exports = app;
