@@ -1,9 +1,7 @@
 //Constante para el maquete MySQL
 const path = require('path');
 
-require('dotenv').config({
-    path: path.resolve(process.cwd(), '..', '.env')
-});
+require('dotenv').config();
 
 const mysql = require('mysql2/promise');
 

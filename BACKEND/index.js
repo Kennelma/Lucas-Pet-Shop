@@ -7,9 +7,7 @@ const { connectWhatsApp } = require('./config/whatsapp');
 
 
 //IMPORTACIÓN DE VARIABLES DE ENTORNO
-require('dotenv').config({
-    path: path.resolve(process.cwd(), '..', '.env')
-});
+require('dotenv').config();
 
 
 //IMPORTACIÓN DE JOBS
