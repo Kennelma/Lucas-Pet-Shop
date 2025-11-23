@@ -43,8 +43,7 @@ export default defineConfig(() => {
       extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.scss'],
     },
     server: {
-    port: 3000,
-    historyApiFallback: true,
+    port: 3000
   }
   }
 })
