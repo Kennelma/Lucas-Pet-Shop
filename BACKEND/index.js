@@ -25,7 +25,8 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://localhost:3000',
-    'https://lucas-pet-shop.vercel.app'
+    'https://lucas-pet-shop.vercel.app',
+    'https://lucas-pet-shop.up.railway.app'
   ],
   credentials: true
 }));

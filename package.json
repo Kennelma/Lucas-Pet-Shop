@@ -1,0 +1,16 @@
+{
+  "name": "lucas-pet-shop",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd BACKEND && npm run dev",
+    "dev:frontend": "cd FRONTEND && npm run dev",
+    "start": "cd BACKEND && npm start",
+    "build": "cd FRONTEND && npm run build",
+    "install:all": "npm install && cd BACKEND && npm install && cd ../FRONTEND && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
