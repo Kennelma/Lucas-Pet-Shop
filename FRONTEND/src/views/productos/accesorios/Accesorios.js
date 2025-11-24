@@ -430,14 +430,14 @@ const Accesorios = () => {
               field="sku"
               header="SKU"
               sortable
-              className="hidden md:table-cell text-xs sm:text-sm"
+              className="text-xs sm:text-sm"
               style={{ minWidth: '80px' }}
             />
             <Column
               field="categoria"
               header="CATEGORIA"
               sortable
-              className="hidden sm:table-cell text-xs sm:text-sm"
+              className="text-xs sm:text-sm"
               style={{ minWidth: '100px' }}
             />
             <Column
@@ -467,7 +467,7 @@ const Accesorios = () => {
               body={estadoTemplate}
               sortable
               sortField="activo"
-              className="hidden lg:table-cell text-xs sm:text-sm"
+              className="text-xs sm:text-sm"
               style={{ minWidth: '100px' }}
             />
             <Column

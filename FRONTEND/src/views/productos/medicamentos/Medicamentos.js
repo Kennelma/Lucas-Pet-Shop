@@ -339,10 +339,9 @@ const Medicamentos = () => {
   }
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
-    <div className="min-h-screen p-6 bg-gray-50">
+    <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
       {/* Título */}
-      <div className="rounded-xl p-6 mb-3"
+      <div className="rounded-lg sm:rounded-xl p-4 sm:p-6 mb-3 sm:mb-4"
         style={{
           backgroundImage: 'url("/H3.jpg")',
           backgroundColor: '#FFDE59',
@@ -352,18 +351,18 @@ const Medicamentos = () => {
           boxShadow: '0 0 8px #FFDE5940, 0 0 0 1px #FFDE5933'
         }}
       >
-        <div className="flex justify-end items-right">
-          <h2 className="text-2xl font-black text-left font-poppins uppercase text-black mt-2 ml-100 w-full">
+        <div className="flex justify-center items-center">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-black text-center font-poppins uppercase text-black">
             GESTIÓN DE MEDICAMENTOS
           </h2>
         </div>
 
-        <p className="text-black italic mt-2 ml-85 w-full">
+        <p className="text-xs sm:text-sm text-center text-black italic mt-2">
           Administra medicamentos veterinarios, lotes y control de inventario
         </p>
       </div>
       {/* Tabs de navegación*/}
-      <div className="flex flex-wrap rounded-lg bg-gray-200 p-1 w-80 text-sm shadow-sm mb-6">
+      <div className="flex flex-wrap rounded-lg bg-gray-200 p-1 w-full sm:w-80 text-xs sm:text-sm shadow-sm mb-6">
         <label className="flex-1 text-center">
           <input type="radio" name="vista" checked={vistaActual === "medicamentos"} onChange={() => setVistaActual("medicamentos")} className="hidden" />
           <span className={`flex items-center justify-center rounded-lg py-2 px-4 cursor-pointer transition-all duration-150 ${
@@ -395,20 +394,20 @@ const Medicamentos = () => {
       )}
 
       {/* Contenido principal */}
-      <div className="bg-white rounded-xl p-6 mb-6"
+      <div className="bg-white rounded-lg sm:rounded-xl p-4 sm:p-6 mb-6"
            style={{boxShadow: '0 0 8px #FFDE5940, 0 0 0 1px #FFDE5933'}}>
         {vistaActual === "kardex" ? (
           <KardexTable kardexData={kardexFiltrado} />
         ) : (
           <>
             {/* Barra de búsqueda y controles - SOLO PARA MEDICAMENTOS */}
-            <div className="flex justify-between items-center mb-6">
-              <div className="relative w-80">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <div className="relative w-full sm:w-80">
                 <input
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
                   placeholder="Buscar medicamentos..."
-                  className="w-full px-4 py-2 border rounded-full"
+                  className="w-full px-3 sm:px-4 py-2 text-xs sm:text-sm border rounded-full"
                 />
                 {busqueda && (
                   <button
@@ -422,7 +421,7 @@ const Medicamentos = () => {
 
               {/* BOTÓN NUEVO MEDICAMENTO CON COLOR AMARILLO PERSONALIZADO */}
               <button
-                className="text-black px-6 py-2 rounded-full transition-colors flex items-center gap-2 uppercase font-poppins"
+                className="w-full sm:w-auto text-black px-4 sm:px-6 py-2 rounded-full transition-colors flex items-center justify-center gap-2 uppercase font-poppins text-xs sm:text-sm"
                 style={{ borderRadius: '12px', backgroundColor: 'rgb(255, 222, 89)' }}
                 onClick={() => {
                   if (validarPermisoAdministrador('crear medicamentos')) {
@@ -542,7 +541,6 @@ const Medicamentos = () => {
           {mensaje}
         </div>
       )}
-    </div>
     </div>
   );
 };

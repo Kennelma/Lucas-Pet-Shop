@@ -163,7 +163,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
         }
       `}</style>
       {/* Título */}
-      <div className="rounded-xl p-6 mb-3"
+      <div className="rounded-lg sm:rounded-xl p-4 sm:p-6 mb-3 sm:mb-4"
         style={{
           backgroundImage: 'url("/descarga (1).jpg")',
           backgroundColor: '#365DA0',
