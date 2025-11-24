@@ -19,7 +19,7 @@ export default defineConfig(() => {
       loader: 'jsx',
       include: /src\/.*\.jsx?$/,
       exclude: [],
-      target: 'es2015' // Transpilar a ES2015
+      target: 'es2015'
     },
     optimizeDeps: {
       force: true,
@@ -31,24 +31,8 @@ export default defineConfig(() => {
     },
     plugins: [
       react({
-        jsxImportSource: undefined,
-        babel: {
-          presets: [
-            ['@babel/preset-env', {
-              targets: {
-                edge: '79',
-                firefox: '67',
-                chrome: '64',
-                safari: '11.1'
-              },
-              useBuiltIns: 'usage',
-              corejs: 3
-            }]
-          ],
-          plugins: [
-            ['styled-jsx/babel', { optimizeForSpeed: true }]
-          ]
-        }
+        jsxRuntime: 'automatic',
+        fastRefresh: true
       }),
       tailwindcss()
     ],
