@@ -8,11 +8,18 @@ export default defineConfig(() => {
     base: './',
     build: {
       outDir: 'build',
+      target: 'es2015', // Compatibilidad con navegadores antiguos
+      cssTarget: 'chrome80', // CSS compatible
+      minify: 'terser',
+      terserOptions: {
+        safari10: true // Compatibilidad Safari 10+
+      }
     },
     esbuild: {
       loader: 'jsx',
       include: /src\/.*\.jsx?$/,
       exclude: [],
+      target: 'es2015' // Transpilar a ES2015
     },
     optimizeDeps: {
       force: true,
@@ -26,6 +33,18 @@ export default defineConfig(() => {
       react({
         jsxImportSource: undefined,
         babel: {
+          presets: [
+            ['@babel/preset-env', {
+              targets: {
+                edge: '79',
+                firefox: '67',
+                chrome: '64',
+                safari: '11.1'
+              },
+              useBuiltIns: 'usage',
+              corejs: 3
+            }]
+          ],
           plugins: [
             ['styled-jsx/babel', { optimizeForSpeed: true }]
           ]
