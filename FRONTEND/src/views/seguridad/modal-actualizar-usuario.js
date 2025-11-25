@@ -183,9 +183,9 @@ export default function ModalActualizarUsuario({ usuarioData, onClose, onUsuario
 
   return (
     <Dialog
-      header={<div className="w-full text-center text-lg font-bold" id="modal-title">EDITAR USUARIO</div>}
+      header={<div className="w-full text-center text-sm sm:text-base md:text-lg font-bold" id="modal-title">EDITAR USUARIO</div>}
       visible={true}
-      style={{ width: '28rem', borderRadius: '1.5rem' }}
+      className="w-11/12 sm:w-96 md:w-[28rem]"
       modal
       closable={false}
       onHide={onClose}
