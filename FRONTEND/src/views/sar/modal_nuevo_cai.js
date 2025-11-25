@@ -265,7 +265,7 @@ const ModalNuevoCAI = ({ isOpen, onClose }) => {
         </div>
       }
       visible={isOpen}
-      style={{ width: '30rem', borderRadius: '1.5rem' }}
+      className="w-11/12 sm:w-96 md:w-[30rem]"
       contentStyle={{ padding: '0.5rem 1.25rem' }}
       modal
       closable={false}
