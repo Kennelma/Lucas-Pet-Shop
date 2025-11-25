@@ -150,7 +150,7 @@ const MiPerfil = ({ visible, onClose }) => {
   }
 
   return (
-    <CModal visible={visible} onClose={onClose} size="md" alignment="center">
+    <CModal visible={visible} onClose={onClose} size="lg" alignment="center">
       <CModalBody className="p-0">
         <div className="bg-white p-4 rounded-lg">
           {loadingData ? (

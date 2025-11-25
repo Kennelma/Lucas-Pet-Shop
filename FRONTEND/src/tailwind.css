@@ -3,3 +3,22 @@
 /* Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500&display=swap');
+
+/* DataTable de PrimeReact - Overflow visible */
+@layer components {
+  .p-datatable .p-datatable-wrapper,
+  .p-datatable .p-datatable-table,
+  .p-datatable tbody,
+  .p-datatable tr,
+  .p-datatable td {
+    @apply overflow-visible;
+  }
+
+  .p-datatable {
+    @apply overflow-visible;
+  }
+
+  .p-datatable .p-datatable-tbody > tr > td {
+    @apply overflow-visible relative;
+  }
+}

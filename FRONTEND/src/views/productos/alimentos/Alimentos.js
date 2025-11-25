@@ -363,26 +363,10 @@ const Alimentos = () => {
 
   return (
     <>
-      <style jsx>{`
-        :global(.p-datatable .p-datatable-wrapper),
-        :global(.p-datatable .p-datatable-table),
-        :global(.p-datatable tbody),
-        :global(.p-datatable tr),
-        :global(.p-datatable td) {
-          overflow: visible !important;
-        }
-        :global(.p-datatable) {
-          overflow: visible !important;
-        }
-        :global(.p-datatable .p-datatable-tbody > tr > td) {
-          overflow: visible !important;
-          position: relative !important;
-        }
-      `}</style>
-      <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
-      <div className="min-h-screen p-6 bg-gray-50">
+      <div className="min-h-screen p-3 sm:p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+      <div className="min-h-screen p-3 sm:p-6 bg-gray-50">
         {/* Título */}
-      <div className="rounded-xl p-6 mb-3"
+      <div className="rounded-xl p-4 sm:p-6 mb-3"
         style={{
           backgroundImage: 'url("/H4.jpg")',
           backgroundColor: '#FFD4DE',
@@ -393,11 +377,11 @@ const Alimentos = () => {
         }}
       >
         <div className="flex justify-center items-center">
-          <h2 className="text-2xl font-black text-center uppercase text-black">
+          <h2 className="text-xl sm:text-2xl font-black text-center uppercase text-black">
             GESTIÓN DE ALIMENTOS
           </h2>
         </div>
-        <p className="text-center text-black italic mt-2">
+        <p className="text-center text-black italic mt-2 text-xs sm:text-sm">
           Administra alimentos balanceados, snacks y nutrición para mascotas
         </p>
       </div>
@@ -405,15 +389,15 @@ const Alimentos = () => {
       {/* Componente de Alimentos Más Vendidos */}
       <AlimentosMasVendidos alimentos={alimentos} />
 
-      <div className="bg-white rounded-xl p-6 mb-6" style={{boxShadow: '0 0 8px #FF9A9840, 0 0 0 1px #FF9A9833'}}>
+      <div className="bg-white rounded-xl p-4 sm:p-6 mb-6" style={{boxShadow: '0 0 8px #FF9A9840, 0 0 0 1px #FF9A9833'}}>
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="relative w-80">
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
+          <div className="relative w-full sm:w-80">
             <input
               value={filtroGlobal}
               onChange={(e) => setFiltroGlobal(e.target.value)}
               placeholder="Buscar alimentos..."
-              className="w-full px-4 py-2 border rounded-full"
+              className="w-full px-4 py-2 border rounded-full text-sm"
             />
             {filtroGlobal && (
               <button
@@ -425,114 +409,125 @@ const Alimentos = () => {
             )}
           </div>
           <button
-            className="bg-rose-300 text-text px-6 py-2 rounded hover:bg-rose-600 transition-colors flex items-center gap-2"
+            className="bg-rose-300 text-text px-4 sm:px-6 py-2 rounded hover:bg-rose-600 transition-colors flex items-center justify-center gap-2 whitespace-nowrap text-sm sm:text-base font-semibold"
             onClick={() => abrirModal()}
           >
-            <FontAwesomeIcon icon={faPlus} />
-            NUEVO ALIMENTO
+            <FontAwesomeIcon icon={faPlus} size="sm" />
+            <span>NUEVO ALIMENTO</span>
           </button>
         </div>
 
-        {/* Tabla */}
-        <DataTable
-          value={filtroAlimentos}
-          loading={loading}
-          loadingIcon={() => (
-            <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
-              <span>Cargando datos...</span>
-            </div>
-          )}
-          globalFilter={filtroGlobal}
-          globalFilterFields={['nombre', 'sku', 'destino']}
-          showGridlines
-          paginator
-          rows={5}
-          rowsPerPageOptions={[5, 10, 20, 25]}
-          paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-          tableStyle={{ minWidth: '50rem' }}
-          className="mt-4"
-          size="small"
-          selectionMode="single"
-          rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
-        >
-          <Column
-            field="id_producto"
-            header="ID"
-            body={(rowData) => filtroAlimentos.length - filtroAlimentos.indexOf(rowData)}
-            sortable
-            className="text-sm"
-          />
-          <Column
-            field="nombre"
-            header="NOMBRE"
-            sortable
-            className="text-sm"
-          />
-          <Column
-            field="sku"
-            header="SKU"
-            sortable
-            className="text-sm"
-          />
-          <Column
-            field="destino"
-            header="DESTINADO"
-            sortable
-            className="text-sm text-center"
-          />
-          <Column
-            field="peso"
-            header="PESO"
-            body={(rowData) => `${rowData.peso} kg`}
-            sortable
-            className="text-sm"
-          />
-          <Column
-            field="precio"
-            header="PRECIO"
-            body={(rowData) => `L. ${rowData.precio.toFixed(2)}`}
-            sortable
-            className="text-sm"
-          />
-          <Column
-            field="stock"
-            header="STOCK"
-            body={(rowData) => (
-              <span className={rowData.stock <= rowData.stock_minimo ? 'text-red-500 font-semibold' : ''}>
-                {rowData.stock}
-              </span>
+        {/* Tabla - Scroll horizontal en móvil */}
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <DataTable
+            value={filtroAlimentos}
+            loading={loading}
+            loadingIcon={() => (
+              <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
+                <span className="text-sm">Cargando datos...</span>
+              </div>
             )}
-            sortable
-            className="text-sm text-center"
-            bodyClassName="text-center"
-          />
-          <Column
-            field="activo"
-            header="ESTADO"
-            body={estadoTemplate}
-            sortable
-            sortField="activo"
-            className="text-sm"
-          />
-          <Column
-            header="ACCIONES"
-            body={(rowData, column) => {
-              const rowIndex = alimentos.indexOf(rowData);
-              return (
-                <ActionMenu
-                  rowData={rowData}
-                  rowIndex={rowIndex}
-                  totalRows={alimentos.length}
-                  onEditar={abrirModal}
-                  onEliminar={handleEliminar}
-                />
-              );
-            }}
-            className="py-2 pr-9 pl-1 border-b text-sm"
-            style={{ position: 'relative', overflow: 'visible' }}
-          />
-        </DataTable>
+            globalFilter={filtroGlobal}
+            globalFilterFields={['nombre', 'sku', 'destino']}
+            showGridlines
+            paginator
+            rows={5}
+            rowsPerPageOptions={[5, 10, 20, 25]}
+            paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+            tableStyle={{ minWidth: '100%', width: '100%' }}
+            className="mt-4 text-xs sm:text-sm"
+            size="small"
+            selectionMode="single"
+            rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
+          >
+            <Column
+              field="id_producto"
+              header="ID"
+              body={(rowData) => filtroAlimentos.length - filtroAlimentos.indexOf(rowData)}
+              sortable
+              className="text-xs sm:text-sm px-2 sm:px-4 py-2"
+              headerClassName="text-xs sm:text-sm px-2 sm:px-4 py-2 bg-gray-50"
+            />
+            <Column
+              field="nombre"
+              header="NOMBRE"
+              sortable
+              className="text-xs sm:text-sm px-2 sm:px-4 py-2 min-w-[120px] sm:min-w-none"
+              headerClassName="text-xs sm:text-sm px-2 sm:px-4 py-2 bg-gray-50 whitespace-nowrap"
+            />
+            <Column
+              field="sku"
+              header="SKU"
+              sortable
+              className="text-xs sm:text-sm px-2 sm:px-4 py-2 hidden md:table-cell"
+              headerClassName="text-xs sm:text-sm px-2 sm:px-4 py-2 bg-gray-50 hidden md:table-cell"
+            />
+            <Column
+              field="destino"
+              header="DESTINADO"
+              sortable
+              className="text-xs sm:text-sm px-2 sm:px-4 py-2 text-center hidden sm:table-cell"
+              headerClassName="text-xs sm:text-sm px-2 sm:px-4 py-2 bg-gray-50 text-center hidden sm:table-cell whitespace-nowrap"
+            />
+            <Column
+              field="peso"
+              header="PESO"
+              body={(rowData) => `${rowData.peso}kg`}
+              sortable
+              className="text-xs sm:text-sm px-2 sm:px-4 py-2 text-center hidden lg:table-cell"
+              headerClassName="text-xs sm:text-sm px-2 sm:px-4 py-2 bg-gray-50 text-center hidden lg:table-cell whitespace-nowrap"
+            />
+            <Column
+              field="precio"
+              header="PRECIO"
+              body={(rowData) => `L. ${rowData.precio.toFixed(2)}`}
+              sortable
+              className="text-xs sm:text-sm px-2 sm:px-4 py-2 text-right"
+              headerClassName="text-xs sm:text-sm px-2 sm:px-4 py-2 bg-gray-50 text-right whitespace-nowrap"
+            />
+            <Column
+              field="stock"
+              header="STOCK"
+              body={(rowData) => (
+                <span className={`${rowData.stock <= rowData.stock_minimo ? 'text-red-500 font-semibold' : ''}`}>
+                  {rowData.stock}
+                </span>
+              )}
+              sortable
+              className="text-xs sm:text-sm px-2 sm:px-4 py-2 text-center"
+              headerClassName="text-xs sm:text-sm px-2 sm:px-4 py-2 bg-gray-50 text-center whitespace-nowrap"
+              bodyClassName="text-center"
+            />
+            <Column
+              field="activo"
+              header="ESTADO"
+              body={estadoTemplate}
+              sortable
+              sortField="activo"
+              className="text-xs sm:text-sm px-2 sm:px-4 py-2"
+              headerClassName="text-xs sm:text-sm px-2 sm:px-4 py-2 bg-gray-50 whitespace-nowrap"
+            />
+            <Column
+              header="ACCIONES"
+              body={(rowData, column) => {
+                const rowIndex = alimentos.indexOf(rowData);
+                return (
+                  <ActionMenu
+                    rowData={rowData}
+                    rowIndex={rowIndex}
+                    totalRows={alimentos.length}
+                    onEditar={abrirModal}
+                    onEliminar={handleEliminar}
+                  />
+                );
+              }}
+              className="py-2 px-1 sm:px-3 sm:pr-9 border-b text-xs sm:text-sm"
+              headerClassName="text-xs sm:text-sm px-2 sm:px-4 py-2 bg-gray-50 whitespace-nowrap"
+              style={{ position: 'relative', overflow: 'visible' }}
+            />
+          </DataTable>
+        </div>
       </div>
 
       {/* Modal */}

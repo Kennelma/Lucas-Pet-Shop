@@ -163,7 +163,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
         }
       `}</style>
       {/* Título */}
-      <div className="rounded-xl p-6 mb-3"
+      <div className="rounded-lg sm:rounded-xl p-4 sm:p-6 mb-3 sm:mb-4"
         style={{
           backgroundImage: 'url("/descarga (1).jpg")',
           backgroundColor: '#365DA0',
@@ -174,11 +174,11 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
         }}
       >
         <div className="flex justify-center items-center">
-          <h2 className="text-2xl font-black text-center uppercase text-white">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-black text-center uppercase text-white">
             GESTIÓN DE PROMOCIONES
           </h2>
         </div>
-        <p className="text-center text-white italic mt-2">
+        <p className="text-xs sm:text-sm text-center text-white italic mt-2">
           Administra ofertas, descuentos y promociones especiales
         </p>
       </div>
@@ -187,15 +187,15 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
       <ResumenPromocionesDelDia />
 
 
-      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #365DA040, 0 0 0 1px #365DA033'}}>
+      <div className="bg-white rounded-lg sm:rounded-xl p-4 sm:p-6 mb-6" style={{boxShadow: '0 0 8px #365DA040, 0 0 0 1px #365DA033'}}>
       {/* Barra de búsqueda + botón Nuevo */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="relative w-80">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="relative w-full sm:w-80">
           <input
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
             placeholder="Buscar promociones..."
-            className="w-full px-4 py-2 border rounded-full"
+            className="w-full px-3 sm:px-4 py-2 text-xs sm:text-sm border rounded-full"
           />
           {globalFilter && (
             <button
@@ -208,7 +208,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
         </div>
 
         <button
-          className="bg-blue-800 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition-colors flex items-center gap-2"
+          className="w-full sm:w-auto bg-blue-800 text-white px-4 sm:px-6 py-2 rounded-full hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm"
           style={{ borderRadius: '12px' }}
           onClick={() => abrirModalPromocion(null)}
         >
@@ -232,14 +232,14 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
           </button>
         </div>
       ) : (
-        <div>
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
             <DataTable
                 value={promociones}
                 loading={false}
                 loadingIcon={() => (
                   <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
-                    <span>Cargando datos...</span>
+                    <span className="text-xs sm:text-sm">Cargando datos...</span>
                   </div>
                 )}
                 globalFilter={globalFilter}
@@ -249,8 +249,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
                 rows={5}
                 rowsPerPageOptions={[5, 10, 20, 25]}
                 paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-                tableStyle={{ tableLayout: 'auto' }}
-                className="mt-4"
+                className="mt-4 text-xs sm:text-sm"
                 size="small"
                 selectionMode="single"
                 rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
@@ -262,23 +261,22 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
             header="ID"
             body={(rowData) => promociones.length - promociones.indexOf(rowData)}
             sortable
-            className="text-sm"
-            style={{ width: '5%', padding: '8px 8px' }}
+            className="text-xs sm:text-sm"
+            style={{ minWidth: '50px', padding: '8px 8px' }}
             headerStyle={{ padding: '8px 8px' }}
           />
           <Column
             field="nombre_promocion"
             header="NOMBRE"
             sortable
-            className="text-sm"
-            style={{ width: '220px', maxWidth: '220px', minWidth: '160px', padding: '8px 12px' }}
-            headerStyle={{ padding: '8px 12px', width: '220px', maxWidth: '220px', minWidth: '160px' }}
+            className="text-xs sm:text-sm"
+            style={{ minWidth: '120px', padding: '8px 12px' }}
+            headerStyle={{ padding: '8px 12px' }}
             body={(rowData) => (
               <div
                 style={{
                   width: '100%',
-                  minWidth: '160px',
-                  maxWidth: '220px',
+                  minWidth: '120px',
                   whiteSpace: 'normal',
                   wordBreak: 'break-word',
                   lineHeight: '1.4',
@@ -294,8 +292,8 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
           <Column
             field="descripcion_promocion"
             header="DESCRIPCIÓN"
-            className="text-sm"
-            style={{ width: '23%', padding: '8px 10px' }}
+            className="text-xs sm:text-sm"
+            style={{ minWidth: '150px', padding: '8px 10px' }}
             headerStyle={{ padding: '8px 10px' }}
             bodyStyle={{
               whiteSpace: 'normal',
@@ -312,8 +310,8 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
             body={(rowData) => `L. ${parseFloat(rowData.precio_promocion || 0).toFixed(2)}`}
             sortable
             dataType="numeric"
-            className="text-sm"
-            style={{ width: '11%', padding: '8px 8px' }}
+            className="text-xs sm:text-sm"
+            style={{ minWidth: '80px', padding: '8px 8px' }}
             headerStyle={{ padding: '8px 8px' }}
           />
           <Column
@@ -328,8 +326,8 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
               }
               return duracion;
             }}
-            className="text-sm"
-            style={{ width: '16%', padding: '8px 10px' }}
+            className="text-xs sm:text-sm"
+            style={{ minWidth: '130px', padding: '8px 10px' }}
             headerStyle={{ padding: '8px 10px' }}
             bodyStyle={{
               whiteSpace: 'normal',
@@ -346,15 +344,15 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
             body={estadoTemplate}
             sortable
             sortField="activo"
-            className="text-sm"
-            style={{ width: '15%', padding: '8px 8px' }}
+            className="text-xs sm:text-sm"
+            style={{ minWidth: '100px', padding: '8px 8px' }}
             headerStyle={{ padding: '8px 8px' }}
           />
           <Column
             header="ACCIONES"
             body={actionBotones}
-            className="py-2 pr-9 pl-1 border-b text-sm"
-            style={{ width: '10%', padding: '8px 8px' }}
+            className="py-2 pr-3 sm:pr-9 pl-1 text-xs sm:text-sm"
+            style={{ minWidth: '60px', padding: '8px 8px' }}
             headerStyle={{ padding: '8px 8px' }}
           />
               </DataTable>

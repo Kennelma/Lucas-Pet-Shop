@@ -247,17 +247,9 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
 
   return (
     <Dialog
-      header={<div className="w-full text-center text-lg font-bold">ACTUALIZAR ACCESORIO</div>}
+      header={<div className="w-full text-center text-sm sm:text-base md:text-lg font-bold">ACTUALIZAR ACCESORIO</div>}
       visible={isOpen}
-      style={{
-        width: '28rem',
-        borderRadius: '1.5rem',
-        maxHeight: '85vh',
-        position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)'
-      }}
+      className="w-11/12 sm:w-96 md:w-[28rem]"
       modal
       closable={false}
       onHide={onClose}
@@ -266,7 +258,7 @@ const ModalEditar = ({ isOpen, onClose, onSave, editData, accesoriosExistentes =
       dismissableMask={false}
       draggable={false}
       resizable={false}
-      contentStyle={{ overflowY: 'auto', maxHeight: 'calc(85vh - 120px)' }}
+      contentStyle={{ overflowY: 'auto', maxHeight: 'calc(100vh - 120px)' }}
     >
       <div className="flex flex-col gap-3 overflow-visible">
         {/* Nombre del Accesorio */}

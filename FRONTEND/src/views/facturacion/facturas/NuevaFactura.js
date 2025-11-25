@@ -237,8 +237,8 @@ const NuevaFactura = (props) => {
 
   //====================RENDER====================
   return (
-    <div className="space-y-6 p-4 max-w-5xl mx-auto bg-white shadow-xl rounded-lg">
-      <div className="border-dashed rounded-lg bg-blue-50">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-6 w-full bg-white shadow-xl rounded-lg">
+      <div className="border-dashed rounded-lg bg-blue-50 p-3 sm:p-4">
         <EncabezadoFactura
           identidad={identidad}
           setIdentidad={setIdentidad}

@@ -82,8 +82,7 @@ const ModalPerfilCliente = ({ isOpen, cliente, onClose }) => {
     <Dialog
       visible={isOpen}
       onHide={onClose}
-      className="rounded-lg overflow-hidden"
-      style={{ width: "28rem" }}
+      className="w-11/12 sm:w-96 md:w-[28rem] rounded-lg overflow-hidden"
       modal
       closable={false}
       position="center"

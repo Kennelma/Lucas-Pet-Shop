@@ -18,9 +18,6 @@ const Estilistas = React.lazy(() => import('./views/estilistas/Estilistas'))
 const Reportes = React.lazy(() => import('./views/reportes/Reportes'))
 const SAR = React.lazy(() => import('./views/sar/sar'))
 
-//const Tabla = React.lazy(() => import('./views/reportes/Tabla'))
-
-
 const routes = [
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/clientes', name: 'Clientes', element: Clientes },

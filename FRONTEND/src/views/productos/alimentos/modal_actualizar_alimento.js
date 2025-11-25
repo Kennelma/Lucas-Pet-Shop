@@ -250,15 +250,15 @@ const ModalActualizarAlimento = ({ isOpen, onClose, onSave, editData, alimentosE
   //RENDER MODAL
   return (
     <Dialog
-      header={<div className="w-full text-center text-lg font-bold">ACTUALIZAR ALIMENTO</div>}
+      header={<div className="w-full text-center text-sm sm:text-base md:text-lg font-bold">ACTUALIZAR ALIMENTO</div>}
       visible={isOpen}
-      style={{ width: '30rem', height: '85vh', borderRadius: '1.5rem' }}
+      className="w-11/12 sm:w-96 md:w-[30rem]"
       modal closable={false} onHide={onClose} footer={footer}
       position="center" dismissableMask={false} draggable={false} resizable={false}
       contentStyle={{
         overflowY: 'auto',
         padding: '1rem',
-        height: 'calc(85vh - 120px)'
+        maxHeight: 'calc(100vh - 120px)'
       }}
     >
       <div className="flex flex-col gap-3">
