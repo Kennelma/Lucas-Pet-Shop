@@ -33,7 +33,6 @@ app.use(cors({
 
 app.use('/api', require('./routes/rutas'));
 
-
 //IMPORTACION DE WHATSAPP
 connectWhatsApp().catch(err => {
     console.error('Error al conectar WhatsApp:', err);
