@@ -65,14 +65,14 @@ const ActionMenu = ({ rowData, onEditar, onEliminar, rowIndex, totalRows }) => {
     <div className="relative flex justify-center" ref={menuRef}>
       <button
         ref={buttonRef}
-        className="w-8 h-8 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center transition-colors"
+        className="w-7 h-7 sm:w-8 sm:h-8 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center transition-colors text-xs sm:text-sm"
         onClick={handleToggleMenu}
       >
         <i className="pi pi-ellipsis-h text-white text-xs"></i>
       </button>
 
       {isOpen && (
-        <div className={`absolute right-0 ${shouldShowAbove ? 'bottom-16' : 'top-12'} bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[140px]`}>
+        <div className={`absolute right-0 ${shouldShowAbove ? 'bottom-16' : 'top-12'} bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[140px] text-xs sm:text-sm`}>
           <div
             className="px-2 py-1.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 cursor-pointer flex items-center gap-2 transition-colors whitespace-nowrap"
             onClick={(e) => {
@@ -236,10 +236,10 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                     }
                 `}
             </style>
-            <div className="bg-white rounded-xl p-6 font-poppins border-2" style={{borderColor: '#B5DD7E'}}>
-                <div className="flex justify-end items-center mb-4">
+            <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 font-poppins border-2" style={{borderColor: '#B5DD7E'}}>
+                <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center gap-2 sm:gap-3 mb-4">
                     <button
-                        className="text-black px-3 py-1 text-sm rounded transition-colors flex items-center gap-2 uppercase"
+                        className="w-full sm:w-auto text-black px-3 py-2 sm:py-1 text-xs sm:text-sm rounded transition-colors flex items-center justify-center sm:justify-start gap-2 uppercase"
                         style={{ backgroundColor: "#B5DD7E" }}
                         onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(222, 255, 173, 1)'}
                         onClick={handleAgregarCliente}
@@ -250,11 +250,12 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                 </div>
 
                 {clientes.length === 0 && !loading ? (
-                    <div className="text-center py-8">
-                        <p className="text-gray-500 text-lg">No hay clientes registrados</p>
-                        <p className="text-gray-400 text-sm mt-2">Haz clic en el botón + para agregar tu primer cliente</p>
+                    <div className="text-center py-6 sm:py-8">
+                        <p className="text-gray-500 text-sm sm:text-lg">No hay clientes registrados</p>
+                        <p className="text-gray-400 text-xs sm:text-sm mt-2">Haz clic en el botón + para agregar tu primer cliente</p>
                     </div>
                 ) : (
+                    <div className="overflow-x-auto rounded-lg border border-gray-200">
                     <DataTable
                         value={clientes}
                         loading={loading}
@@ -263,18 +264,19 @@ const TablaClientes = ({ setClienteSeleccionado }) => {
                         rowsPerPageOptions={[5, 10, 15]}
                         paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
                         tableStyle={{ width: '100%' }}
-                        className="font-poppins datatable-gridlines datatable-compact"
+                        className="font-poppins datatable-gridlines datatable-compact text-xs sm:text-sm"
                         size="small"
                         rowClassName={(rowData) => rowData.id_cliente_pk === selectedClienteId ? 'bg-[#DEFFAD]/30 cursor-pointer' : 'hover:bg-[#DEFFAD]/20 cursor-pointer'}
                         onRowClick={handleRowClick}
                         selectionMode="single"
                     >
-                        <Column field="id_cliente_pk" header="ID" body={(rowData) => clientes.length - clientes.indexOf(rowData)} sortable className="text-sm px-2" style={{ width: '60px' }} />
-                        <Column field="nombre_cliente" header="NOMBRE" sortable className="text-sm px-2" style={{ width: 'auto' }} />
-                        <Column field="apellido_cliente" header="APELLIDO" sortable className="text-sm px-2" style={{ width: 'auto' }} />
-                        <Column field="telefono_cliente" header="TELÉFONO" body={(rowData) => `+504 ${rowData.telefono_cliente}`} sortable className="text-sm px-2" style={{ width: 'auto' }} />
-                        <Column header="ACCIONES" body={actionBotones} className="text-sm text-center px-2" style={{ width: '80px' }} />
+                        <Column field="id_cliente_pk" header="ID" body={(rowData) => clientes.length - clientes.indexOf(rowData)} sortable className="text-xs sm:text-sm px-2" style={{ width: '50px', minWidth: '50px' }} />
+                        <Column field="nombre_cliente" header="NOMBRE" sortable className="text-xs sm:text-sm px-2" style={{ width: 'auto', minWidth: '100px' }} />
+                        <Column field="apellido_cliente" header="APELLIDO" sortable className="text-xs sm:text-sm px-2" style={{ width: 'auto', minWidth: '100px' }} />
+                        <Column field="telefono_cliente" header="TELÉFONO" body={(rowData) => `+504 ${rowData.telefono_cliente}`} sortable className="text-xs sm:text-sm px-2" style={{ width: 'auto', minWidth: '120px' }} />
+                        <Column header="ACCIONES" body={actionBotones} className="text-xs sm:text-sm text-center px-2" style={{ width: '70px', minWidth: '70px' }} />
                     </DataTable>
+                    </div>
                 )}
             </div>
 
