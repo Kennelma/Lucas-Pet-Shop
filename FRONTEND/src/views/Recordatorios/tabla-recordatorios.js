@@ -352,21 +352,21 @@ const TablaRecordatorios = ({
   return (
     <>
       <div
-        className="bg-white rounded-xl p-6"
+        className="bg-white rounded-xl p-3 sm:p-4 md:p-6"
         style={{ boxShadow: "0 0 8px #9333ea40, 0 0 0 1px #9333ea33" }}
       >
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* SECCIÓN: BOTONES DE ACCIÓN SUPERIORES                           */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <div className="flex justify-end items-center mb-4 gap-3">
-          <button
-            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-sm rounded transition-colors flex items-center gap-2"
+        <div className="flex flex-col sm:flex-row justify-end items-stretch sm:items-center mb-4 gap-2 sm:gap-3">
+  <button
+    className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 sm:py-1 text-xs sm:text-sm rounded transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
             onClick={() => setShowWhatsApp(true)}
           >
             CONECTAR WHATSAPP
           </button>
           <button
-            className="bg-purple-500 hover:bg-purple-700 text-white px-3 py-1 text-sm rounded transition-colors flex items-center gap-2"
+            className="bg-purple-500 hover:bg-purple-700 text-white px-3 py-2 sm:py-1 text-xs sm:text-sm rounded transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
             onClick={() => setOpenModal(true)}
           >
             <FontAwesomeIcon icon={faPlus} />
@@ -446,6 +446,7 @@ const TablaRecordatorios = ({
             </p>
           </div>
         ) : (
+        <div className="overflow-x-auto">
           <DataTable
             value={recordatorios}
             loading={loading}
@@ -515,6 +516,7 @@ const TablaRecordatorios = ({
               className="py-2 pr-9 pl-1 border-b text-sm"
             />
           </DataTable>
+        </div>  
         )}
       </div>
 

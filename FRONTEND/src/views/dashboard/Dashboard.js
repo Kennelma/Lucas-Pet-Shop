@@ -213,15 +213,15 @@ const Dashboard = () => {
       </style>
       <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
       <div className="font-['Poppins']">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-2 sm:p-4">
 
         {/* Contenido Principal */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-4">
 
           {/* Header */}
-          <div className="mb-8">
+          <div className="mb-4 sm:mb-8">
             <div
-              className="rounded-xl p-4 bg-cover bg-center"
+              className="rounded-xl p-3 sm:p-4 bg-cover bg-center"
               style={{
                 backgroundImage: 'url("/H13.png")',
                 backgroundColor: '#BAF2BB',
@@ -231,11 +231,11 @@ const Dashboard = () => {
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
               }}
             >
-              <div className="mb-2">
-                <h1 className="text-xl font-light text-black mb-1">
+              <div className="mb-2 max-w-[60%] sm:max-w-none">
+                <h1 className="text-xs sm:text-xs md:text-xl font-light text-black mb-1">
                   ¡Hola, {usuario?.nombre || 'Administrador'}!
                 </h1>
-                <p className="text-sm text-gray-800 poppins">
+                <p className="text-[10px] sm:text-xs md:text-sm text-gray-800 poppins">
                   Bienvenido a tu sistema de gestión veterinaria y tienda de mascotas
                 </p>
               </div>
@@ -244,71 +244,70 @@ const Dashboard = () => {
           </div>
 
           {/* Accesos Directos */}
-          <div className="mb-8">
-            <div className="text-lg font-bold text-gray-800 mb-4 text-center">ACCESOS RÁPIDOS</div>
+          <div className="mb-4 sm:mb-8">
+            <div className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4 text-center">ACCESOS RÁPIDOS</div>
 
             {/* Primera fila */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-              <button
-                onClick={() => navigate('/facturacion')}
-                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border"
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <button onClick={() => navigate('/facturacion')}
+                  className="group relative overflow-hidden bg-gray-50 p-3 sm:p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border-[1px] border-gray-300"
               >
                 <div className="relative flex flex-col items-center justify-center h-full">
-                  <lucideReact.FileText className="w-7 h-7 text-blue-600 mb-2" />
-                  <div className="text-sm font-semibold text-gray-800 text-center">FACTURACIÓN</div>
+                  <lucideReact.FileText className="w-6 sm:w-7 h-6 sm:h-7 text-blue-600 mb-1 sm:mb-2" />
+                  <div className="text-[10px] sm:text-sm font-semibold text-gray-800 text-center leading-tight">FACTURACIÓN</div>
                 </div>
               </button>
 
               <button
-                onClick={() => navigate('/reportes')}
-                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border"
-              >
-                <div className="relative flex flex-col items-center justify-center h-full">
-                  <lucideReact.TrendingUp className="w-7 h-7 text-purple-600 mb-2" />
-                  <div className="text-sm font-semibold text-gray-800 text-center">REPORTES</div>
-                </div>
-              </button>
+  onClick={() => navigate('/reportes')}
+  className="group relative overflow-hidden bg-gray-50 p-3 sm:p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border-gray-300"
+>
+  <div className="relative flex flex-col items-center justify-center h-full">
+    <lucideReact.TrendingUp className="w-6 sm:w-7 h-6 sm:h-7 text-purple-600 mb-1 sm:mb-2" />
+    <div className="text-[10px] sm:text-sm font-semibold text-gray-800 text-center leading-tight">REPORTES</div>
+  </div>
+</button>
 
               <button
-                onClick={() => navigate('/clientes')}
-                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border"
-              >
-                <div className="relative flex flex-col items-center justify-center h-full">
-                  <lucideReact.Users className="w-7 h-7 text-indigo-600 mb-2" />
-                  <div className="text-sm font-semibold text-gray-800 text-center">CLIENTES</div>
-                </div>
-              </button>
+  onClick={() => navigate('/clientes')}
+  className="group relative overflow-hidden bg-gray-50 p-3 sm:p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border-gray-300"
+>
+  <div className="relative flex flex-col items-center justify-center h-full">
+    <lucideReact.Users className="w-6 sm:w-7 h-6 sm:h-7 text-indigo-600 mb-1 sm:mb-2" />
+    <div className="text-[10px] sm:text-sm font-semibold text-gray-800 text-center leading-tight">CLIENTES</div>
+  </div>
+</button>
             </div>
 
             {/* Segunda fila */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <button
                 onClick={() => navigate('/recordatorios')}
-                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border"
+                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border-gray-300"
               >
                 <div className="relative flex flex-col items-center justify-center h-full">
-                  <lucideReact.Bell className="w-7 h-7 text-orange-600 mb-2" />
-                  <div className="text-sm font-semibold text-gray-800 text-center">RECORDATORIOS</div>
+                  <lucideReact.Bell className="w-6 sm:w-7 h-6 sm:h-7 text-orange-600 mb-1 sm:mb-2" />
+<div className="text-[10px] sm:text-sm font-semibold text-gray-800 text-center leading-tight">RECORDATORIOS</div>
                 </div>
               </button>
 
               <button
                 onClick={() => navigate('/productos/alimentos')}
-                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border"
+                className="group relative overflow-hidden bg-gray-50 p-3 sm:p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border-gray-300"
               >
                 <div className="relative flex flex-col items-center justify-center h-full">
-                  <lucideReact.Package className="w-7 h-7 text-green-600 mb-2" />
-                  <div className="text-sm font-semibold text-gray-800 text-center">PRODUCTOS</div>
+                  <lucideReact.Package className="w-6 sm:w-7 h-6 sm:h-7 text-green-600 mb-1 sm:mb-2" />
+<div className="text-[10px] sm:text-sm font-semibold text-gray-800 text-center leading-tight">PRODUCTOS</div>
                 </div>
               </button>
 
               <button
                 onClick={() => navigate('/seguridad')}
-                className="group relative overflow-hidden bg-gray-50 p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border"
+                className="group relative overflow-hidden bg-gray-50 p-3 sm:p-4 rounded-xl transition-all hover:bg-gray-200 shadow-md border-gray-300"
               >
                 <div className="relative flex flex-col items-center justify-center h-full">
-                  <lucideReact.Shield className="w-7 h-7 text-red-600 mb-2" />
-                  <div className="text-sm font-semibold text-gray-800 text-center">SEGURIDAD</div>
+                  <lucideReact.Shield className="w-6 sm:w-7 h-6 sm:h-7 text-red-600 mb-1 sm:mb-2" />
+<div className="text-[10px] sm:text-sm font-semibold text-gray-800 text-center leading-tight">SEGURIDAD</div>
                 </div>
               </button>
             </div>
@@ -320,7 +319,7 @@ const Dashboard = () => {
           <div className="w-full">
 
             {/* Card Principal */}
-            <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
+            <div className="bg-white rounded-3xl shadow-xl overflow-hidden border-gray-300 border-slate-100">
 
               {/* Header */}
               <div className="relative px-4 pt-2 pb-1 bg-[#FFCC33]">
