@@ -363,12 +363,12 @@ const Alimentos = () => {
 
   return (
     <>
-      <div className="min-h-screen p-3 sm:p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
-      <div className="min-h-screen p-3 sm:p-6 bg-gray-50">
+      <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+      <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50">
         {/* Título */}
       <div className="rounded-xl p-4 sm:p-6 mb-3"
         style={{
-          backgroundImage: 'url("/H4.jpg")',
+          backgroundImage: window.innerWidth >= 640 ? 'url("/H4.jpg")' : 'none',
           backgroundColor: '#FFD4DE',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
@@ -377,7 +377,7 @@ const Alimentos = () => {
         }}
       >
         <div className="flex justify-center items-center">
-          <h2 className="text-xl sm:text-2xl font-black text-center uppercase text-black">
+          <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-center uppercase text-black">
             GESTIÓN DE ALIMENTOS
           </h2>
         </div>

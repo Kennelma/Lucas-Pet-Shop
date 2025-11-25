@@ -10,7 +10,7 @@ export default function Facturacion() {
   const [facturaParaImprimir, setFacturaParaImprimir] = useState(null);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100" style={{ fontFamily: 'Poppins' }}>
+    <div className="min-h-screen bg-gray-50" style={{ fontFamily: 'Poppins' }}>
       {/* HEADER Y TÍTULO */}
       <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
         {/* NAVEGADOR DE PESTAÑAS - RESPONSIVO */}

@@ -340,10 +340,11 @@ const Medicamentos = () => {
 
   return (
     <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+      <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50">
       {/* Título */}
       <div className="rounded-lg sm:rounded-xl p-4 sm:p-6 mb-3 sm:mb-4"
         style={{
-          backgroundImage: 'url("/H3.jpg")',
+          backgroundImage: window.innerWidth >= 640 ? 'url("/H3.jpg")' : 'none',
           backgroundColor: '#FFDE59',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
@@ -352,7 +353,7 @@ const Medicamentos = () => {
         }}
       >
         <div className="flex justify-center items-center">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-black text-center font-poppins uppercase text-black">
+          <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-center font-poppins uppercase text-black">
             GESTIÓN DE MEDICAMENTOS
           </h2>
         </div>
@@ -541,6 +542,7 @@ const Medicamentos = () => {
           {mensaje}
         </div>
       )}
+      </div>
     </div>
   );
 };

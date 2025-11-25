@@ -336,10 +336,11 @@ export default function Usuarios() {
   return (
     <>
       {/*titulo*/}
-      <div className="min-h-screen p-6 bg-gray-50">
-        <div className="rounded-xl p-6 mb-3"
+      <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+      <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50">
+        <div className="rounded-xl p-4 sm:p-6 mb-3"
         style={{
-          backgroundImage: 'url("/h7.jpg")',
+          backgroundImage: window.innerWidth >= 640 ? 'url("/h7.jpg")' : 'none',
           backgroundColor: '#9AE19D',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
@@ -348,25 +349,25 @@ export default function Usuarios() {
         }}
       >
         <div className="flex justify-center items-center">
-          <h2 className="text-2xl  text-center uppercase text-black">
+          <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-center uppercase text-black">
             GESTION DE SEGURIDAD
           </h2>
         </div>
-          <p className="text-center text-black italic mt-2">
+          <p className="text-center text-black italic mt-2 text-xs sm:text-sm">
             Administra los usuarios del sistema y sus permisos
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4">
           <div className="lg:col-span-8 bg-white border border-gray-300 rounded-xl overflow-hidden">
-            <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <div className="relative w-80">
+            <div className="p-3 sm:p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mb-6">
+            <div className="relative w-full sm:w-80">
               <input
                 value={filtro}
                 onChange={(e) => setFiltro(e.target.value)}
                 placeholder="Buscar usuarios..."
-                className="w-full px-4 py-2 border rounded-full"
+                className="w-full px-4 py-2 border border-gray-300 rounded-full text-sm bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
               />
               {filtro && (
                 <button
@@ -378,7 +379,7 @@ export default function Usuarios() {
               )}
             </div>
             <button
-              className="bg-[#9AE19D] text-black px-6 py-2 rounded hover:bg-[#8AC98D] transition-colors flex items-center gap-2"
+              className="bg-[#9AE19D] text-black px-4 sm:px-6 py-2 rounded hover:bg-[#8AC98D] transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap"
               onClick={() => {
                 const usuarioActual = JSON.parse(sessionStorage.getItem('usuario'));
                 const rolActual = usuarioActual?.rol?.toLowerCase();
@@ -398,7 +399,8 @@ export default function Usuarios() {
               }}
             >
               <FontAwesomeIcon icon={faPlus} />
-              NUEVO USUARIO
+              <span className="hidden sm:inline">NUEVO USUARIO</span>
+              <span className="sm:hidden">NUEVO USUARIO</span>
             </button>
           </div>
 
@@ -418,20 +420,21 @@ export default function Usuarios() {
             rows={5}
             rowsPerPageOptions={[5, 10, 20, 25]}
             paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-            tableStyle={{ minWidth: 'auto', tableLayout: 'auto' }}
+            tableStyle={{ minWidth: '100%' }}
             className="mt-4"
             size="small"
             selectionMode="single"
             rowClassName={(rowData) => rowData.id_usuario_pk === selectedUsuarioId ? '!bg-green-50 hover:!bg-green-50 cursor-pointer' : 'hover:bg-gray-50 cursor-pointer'}
             onRowClick={handleRowClick}
-            scrollable={false}
+            scrollable
+            scrollHeight="350px"
           >
             <Column
               field="id_usuario_pk"
               header="ID"
               body={(rowData) => filtroUsuarios.length - filtroUsuarios.indexOf(rowData)}
               sortable
-              style={{ width: '90px' }}
+              style={{ minWidth: '60px' }}
             />
             <Column
               field="usuario"
@@ -444,18 +447,18 @@ export default function Usuarios() {
               header="ROLES"
               body={rolesBody}
               sortable
-              style={{ width: '90' }}
+              style={{ minWidth: '130px' }}
             />
             <Column
               field="estado"
               header="ESTADO"
               body={estadoBody}
               sortable
-              style={{ width: '90', textAlign: 'center' }}
+              style={{ minWidth: '100px', textAlign: 'center' }}
             />
             <Column
               field="intentosFallidos"
-              header="INTENTOS DE SESIÓN"
+              header="INTENTOS"
               body={(rowData) => {
                 const intentos = rowData.intentosFallidos || 0;
                 let colorClasses = 'bg-green-100 text-green-800';
@@ -472,7 +475,7 @@ export default function Usuarios() {
                 );
               }}
               sortable
-              style={{ width: '90', textAlign: 'center' }}
+              style={{ minWidth: '100px', textAlign: 'center' }}
             />
 
           </DataTable>
@@ -505,6 +508,7 @@ export default function Usuarios() {
             onUsuarioActualizado={handleUsuarioActualizado}
           />
         )}
+      </div>
       </div>
     </>
   );

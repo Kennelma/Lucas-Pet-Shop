@@ -71,13 +71,14 @@ const estadoTemplate = (rowData) => {
 };
 
 return (
-    <div className="p-6" style={{ fontFamily: 'Poppins', backgroundColor: "#F7F8F2" }}>
-        <div className="p-6 pb-12">
+    <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+        <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50">
+        <div className="pb-12">
 
             {/* Título */}
-            <div className="rounded-xl p-6 mb-3"
+            <div className="rounded-xl p-4 sm:p-6 mb-3"
                 style={{
-                    backgroundImage: 'url("/H15.png")',
+                    backgroundImage: window.innerWidth >= 640 ? 'url("/H15.png")' : 'none',
                     backgroundColor: '#80d6afff',
                     backgroundSize: 'contain',
                     backgroundRepeat: 'no-repeat',
@@ -86,11 +87,11 @@ return (
                 }}
             >
                 <div className="flex justify-center items-center">
-                    <h2 className="text-2xl font-black text-center uppercase text-black">
+                    <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-center uppercase text-black">
                         GESTIÓN DE LOS CAI
                     </h2>
                 </div>
-                <p className="text-center text-black italic mt-2">
+                <p className="text-center text-black italic mt-2 text-xs sm:text-sm">
                     Administra los CAI disponibles en el sistema para su uso en facturación
                 </p>
             </div>
@@ -217,6 +218,7 @@ return (
                                     caiData={caiSeleccionado}
                             />
                         )}
+        </div>
         </div>
     </div>
 );

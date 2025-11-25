@@ -8,12 +8,13 @@ const Clientes = () => {
     const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
 
     return (
-        <div className="min-h-screen p-3 sm:p-4 md:p-6" style={{ fontFamily: 'Poppins', backgroundColor: "#F7F8F2" }}>
+        <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+        <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50">
             <div className="pb-12">
                 {/* Título */}
-                <div className="rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 mb-3"
+                <div className="rounded-lg sm:rounded-xl p-4 sm:p-6 mb-3"
                     style={{
-                        backgroundImage: 'url("/H2.jpg")',
+                        backgroundImage: window.innerWidth >= 640 ? 'url("/H2.jpg")' : 'none',
                         backgroundColor: '#B5DD7E',
                         backgroundSize: 'contain',
                         backgroundRepeat: 'no-repeat',
@@ -22,7 +23,7 @@ const Clientes = () => {
                     }}
                 >
                     <div className="flex justify-center items-center">
-                        <h2 className="text-lg sm:text-xl md:text-2xl font-black text-center uppercase text-black">
+                        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-center uppercase text-black">
                             GESTIÓN DE CLIENTES
                         </h2>
                     </div>
@@ -45,6 +46,8 @@ const Clientes = () => {
                 </div>
             </div>
         </div>
+        </div>
+
     );
 };
 

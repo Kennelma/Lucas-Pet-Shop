@@ -165,7 +165,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
       {/* Título */}
       <div className="rounded-lg sm:rounded-xl p-4 sm:p-6 mb-3 sm:mb-4"
         style={{
-          backgroundImage: 'url("/descarga (1).jpg")',
+          backgroundImage: window.innerWidth >= 640 ? 'url("/descarga (1).jpg")' : 'none',
           backgroundColor: '#365DA0',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
@@ -174,7 +174,7 @@ const PromocionesSeccion = ({ promociones, abrirModalPromocion, eliminarPromocio
         }}
       >
         <div className="flex justify-center items-center">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-black text-center uppercase text-white">
+          <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-center uppercase text-white">
             GESTIÓN DE PROMOCIONES
           </h2>
         </div>

@@ -157,8 +157,8 @@ const contactButtons = [
         </div>
       </nav>
 
-      <div className="pt-[200px]">
-        <section id="inicio" className="bg-yellow-50 relative min-h-[600px] sm:min-h-[750px] lg:min-h-[850px] overflow-visible -mt-[60px] sm:-mt-20 lg:-mt-[106px] pt-[60px] sm:pt-20 lg:pt-[106px]">
+      <div className="pt-0">
+        <section id="inicio" className="bg-yellow-50 relative min-h-[450px] sm:min-h-[550px] md:min-h-[650px] lg:min-h-[850px] overflow-hidden -mt-1 pt-[64px] sm:pt-[84px] lg:pt-[108px] pb-0">
           <div className="absolute inset-0 z-0">
             <img
               src="/images_LP/landing.jpeg"
@@ -169,7 +169,7 @@ const contactButtons = [
             <div className="absolute inset-0 bg-linear-to-r from-black/60 via-black/40 to-black/20"></div>
           </div>
 
-          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 lg:pt-16 pb-16 sm:pb-20">
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-32 sm:pb-36 md:pb-40 lg:pb-44">
             <div className="max-w-xl lg:max-w-2xl animate-fade-in">
               {/* Banner */}
               <div className="inline-flex items-center gap-2 bg-linear-to-r from-yellow-400/20 to-pink-500/20 backdrop-blur-sm border border-yellow-300/30 rounded-full px-4 py-2 mb-6 animate-slide-up">
@@ -177,7 +177,7 @@ const contactButtons = [
                 <span className="text-yellow-200 font-semibold text-sm tracking-wide">Con amor desde 2015</span>
               </div>
 
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-extrabold text-yellow-100! mb-4 sm:mb-6 leading-tight animate-slide-up tracking-tight">
+              <h1 className="text-lg sm:text-xl md:text-2xl lg:text-4xl xl:text-5xl font-extrabold text-yellow-100! mb-3 sm:mb-4 md:mb-6 leading-tight animate-slide-up tracking-tight">
                 MÁS QUE UNA TIENDA,<br className="hidden sm:block"/>
                 <span className="text-yellow-300">UN HOGAR PARA TU MASCOTA</span>
               </h1>
@@ -187,13 +187,13 @@ const contactButtons = [
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 animate-slide-up" style={{animationDelay: '0.4s'}}>
                 <button
                   onClick={() => scrollToSection('conocenos')}
-                  className="bg-transparent border-2 border-white text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full! font-bold hover:bg-white hover:text-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base tracking-wide"
+                  className="bg-transparent border-2 border-white text-white px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 rounded-full! font-bold hover:bg-white hover:text-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 text-xs sm:text-sm md:text-base tracking-wide"
                 >
                   Conoce más
                 </button>
                 <button
                   onClick={() => scrollToSection('contacto')}
-                  className="bg-transparent border-2 border-white text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full! font-bold hover:bg-white hover:text-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base tracking-wide"
+                  className="bg-transparent border-2 border-white text-white px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 rounded-full! font-bold hover:bg-white hover:text-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 text-xs sm:text-sm md:text-base tracking-wide"
                 >
                   Contactanos
                 </button>
@@ -202,18 +202,18 @@ const contactButtons = [
           </div>
 
           {/* Horario de atención*/}
-          <div className="absolute bottom-0 w-full flex justify-center animate-slide-up transform -translate-y-30" style={{animationDelay: '0.6s'}}>
+          <div className="absolute bottom-8 sm:bottom-12 md:bottom-16 lg:bottom-20 w-full flex justify-center animate-slide-up" style={{animationDelay: '0.6s'}}>
             <div className="inline-flex items-center gap-3 bg-white/25 backdrop-blur-sm rounded-full px-5 py-3 border border-white/50 shadow-xl">
               <Clock className="w-6 h-6 text-yellow-300" />
-              <span className="text-yellow-100 font-extrabold text-xl sm:text-2xl whitespace-nowrap tracking-wide">
+              <span className="text-yellow-100 font-extrabold text-sm sm:text-lg md:text-xl lg:text-2xl tracking-wide">
                 Lun-Sab: 9:00 AM - 5:00 PM
               </span>
             </div>
           </div>
 
           {/* Curva SVG elegante al final de la imagen */}
-          <svg className="absolute -bottom-px left-0 w-full z-20" viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,64L80,58.7C160,53,320,43,480,48C640,53,800,75,960,80C1120,85,1280,75,1360,69.3L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" fill="url(#gradientCurve)"/>
+          <svg className="absolute -bottom-1 left-0 w-full z-20 h-8 sm:h-10 md:h-12 lg:h-16" viewBox="0 0 1440 40" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+  <path d="M0,20L80,18C160,16,320,12,480,14C640,16,800,24,960,26C1120,28,1280,24,1360,22L1440,20L1440,40L1360,40C1280,40,1120,40,960,40C800,40,640,40,480,40C320,40,160,40,80,40L0,40Z" fill="url(#gradientCurve)"/>
             <defs>
               <linearGradient id="gradientCurve" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor="#fff9e2"/>
@@ -223,7 +223,7 @@ const contactButtons = [
           </svg>
         </section>
 
-        <section id="conocenos" className="pt-20 relative min-h-[600px] overflow-hidden bg-transparent">
+        <section id="conocenos" className="pt-0 relative min-h-[600px] overflow-hidden bg-transparent">
           <Carousel3D />
         </section>
 
@@ -338,13 +338,13 @@ const contactButtons = [
           <div className="max-w-xl lg:max-w-2xl animate-fade-in">
             {/* Título con efectos mejorados */}
             <div className="mb-8 sm:mb-10">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-white mb-4 sm:mb-6 animate-slide-up tracking-tight drop-shadow-2xl">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-white mb-4 sm:mb-6 animate-slide-up tracking-tight drop-shadow-2xl">
                 ¿Por qué <span className="text-yellow-300">elegirnos</span>?
               </h2>
               <div className="w-24 h-1 bg-linear-to-r from-yellow-400 to-pink-400 rounded-full animate-slide-up" style={{animationDelay: '0.1s'}}></div>
             </div>
 
-            <p className="text-sm sm:text-base lg:text-lg xl:text-xl mb-8 sm:mb-10 lg:mb-12 text-white/90 leading-relaxed animate-slide-up font-medium tracking-wide backdrop-blur-sm bg-white/10 rounded-2xl p-4 border border-white/20" style={{animationDelay: '0.2s'}}>
+            <p className="text-xs sm:text-sm md:text-base lg:text-lg mb-6 sm:mb-8 lg:mb-10 sm:mb-10 lg:mb-12 text-white/90 leading-relaxed animate-slide-up font-medium tracking-wide backdrop-blur-sm bg-white/10 rounded-2xl p-4 border border-white/20" style={{animationDelay: '0.2s'}}>
               Somos un equipo de <span className="text-yellow-300 font-bold">profesionales apasionados</span> por el bienestar animal, comprometidos con brindar la <span className="text-yellow-300 font-bold">mejor atención</span> a sus mascotas.
             </p>
 
@@ -368,13 +368,13 @@ const contactButtons = [
               ].map((item, index) => (
                 <div key={index} className="group">
                   <div className="flex items-start space-x-4 animate-slide-up bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-xl" style={{animationDelay: `${0.4 + index * 0.2}s`}}>
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shrink-0 shadow-lg group-hover:bg-yellow-400/30 group-hover:scale-110 transition-all duration-300 border border-white/30">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shrink-0 shadow-lg group-hover:bg-yellow-400/30 group-hover:scale-110 transition-all duration-300 border border-white/30">
                       <div className="text-white group-hover:text-yellow-900">
                         {item.icon}
                       </div>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-base sm:text-lg lg:text-xl font-black mb-2 text-white tracking-wide group-hover:text-yellow-300 transition-colors">
+                      <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-black mb-2 text-white tracking-wide group-hover:text-yellow-300 transition-colors">
                         {item.titulo}
                       </h3>
                       <p className="text-white/90 text-sm sm:text-base leading-relaxed font-medium">

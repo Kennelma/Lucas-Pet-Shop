@@ -260,8 +260,8 @@ const Servicios = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
-    <div className="min-h-screen p-6 bg-gray-50">
+    <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+      <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50">
       {loading ? (
         <div className="flex items-center justify-center min-h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
@@ -271,9 +271,9 @@ const Servicios = () => {
         <>
           {/* Título */}
           <div
-            className="rounded-xl p-6 mb-3 bg-cover bg-center"
+            className="rounded-xl p-4 sm:p-6 mb-3 bg-cover bg-center"
             style={{
-              backgroundImage: 'url("/header.jpg")',
+              backgroundImage: window.innerWidth >= 640 ? 'url("/header.jpg")' : 'none',
               backgroundColor: '#FF9A98',
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
@@ -282,11 +282,11 @@ const Servicios = () => {
             }}
           >
             <div className="flex justify-center items-center">
-              <h2 className="text-2xl text-center uppercase text-black ">
+              <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-center uppercase text-black">
                 GESTIÓN DE SERVICIOS DE PELUQUERÍA
               </h2>
             </div>
-            <p className="text-center text-black italic mt-2">
+            <p className="text-center text-black italic mt-2 text-xs sm:text-sm">
               Administra los servicios de peluquería y estética para mascotas
             </p>
           </div>

@@ -28,13 +28,13 @@ const Recordatorios = () => {
   }, []);
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
-      <div className="min-h-screen p-6 bg-gray-50">
+    <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+    <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50">
         {/* Título */}
         <div
-          className="rounded-xl p-6 mb-3"
+          className="rounded-xl p-4 sm:p-6 mb-3"
           style={{
-            backgroundImage: 'url("/H10.jpg")',
+            backgroundImage: window.innerWidth >= 640 ? 'url("/H10.jpg")' : 'none',
             backgroundColor: '#A57ECF',
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
@@ -43,11 +43,11 @@ const Recordatorios = () => {
           }}
         >
           <div className="flex justify-center items-center">
-            <h2 className="text-2xl font-black text-center uppercase text-black">
+            <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-center uppercase text-black">
               GESTIÓN DE RECORDATORIOS
             </h2>
           </div>
-          <p className="text-center text-black italic mt-2">
+          <p className="text-center text-black italic mt-2 text-xs sm:text-sm">
             Administra los recordatorios de servicios para tus clientes
           </p>
         </div>
@@ -57,7 +57,7 @@ const Recordatorios = () => {
           frecuencias={frecuencias}
           loading={loading}
         />
-      </div>
+    </div>
     </div>
   );
 };

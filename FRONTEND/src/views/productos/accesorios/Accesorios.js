@@ -336,10 +336,11 @@ const Accesorios = () => {
 
   return (
     <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+      <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50">
       {/* Título */}
       <div className="rounded-lg sm:rounded-xl p-4 sm:p-6 mb-3 sm:mb-4"
         style={{
-          backgroundImage: 'url("/H5.jpg")',
+          backgroundImage: window.innerWidth >= 640 ? 'url("/H5.jpg")' : 'none',
           backgroundColor: '#C4D3AB',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
@@ -348,7 +349,7 @@ const Accesorios = () => {
         }}
       >
         <div className="flex justify-center items-center">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-black text-center uppercase text-black">
+          <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-center uppercase text-black">
             GESTIÓN DE ACCESORIOS
           </h2>
         </div>
@@ -509,6 +510,7 @@ const Accesorios = () => {
             accesoriosExistentes={accesorios}
           />
         ))}
+      </div>
     </div>
   );
 };

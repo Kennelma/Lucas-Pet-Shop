@@ -160,8 +160,8 @@ const Estilistas = () => {
 
   return (
 
-    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
-    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+    <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+    <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50">
       {/* Estilos inline para z-index de modales */}
       <style>{`
         .p-dialog-mask {
@@ -190,9 +190,9 @@ const Estilistas = () => {
       ) : (
         <>
           {/* Título */}
-          <div className="rounded-xl p-6 mb-3"
+          <div className="rounded-xl p-4 sm:p-6 mb-3"
             style={{
-              backgroundImage: 'url("/H11.png")',
+              backgroundImage: window.innerWidth >= 640 ? 'url("/H11.png")' : 'none',
               backgroundColor: '#fda55d',
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
@@ -201,11 +201,11 @@ const Estilistas = () => {
             }}
           >
             <div className="flex justify-center items-center">
-              <h2 className="text-2xl font-black text-center uppercase text-black">
+              <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-center uppercase text-black">
                 GESTIÓN DE ESTILISTAS
               </h2>
             </div>
-            <p className="text-center text-black italic mt-2">
+            <p className="text-center text-black italic mt-2 text-xs sm:text-sm">
               Administra los estilistas disponibles en el sistema para su gestión
             </p>
           </div>

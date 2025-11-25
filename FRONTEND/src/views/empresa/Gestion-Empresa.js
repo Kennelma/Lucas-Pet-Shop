@@ -681,13 +681,13 @@ export default function GestionEmpresa() {
   };
 
   return (
-
     <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+      <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50">
       {/* Título */}
       <div
         className="rounded-lg sm:rounded-xl p-4 sm:p-6 mb-3 sm:mb-4 bg-cover bg-center"
         style={{
-          backgroundImage: 'url("/H8.png")',
+          backgroundImage: window.innerWidth >= 640 ? 'url("/H8.png")' : 'none',
           backgroundColor: '#008FCC',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
@@ -696,7 +696,7 @@ export default function GestionEmpresa() {
         }}
       >
         <div className="flex justify-center items-center">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-black text-center text-white">
+          <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-center text-white">
             GESTIÓN DE EMPRESAS
           </h2>
         </div>
@@ -869,6 +869,7 @@ export default function GestionEmpresa() {
           empresas={empresas}
         />
       )}
+      </div>
     </div>
   );
 }
