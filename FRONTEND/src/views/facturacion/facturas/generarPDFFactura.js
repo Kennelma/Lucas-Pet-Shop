@@ -124,7 +124,7 @@ export const generarPDFFactura = (datosFactura) => {
   doc.setFont(undefined, 'normal');
 
   const nombreCliente = `${factura.nombre_cliente || ''} ${factura.apellido_cliente || ''}`.trim();
-  doc.text(nombreCliente || 'Consumidor General', margin + 15, yPos);
+  doc.text(nombreCliente || 'CONSUMIDOR FINAL', margin + 15, yPos);
   yPos += 3;
 
   doc.text(`RTN: ${factura.RTN || ''}`, margin, yPos);

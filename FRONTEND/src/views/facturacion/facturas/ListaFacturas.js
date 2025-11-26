@@ -383,33 +383,33 @@ const handleVerFactura = (factura) => {
       </div>
 
       {/*RESUMEN_DE_ESTADISTICAS - RESPONSIVE*/}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mx-4 sm:mx-6 mb-4 sm:mb-6">
-        <div className="bg-blue-500 rounded shadow-sm p-2 sm:p-3">
-          <div className="flex flex-col items-start">
+      <div className="flex flex-wrap gap-2 mb-4 max-w-3xl mx-auto justify-center px-4">
+        <div className="bg-blue-500 rounded shadow-sm p-1.5 w-full sm:w-40">
+          <div className="flex items-center justify-between">
             <p className="text-white text-[0.65rem] sm:text-xs font-medium">TOTAL</p>
-            <p className="text-lg sm:text-2xl font-bold text-white">{facturas.length}</p>
+            <p className="text-sm sm:text-base font-bold text-white">{facturas.length}</p>
           </div>
         </div>
-        <div className="bg-green-500 rounded shadow-sm p-2 sm:p-3">
-          <div className="flex flex-col items-start">
+        <div className="bg-green-500 rounded shadow-sm p-1.5 w-full sm:w-40">
+          <div className="flex items-center justify-between">
             <p className="text-white text-[0.65rem] sm:text-xs font-medium">PAGADAS</p>
-            <p className="text-lg sm:text-2xl font-bold text-white">
+            <p className="text-sm sm:text-base font-bold text-white">
               {facturas.filter(f => f.nombre_estado?.toUpperCase() === 'PAGADA').length}
             </p>
           </div>
         </div>
-        <div className="bg-orange-500 rounded shadow-sm p-2 sm:p-3">
-          <div className="flex flex-col items-start">
+        <div className="bg-orange-500 rounded shadow-sm p-1.5 w-full sm:w-40">
+          <div className="flex items-center justify-between">
             <p className="text-white text-[0.65rem] sm:text-xs font-medium">PARCIAL</p>
-            <p className="text-lg sm:text-2xl font-bold text-white">
+            <p className="text-sm sm:text-base font-bold text-white">
               {facturas.filter(f => f.nombre_estado?.toUpperCase() === 'PARCIAL').length}
             </p>
           </div>
         </div>
-        <div className="bg-yellow-500 rounded shadow-sm p-2 sm:p-3">
-          <div className="flex flex-col items-start">
+        <div className="bg-yellow-500 rounded shadow-sm p-1.5 w-full sm:w-40">
+          <div className="flex items-center justify-between">
             <p className="text-white text-[0.65rem] sm:text-xs font-medium">PENDIENTES</p>
-            <p className="text-lg sm:text-2xl font-bold text-white">
+            <p className="text-sm sm:text-base font-bold text-white">
               {facturas.filter(f => f.nombre_estado?.toUpperCase() === 'PENDIENTE').length}
             </p>
           </div>
@@ -428,7 +428,7 @@ const handleVerFactura = (factura) => {
               <th className="px-2 sm:px-3 py-2 text-right text-[0.65rem] sm:text-xs font-medium text-gray-700 uppercase">TOTAL</th>
               <th className="px-2 sm:px-3 py-2 text-right text-[0.65rem] sm:text-xs font-medium text-gray-700 uppercase hidden lg:table-cell">SALDO</th>
               <th className="px-2 py-2 text-center text-[0.65rem] sm:text-xs font-medium text-gray-700 uppercase">ESTADO</th>
-              <th className="px-2 sm:px-3 py-2 text-center text-[0.65rem] sm:text-xs font-medium text-gray-700 uppercase">ACC</th>
+              <th className="px-2 sm:px-3 py-2 text-center text-[0.65rem] sm:text-xs font-medium text-gray-700 uppercase">ACCIONES</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -460,18 +460,14 @@ const handleVerFactura = (factura) => {
                     </div>
                   </td>
                   <td className="px-2 sm:px-4 py-2">
-                    {factura.nombre_cliente ? (
-                      <div>
-                        <div className="text-[0.7rem] sm:text-sm font-medium text-gray-900 break-words max-w-[100px] sm:max-w-none">
-                          {`${factura.nombre_cliente} ${factura.apellido_cliente || ''}`}
-                        </div>
-                        {factura.identidad_cliente && (
-                          <div className="text-[0.6rem] sm:text-xs text-gray-500 hidden sm:block">{factura.identidad_cliente}</div>
-                        )}
+                    <div>
+                      <div className="text-[0.7rem] sm:text-sm font-medium text-gray-900 break-words max-w-[100px] sm:max-w-none">
+                        {factura.nombre_cliente || 'CONSUMIDOR FINAL'}
                       </div>
-                    ) : (
-                      <div className="text-[0.7rem] sm:text-sm font-medium text-gray-900">Consumidor</div>
-                    )}
+                      {factura.identidad_cliente && (
+                        <div className="text-[0.6rem] sm:text-xs text-gray-500 hidden sm:block">{factura.identidad_cliente}</div>
+                      )}
+                    </div>
                   </td>
                   <td className="px-2 sm:px-3 py-2 hidden md:table-cell">
                     <div className="text-xs sm:text-sm text-gray-600">{factura.usuario}</div>
@@ -491,13 +487,13 @@ const handleVerFactura = (factura) => {
                     </span>
                   </td>
                   <td className="px-2 sm:px-3 py-2 text-center">
-                    <div className="flex items-center justify-center gap-0.5 sm:gap-1 flex-wrap">
+                    <div className="flex items-center justify-center gap-1 sm:gap-1.5 flex-wrap">
                       <button
                         onClick={() => handleVerFactura(factura)}
-                        className="p-1 sm:p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        className="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                         title="Ver"
                       >
-                        <Eye size={14} className="sm:w-4 sm:h-4" />
+                        <Eye size={16} className="sm:w-5 sm:h-5" />
                       </button>
 
                       {estadoUpper === 'PAGADA' ? (
@@ -505,18 +501,18 @@ const handleVerFactura = (factura) => {
                           {/* BOTONES PARA FACTURAS PAGADAS */}
                           <button
                             onClick={() => handleImprimirFactura(factura)}
-                            className="p-1 sm:p-1.5 text-gray-600 hover:bg-gray-50 rounded transition-colors"
+                            className="p-1.5 sm:p-2 text-gray-600 hover:bg-gray-50 rounded transition-colors"
                             title="Imprimir"
                           >
-                            <Printer size={14} className="sm:w-4 sm:h-4" />
+                            <Printer size={16} className="sm:w-5 sm:h-5" />
                           </button>
 
                           <button
                             onClick={() => handleDescargarFactura(factura)}
-                            className="p-1 sm:p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors"
+                            className="p-1.5 sm:p-2 text-green-600 hover:bg-green-50 rounded transition-colors"
                             title="Descargar"
                           >
-                            <Download size={14} className="sm:w-4 sm:h-4" />
+                            <Download size={16} className="sm:w-5 sm:h-5" />
                           </button>
                         </>
                       ) : (
@@ -524,7 +520,7 @@ const handleVerFactura = (factura) => {
                           {/* BOTÓN PARA FACTURAS PENDIENTES O PARCIALES */}
                           <button
                             onClick={() => handleAbrirModalPago(factura)}
-                            className={`px-1.5 sm:px-2.5 py-1 text-white text-[0.6rem] sm:text-[0.7rem] font-medium rounded transition-colors whitespace-nowrap ${
+                            className={`px-2 sm:px-3 py-1.5 sm:py-2 text-white text-xs sm:text-sm font-medium rounded transition-colors whitespace-nowrap ${
                               estadoUpper === 'PARCIAL'
                                 ? 'bg-orange-600 hover:bg-orange-700'
                                 : 'bg-blue-600 hover:bg-blue-700'

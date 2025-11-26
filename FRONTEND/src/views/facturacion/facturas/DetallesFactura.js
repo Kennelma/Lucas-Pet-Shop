@@ -264,6 +264,7 @@ const DetallesFactura = ({
     const datosFactura = {
       RTN: RTN || null,
       id_cliente: id_cliente || null,
+      nombre_cliente_temporal: (!id_cliente && nombreCliente) ? nombreCliente : null,
       descuento: DESCUENTO,
       items: items.map((item) => ({
         tipo: item.tipo,
@@ -383,6 +384,7 @@ const DetallesFactura = ({
         datosFactura: {
           RTN: RTN || null,
           id_cliente: id_cliente || null,
+          nombre_cliente_temporal: (!id_cliente && nombreCliente) ? nombreCliente : null,
           descuento: DESCUENTO,
           items: items.map((item) => ({
             tipo: item.tipo,

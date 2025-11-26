@@ -61,22 +61,23 @@ const EncabezadoFactura = ({
     return () => clearInterval(intervalo);
   }, [onFechaChange]);
 
-  //ESTABLECE CONSUMIDOR FINAL COMO VALOR POR DEFECTO AL CARGAR
+  //ESTABLECE CONSUMIDOR FINAL COMO VALOR POR DEFECTO SOLO AL CARGAR LA PRIMERA VEZ
   useEffect(() => {
-    if (!nombreCliente && !identidad) {
-      setNombreCliente('CONSUMIDOR FINAL');
-      setClienteEncontrado(true);
+    if (nombreCliente === undefined || nombreCliente === null) {
+      setNombreCliente('');
     }
-  }, [nombreCliente, identidad, setNombreCliente]);
+  }, []);
 
   //BUSCA AUTOMÁTICAMENTE EL CLIENTE CUANDO SE COMPLETAN 13 DÍGITOS DE IDENTIDAD
   useEffect(() => {
     const soloDigitos = identidadBusqueda.replace(/\D/g, '');
 
     if (soloDigitos.length === 0 && identidad === '') {
-      setNombreCliente('CONSUMIDOR FINAL');
-      setIdCliente(null); // ⭐ NUEVO
-      setClienteEncontrado(true);
+      if (!nombreCliente) {
+        setNombreCliente('');
+      }
+      setIdCliente(null);
+      setClienteEncontrado(false);
       setYaConsultado(false);
       return;
     }
@@ -197,18 +198,26 @@ const EncabezadoFactura = ({
             )}
           </div>
 
-          {/*CAMPO NOMBRE CLIENTE SOLO LECTURA*/}
+          {/*CAMPO NOMBRE CLIENTE - EDITABLE SI NO HAY CLIENTE REGISTRADO*/}
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              Nombre Cliente*
+              Nombre Cliente* {!identidad && <span className="text-gray-500 font-normal">(opcional)</span>}
             </label>
             <input
               type="text"
               value={nombreCliente}
-              readOnly
-              className="w-full h-9 px-3 text-sm border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
-              placeholder="Nombre completo del cliente"
+              onChange={(e) => setNombreCliente(e.target.value)}
+              readOnly={identidad && clienteEncontrado}
+              className={`w-full h-9 px-3 text-sm border border-gray-300 rounded-md ${
+                identidad && clienteEncontrado
+                  ? 'bg-gray-100 text-gray-600 cursor-not-allowed'
+                  : 'bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none'
+              }`}
+              placeholder={identidad ? "Nombre completo del cliente" : "Ej: Empresa XYZ o dejar vacío"}
             />
+            {!identidad && (
+              <p className="text-[0.65rem] text-gray-500 mt-0.5">Si no ingresa nombre, aparecerá "CONSUMIDOR FINAL"</p>
+            )}
           </div>
 
           {/*CAMPO RTN*/}
