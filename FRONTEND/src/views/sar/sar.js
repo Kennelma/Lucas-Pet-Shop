@@ -100,6 +100,12 @@ return (
             <div className="bg-white p-4 rounded-xl" style={{ boxShadow: '0 0 8px #9ee2c4ff, 0 0 0 1px #a6dac3ff' }}>
                 <style>
                     {`
+                        .p-datatable-sm .p-datatable-tbody > tr > td {
+                            padding: 0.4rem 0.5rem !important;
+                        }
+                        .p-datatable-sm .p-datatable-thead > tr > th {
+                            padding: 0.4rem 0.5rem !important;
+                        }
                         .p-datatable th:first-child {
                             text-align: center !important;
                         }
@@ -140,8 +146,9 @@ return (
                     loading={loading}
                     paginator
                     rows={10}
-                    className="p-datatable-striped"
+                    className="p-datatable-striped p-datatable-sm"
                     emptyMessage="No hay registros de CAI"
+                    rowClassName="compact-row"
                 >
                     <Column
                         field="codigo_cai"
@@ -165,24 +172,33 @@ return (
                         headerStyle={{ textAlign: 'center' }}
                     />
                     <Column
-                        field="total_facturas"
-                        header="TOTAL"
+                        header="RANGOS"
                         sortable
-                        style={{ width: '80px', textAlign: 'center' }}
+                        style={{ width: '140px', textAlign: 'center' }}
+                        headerStyle={{ textAlign: 'center' }}
+                        body={(rowData) => {
+                            return `${rowData.rango_inicio} - ${rowData.rango_fin}`;
+                        }}
+                    />
+                    <Column
+                        field="total_facturas"
+                        header="TOTAL FACTURAS"
+                        sortable
+                        style={{ width: '-10px', textAlign: 'center' }}
                         headerStyle={{ textAlign: 'center' }}
                     />
                     <Column
                         field="facturas_usadas"
                         header="USADAS"
                         sortable
-                        style={{ width: '80px', textAlign: 'center' }}
+                        style={{ width: '30px', textAlign: 'center' }}
                         headerStyle={{ textAlign: 'center' }}
                     />
                     <Column
                         field="facturas_disponibles"
                         header="RESTANTES"
                         sortable
-                        style={{ width: '100px', textAlign: 'center' }}
+                        style={{ width: '90px', textAlign: 'center' }}
                         headerStyle={{ textAlign: 'center' }}
                     />
                     <Column

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
-import { crearCAI } from '../../AXIOS.SERVICES/sar-axios';
+import { crearCAI, verCatalogoCAI } from '../../AXIOS.SERVICES/sar-axios';
 import Swal from 'sweetalert2';
 
 const ModalNuevoCAI = ({ isOpen, onClose }) => {
@@ -19,26 +19,64 @@ const ModalNuevoCAI = ({ isOpen, onClose }) => {
 
   const [errores, setErrores] = useState({});
   const [guardando, setGuardando] = useState(false);
+  const [ultimoRangoFin, setUltimoRangoFin] = useState(null);
+  const [rangoSugerido, setRangoSugerido] = useState(null);
 
   // Calcular cantidad de facturas automáticamente
   const cantidadFacturas = formData.rango_inicial && formData.rango_final
     ? Math.max(0, parseInt(formData.rango_final) - parseInt(formData.rango_inicial) + 1)
     : 0;
 
-  // Limpiar formulario cuando se cierra/abre el modal
+  // Obtener último CAI y sugerir rango cuando se abre el modal
   useEffect(() => {
-    if (isOpen) {
-      setFormData({
-        codigo_cai: '',
-        fecha_limite: '',
-        rango_inicial: '',
-        rango_final: '',
-        establecimiento: '000',
-        punto_emision: '002',
-        tipo_documento: '01',
-      });
-      setErrores({});
-    }
+    const obtenerUltimoRango = async () => {
+      if (isOpen) {
+        try {
+          const response = await verCatalogoCAI();
+          const catalogoCAI = response.Catalogo || [];
+
+          if (catalogoCAI.length > 0) {
+            // Ordenar por rango_fin descendente y tomar el primero
+            const caiOrdenado = [...catalogoCAI].sort((a, b) => b.rango_fin - a.rango_fin);
+            const ultimoCAI = caiOrdenado[0];
+            const ultimoFin = ultimoCAI.rango_fin;
+            const sugeridoInicio = ultimoFin + 1;
+
+            setUltimoRangoFin(ultimoFin);
+            setRangoSugerido({ inicio: sugeridoInicio });
+
+            // Autocompletar SOLO el rango inicial (obligatorio y bloqueado)
+            setFormData({
+              codigo_cai: '',
+              fecha_limite: '',
+              rango_inicial: sugeridoInicio.toString(),
+              rango_final: '',
+              establecimiento: '000',
+              punto_emision: '002',
+              tipo_documento: '01',
+            });
+          } else {
+            // Si no hay CAI previos, debe empezar en 1 (bloqueado)
+            setUltimoRangoFin(null);
+            setRangoSugerido(null);
+            setFormData({
+              codigo_cai: '',
+              fecha_limite: '',
+              rango_inicial: '1',
+              rango_final: '',
+              establecimiento: '000',
+              punto_emision: '002',
+              tipo_documento: '01',
+            });
+          }
+        } catch (error) {
+          console.error('Error al obtener último CAI:', error);
+        }
+        setErrores({});
+      }
+    };
+
+    obtenerUltimoRango();
   }, [isOpen]);
 
   const handleChange = (e) => {
@@ -55,7 +93,6 @@ const ModalNuevoCAI = ({ isOpen, onClose }) => {
         }
         formatted += cleaned[i];
       }
-
       setFormData(prev => ({ ...prev, [name]: formatted }));
     } else if (name === 'rango_inicial' || name === 'rango_final') {
       let val = value.replace(/[^0-9]/g, '');
@@ -354,7 +391,7 @@ const ModalNuevoCAI = ({ isOpen, onClose }) => {
               value={formData.codigo_cai}
               onChange={handleChange}
               className="w-full rounded-xl h-8 text-sm"
-              placeholder="44009D-F53E7E-7C06E0-63BE03-090938-C3"
+              placeholder="Mínimo 37 caracteres"
               autoComplete="off"
               maxLength={35}
             />
@@ -393,6 +430,14 @@ const ModalNuevoCAI = ({ isOpen, onClose }) => {
           </div>
 
           {/* Rango Inicial y Final */}
+          {ultimoRangoFin !== null && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-1.5">
+              <p className="text-[10px] text-blue-800 font-semibold text-center">
+                ÚLTIMO CAI TERMINÓ EN: <span className="font-bold">{ultimoRangoFin.toLocaleString()}</span> - El nuevo debe comenzar en: <span className="font-bold">{(ultimoRangoFin + 1).toLocaleString()}</span>
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-2">
             {/* Rango Inicial */}
             <div>
@@ -403,15 +448,15 @@ const ModalNuevoCAI = ({ isOpen, onClose }) => {
                 id="rango_inicial"
                 name="rango_inicial"
                 value={formData.rango_inicial}
-                onChange={handleChange}
+                readOnly
+                disabled
                 maxLength={7}
-                className={`w-full rounded-xl h-8 text-sm ${errores.rango_inicial ? 'p-invalid' : ''}`}
-                placeholder="1 / 0000001"
+                className="w-full rounded-xl h-8 text-sm bg-gray-100 cursor-not-allowed font-semibold"
                 autoComplete="off"
               />
-              {errores.rango_inicial && (
-                <p className="text-[10px] text-red-600 mt-0.5">{errores.rango_inicial}</p>
-              )}
+              <p className="text-[9px] text-gray-600 mt-0.5 italic">
+                Valor automático, no editable
+              </p>
             </div>
 
             {/* Rango Final */}

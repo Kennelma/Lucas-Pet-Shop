@@ -95,6 +95,25 @@ exports.crearCAI = async (req, res) => {
             throw new Error('LA FECHA LÍMITE DEBE SER FUTURA');
         }
 
+        //VALIDAR QUE EL RANGO SEA CONSECUTIVO CON EL ÚLTIMO CAI
+        const [ultimoCAI] = await conn.query(
+            `SELECT rango_fin
+            FROM tbl_cai
+            WHERE tipo_documento = ?
+            ORDER BY rango_fin DESC
+            LIMIT 1`,
+            [tipo_documento]
+        );
+
+        if (ultimoCAI && ultimoCAI.length > 0) {
+            const ultimoRangoFin = parseInt(ultimoCAI[0].rango_fin);
+            const nuevoRangoInicio = parseInt(rango_inicio);
+
+            if (nuevoRangoInicio !== ultimoRangoFin + 1) {
+                throw new Error(`EL RANGO DEBE SER CONSECUTIVO. EL ÚLTIMO CAI TERMINÓ EN ${ultimoRangoFin}, EL NUEVO DEBE COMENZAR EN ${ultimoRangoFin + 1}`);
+            }
+        }
+
         //VALIDAR QUE NO EXISTA CAI ACTIVO
         const [caiActivo] = await conn.query(
             `SELECT id_cai_pk
