@@ -321,17 +321,17 @@ const handleVerFactura = (factura) => {
 
 
   return (
-    <div className="space-y-6 p-4 max-w-5xl mx-auto bg-white shadow-xl rounded-lg min-h-screen">
+    <div className="space-y-4 sm:space-y-6 bg-white shadow-xl rounded-lg min-h-screen w-full">
       {/*HEADER*/}
-      <div className="mb-6">
-        <p className="text-gray-600 text-center font-bold italic">Gestiona y visualiza todas las facturas del sistema</p>
+      <div className="mb-4 sm:mb-6 px-4 sm:px-6 pt-4 sm:pt-6">
+        <p className="text-gray-600 text-center font-bold italic text-sm sm:text-base">Gestiona y visualiza todas las facturas del sistema</p>
       </div>
 
       {/*FILTROS_Y_BUSQUEDA*/}
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 mx-4 sm:mx-6 mb-4 sm:mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           {/*BUSQUEDA*/}
-          <div className="md:col-span-2">
+          <div className="sm:col-span-2 lg:col-span-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
@@ -382,34 +382,34 @@ const handleVerFactura = (factura) => {
         </div>
       </div>
 
-      {/*RESUMEN_DE_ESTADISTICAS*/}
-      <div className="flex gap-2 mb-4 max-w-3xl mx-auto justify-center">
-        <div className="bg-blue-500 rounded shadow-sm p-1.5 w-40">
+      {/*RESUMEN_DE_ESTADISTICAS - RESPONSIVE*/}
+      <div className="flex flex-wrap gap-2 mb-4 max-w-3xl mx-auto justify-center px-4">
+        <div className="bg-blue-500 rounded shadow-sm p-1.5 w-full sm:w-40">
           <div className="flex items-center justify-between">
-            <p className="text-white text-xs font-medium">TOTAL FACTURAS</p>
-            <p className="text-base font-bold text-white">{facturas.length}</p>
+            <p className="text-white text-[0.65rem] sm:text-xs font-medium">TOTAL</p>
+            <p className="text-sm sm:text-base font-bold text-white">{facturas.length}</p>
           </div>
         </div>
-        <div className="bg-green-500 rounded shadow-sm p-1.5 w-40">
+        <div className="bg-green-500 rounded shadow-sm p-1.5 w-full sm:w-40">
           <div className="flex items-center justify-between">
-            <p className="text-white text-xs font-medium">PAGADAS</p>
-            <p className="text-base font-bold text-white">
+            <p className="text-white text-[0.65rem] sm:text-xs font-medium">PAGADAS</p>
+            <p className="text-sm sm:text-base font-bold text-white">
               {facturas.filter(f => f.nombre_estado?.toUpperCase() === 'PAGADA').length}
             </p>
           </div>
         </div>
-        <div className="bg-orange-500 rounded shadow-sm p-1.5 w-40">
+        <div className="bg-orange-500 rounded shadow-sm p-1.5 w-full sm:w-40">
           <div className="flex items-center justify-between">
-            <p className="text-white text-xs font-medium">PARCIAL</p>
-            <p className="text-base font-bold text-white">
+            <p className="text-white text-[0.65rem] sm:text-xs font-medium">PARCIAL</p>
+            <p className="text-sm sm:text-base font-bold text-white">
               {facturas.filter(f => f.nombre_estado?.toUpperCase() === 'PARCIAL').length}
             </p>
           </div>
         </div>
-        <div className="bg-yellow-500 rounded shadow-sm p-1.5 w-40">
+        <div className="bg-yellow-500 rounded shadow-sm p-1.5 w-full sm:w-40">
           <div className="flex items-center justify-between">
-            <p className="text-white text-xs font-medium">PENDIENTES</p>
-            <p className="text-base font-bold text-white">
+            <p className="text-white text-[0.65rem] sm:text-xs font-medium">PENDIENTES</p>
+            <p className="text-sm sm:text-base font-bold text-white">
               {facturas.filter(f => f.nombre_estado?.toUpperCase() === 'PENDIENTE').length}
             </p>
           </div>
@@ -417,18 +417,18 @@ const handleVerFactura = (factura) => {
       </div>
 
       {/*TABLA_DE_FACTURAS*/}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <table className="w-full table-auto">
-          <thead className="bg-gray-50 border-b border-gray-200">
+      <div className="bg-white rounded-lg shadow-sm overflow-x-auto mx-4 sm:mx-6">
+        <table className="w-full table-auto text-sm sm:text-base">
+          <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
             <tr>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase">N° FACTURA</th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">FECHA</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase">CLIENTE</th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">VENDEDOR</th>
-              <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase">TOTAL</th>
-              <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase">SALDO</th>
-              <th className="px-2 py-2 text-center text-xs font-medium text-gray-700 uppercase">ESTADO</th>
-              <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 uppercase">ACCIONES</th>
+              <th className="px-2 sm:px-4 py-2 text-left text-[0.65rem] sm:text-xs font-medium text-gray-700 uppercase">N° FAC</th>
+              <th className="px-2 sm:px-3 py-2 text-left text-[0.65rem] sm:text-xs font-medium text-gray-700 uppercase hidden sm:table-cell">FECHA</th>
+              <th className="px-2 sm:px-4 py-2 text-left text-[0.65rem] sm:text-xs font-medium text-gray-700 uppercase">CLIENTE</th>
+              <th className="px-2 sm:px-3 py-2 text-left text-[0.65rem] sm:text-xs font-medium text-gray-700 uppercase hidden md:table-cell">VENDEDOR</th>
+              <th className="px-2 sm:px-3 py-2 text-right text-[0.65rem] sm:text-xs font-medium text-gray-700 uppercase">TOTAL</th>
+              <th className="px-2 sm:px-3 py-2 text-right text-[0.65rem] sm:text-xs font-medium text-gray-700 uppercase hidden lg:table-cell">SALDO</th>
+              <th className="px-2 py-2 text-center text-[0.65rem] sm:text-xs font-medium text-gray-700 uppercase">ESTADO</th>
+              <th className="px-2 sm:px-3 py-2 text-center text-[0.65rem] sm:text-xs font-medium text-gray-700 uppercase">ACCIONES</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -446,58 +446,54 @@ const handleVerFactura = (factura) => {
                 const estadoUpper = factura.nombre_estado?.toUpperCase();
 
                 return (
-                  <tr key={index} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-2">
-                      <div className="text-sm font-medium text-gray-900 break-words max-w-[180px]">{factura.numero_factura}</div>
+                  <tr key={index} className="hover:bg-gray-50 transition-colors border-b border-gray-100">
+                    <td className="px-2 sm:px-4 py-2">
+                      <div className="text-[0.7rem] sm:text-sm font-medium text-gray-900 break-words max-w-[80px] sm:max-w-[180px]">{factura.numero_factura}</div>
                     </td>
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <div className="text-sm text-gray-600">
+                  <td className="px-2 sm:px-3 py-2 whitespace-nowrap hidden sm:table-cell">
+                    <div className="text-xs sm:text-sm text-gray-600">
                       {factura.fecha_emision ? new Date(factura.fecha_emision).toLocaleDateString('es-HN', {
-                        year: 'numeric',
+                        year: '2-digit',
                         month: 'short',
                         day: 'numeric'
                       }) : '-'}
                     </div>
                   </td>
-                  <td className="px-4 py-2">
-                    {factura.nombre_cliente ? (
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {`${factura.nombre_cliente} ${factura.apellido_cliente || ''}`}
-                        </div>
-                        {factura.identidad_cliente && (
-                          <div className="text-xs text-gray-500">{factura.identidad_cliente}</div>
-                        )}
+                  <td className="px-2 sm:px-4 py-2">
+                    <div>
+                      <div className="text-[0.7rem] sm:text-sm font-medium text-gray-900 break-words max-w-[100px] sm:max-w-none">
+                        {factura.nombre_cliente || 'CONSUMIDOR FINAL'}
                       </div>
-                    ) : (
-                      <div className="text-sm font-medium text-gray-900">Consumidor Final</div>
-                    )}
+                      {factura.identidad_cliente && (
+                        <div className="text-[0.6rem] sm:text-xs text-gray-500 hidden sm:block">{factura.identidad_cliente}</div>
+                      )}
+                    </div>
                   </td>
-                  <td className="px-3 py-2">
-                    <div className="text-sm text-gray-600">{factura.usuario}</div>
-                    <div className="text-xs text-gray-500">{factura.nombre_sucursal}</div>
+                  <td className="px-2 sm:px-3 py-2 hidden md:table-cell">
+                    <div className="text-xs sm:text-sm text-gray-600">{factura.usuario}</div>
+                    <div className="text-[0.65rem] text-gray-500">{factura.nombre_sucursal}</div>
                   </td>
-                  <td className="px-3 py-2 text-right whitespace-nowrap">
-                    <div className="text-sm font-semibold text-gray-900">{formatCurrency(factura.total)}</div>
+                  <td className="px-2 sm:px-3 py-2 text-right whitespace-nowrap">
+                    <div className="text-[0.7rem] sm:text-sm font-semibold text-gray-900">{formatCurrency(factura.total)}</div>
                   </td>
-                  <td className="px-3 py-2 text-right whitespace-nowrap">
-                    <div className={`text-sm font-semibold ${factura.saldo > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  <td className="px-2 sm:px-3 py-2 text-right whitespace-nowrap hidden lg:table-cell">
+                    <div className={`text-[0.7rem] sm:text-sm font-semibold ${factura.saldo > 0 ? 'text-red-600' : 'text-green-600'}`}>
                       {formatCurrency(factura.saldo)}
                     </div>
                   </td>
                   <td className="px-2 py-2 text-center">
-                    <span className={`px-2 py-1 inline-flex text-xs font-semibold rounded ${getEstadoBadge(factura.nombre_estado)}`}>
-                      {factura.nombre_estado?.toUpperCase() || 'PENDIENTE'}
+                    <span className={`px-1 sm:px-2 py-1 inline-flex text-[0.6rem] sm:text-xs font-semibold rounded ${getEstadoBadge(factura.nombre_estado)}`}>
+                      {factura.nombre_estado?.toUpperCase()}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-center">
-                    <div className="flex items-center justify-center gap-1">
+                  <td className="px-2 sm:px-3 py-2 text-center">
+                    <div className="flex items-center justify-center gap-1 sm:gap-1.5 flex-wrap">
                       <button
                         onClick={() => handleVerFactura(factura)}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                        title="Ver detalles"
+                        className="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        title="Ver"
                       >
-                        <Eye size={16} />
+                        <Eye size={16} className="sm:w-5 sm:h-5" />
                       </button>
 
                       {estadoUpper === 'PAGADA' ? (
@@ -505,18 +501,18 @@ const handleVerFactura = (factura) => {
                           {/* BOTONES PARA FACTURAS PAGADAS */}
                           <button
                             onClick={() => handleImprimirFactura(factura)}
-                            className="p-1.5 text-gray-600 hover:bg-gray-50 rounded transition-colors"
+                            className="p-1.5 sm:p-2 text-gray-600 hover:bg-gray-50 rounded transition-colors"
                             title="Imprimir"
                           >
-                            <Printer size={16} />
+                            <Printer size={16} className="sm:w-5 sm:h-5" />
                           </button>
 
                           <button
                             onClick={() => handleDescargarFactura(factura)}
-                            className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors"
-                            title="Descargar PDF"
+                            className="p-1.5 sm:p-2 text-green-600 hover:bg-green-50 rounded transition-colors"
+                            title="Descargar"
                           >
-                            <Download size={16} />
+                            <Download size={16} className="sm:w-5 sm:h-5" />
                           </button>
                         </>
                       ) : (
@@ -524,13 +520,14 @@ const handleVerFactura = (factura) => {
                           {/* BOTÓN PARA FACTURAS PENDIENTES O PARCIALES */}
                           <button
                             onClick={() => handleAbrirModalPago(factura)}
-                            className={`px-2.5 py-1 text-white text-[0.7rem] font-medium rounded transition-colors ${
+                            className={`px-2 sm:px-3 py-1.5 sm:py-2 text-white text-xs sm:text-sm font-medium rounded transition-colors whitespace-nowrap ${
                               estadoUpper === 'PARCIAL'
                                 ? 'bg-orange-600 hover:bg-orange-700'
                                 : 'bg-blue-600 hover:bg-blue-700'
                             }`}
                           >
-                            {estadoUpper === 'PARCIAL' ? 'Continuar pago' : 'Realizar pago'}
+                            <span className="hidden sm:inline">{estadoUpper === 'PARCIAL' ? 'Continuar' : 'Pagar'}</span>
+                            <span className="sm:hidden">Pago</span>
                           </button>
                         </>
                       )}
@@ -545,18 +542,19 @@ const handleVerFactura = (factura) => {
 
         {/*SIN_RESULTADOS*/}
         {facturasFiltradas.length === 0 && !loading && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No se encontraron facturas</p>
-            <p className="text-gray-400 text-sm mt-2">Intenta ajustar los filtros de búsqueda</p>
+          <div className="text-center py-8 sm:py-12">
+            <p className="text-gray-500 text-base sm:text-lg">No se encontraron facturas</p>
+            <p className="text-gray-400 text-xs sm:text-sm mt-2">Intenta ajustar los filtros de búsqueda</p>
           </div>
         )}
       </div>
 
       {/*PAGINACION*/}
       {facturasFiltradas.length > 0 && (
-        <div className="mt-6 flex justify-between items-center">
-          <div className="text-sm text-gray-600">
-            Mostrando <span className="font-semibold">{Math.min(rows, facturasFiltradas.length)}</span> de <span className="font-semibold">{facturasFiltradas.length}</span> facturas
+        <div className="mt-4 sm:mt-6 px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
+            <span className="hidden sm:inline">Mostrando <span className="font-semibold">{Math.min(rows, facturasFiltradas.length)}</span> de <span className="font-semibold">{facturasFiltradas.length}</span> facturas</span>
+            <span className="sm:hidden"><span className="font-semibold">{facturasFiltradas.length}</span> facturas</span>
           </div>
           <Paginator
             first={first}
@@ -580,8 +578,8 @@ const handleVerFactura = (factura) => {
 
       {/*MODAL_PREVIEW_PDF*/}
       {showPDFPreview && pdfUrl && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-75">
-          <div className="bg-white rounded-lg shadow-2xl w-11/12 max-w-5xl h-[90vh] flex flex-col relative">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-75 p-2 sm:p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-5xl h-[90vh] sm:h-[85vh] flex flex-col relative">
             {/* BOTÓN CERRAR EN LA ESQUINA */}
             <button
               onClick={handleCerrarPreview}

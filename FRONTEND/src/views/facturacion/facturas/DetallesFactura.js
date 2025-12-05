@@ -264,6 +264,7 @@ const DetallesFactura = ({
     const datosFactura = {
       RTN: RTN || null,
       id_cliente: id_cliente || null,
+      nombre_cliente_temporal: (!id_cliente && nombreCliente) ? nombreCliente : null,
       descuento: DESCUENTO,
       items: items.map((item) => ({
         tipo: item.tipo,
@@ -383,6 +384,7 @@ const DetallesFactura = ({
         datosFactura: {
           RTN: RTN || null,
           id_cliente: id_cliente || null,
+          nombre_cliente_temporal: (!id_cliente && nombreCliente) ? nombreCliente : null,
           descuento: DESCUENTO,
           items: items.map((item) => ({
             tipo: item.tipo,
@@ -535,7 +537,7 @@ const DetallesFactura = ({
   return (
     <div>
       <div
-        className="space-y-6 p-4 mx-auto bg-white rounded-lg"
+        className="space-y-4 sm:space-y-6 p-3 sm:p-4 w-full bg-white rounded-lg"
         style={{ boxShadow: "0 0 15px rgba(0, 0, 0, 0.1)" }}
       >
         {/*ENCABEZADO CON BOTÓN AGREGAR ITEM*/}
@@ -1099,31 +1101,20 @@ const DetallesFactura = ({
         {/*TOTALES Y BOTONES*/}
         {items.length > 0 && (
           <div
-            className="flex justify-between items-center"
-            style={{ gap: "24px", marginTop: "38px" }}
+            className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-3 lg:gap-6 mt-8 lg:mt-10"
           >
-            <div className="flex flex-1 justify-center" style={{ gap: "12px" }}>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1">
               <button
                 onClick={handleGuardarFacturaSinPago}
                 disabled={loading || !caiActivo}
-                className={`
-                  ${(loading || !caiActivo)
-                    ? "bg-gray-400 cursor-not-allowed text-white! opacity-80!"
-                    : "bg-blue-500 hover:bg-blue-600 text-white"}
-                  px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl`}
-                style={{ borderRadius: "12px" }}
+                className={`flex-1 px-3 sm:px-6 py-2 rounded-full transition-colors font-semibold text-xs sm:text-sm shadow-lg hover:shadow-xl whitespace-nowrap ${(loading || !caiActivo) ? "bg-gray-400 cursor-not-allowed text-white opacity-80" : "bg-blue-500 hover:bg-blue-600 text-white"}`}
               >
-                {loading ? "Guardando..." : "GUARDAR SIN PAGAR"}
+                {loading ? "Guardando..." : "GUARDAR SIN PAGO"}
               </button>
               <button
                 onClick={handleOpenPaymentModal}
                 disabled={loading || !caiActivo}
-                className={`
-                  ${(loading || !caiActivo)
-                    ? "bg-gray-400 cursor-not-allowed text-white! opacity-80!"
-                    : "bg-green-500 hover:bg-green-600 text-white"}
-                  px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl`}
-                style={{ borderRadius: "12px" }}
+                className={`flex-1 px-3 sm:px-6 py-2 rounded-full transition-colors font-semibold text-xs sm:text-sm shadow-lg hover:shadow-xl whitespace-nowrap ${(loading || !caiActivo) ? "bg-gray-400 cursor-not-allowed text-white opacity-80" : "bg-green-500 hover:bg-green-600 text-white"}`}
               >
                 {loading ? "Guardando..." : "CONTINUAR CON PAGO"}
               </button>
@@ -1148,22 +1139,19 @@ const DetallesFactura = ({
                   }
                 }}
                 disabled={loading || !caiActivo}
-                className={`bg-red-500 ${loading || !caiActivo ? 'cursor-not-allowed bg-gray-400 hover:bg-gray-400' : 'hover:bg-red-600'} text-white px-6 py-2 rounded-full transition-colors font-semibold shadow-lg hover:shadow-xl`}
-                style={{ borderRadius: "12px" }}
+                className={`flex-1 px-3 sm:px-6 py-2 rounded-full transition-colors font-semibold text-xs sm:text-sm shadow-lg hover:shadow-xl whitespace-nowrap text-white ${loading || !caiActivo ? 'cursor-not-allowed bg-gray-400' : 'bg-red-500 hover:bg-red-600'}`}
               >
                 CANCELAR
               </button>
             </div>
 
             <div
-              className="bg-gray-100 border border-gray-200 rounded-lg"
-              style={{ padding: "16px 24px" }}
+              className="bg-gray-100 border border-gray-200 rounded-lg p-4 sm:p-6 w-full lg:w-auto"
             >
               <div className="mb-3">
-                <div className="flex items-center" style={{ gap: "8px" }}>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                   <label
-                    className="text-sm text-gray-700 font-medium"
-                    style={{ width: 120 }}
+                    className="text-xs sm:text-sm text-gray-700 font-medium whitespace-nowrap"
                   >
                     Descuento (L):
                   </label>
@@ -1173,8 +1161,7 @@ const DetallesFactura = ({
                     value={descuentoValor || ""}
                     onChange={(e) => setDescuentoValor(Number(e.target.value) || 0)}
                     placeholder="0"
-                    className="border border-gray-300 rounded px-2 py-1 text-sm text-right"
-                    style={{ width: 140 }}
+                    className="border border-gray-300 rounded px-2 py-1 text-xs sm:text-sm text-right w-full sm:w-32"
                   />
                 </div>
               </div>

@@ -18,13 +18,12 @@ cron.schedule('0 */5 * * * ', async () => {
                 nombre_producto,
                 stock,
                 stock_minimo
-            FROM tbl_productos 
+            FROM tbl_productos
             WHERE stock < stock_minimo
         `);
 
         if (producto.length === 0) {
 
-            console.log('NO HAY PRODUCTOS BAJO STOCK');
             await conn.commit();
             return;
 
@@ -67,7 +66,6 @@ cron.schedule('0 */5 * * * ', async () => {
 
     } catch (error) {
         await conn.rollback();
-        console.error('ERROR EN EL JOB DE PRODUCTOS BAJO STOCK:', error);
 
     } finally {
         conn.release();

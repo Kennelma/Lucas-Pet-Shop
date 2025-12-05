@@ -178,7 +178,7 @@ const MedicamentoTable = ({
             onChange={handleCambiarEstado}
             className="sr-only peer"
           />
-          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
         </label>
         <span className={`ml-2 text-xs font-medium ${rowData.activo ? 'text-green-600' : 'text-gray-500'}`}>
           {rowData.activo ? 'Activo' : 'Inactivo'}
@@ -278,90 +278,100 @@ const actionBotones = (rowData, column) => {
           <p className="text-gray-500 mb-6">Crea tu primer medicamento para comenzar el inventario.</p>
         </div>
       ) : (
-        <DataTable
-          value={medicamentosConStock}
-          loading={false}
-          loadingIcon={() => (
-            <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
-              <span>Cargando datos...</span>
-            </div>
-          )}
-          globalFilter={globalFilter}
-          globalFilterFields={['nombre_producto', 'sku', 'presentacion_medicamento', 'tipo_medicamento']}
-          showGridlines
-          paginator
-          rows={5}
-          rowsPerPageOptions={[5, 10, 15, 20]}
-          paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-          tableStyle={{ minWidth: '50rem' }}
-          className="mt-4"
-          size="small"
-          selectionMode="single"
-          rowClassName={(rowData) => `hover:bg-gray-50 cursor-pointer`}
-        >
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <DataTable
+            value={medicamentosConStock}
+            loading={false}
+            loadingIcon={() => (
+              <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
+                <span className="text-xs sm:text-sm">Cargando datos...</span>
+              </div>
+            )}
+            globalFilter={globalFilter}
+            globalFilterFields={['nombre_producto', 'sku', 'presentacion_medicamento', 'tipo_medicamento']}
+            showGridlines
+            paginator
+            rows={5}
+            rowsPerPageOptions={[5, 10, 15, 20]}
+            paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+            className="mt-4 text-xs sm:text-sm"
+            size="small"
+            selectionMode="single"
+            rowClassName={(rowData) => `hover:bg-gray-50 cursor-pointer`}
+          >
 
-          <Column
-            field="id_producto_pk"
-            header="ID"
-            body={(rowData) => medicamentosConStock.length - medicamentosConStock.indexOf(rowData)}
-            sortable
-            className="text-sm"
-          />
+            <Column
+              field="id_producto_pk"
+              header="ID"
+              body={(rowData) => medicamentosConStock.length - medicamentosConStock.indexOf(rowData)}
+              sortable
+              className="text-xs sm:text-sm"
+              style={{ minWidth: '50px' }}
+            />
 
-          <Column
-            field="nombre_producto"
-            header="MEDICAMENTO"
-            body={productoTemplate}
-            sortable
-            className="text-sm"
-          />
-          <Column
-            field="tipo_medicamento"
-            header="PRESENTACIÓN"
-            body={tipoPresentacionTemplate}
-            sortable
-            className="text-sm"
-          />
-          <Column
-            field="precio_producto"
-            header="PRECIO"
-            body={precioTemplate}
-            sortable
-            className="text-sm"
-          />
+            <Column
+              field="nombre_producto"
+              header="MEDICAMENTO"
+              body={productoTemplate}
+              sortable
+              className="text-xs sm:text-sm"
+              style={{ minWidth: '120px' }}
+            />
+            <Column
+              field="tipo_medicamento"
+              header="PRESENTACIÓN"
+              body={tipoPresentacionTemplate}
+              sortable
+              className="text-xs sm:text-sm"
+              style={{ minWidth: '120px' }}
+            />
+            <Column
+              field="precio_producto"
+              header="PRECIO"
+              body={precioTemplate}
+              sortable
+              className="text-xs sm:text-sm"
+              style={{ minWidth: '80px' }}
+            />
 
-          <Column
-            header="STOCK"
-            body={stockTemplate}
-            sortable
-            sortField="stockTotal"
-            field="stockTotal"
-            className="text-sm text-center"
-            bodyClassName="text   "
-          />
+            <Column
+              header="STOCK"
+              body={stockTemplate}
+              sortable
+              sortField="stockTotal"
+              field="stockTotal"
+              className="text-xs sm:text-sm text-center"
+              bodyClassName="text-center"
+              style={{ minWidth: '60px' }}
+            />
 
-          <Column
-            header="LOTES"
-            body={lotesTemplate}
-            className="text-sm text-center"
-          />
-          <Column
-            field="activo"
-            header="ESTADO"
-            body={estadoTemplate}
-            sortable
-            sortField="activo"
-            className="text-sm"
-          />
+            <Column
+              header="LOTES"
+              body={lotesTemplate}
+              className="text-xs sm:text-sm text-center"
+              bodyClassName="text-center"
+              style={{ minWidth: '60px' }}
+            />
+            <Column
+              field="activo"
+              header="ESTADO"
+              body={estadoTemplate}
+              sortable
+              sortField="activo"
+              className="text-xs sm:text-sm"
+              style={{ minWidth: '100px' }}
+            />
 
-          <Column
-            header="ACCIONES"
-            body={actionBotones}
-            className="py-2 pr-9 pl-1 border-b text-sm"
-          />
+            <Column
+              header="ACCIONES"
+              body={actionBotones}
+              className="py-2 pr-3 sm:pr-9 pl-1 text-xs sm:text-sm"
+              style={{ minWidth: '50px' }}
+            />
 
-        </DataTable>
+          </DataTable>
+        </div>
       )}
     </>
   );

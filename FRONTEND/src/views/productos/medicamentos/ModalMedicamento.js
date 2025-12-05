@@ -374,12 +374,9 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
 
   return (
     <Dialog
-      header={<div className="w-full text-center text-lg font-bold">{medicamentoEditando ? 'EDITAR MEDICAMENTO' : 'NUEVO MEDICAMENTO'}</div>}
+      header={<div className="w-full text-center text-sm sm:text-base md:text-lg font-bold">{medicamentoEditando ? 'EDITAR MEDICAMENTO' : 'NUEVO MEDICAMENTO'}</div>}
       visible={isOpen}
-      style={medicamentoEditando ?
-        { width: '30rem', maxHeight: '85vh', borderRadius: '1.5rem' } :
-        { width: '28rem', borderRadius: '1.5rem' }
-      }
+      className={medicamentoEditando ? "w-11/12 sm:w-96 md:w-[30rem]" : "w-11/12 sm:w-96 md:w-[28rem]"}
       modal
       closable={false}
       onHide={onClose}
@@ -391,8 +388,8 @@ const ModalMedicamento = ({ isOpen, onClose, onSave, medicamentoEditando, medica
       contentStyle={medicamentoEditando ? {
         overflowY: 'auto',
         padding: '1rem',
-        maxHeight: 'calc(85vh - 120px)'
-      } : {}}
+        maxHeight: 'calc(100vh - 120px)'
+      } : { maxHeight: 'calc(100vh - 120px)' }}
     >
       {/* Indicador de pasos */}
       {!medicamentoEditando && (

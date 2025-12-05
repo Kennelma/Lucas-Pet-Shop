@@ -288,7 +288,7 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
                         >
                             {
                                 qr ? (
-                                    <div className="bg-gradient-to-br from-blue-50 to-white p-3 rounded-xl border border-blue-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="bg-linear-to-br from-blue-50 to-white p-3 rounded-xl border border-blue-100 grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {/* QR Code */}
                                         <div className="text-center">
                                             <div className="bg-white p-4 rounded-xl border border-blue-100 mb-3 w-fit mx-auto relative shadow-lg">
@@ -332,19 +332,19 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
 
                                                 <div className="space-y-2">
                                                     <div className="flex items-start">
-                                                        <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">1</span>
+                                                        <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">1</span>
                                                         <span className="text-gray-700 text-xs">Abre WhatsApp <FaWhatsapp className="inline text-green-500 mx-1" /> en tu teléfono</span>
                                                     </div>
                                                     <div className="flex items-start">
-                                                        <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">2</span>
+                                                        <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">2</span>
                                                         <span className="text-gray-700 text-xs">En Android, toca <strong>Menú ⋮</strong>. En iPhone, toca <strong>Ajustes ⚙️</strong></span>
                                                     </div>
                                                     <div className="flex items-start">
-                                                        <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">3</span>
+                                                        <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">3</span>
                                                         <span className="text-gray-700 text-xs">Toca <strong>Dispositivos vinculados</strong> y, luego, <strong>Vincular dispositivo</strong></span>
                                                     </div>
                                                     <div className="flex items-start">
-                                                        <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">4</span>
+                                                        <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">4</span>
                                                         <span className="text-gray-700 text-xs">Escanea el código QR para confirmar</span>
                                                     </div>
                                                 </div>
@@ -376,7 +376,7 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
                                     </div>
                                 }
                             >
-                                <div className="bg-gradient-to-br from-purple-50 to-white p-3 rounded-xl border border-purple-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="bg-linear-to-br from-purple-50 to-white p-3 rounded-xl border border-purple-100 grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* Formulario */}
                                     <div>
                                             <div className="text-center mb-3">
@@ -435,23 +435,23 @@ const ConexionWhatsApp = ({ isOpen, onClose, onCerrarSesion }) => {
 
                                             <div className="space-y-2">
                                                 <div className="flex items-start">
-                                                    <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">1</span>
+                                                    <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">1</span>
                                                     <span className="text-gray-700 text-xs">Ingresa tu número con <strong>código de país</strong></span>
                                                 </div>
                                                 <div className="flex items-start">
-                                                    <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">2</span>
+                                                    <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">2</span>
                                                     <span className="text-gray-700 text-xs">Haz clic en <strong>"Solicitar Código"</strong></span>
                                                 </div>
                                                 <div className="flex items-start">
-                                                    <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">3</span>
+                                                    <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">3</span>
                                                     <span className="text-gray-700 text-xs">Abre <strong>WhatsApp</strong> → <strong>Dispositivos vinculados</strong></span>
                                                 </div>
                                                 <div className="flex items-start">
-                                                    <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">4</span>
+                                                    <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">4</span>
                                                     <span className="text-gray-700 text-xs">Selecciona <strong>"Vincular con número"</strong></span>
                                                 </div>
                                                 <div className="flex items-start">
-                                                    <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 flex-shrink-0">5</span>
+                                                    <span className="bg-purple-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0">5</span>
                                                     <span className="text-gray-700 text-xs">Ingresa el código mostrado</span>
                                                 </div>
                                             </div>

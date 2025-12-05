@@ -1,15 +1,13 @@
+//IMPORTACIÓN DE VARIABLES DE ENTORNO
+require('dotenv').config();
+
 const express = require('express');
 const cors = require("cors");
 const app = express();
 const path = require('path');
+
 const mysqlConnection = require('./config/conexion');
-const { connectWhatsApp } = require('./config/whatsapp');
-
-
-//IMPORTACIÓN DE VARIABLES DE ENTORNO
-require('dotenv').config({
-    path: path.resolve(process.cwd(), '..', '.env')
-});
+const { connectWhatsApp } = require('./config/WhatsApp');
 
 
 //IMPORTACIÓN DE JOBS
@@ -21,20 +19,29 @@ require('./jobs/envio-recordatorios');
 //PARA QUE EL SERVIDOR PUEDA RECIBIR JSON Y XXWW-FORM-URLENCODED
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+
+//HABILITAR CORS
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://lucas-pet-shop.vercel.app',
+    'https://lucas-pet-shop.up.railway.app'
+  ],
+  credentials: true
+}));
 
 app.use('/api', require('./routes/rutas'));
 
-
 //IMPORTACION DE WHATSAPP
 connectWhatsApp().catch(err => {
-    console.error('ERROR AL CONECTAR WHATSAPP:', err);
+    console.error('Error al conectar WhatsApp:', err);
 });
 
-const PORT = 4000;
-app.listen(PORT, function() {
-    console.log('SERVIDOR EN PUERTO ' + PORT);
-    //console.log('📱 Escanea el QR de WhatsApp si aparece en la terminal');
+//SERVIDOR ESCUCHANDO PETICIONES, PUERTO 4000 O EL QUE ASIGNE EL HOSTING
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, '0.0.0.0',() => {
+    console.log(`Servidor escuchando en el puerto ${PORT}`);
 });
 
 module.exports = app;

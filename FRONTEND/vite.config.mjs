@@ -8,11 +8,18 @@ export default defineConfig(() => {
     base: './',
     build: {
       outDir: 'build',
+      target: 'es2015', // Compatibilidad con navegadores antiguos
+      cssTarget: 'chrome80', // CSS compatible
+      minify: 'terser',
+      terserOptions: {
+        safari10: true // Compatibilidad Safari 10+
+      }
     },
     esbuild: {
       loader: 'jsx',
       include: /src\/.*\.jsx?$/,
       exclude: [],
+      target: 'es2015'
     },
     optimizeDeps: {
       force: true,
@@ -24,12 +31,8 @@ export default defineConfig(() => {
     },
     plugins: [
       react({
-        jsxImportSource: undefined,
-        babel: {
-          plugins: [
-            ['styled-jsx/babel', { optimizeForSpeed: true }]
-          ]
-        }
+        jsxRuntime: 'automatic',
+        fastRefresh: true
       }),
       tailwindcss()
     ],
@@ -43,8 +46,7 @@ export default defineConfig(() => {
       extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.scss'],
     },
     server: {
-    port: 3000,
-    historyApiFallback: true,
+    port: 3000
   }
   }
 })

@@ -681,14 +681,13 @@ export default function GestionEmpresa() {
   };
 
   return (
-
-    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
-    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+    <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+      <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50">
       {/* Título */}
       <div
-        className="rounded-xl p-6 mb-3 bg-cover bg-center"
+        className="rounded-lg sm:rounded-xl p-4 sm:p-6 mb-3 sm:mb-4 bg-cover bg-center"
         style={{
-          backgroundImage: 'url("/H8.png")',
+          backgroundImage: window.innerWidth >= 640 ? 'url("/H8.png")' : 'none',
           backgroundColor: '#008FCC',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
@@ -697,25 +696,25 @@ export default function GestionEmpresa() {
         }}
       >
         <div className="flex justify-center items-center">
-          <h2 className="text-2xl  text-center text-white">
+          <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-center text-white">
             GESTIÓN DE EMPRESAS
           </h2>
         </div>
-        <p className="text-center text-white italic mt-2">
+        <p className="text-xs sm:text-sm text-center text-white italic mt-2">
           Administra empresas y sucursales del sistema
         </p>
       </div>
 
       {/* Sección Principal */}
-      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #61a6f540, 0 0 0 1px #6594ec33'}}>
+      <div className="bg-white rounded-lg sm:rounded-xl p-4 sm:p-6 mb-6" style={{boxShadow: '0 0 8px #61a6f540, 0 0 0 1px #6594ec33'}}>
         {/* Barra de búsqueda + botones */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="relative w-80">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="relative w-full sm:w-80">
             <input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar empresas o sucursales..."
-              className="w-full px-4 py-2 border rounded-full"
+              className="w-full px-3 sm:px-4 py-2 text-xs sm:text-sm border rounded-full"
             />
             {searchTerm && (
               <button
@@ -727,9 +726,9 @@ export default function GestionEmpresa() {
             )}
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <button
-              className="bg-[#C7E4E2] text-black px-6 py-2 rounded hover:bg-[#A3D2CA4] transition-colors flex items-center gap-2"
+              className="w-full sm:w-auto bg-[#C7E4E2] text-black px-4 sm:px-6 py-2 rounded hover:bg-[#A3D2CA] transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm"
               onClick={() => abrirModalEmpresa('create')}
             >
               <Plus size={16} />
@@ -745,11 +744,11 @@ export default function GestionEmpresa() {
                 abrirModalSucursal('create', null, null);
               }}
               disabled={!empresas?.length}
-              className={`${
+              className={`w-full sm:w-auto ${
                 !empresas?.length
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-[#C7E4E2] hover:bg-[#A3D2CA]'
-              } text-black px-6 py-2 rounded transition-colors flex items-center gap-2`}
+              } text-black px-4 sm:px-6 py-2 rounded transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm`}
             >
               <Plus size={16} />
               NUEVA SUCURSAL
@@ -760,16 +759,17 @@ export default function GestionEmpresa() {
         {loading ? (
           <div className="flex items-center justify-center min-h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
-            <span className="ml-3 text-gray-600">Cargando datos...</span>
+            <span className="ml-3 text-xs sm:text-sm text-gray-600">Cargando datos...</span>
           </div>
         ) : (
+          <div className="overflow-x-auto rounded-lg border border-gray-200">
           <DataTable
             value={prepararDatosParaTabla()}
             loading={loading}
             loadingIcon={() => (
               <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
-                <span>Cargando datos...</span>
+                <span className="text-xs sm:text-sm">Cargando datos...</span>
               </div>
             )}
             globalFilter={searchTerm}
@@ -779,9 +779,9 @@ export default function GestionEmpresa() {
             rows={10}
             rowsPerPageOptions={[5, 10, 20, 25]}
             paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-            tableStyle={{ minWidth: '50rem' }}
-            className="mt-4"
+            className="mt-4 text-xs sm:text-sm"
             size="small"
+            style={{ width: '100%' }}
             emptyMessage={
               searchTerm ? (
                 <div className="p-6 text-center">
@@ -835,6 +835,7 @@ export default function GestionEmpresa() {
               style={{ position: 'relative', overflow: 'visible' }}
             />
           </DataTable>
+          </div>
         )}
       </div>
 
@@ -868,7 +869,7 @@ export default function GestionEmpresa() {
           empresas={empresas}
         />
       )}
+      </div>
     </div>
-  </div>
   );
 }

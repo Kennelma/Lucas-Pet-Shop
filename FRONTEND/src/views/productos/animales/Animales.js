@@ -166,7 +166,7 @@ const Animales = () => {
             onChange={() => actualizarEstadoAnimal(rowData, !rowData.activo)}
             className="sr-only peer"
           />
-          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
         </label>
         <span className={`ml-2 text-xs font-medium ${rowData.activo ? 'text-green-600' : 'text-gray-500'}`}>
           {rowData.activo ? 'Activo' : 'Inactivo'}
@@ -360,12 +360,12 @@ const Animales = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
-    <div className="min-h-screen p-6 ">
+    <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+      <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50">
      {/* Título */}
-      <div className="rounded-xl p-6 mb-3"
+      <div className="rounded-lg sm:rounded-xl p-4 sm:p-6 mb-3 sm:mb-4"
         style={{
-          backgroundImage: 'url("/H6.jpg")',
+          backgroundImage: window.innerWidth >= 640 ? 'url("/H6.jpg")' : 'none',
           backgroundColor: '#F5CC8E',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
@@ -374,26 +374,26 @@ const Animales = () => {
         }}
       >
         <div className="flex justify-center items-center">
-          <h2 className="text-2xl font-black text-center uppercase text-black">
+          <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-center uppercase text-black">
             GESTIÓN DE ANIMALES
           </h2>
         </div>
-        <p className="text-center text-black italic mt-2">
+        <p className="text-xs sm:text-sm text-center text-black italic mt-2">
           Administra los animales disponibles en el sistema para su venta
         </p>
       </div>
 
       <AnimalesMasVendidos animales={animales} />
 
-      <div className="bg-white rounded-lg p-6 mb-6" style={{boxShadow: '0 0 8px #F5CC8E40, 0 0 0 1px #F5CC8E33'}}>
+      <div className="bg-white rounded-lg sm:rounded-xl p-4 sm:p-6 mb-6" style={{boxShadow: '0 0 8px #F5CC8E40, 0 0 0 1px #F5CC8E33'}}>
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="relative w-80">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="relative w-full sm:w-80">
             <input
               value={filtroGlobal}
               onChange={(e) => setFiltroGlobal(e.target.value)}
               placeholder="Buscar animales..."
-              className="w-full px-4 py-2 border rounded-full"
+              className="w-full px-3 sm:px-4 py-2 text-xs sm:text-sm border rounded-full"
             />
             {filtroGlobal && (
               <button
@@ -406,7 +406,7 @@ const Animales = () => {
           </div>
           {/* BOTÓN PARA ABRIR EL MODAL DE NUEVO ANIMAL, TEXTO EN NEGRO */}
           <button
-            className="bg-orange-300 text-black px-6 py-2 rounded hover:bg-orange-400 transition-colors flex items-center gap-2"
+            className="w-full sm:w-auto bg-orange-300 text-black px-4 sm:px-6 py-2 rounded hover:bg-orange-400 transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm"
 
             onClick={() => abrirModal()}
           >
@@ -415,13 +415,14 @@ const Animales = () => {
           </button>
         </div>
 
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
         <DataTable
           value={filtroAnimales}
           loading={loading}
           loadingIcon={() => (
             <div className="flex items-center justify-center space-x-2 py-8 text-gray-500">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500"></div>
-              <span>Cargando datos...</span>
+              <span className="text-xs sm:text-sm">Cargando datos...</span>
             </div>
           )}
           globalFilter={filtroGlobal}
@@ -431,8 +432,7 @@ const Animales = () => {
           rows={5}
           rowsPerPageOptions={[5, 10, 20, 25]}
           paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-          tableStyle={{ minWidth: '50rem' }}
-          className="mt-4"
+          className="mt-4 text-xs sm:text-sm"
           size="small"
           selectionMode="single"
           rowClassName={() => 'hover:bg-gray-50 cursor-pointer'}
@@ -442,18 +442,20 @@ const Animales = () => {
             header="ID"
             body={(rowData) => filtroAnimales.length - filtroAnimales.indexOf(rowData)}
             sortable
-            className="text-sm"
+            className="text-xs sm:text-sm"
+            style={{ minWidth: '50px' }}
           />
-          <Column field="nombre" header="NOMBRE" sortable className="text-sm" />
-          <Column field="sku" header="SKU" sortable className="text-sm" />
-          <Column field="especie" header="ESPECIE" sortable className="text-sm" />
-          <Column field="sexo" header="SEXO" sortable className="text-sm" />
+          <Column field="nombre" header="NOMBRE" sortable className="text-xs sm:text-sm" style={{ minWidth: '120px' }} />
+          <Column field="sku" header="SKU" sortable className="text-xs sm:text-sm" style={{ minWidth: '80px' }} />
+          <Column field="especie" header="ESPECIE" sortable className="text-xs sm:text-sm" style={{ minWidth: '100px' }} />
+          <Column field="sexo" header="SEXO" sortable className="text-xs sm:text-sm" style={{ minWidth: '70px' }} />
           <Column
             field="precio"
             header="PRECIO"
             body={(rowData) => `L. ${rowData.precio.toFixed(2)}`}
             sortable
-            className="text-sm"
+            className="text-xs sm:text-sm"
+            style={{ minWidth: '80px' }}
           />
           <Column
             field="stock"
@@ -464,9 +466,9 @@ const Animales = () => {
               </span>
             )}
             sortable
-            className="text-sm stock-column-center"
-            headerClassName="stock-header-center"
-            bodyClassName="stock-body-center"
+            className="text-xs sm:text-sm text-center"
+            bodyClassName="text-center"
+            style={{ minWidth: '60px' }}
           />
           <Column
             field="activo"
@@ -474,7 +476,8 @@ const Animales = () => {
             body={estadoTemplate}
             sortable
             sortField="activo"
-            className="text-sm"
+            className="text-xs sm:text-sm"
+            style={{ minWidth: '100px' }}
           />
           <Column
             header="ACCIONES"
@@ -490,9 +493,11 @@ const Animales = () => {
                 />
               );
             }}
-            className="py-2 pr-9 pl-1 border-b text-sm"
+            className="py-2 pr-3 sm:pr-9 pl-1 text-xs sm:text-sm"
+            style={{ minWidth: '50px' }}
           />
         </DataTable>
+        </div>
       </div>
 
       {/* Modales */}
@@ -513,7 +518,7 @@ const Animales = () => {
               animalesExistentes={animales} // ✅ AGREGAR ESTA PROP
           />
         ))}
-    </div>
+      </div>
     </div>
   );
 };

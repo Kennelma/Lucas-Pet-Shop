@@ -156,7 +156,7 @@ const ModalLotesMedicamento = ({ isOpen, onClose, medicamentoSeleccionado, lotes
         </div>
       }
       visible={isOpen}
-      style={{ width: '50rem', borderRadius: '1.5rem' }}
+      className="w-11/12 sm:w-full md:w-[50rem]"
       modal
       closable={false}
       onHide={onClose}

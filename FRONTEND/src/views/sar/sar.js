@@ -71,13 +71,14 @@ const estadoTemplate = (rowData) => {
 };
 
 return (
-    <div className="p-6" style={{ fontFamily: 'Poppins', backgroundColor: "#F7F8F2" }}>
-        <div className="p-6 pb-12">
+    <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+        <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50">
+        <div className="pb-12">
 
             {/* Título */}
-            <div className="rounded-xl p-6 mb-3"
+            <div className="rounded-xl p-4 sm:p-6 mb-3"
                 style={{
-                    backgroundImage: 'url("/H15.png")',
+                    backgroundImage: window.innerWidth >= 640 ? 'url("/H15.png")' : 'none',
                     backgroundColor: '#80d6afff',
                     backgroundSize: 'contain',
                     backgroundRepeat: 'no-repeat',
@@ -86,11 +87,11 @@ return (
                 }}
             >
                 <div className="flex justify-center items-center">
-                    <h2 className="text-2xl font-black text-center uppercase text-black">
+                    <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-center uppercase text-black">
                         GESTIÓN DE LOS CAI
                     </h2>
                 </div>
-                <p className="text-center text-black italic mt-2">
+                <p className="text-center text-black italic mt-2 text-xs sm:text-sm">
                     Administra los CAI disponibles en el sistema para su uso en facturación
                 </p>
             </div>
@@ -99,6 +100,12 @@ return (
             <div className="bg-white p-4 rounded-xl" style={{ boxShadow: '0 0 8px #9ee2c4ff, 0 0 0 1px #a6dac3ff' }}>
                 <style>
                     {`
+                        .p-datatable-sm .p-datatable-tbody > tr > td {
+                            padding: 0.4rem 0.5rem !important;
+                        }
+                        .p-datatable-sm .p-datatable-thead > tr > th {
+                            padding: 0.4rem 0.5rem !important;
+                        }
                         .p-datatable th:first-child {
                             text-align: center !important;
                         }
@@ -139,8 +146,9 @@ return (
                     loading={loading}
                     paginator
                     rows={10}
-                    className="p-datatable-striped"
+                    className="p-datatable-striped p-datatable-sm"
                     emptyMessage="No hay registros de CAI"
+                    rowClassName="compact-row"
                 >
                     <Column
                         field="codigo_cai"
@@ -164,24 +172,33 @@ return (
                         headerStyle={{ textAlign: 'center' }}
                     />
                     <Column
-                        field="total_facturas"
-                        header="TOTAL"
+                        header="RANGOS"
                         sortable
-                        style={{ width: '80px', textAlign: 'center' }}
+                        style={{ width: '140px', textAlign: 'center' }}
+                        headerStyle={{ textAlign: 'center' }}
+                        body={(rowData) => {
+                            return `${rowData.rango_inicio} - ${rowData.rango_fin}`;
+                        }}
+                    />
+                    <Column
+                        field="total_facturas"
+                        header="TOTAL FACTURAS"
+                        sortable
+                        style={{ width: '-10px', textAlign: 'center' }}
                         headerStyle={{ textAlign: 'center' }}
                     />
                     <Column
                         field="facturas_usadas"
                         header="USADAS"
                         sortable
-                        style={{ width: '80px', textAlign: 'center' }}
+                        style={{ width: '30px', textAlign: 'center' }}
                         headerStyle={{ textAlign: 'center' }}
                     />
                     <Column
                         field="facturas_disponibles"
                         header="RESTANTES"
                         sortable
-                        style={{ width: '100px', textAlign: 'center' }}
+                        style={{ width: '90px', textAlign: 'center' }}
                         headerStyle={{ textAlign: 'center' }}
                     />
                     <Column
@@ -217,6 +234,7 @@ return (
                                     caiData={caiSeleccionado}
                             />
                         )}
+        </div>
         </div>
     </div>
 );

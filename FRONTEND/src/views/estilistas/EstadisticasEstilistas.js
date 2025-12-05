@@ -149,7 +149,7 @@ const EstadisticasEstilistas = () => {
   };
 
   return (
-    <div className="mb-3">
+    <div className="mb-3 px-2 sm:px-3 md:px-4">
       <div className="max-w-7xl mx-auto">
 
         {/*ESTADO_LOADING*/}
@@ -165,10 +165,10 @@ const EstadisticasEstilistas = () => {
             <p className="text-gray-500 text-lg">No hay estilistas registrados en el sistema</p>
           </div>
         ) : (
-          <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-6">
 
             {/*SECCION_GRAFICOS*/}
-            <div className="flex-1 bg-white rounded-lg p-3 h-fit shadow-lg">
+            <div className="flex-1 bg-white rounded-lg p-2 sm:p-3 md:p-4 h-fit shadow-lg">
 
               {/*BOTONES_Y_FILTROS*/}
               <div className="flex flex-col sm:flex-row gap-3 items-center justify-between mb-3">
@@ -198,20 +198,20 @@ const EstadisticasEstilistas = () => {
                 </div>
 
                 {/*FILTROS_DE_FECHA*/}
-                <div className="flex flex-row gap-1.5 items-center">
-                  <label className="text-xs font-medium text-gray-700">Desde:</label>
+                <div className="flex gap-1 items-center text-[10px] sm:text-xs">
+                  <label className="font-medium text-gray-700 whitespace-nowrap">Desde:</label>
                   <input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="px-1.5 py-0.5 border border-gray-300 rounded text-[10px] focus:ring-1 focus:ring-blue-500 focus:border-transparent w-[120px]"
+                    className="px-1 py-0.5 border border-gray-300 rounded text-[9px] sm:text-[10px] focus:ring-1 focus:ring-blue-500 w-[100px] sm:w-[120px]"
                   />
-                  <label className="text-xs font-medium text-gray-700">Hasta:</label>
+                  <label className="font-medium text-gray-700 whitespace-nowrap">Hasta:</label>
                   <input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="px-1.5 py-0.5 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent w-[120px]"
+                    className="px-1 py-0.5 border border-gray-300 rounded text-[9px] sm:text-[10px] focus:ring-1 focus:ring-blue-500 w-[100px] sm:w-[120px]"
                   />
                 </div>
               </div>
@@ -351,7 +351,7 @@ const EstadisticasEstilistas = () => {
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div
-                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          className="w-3 h-3 rounded-full shrink-0"
                           style={{ backgroundColor: item.color }}
                         />
                         <p className="text-xs text-slate-900 uppercase truncate" style={{ marginTop: '1rem' }}>{item.nombreCompleto}</p>

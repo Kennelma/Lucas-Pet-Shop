@@ -177,7 +177,7 @@ export default function CarouselProductos() {
             // 🏪 Contenedor principal: una tarjeta elegante que se anima al pasar el mouse
             <div className="bg-white rounded-2xl overflow-hidden transition-all duration-300 transform hover:scale-105 m-3 group h-80 flex flex-col">
                 {/* 🖼️ Área de la imagen del producto */}
-                <div className="relative h-48 overflow-hidden flex-shrink-0">
+                <div className="relative h-48 overflow-hidden shrink-0">
                     <img
                         src={`/images_LP/${product.image}`}
                         alt={product.name}

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = "http://localhost:4000/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 //INSTANCIA DE AXIOS
 const axiosInstance = axios.create({
@@ -23,7 +23,7 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    
+
     if (
       error.response &&
       error.response.status === 401 &&

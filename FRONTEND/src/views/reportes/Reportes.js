@@ -99,14 +99,13 @@ const Reportes = () => {
   });
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
-      <div className="max-w-7xl mx-auto" style={{ fontFamily: 'Poppins' }}>
-        <div className="min-h-screen p-6 bg-gray-50">
+    <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+      <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50">
           {/* Titulo */}
           <div
-            className="rounded-xl p-6 mb-6"
+            className="rounded-xl p-4 sm:p-6 mb-6"
             style={{
-              backgroundImage: 'url("/h100.png")',
+              backgroundImage: window.innerWidth >= 640 ? 'url("/h100.png")' : 'none',
               backgroundColor: '#79c2faff',
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
@@ -115,13 +114,13 @@ const Reportes = () => {
             }}
           >
             <div className="flex justify-center items-center">
-              <h2 className="text-2xl font-black text-center uppercase text-black">
+              <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-center uppercase text-black">
                 REPORTES FINANCIEROS
               </h2>
             </div>
             <p
-              className="text-center text-gray-700 italic mt-2"
-              style={{ fontFamily: 'Poppins', fontSize: '15px' }}
+              className="text-center text-gray-700 italic mt-2 text-xs sm:text-sm"
+              style={{ fontFamily: 'Poppins' }}
             >
               Gráficas y resumen del año actual
             </p>
@@ -301,11 +300,10 @@ const Reportes = () => {
             <Tabla
               obtenerRegistroFinanciero={obtenerRegistroFinanciero}
               obtenerHistorialReportes={obtenerHistorialReportes}
-              obtenerReportesDetallados={obtenerReportesDetallados}  // ← PASA LA FUNCIÓN CORRECTA
+              obtenerReportesDetallados={obtenerReportesDetallados}
               registrosFinancieros={registrosFinancieros}
             />
           )}
-        </div>
       </div>
     </div>
   );

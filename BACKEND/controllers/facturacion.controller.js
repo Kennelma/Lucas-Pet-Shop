@@ -341,7 +341,10 @@ exports.crearFacturaSinPago = async (req, res) => {
     const id_sucursal = req.usuario.id_sucursal_fk;
 
     //SE OBTIENEN LOS DATOS DESDE EL BODY DEL FRONTEND
-    const { RTN, id_cliente, nombre_cliente, descuento, items } = req.body;
+    const { RTN, id_cliente, nombre_cliente_temporal, descuento, items } = req.body;
+
+    // Determinar qué nombre usar: si hay cliente registrado, null; si no, usar el temporal o 'CONSUMIDOR FINAL'
+    const nombre_cliente = id_cliente ? null : (nombre_cliente_temporal && nombre_cliente_temporal.trim() !== '' ? nombre_cliente_temporal : 'CONSUMIDOR FINAL');
 
     //SE OBTIENE EL IMPUESTO PARA LOS CALCULOS DE LA FACTURA
     const [isv] = await conn.query(
@@ -563,8 +566,9 @@ exports.crearFacturaSinPago = async (req, res) => {
                 id_cai_fk,
                 id_usuario_fk,
                 id_estado_fk,
-                id_cliente_fk
-            ) VALUES (?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                id_cliente_fk,
+                nombre_cliente
+            ) VALUES (?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         numero_factura,
         RTN || null,
@@ -579,6 +583,7 @@ exports.crearFacturaSinPago = async (req, res) => {
         id_usuario,
         estado_factura,
         id_cliente || null,
+        nombre_cliente || null,
       ]
     );
 
@@ -712,7 +717,7 @@ exports.crearFacturaConPago = async (req, res) => {
     const {
       RTN,
       id_cliente,
-      nombre_cliente,
+      nombre_cliente_temporal,
       descuento,
       items,
       monto_pagado,
@@ -720,6 +725,9 @@ exports.crearFacturaConPago = async (req, res) => {
       id_metodo_pago, //Un solo método (para compatibilidad)
       id_tipo_pago,
     } = req.body;
+
+    // Determinar qué nombre usar: si hay cliente registrado, null; si no, usar el temporal o 'CONSUMIDOR FINAL'
+    const nombre_cliente = id_cliente ? null : (nombre_cliente_temporal && nombre_cliente_temporal.trim() !== '' ? nombre_cliente_temporal : 'CONSUMIDOR FINAL');
 
     //SE VALIDAN LOS MÉTODOS DE PAGO
     let metodosPagoValidados = [];
@@ -1038,8 +1046,9 @@ exports.crearFacturaConPago = async (req, res) => {
                 id_cai_fk,
                 id_usuario_fk,
                 id_estado_fk,
-                id_cliente_fk
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+                id_cliente_fk,
+                nombre_cliente
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         numero_factura,
         fechaEmision,
@@ -1055,6 +1064,7 @@ exports.crearFacturaConPago = async (req, res) => {
         id_usuario,
         estado_factura,
         id_cliente || null,
+        nombre_cliente || null,
       ]
     );
 
@@ -1460,7 +1470,8 @@ exports.historialFacturas = async (req, res) => {
           s.nombre_sucursal,
           c.nombre_estado,
           COALESCE(
-            CONCAT_WS(' ', cl.nombre_cliente, cl.apellido_cliente),
+            NULLIF(CONCAT(IFNULL(cl.nombre_cliente, ''), ' ', IFNULL(cl.apellido_cliente, '')), ' '),
+            f.nombre_cliente,
             'CONSUMIDOR FINAL'
           ) AS nombre_cliente,
           cl.identidad_cliente
@@ -1572,7 +1583,7 @@ exports.ImpresionFactura = async (req, res) => {
                 f.saldo,
                 c.nombre_estado as estado,
                 cl.id_cliente_pk,
-                cl.nombre_cliente,
+                COALESCE(cl.nombre_cliente, f.nombre_cliente) as nombre_cliente,
                 cl.apellido_cliente,
                 cl.identidad_cliente,
                 cl.telefono_cliente,
